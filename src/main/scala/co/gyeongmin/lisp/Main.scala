@@ -53,5 +53,5 @@ object Main extends App {
     }
   }
 
-  println(tokenize("(x 30 #2r1001001)"))
+  println(tokenize("(x 30 #2r1001001 1357/2345)"))
 }
