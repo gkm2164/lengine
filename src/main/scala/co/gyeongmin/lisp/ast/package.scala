@@ -1,7 +1,8 @@
 package co.gyeongmin.lisp
 
-package object ast {
-  sealed trait LispSymbol
+import cats.data.State
 
-  case class LispList(x: LispSymbol, y: Seq[LispList])
+package object ast {
+  case class LispEnvironment(remainCodes: List[String], funs: Map[String, List[String]])
+  type LispState[A] = State[LispEnvironment, A]
 }
