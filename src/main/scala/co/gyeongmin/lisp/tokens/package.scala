@@ -3,7 +3,7 @@ package co.gyeongmin.lisp
 import scala.util.matching.Regex
 
 package object tokens {
-
+  val SymbolRegex: Regex = """([a-zA-Z\-+/*%][a-zA-Z0-9\-+/*%]*)""".r
   val NumberRegex: Regex = """(#(\d{1,2}[rR]|b|B|o|O|x|X))?([+\-])?([\dA-Za-z]+)""".r
   val RatioRegex: Regex = """(#(\d{1,2}[rR]|b|B|o|O|x|X))?([+\-])?([\dA-Za-z]+)/(-?[\dA-Za-z]+)""".r
   val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
@@ -57,9 +57,12 @@ package object tokens {
     }
 
     val retCode = refineCode("", code, char = false, string = false, escape = false)
+
     (retCode match {
       case Left(e) => Left(e)
-      case Right(c) => foldLeft(c.split(" ").map(LispToken.apply).toList)(Vector.empty[LispToken])((acc, elem) => acc :+ elem)
+      case Right(c) =>
+        println(c.split("[ \n\t]").map(x => s"[$x]").toList)
+        foldLeft(c.split("[ \n\t]").map(LispToken.apply).toList)(Vector.empty[LispToken])((acc, elem) => acc :+ elem)
     }).map(_.toList)
   }
 
@@ -127,15 +130,13 @@ package object tokens {
       case ")" => Right(RightParenthesis)
       case "[" => Right(LeftBracket)
       case "]" => Right(RightBracket)
+      case SymbolRegex(name) => Right(Symbol(name))
       case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
       case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
-      case s@NumberRegex(_, base, sign, num) =>
-        println(s, base, sign, num)
-        Right(IntegerNumber(parseInteger(base, sign, num)))
+      case NumberRegex(_, base, sign, num) => Right(IntegerNumber(parseInteger(base, sign, num)))
       case RatioRegex(_, base, sign, over, under) => Right(RatioNumber(parseInteger(base, sign, over), parseInteger(base, "+", under)))
       case CharRegex(chs) => Right(CharValue(chs))
       case StringRegex(str) => Right(StringValue(str))
-      case name => Right(Symbol(name))
     }
 
     def parseInteger(base: String, sign: String, str: String): Long = {
