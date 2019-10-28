@@ -3,6 +3,8 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.monads._
 import co.gyeongmin.lisp.tokens._
 
+import scala.io.Source
+
 object Main extends App {
 
   type LispActiveRecord = Map[String, EvalResult]
@@ -130,8 +132,17 @@ object Main extends App {
     }
   }
 
-  println(tokenize("(fn x [a b] (+ 3 5))") match {
-    case Right(code) => eval(code, Map.empty)
-    case Left(e) => Left(e)
-  })
+
+  if (args.isEmpty) {
+    println("error!")
+  } else {
+    val file = Source.fromFile(args(0))
+    val codes = file.mkString("")
+    println(codes)
+    for {
+      tokens <- tokenize(codes)
+      _ = println(tokens)
+      _ <- eval(tokens, Map.empty)
+    } yield ()
+  }
 }
