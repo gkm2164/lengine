@@ -1,3 +1,6 @@
 (def x 3)
 (def y 4)
-(println (+ 3 4))
+(fn p [str] (println str))
+(p (+ 3 4))
+(fn fact [n] (if (> n 0) (* n (fact (- n 1))) 1))
+(p (fact 3))

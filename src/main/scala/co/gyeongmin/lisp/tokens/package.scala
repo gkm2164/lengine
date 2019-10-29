@@ -1,9 +1,11 @@
 package co.gyeongmin.lisp
 
+import co.gyeongmin.lisp.Main.LispActiveRecord
+
 import scala.util.matching.Regex
 
 package object tokens {
-  val SymbolRegex: Regex = """([a-zA-Z\-+/*%][a-zA-Z0-9\-+/*%]*)""".r
+  val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
   val NumberRegex: Regex = """(#(\d{1,2}[rR]|b|B|o|O|x|X))?([+\-])?([\dA-Za-z]+)""".r
   val RatioRegex: Regex = """(#(\d{1,2}[rR]|b|B|o|O|x|X))?([+\-])?([\dA-Za-z]+)/(-?[\dA-Za-z]+)""".r
   val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
@@ -57,12 +59,9 @@ package object tokens {
     }
 
     val retCode = refineCode("", code, char = false, string = false, escape = false)
-
     (retCode match {
       case Left(e) => Left(e)
-      case Right(c) =>
-        println(c.split("[ \n\t]").map(x => s"[$x]").toList)
-        foldLeft(c.split("[ \n\t]").map(LispToken.apply).toList)(Vector.empty[LispToken])((acc, elem) => acc :+ elem)
+      case Right(c) => foldLeft(c.split("[ \n\t]").filterNot(_ == "").map(LispToken.apply).toList)(Vector.empty[LispToken])((acc, elem) => acc :+ elem)
     }).map(_.toList)
   }
 
@@ -70,15 +69,70 @@ package object tokens {
 
   sealed trait LispToken
 
-  sealed trait LispValue extends LispToken
+  sealed trait LispValue extends LispToken {
+    def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
+
+    def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+"))
+
+    def -(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("-"))
+
+    def *(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("*"))
+
+    def /(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("/"))
+
+    def %(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("%"))
+
+    def ||(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("||"))
+
+    def &&(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("&&"))
+
+    def >(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">"))
+
+    def >=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">="))
+
+    def <(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<"))
+
+    def <=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<="))
+
+    def ==(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("=="))
+
+    def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable"))
+  }
 
   sealed trait LispNumber extends LispValue
 
   sealed trait EvalError
 
-  sealed trait EvalResult extends LispToken
+  trait LispFunc extends LispValue {
+    def placeHolders: List[String]
 
-  case class IntegerNumber(value: Long) extends LispNumber
+    def execute(env: LispActiveRecord): Either[EvalError, LispValue]
+  }
+
+  abstract class BuiltinLispFunc(val placeHolders: List[String]) extends LispFunc
+
+  case class IntegerNumber(value: Long) extends LispNumber {
+    override def +(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(IntegerNumber(value + num))
+      case x => Left(UnimplementedOperationError(s"with $x"))
+    }
+
+    override def -(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(IntegerNumber(value - num))
+      case x => Left(UnimplementedOperationError(s"with $x"))
+    }
+
+    override def *(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(IntegerNumber(value * num))
+      case x => Left(UnimplementedOperationError(s"with $x"))
+    }
+
+    override def >(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
+    }
+
+    override def printable(): Either[EvalError, String] = Right(value.toString)
+  }
 
   case class FloatNumber(value: Double) extends LispNumber
 
@@ -90,15 +144,13 @@ package object tokens {
 
   case class StringValue(value: String) extends LispValue
 
-  case class Symbol(name: String) extends LispToken
+  case class Symbol(name: String) extends LispValue
 
-  case class ValueResult(v: LispToken) extends EvalResult
+  case class UnexpectedTokenError(tk: LispToken, msg: String = "") extends EvalError
 
-  case class LispFunc(placeHolders: List[String], codes: List[LispToken]) extends EvalResult
+  case class UnimplementedOperationError(operation: String) extends EvalError
 
-  case class LazyResult(v: List[LispToken]) extends EvalResult
-
-  case class UnexpectedTokenError(tk: LispToken) extends EvalError
+  case object UnitValue extends LispValue
 
   case object LispTrue extends LispValue
 
@@ -137,6 +189,7 @@ package object tokens {
       case RatioRegex(_, base, sign, over, under) => Right(RatioNumber(parseInteger(base, sign, over), parseInteger(base, "+", under)))
       case CharRegex(chs) => Right(CharValue(chs))
       case StringRegex(str) => Right(StringValue(str))
+      case str => Left(UnknownTokenError(s"what is it? [$str]"))
     }
 
     def parseInteger(base: String, sign: String, str: String): Long = {
@@ -155,6 +208,9 @@ package object tokens {
     }
 
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)) = str.toList.map(kv).toMap
+
+    case class UnknownTokenError(str: String) extends TokenizeError
+
   }
 
   object s_:: {

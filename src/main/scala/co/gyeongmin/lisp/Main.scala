@@ -5,14 +5,16 @@ import co.gyeongmin.lisp.tokens._
 
 import scala.io.Source
 
-object Main extends App {
+object Main {
 
-  type LispActiveRecord = Map[String, EvalResult]
+  type LispActiveRecord = Map[String, LispValue]
 
-  def eval: LispState[EvalResult] = (tokens, env) => tokens match {
+  def eval: LispState[LispValue] = (tokens, env) => tokens match {
     case Nil => Left(EmptyTokenError)
-    case (v: LispValue) :: t => Right((ValueResult(v), t, env))
-    case LeftParenthesis :: clause => evalClause(clause, env)
+    case Symbol(x) :: t => env.get(x).toRight(UnknownSymbolNameError).map(v => (v, t, env))
+    case (v: LispValue) :: t => Right((v, t, env))
+    case LeftParenthesis :: afterLeftPar => evalClause(afterLeftPar, env)
+    case tk :: _ => Left(UnexpectedTokenError(tk))
   }
 
   def splitTokens(value: List[LispToken], bracket: LispToken): Either[EvalError, (List[LispToken], List[LispToken])] = {
@@ -51,53 +53,23 @@ object Main extends App {
     case tk :: _ => Left(UnexpectedTokenError(tk))
   }
 
-  def takeUntil(value: List[LispToken], left: LispToken, right: LispToken): Either[EvalError, (List[LispToken], List[LispToken])] = {
+  def takeUntil(value: List[LispToken], open: LispToken, close: LispToken): Either[EvalError, (List[LispToken], List[LispToken])] = {
     @scala.annotation.tailrec
-    def loop(acc: Vector[LispToken], remains: List[LispToken], depth: Int): Either[EvalError, (List[LispToken], List[LispToken])] = value match {
+    def loop(acc: Vector[LispToken], remains: List[LispToken], depth: Int): Either[EvalError, (List[LispToken], List[LispToken])] = remains match {
       case Nil => Left(EmptyTokenError)
-      case tk :: tail if tk == right && depth == 0 => Right((tail, acc.toList))
-      case tk :: tail if tk == right => loop(acc :+ tk, tail, depth - 1)
-      case tk :: tail if tk == left => loop(acc :+ tk, tail, depth + 1)
-      case x :: t => loop(acc :+ x, t, depth)
+      case tk :: tail if tk == close && depth == 0 => Right((acc.toList, tail))
+      case tk :: tail if tk == close => loop(acc :+ tk, tail, depth - 1)
+      case tk :: tail if tk == open => loop(acc :+ tk, tail, depth + 1)
+      case tk :: t => loop(acc :+ tk, t, depth)
     }
 
     loop(Vector.empty, value, 0)
   }
 
-  implicit class LispFuncSyntax(fn: LispFunc) {
-    def execute(argClause: List[LispToken], env: LispActiveRecord): Either[EvalError, EvalResult] = {
-      @scala.annotation.tailrec
-      def symbolEval(symbolEnv: LispActiveRecord, symbols: List[String], argClause: List[LispToken]): Either[EvalError, LispActiveRecord] = symbols match {
-        case Nil => Right(symbolEnv)
-        case s :: t => eval(argClause, env) match {
-          case Right((res, remains, _)) => symbolEval(symbolEnv.updated(s, res), t, remains)
-          case Left(e) => Left(e)
-        }
-      }
-
-      for {
-        resolvedEnv <- symbolEval(env, fn.placeHolders, argClause)
-        evalResult <- eval(fn.codes, resolvedEnv)
-        (res, _, _) = evalResult
-      } yield res
-    }
-
-    private def optionSequence(value: List[Option[LispToken]]): Either[EvalError, List[LispToken]] = {
-      @scala.annotation.tailrec
-      def loop(acc: Vector[LispToken], remains: List[Option[LispToken]]): Either[EvalError, List[LispToken]] = remains match {
-        case Nil => Right(acc.toList)
-        case Some(v) :: t => loop(acc :+ v, t)
-        case None :: _ => Left(UnresolvedSymbolError)
-      }
-
-      loop(Vector.empty, value)
-    }
-  }
-
   // (def f 3)
   // (def f (+ 3 5))
   // (fn xt [a b c] (+3 5))
-  def evalClause: LispState[EvalResult] = (tokens, env) => tokens match {
+  def evalClause: LispState[LispValue] = (tokens, env) => tokens match {
     case Nil => Left(EmptyTokenError)
     case Symbol("def") :: Symbol(name) :: t => for {
       codeResult <- takeUntil(t, LeftParenthesis, RightParenthesis)
@@ -110,39 +82,102 @@ object Main extends App {
       (symbols, afterSymbols) = symbolResult
       codeResult <- takeUntil(afterSymbols, LeftParenthesis, RightParenthesis)
       (codes, remains) = codeResult
-      fn = LispFunc(symbols, codes)
+      fn = GeneralLispFunc(symbols, codes)
     } yield (fn, remains, env.updated(name, fn))
-    case Symbol("if") :: t => eval(t, env).flatMap {
-      case (ValueResult(LispTrue), remains, _) => eval(remains, env)
-      case (ValueResult(LispFalse), remains, _) =>
-        eval(remains, env).flatMap {
-          case (_, falseRemains, _) => eval(falseRemains, env)
-        }
-    }
     case Symbol(name) :: t => env get name match {
-      case Some(ValueResult(v)) => Right((ValueResult(v), t, env))
-      case Some(LazyResult(v)) => eval(v, env)
-      case Some(fn: LispFunc) =>
-        for {
-          argList <- takeUntil(t, LeftParenthesis, RightParenthesis)
-          (args, remains) = argList
-          evalResult <- fn.execute(args, env)
-        } yield (evalResult, remains, env)
+      case Some(fn: LispFunc) => for {
+        argList <- takeUntil(t, LeftParenthesis, RightParenthesis)
+        (args, remains) = argList
+        symbolEnv <- resolveSymbols(env, fn.placeHolders, args)
+        evalResult <- fn.execute(symbolEnv)
+      } yield (evalResult, remains, env)
+      case Some(v) => Right(v, t, env)
       case None => Left(UnknownSymbolNameError)
+    }
+    case tk :: _ => Left(UnexpectedTokenError(tk))
+  }
+
+  def builtinSymbols: LispActiveRecord = Map(
+    "+" -> new BuiltinLispFunc(List("_1", "_2")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        y <- env.get("_2").toRight(UnknownSymbolNameError)
+        res <- x + y
+      } yield res
+    },
+    "-" -> new BuiltinLispFunc(List("_1", "_2")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        y <- env.get("_2").toRight(UnknownSymbolNameError)
+        res <- x - y
+      } yield res
+    },
+    "*" -> new BuiltinLispFunc(List("_1", "_2")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        y <- env.get("_2").toRight(UnknownSymbolNameError)
+        res <- x * y
+      } yield res
+    },
+    ">" -> new BuiltinLispFunc(List("_1", "_2")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        y <- env.get("_2").toRight(UnknownSymbolNameError)
+        res <- x > y
+      } yield res
+    },
+    "println" -> new BuiltinLispFunc(List("_1")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        str <- x.printable()
+        _ = println(str)
+      } yield UnitValue
+    },
+    "if" -> new BuiltinLispFunc(List("_1", "_2", "_3")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        cond <- env.get("_1").toRight(UnknownSymbolNameError)
+        pred <- cond.?
+        answer <- if (pred) env.get("_2").toRight(UnknownSymbolNameError) else env.get("_3").toRight(UnknownSymbolNameError)
+      } yield answer
+    })
+
+  def resolveSymbols(symbolEnv: LispActiveRecord, symbols: List[String], argClause: List[LispToken]): Either[EvalError, LispActiveRecord] = symbols match {
+    case Nil => Right(symbolEnv)
+    case s :: t => for {
+      evalRes <- eval(argClause, symbolEnv)
+      (res, remains, _) = evalRes
+      env <- resolveSymbols(symbolEnv.updated(s, res), t, remains)
+    } yield env
+  }
+
+  def evalLoop(tokens: List[LispToken], env: LispActiveRecord): Either[EvalError, LispValue] = tokens match {
+    case Nil => Right(UnitValue)
+    case _ => for {
+      evalRes <- eval(tokens, env)
+      (_, remains, env) = evalRes
+      res <- evalLoop(remains, env)
+    } yield res
+  }
+
+  def main(args: Array[String]): Unit = {
+    val file = Source.fromFile("./testCode.lisp")
+    val codes = file.mkString("")
+    val result = for {
+      tokens <- tokenize(codes)
+      res <- evalLoop(tokens, builtinSymbols)
+    } yield res
+
+    result match {
+      case Right(x) => x
+      case Left(e) => println(s"failed with $e")
     }
   }
 
-
-  if (args.isEmpty) {
-    println("error!")
-  } else {
-    val file = Source.fromFile(args(0))
-    val codes = file.mkString("")
-    println(codes)
-    for {
-      tokens <- tokenize(codes)
-      _ = println(tokens)
-      _ <- eval(tokens, Map.empty)
-    } yield ()
+  case class GeneralLispFunc(placeHolders: List[String], codes: List[LispToken]) extends LispFunc {
+    fn =>
+    override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+      evalResult <- eval(fn.codes, env)
+      (res, _, _) = evalResult
+    } yield res
   }
 }
