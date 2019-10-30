@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.Main.LispActiveRecord
+import co.gyeongmin.lisp.tokens.LispLexer._
 
 import scala.util.matching.Regex
 
@@ -65,12 +66,12 @@ package object tokens {
     }).map(_.toList)
   }
 
-  sealed trait TokenizeError
-
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
     def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
+
+    def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++"))
 
     def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+"))
 
@@ -129,6 +130,8 @@ package object tokens {
 
     override def >(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
+      case FloatNumber(num) => Right(if (value.toDouble > num) LispTrue else LispFalse)
+      case x => Left(UnimplementedOperationError(s"with $x"))
     }
 
     override def printable(): Either[EvalError, String] = Right(value.toString)
@@ -142,7 +145,9 @@ package object tokens {
 
   case class CharValue(chs: String) extends LispValue
 
-  case class StringValue(value: String) extends LispValue
+  case class StringValue(value: String) extends LispValue {
+    override def printable(): Either[EvalError, String] = Right(value)
+  }
 
   case class Symbol(name: String) extends LispValue
 
@@ -150,13 +155,18 @@ package object tokens {
 
   case class UnimplementedOperationError(operation: String) extends EvalError
 
+  case class LispListType(items: List[LispValue]) extends LispValue
+
   case object UnitValue extends LispValue
 
-  case object LispTrue extends LispValue
+  case object LispTrue extends LispValue {
+    override def ? : Either[EvalError, Boolean] = Right(true)
+  }
 
-  case object LispFalse extends LispValue
+  case object LispFalse extends LispValue {
+    override def ? : Either[EvalError, Boolean] = Right(false)
+  }
 
-  case object WrongEscapeError extends TokenizeError
 
   case object LeftParenthesis extends LispToken
 
@@ -168,7 +178,7 @@ package object tokens {
 
   case object UnknownSymbolNameError extends EvalError
 
-  case object EmptyTokenError extends EvalError
+  case object EmptyTokenListError extends EvalError
 
   case object UnresolvedSymbolError extends EvalError
 
@@ -209,7 +219,6 @@ package object tokens {
 
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)) = str.toList.map(kv).toMap
 
-    case class UnknownTokenError(str: String) extends TokenizeError
 
   }
 

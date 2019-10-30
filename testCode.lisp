@@ -1,5 +1,6 @@
 (def x 3)
 (def y 4)
+(println "Hello, Lisp!")
 (fn p [str] (println str))
 (p (+ 3 4))
 (fn fact [n] (if (> n 0) (* n (fact (- n 1))) 1))
