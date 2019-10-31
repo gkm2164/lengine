@@ -97,20 +97,19 @@ object Main {
       (codes, remains) = codeResult
       fn = GeneralLispFunc(symbols, codes)
     } yield (fn, remains, env.updated(name, fn))
-    case Symbol("if") :: t =>
-      eval(t, env).flatMap {
-        case (cond, remains, _) => cond.? match {
-            case Right(true) => eval(remains, env)
-            case Right(false) => eval(skipClause(remains), env)
-            case Left(e) => Left(e)
-          }
+    case Symbol("if") :: t => eval(t, env).flatMap {
+      case (cond, remains, _) => cond.? match {
+        case Right(true) => eval(remains, env)
+        case Right(false) => eval(skipClause(remains), env)
+        case Left(e) => Left(e)
       }
-
+    }
     case Symbol(name) :: t => env get name match {
       case Some(fn: LispFunc) => for {
         argList <- takeUntil(t, LeftParenthesis, RightParenthesis)
         (args, remains) = argList
         symbolEnv <- resolveSymbols(env, fn.placeHolders, args)
+        _ <- println(fn)
         evalResult <- fn.execute(symbolEnv)
       } yield (evalResult, remains, env)
       case Some(v) => Right(v, t, env)
