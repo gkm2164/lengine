@@ -85,6 +85,12 @@ package object tokens {
       case x => Left(UnimplementedOperationError(s"with $x"))
     }
 
+    override def <=(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(if (value <= num) LispTrue else LispFalse)
+      case FloatNumber(num) => Right(if (value.toDouble <= num) LispTrue else LispFalse)
+      case x => Left(UnimplementedOperationError(s"with $x"))
+    }
+
     override def printable(): Either[EvalError, String] = Right(value.toString)
   }
 

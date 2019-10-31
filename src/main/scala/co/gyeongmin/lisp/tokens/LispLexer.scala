@@ -47,10 +47,14 @@ object LispLexer {
         loop(new StringBuilder()).flatMap(x => LispToken(x))
     }
 
-    def foldLeft[B[_]](acc: B[LispToken])(f: (B[LispToken], LispToken) => B[LispToken]): Either[TokenizeError, B[LispToken]] = next() match {
-      case Left(EOFError) => Right(acc)
-      case Left(e) => Left(e)
-      case Right(tk) => foldLeft(f(acc, tk))(f)
+    def foldLeft[B[_]](acc: B[LispToken])(f: (B[LispToken], LispToken) => B[LispToken]): Either[TokenizeError, B[LispToken]] = {
+      val tk = next()
+      println(tk)
+      tk match {
+        case Left(EOFError) => Right(acc)
+        case Left(e) => Left(e)
+        case Right(tk) => foldLeft(f(acc, tk))(f)
+      }
     }
   }
 

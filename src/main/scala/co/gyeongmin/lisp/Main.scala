@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.monads._
 import co.gyeongmin.lisp.tokens.LispLexer.Tokenizer
 import co.gyeongmin.lisp.tokens._
 
-import scala.io.{Source, StdIn}
+import scala.io.Source
 
 object Main {
 
@@ -146,6 +146,13 @@ object Main {
         x <- env.get("_1").toRight(UnknownSymbolNameError)
         y <- env.get("_2").toRight(UnknownSymbolNameError)
         res <- x > y
+      } yield res
+    },
+    "<=" -> new BuiltinLispFunc(List("_1", "_2")) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get("_1").toRight(UnknownSymbolNameError)
+        y <- env.get("_2").toRight(UnknownSymbolNameError)
+        res <- x <= y
       } yield res
     },
     "println" -> new BuiltinLispFunc(List("_1")) {

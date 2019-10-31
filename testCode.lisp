@@ -3,5 +3,13 @@
 (println "Hello, Lisp!")
 (fn p [str] (println str))
 (p (+ 3 4))
-(fn fact [n] (if (> n 0) (* n (fact (- n 1))) 1))
+(fn fact [n]
+  (if (> n 0)
+     (* n (fact (- n 1)))
+     1))
+(fn fib [acc n]
+  (if (<= n 1)
+    n
+    (+ (fib (+ acc (fib (- n 1)))) (fib (+ acc (fib (- n 2)))))))
 (p (fact 3))
+(p (fib 6))
