@@ -109,7 +109,6 @@ object Main {
         argList <- takeUntil(t, LeftParenthesis, RightParenthesis)
         (args, remains) = argList
         symbolEnv <- resolveSymbols(env, fn.placeHolders, args)
-        _ <- println(fn)
         evalResult <- fn.execute(symbolEnv)
       } yield (evalResult, remains, env)
       case Some(v) => Right(v, t, env)

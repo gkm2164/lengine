@@ -49,7 +49,6 @@ object LispLexer {
 
     def foldLeft[B[_]](acc: B[LispToken])(f: (B[LispToken], LispToken) => B[LispToken]): Either[TokenizeError, B[LispToken]] = {
       val tk = next()
-      println(tk)
       tk match {
         case Left(EOFError) => Right(acc)
         case Left(e) => Left(e)
