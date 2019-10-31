@@ -11,60 +11,11 @@ package object tokens {
   val RatioRegex: Regex = """(#(\d{1,2}[rR]|b|B|o|O|x|X))?([+\-])?([\dA-Za-z]+)/(-?[\dA-Za-z]+)""".r
   val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
   val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
-  val CharRegex: Regex = """'(?:[^'\\]|\\.)'""".r
-  val StringRegex: Regex = """"(?:[^"\\]|\\.)*"""".r
+  val CharRegex: Regex = """(^'.+)""".r
+  val StringRegex: Regex = """(^".*)""".r
 
-  @scala.annotation.tailrec
-  def refineCode(acc: String, code: String, char: Boolean, string: Boolean, escape: Boolean): Either[TokenizeError, String] = code match {
-    case "" => Right(acc)
-    case '(' s_:: tail =>
-      if (escape) Left(WrongEscapeError)
-      else if (string || char) refineCode(acc + "(", tail, char, string, escape)
-      else refineCode(acc + "( ", tail, char, string, escape)
-    case ')' s_:: tail =>
-      if (escape) Left(WrongEscapeError)
-      else if (string || char) refineCode(acc + ")", tail, char, string, escape)
-      else refineCode(acc + " )", tail, char, string, escape)
-    case '[' s_:: tail =>
-      if (escape) Left(WrongEscapeError)
-      else if (string || char) refineCode(acc + "[", tail, char, string, escape)
-      else refineCode(acc + "[ ", tail, char, string, escape)
-    case ']' s_:: tail =>
-      if (escape) Left(WrongEscapeError)
-      else if (string || char) refineCode(acc + "]", tail, char, string, escape)
-      else refineCode(acc + " ]", tail, char, string, escape)
-    case '"' s_:: tail =>
-      if (escape) refineCode(acc + "\"", tail, char, string, escape = false)
-      else if (string) refineCode(acc + "\"", tail, char, string = false, escape = escape)
-      else if (char) refineCode(acc + "\"", tail, char, string, escape)
-      else refineCode(acc + "\"", tail, char, string = true, escape = escape)
-    case '\'' s_:: tail =>
-      if (escape) refineCode(acc + "\'", tail, char, string, escape = false)
-      else if (char) refineCode(acc + "\'", tail, char, string = false, escape = escape)
-      else if (escape) refineCode(acc + "\'", tail, char, string, escape)
-      else refineCode(acc + "\'", tail, char, string = true, escape = escape)
-    case '\\' s_:: tail =>
-      if (escape) refineCode(acc + "\\", tail, char, string, escape = true)
-      else refineCode(acc + "\\", tail, char, string, escape = false)
-    case ch s_:: tail =>
-      if (escape) Left(WrongEscapeError)
-      else refineCode(acc + ch, tail, char, string, escape)
-  }
-
-  def tokenize(code: String): Either[TokenizeError, List[LispToken]] = {
-    @scala.annotation.tailrec
-    def foldLeft[A, E](arr: List[Either[E, LispToken]])(acc: A)(f: (A, LispToken) => A): Either[E, A] = arr match {
-      case Nil => Right(acc)
-      case Left(e) :: _ => Left(e)
-      case Right(v) :: t => foldLeft(t)(f(acc, v))(f)
-    }
-
-    val retCode = refineCode("", code, char = false, string = false, escape = false)
-    (retCode match {
-      case Left(e) => Left(e)
-      case Right(c) => foldLeft(c.split("[ \n\t]").filterNot(_ == "").map(LispToken.apply).toList)(Vector.empty[LispToken])((acc, elem) => acc :+ elem)
-    }).map(_.toList)
-  }
+  def tokenize(code: Tokenizer): Either[TokenizeError, List[LispToken]] =
+    code.foldLeft(Vector.empty[LispToken])(_ :+ _).map(_.toList)
 
   sealed trait LispToken
 
@@ -157,6 +108,8 @@ package object tokens {
 
   case class LispListType(items: List[LispValue]) extends LispValue
 
+  case class LispClause(tokens: List[LispToken]) extends LispToken
+
   case object UnitValue extends LispValue
 
   case object LispTrue extends LispValue {
@@ -166,7 +119,6 @@ package object tokens {
   case object LispFalse extends LispValue {
     override def ? : Either[EvalError, Boolean] = Right(false)
   }
-
 
   case object LeftParenthesis extends LispToken
 
@@ -218,8 +170,6 @@ package object tokens {
     }
 
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)) = str.toList.map(kv).toMap
-
-
   }
 
   object s_:: {

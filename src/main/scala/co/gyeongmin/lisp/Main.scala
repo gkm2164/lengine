@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.monads._
+import co.gyeongmin.lisp.tokens.LispLexer.Tokenizer
 import co.gyeongmin.lisp.tokens._
 
 import scala.io.{Source, StdIn}
@@ -176,8 +177,9 @@ object Main {
   def main(args: Array[String]): Unit = {
     val file = Source.fromFile("./testCode.lisp")
     val codes = file.mkString("")
+    val tokenizer = new Tokenizer(codes)
     val result = for {
-      tokens <- tokenize(codes)
+      tokens <- tokenize(tokenizer)
       res <- evalLoop(tokens, builtinSymbols)
     } yield res
 
