@@ -1,5 +1,6 @@
 (def x 3)
 (def y 4)
+(def z? (println "Hello, Lisp2!"))
 (println "Hello, Lisp!")
 (fn p [str] (println str))
 (p (+ 3 4))
@@ -14,3 +15,4 @@
     (+ (fib (- n 1)) (fib (- n 2)))))
 (p (fact 3))
 (p (fib 6))
+(z?)

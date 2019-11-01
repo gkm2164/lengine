@@ -6,8 +6,18 @@ object LispLexer {
 
   case class UnknownTokenError(str: String) extends TokenizeError
 
-  class Tokenizer(codes: String) {
-    var codeIterator: Iterator[Char] = codes.iterator
+  class Tokenizer() {
+    var codeIterator: Iterator[Char] = _
+
+    def this(codes: String) {
+      this()
+      this.codeIterator = codes.iterator
+    }
+
+    def this(it: Iterator[Char]) {
+      this()
+      this.codeIterator = it
+    }
     var closing: Option[String] = None
 
     def next(): Either[TokenizeError, LispToken] = closing match {
@@ -47,15 +57,14 @@ object LispLexer {
         loop(new StringBuilder()).flatMap(x => LispToken(x))
     }
 
-    def foldLeft[B[_]](acc: B[LispToken])(f: (B[LispToken], LispToken) => B[LispToken]): Either[TokenizeError, B[LispToken]] = {
-      val tk = next()
-      tk match {
-        case Left(EOFError) => Right(acc)
-        case Left(e) => Left(e)
-        case Right(tk) => foldLeft(f(acc, tk))(f)
-      }
+    def streamLoop: LazyList[LispToken] = next() match {
+      case Right(v) => v #:: streamLoop
+      case Left(EOFError) => LazyList.empty
+      case Left(_) => streamLoop
     }
   }
+
+  def tokenize(code: Tokenizer): Either[TokenizeError, LazyList[LispToken]] = Right(code.streamLoop)
 
   case object WrongEscapeError extends TokenizeError
 
