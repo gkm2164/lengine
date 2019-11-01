@@ -60,7 +60,9 @@ object LispLexer {
     def streamLoop: LazyList[LispToken] = next() match {
       case Right(v) => v #:: streamLoop
       case Left(EOFError) => LazyList.empty
-      case Left(_) => streamLoop
+      case Left(e) =>
+        println(s"Error on $e")
+        streamLoop
     }
   }
 

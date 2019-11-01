@@ -19,6 +19,8 @@ package object tokens {
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
+    def toInt: Either[EvalError, Long] = Left(NotAnExecutableError("toInt"))
+
     def execute(env: LispActiveRecord): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
 
     def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
@@ -93,8 +95,12 @@ package object tokens {
       case x => Left(UnimplementedOperationError(s"with $x"))
     }
 
+    override def toInt: Either[EvalError, Long] = Right(value)
+
     override def printable(): Either[EvalError, String] = Right(value.toString)
   }
+
+  case object LispNop extends LispToken
 
   case class FloatNumber(value: Double) extends LispNumber
 
@@ -142,6 +148,8 @@ package object tokens {
 
   case object LeftParenthesis extends LispToken
 
+  case object ListStartParenthesis extends LispToken
+
   case object RightParenthesis extends LispToken
 
   case object LeftBracket extends LispToken
@@ -157,7 +165,10 @@ package object tokens {
   object LispToken {
     val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
 
+    val EOFChar: String = List(-1.toChar).mkString("")
+
     def apply(code: String): Either[TokenizeError, LispToken] = code match {
+      case EOFChar => Right(LispNop)
       case "(" => Right(LeftParenthesis)
       case ")" => Right(RightParenthesis)
       case "[" => Right(LeftBracket)

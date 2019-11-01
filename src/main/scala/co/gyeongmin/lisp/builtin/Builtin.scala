@@ -87,5 +87,12 @@ object Builtin {
         _ = print(prompt)
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
+    },
+    EagerSymbol("quit") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        exitCode <- x.toInt
+        _ = System.exit(exitCode.toInt)
+      } yield LispUnitValue
     })
 }

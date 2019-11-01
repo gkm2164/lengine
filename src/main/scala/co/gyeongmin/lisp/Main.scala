@@ -1,21 +1,24 @@
 package co.gyeongmin.lisp
 
-import java.io.EOFException
-
 import co.gyeongmin.lisp.builtin.Builtin
 import co.gyeongmin.lisp.monads._
 import co.gyeongmin.lisp.tokens.LispLexer.Tokenizer
 import co.gyeongmin.lisp.tokens._
 
-import scala.io.{Source, StdIn}
-import scala.util.Try
+import scala.io.Source
 
 object Main {
 
   type LispActiveRecord = Map[LispSymbol, LispValue]
 
+  object #:: {
+    def unapply[A](s: LazyList[A]): Option[(A, LazyList[A])] =
+      if (s.nonEmpty) Some((s.head, s.tail)) else None
+  }
+
   def eval: LispState[LispValue] = (tokens, env) => tokens match {
     case LazyList() => Left(EmptyTokenListError)
+    case LispNop #:: tail => eval(tail, env)
     case (s: LispSymbol) #:: t => env.get(s).toRight(UnknownSymbolNameError).map(v => (v, t, env))
     case (v: LispValue) #:: t => Right((v, t, env))
     case LeftParenthesis #:: afterLeftPar => evalClause(afterLeftPar, env)
@@ -44,8 +47,10 @@ object Main {
     loop(Right(Vector.empty), xs.to(LazyList))
   }
 
+  @scala.annotation.tailrec
   def takeSymbols(list: LazyList[LispToken]): Either[EvalError, (List[LispSymbol], LazyList[LispToken])] = list match {
     case LazyList() => Left(EmptyTokenListError)
+    case LispNop #:: tail => takeSymbols(tail)
     case LeftBracket #:: RightBracket #:: t => Right((Nil, t))
     case LeftBracket #:: t => splitTokens(t, RightBracket).flatMap {
       case (left, right) => sequence(left.map {
@@ -60,7 +65,9 @@ object Main {
     @scala.annotation.tailrec
     def loop(acc: Vector[LispToken], remains: LazyList[LispToken], depth: Int): Either[EvalError, (LazyList[LispToken], LazyList[LispToken])] = remains match {
       case LazyList() => Left(EmptyTokenListError)
-      case tk #:: tail if tk == close && depth == 0 => Right((acc.to(LazyList), tail))
+      case LispNop #:: tail => loop(acc, tail, depth)
+      case tk #:: tail if tk == close && depth == 0 =>
+        Right((acc.to(LazyList), tail))
       case tk #:: tail if tk == close => loop(acc :+ tk, tail, depth - 1)
       case tk #:: tail if tk == open => loop(acc :+ tk, tail, depth + 1)
       case tk #:: t => loop(acc :+ tk, t, depth)
@@ -73,6 +80,7 @@ object Main {
     @scala.annotation.tailrec
     def loop(acc: Vector[LispToken], remains: LazyList[LispToken], depth: Int): (List[LispToken], LazyList[LispToken]) = remains match {
       case LazyList() => (acc.toList, LazyList())
+      case LispNop #:: t => loop(acc, t, depth)
       case RightParenthesis #:: t if depth <= 0 => ((acc :+ RightParenthesis).toList, t)
       case RightParenthesis #:: t => loop(acc :+ RightParenthesis, t, depth - 1)
       case LeftParenthesis #:: t => loop(acc :+ LeftParenthesis, t, depth + 1)
@@ -88,6 +96,7 @@ object Main {
   // (fn xt [a b c] (+3 5))
   def evalClause: LispState[LispValue] = (tokens, env) => tokens match {
     case LazyList() => Left(EmptyTokenListError)
+    case LispNop #:: tail => evalClause(tail, env)
     case EagerSymbol("def") #:: (e: EagerSymbol) #:: t => for {
       codeResult <- takeUntil(t, LeftParenthesis, RightParenthesis)
       (codes, remains) = codeResult
@@ -147,9 +156,8 @@ object Main {
     } yield res
   }
 
-  def printPrompt(env: LispActiveRecord): Unit =
-    env.get(EagerSymbol("$$PROMPT$$")).foreach { x => print(s"${x.printable()} > ") }
-
+  def printPrompt(env: LispActiveRecord): Either[EvalError, String] =
+    env.get(EagerSymbol("$$PROMPT$$")).toRight(UnknownSymbolNameError).flatMap(_.printable())
 
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
@@ -158,28 +166,7 @@ object Main {
       new Tokenizer(file.mkString(""))
     } else {
       printPrompt(env)
-      new Tokenizer(new Iterator[Char] {
-        self =>
-        var eof = false
-
-        override def hasNext: Boolean = !eof
-
-        override def next(): Char = {
-          Try(Console.in.read().toChar).map {
-            case '\n' =>
-              printPrompt(env)
-              '\n'
-            case ch =>
-              print(ch)
-              ch
-          }.recover {
-            case _: EOFException =>
-              self.eof = true
-              -1.toChar
-            case e => throw e
-          }.get
-        }
-      })
+      new Tokenizer(new StdInReader(printPrompt(env)))
     }
 
     val result = for {
