@@ -4,13 +4,10 @@
 (println "Hello, Lisp!")
 (fn p [str] (println str))
 (p (+ 3 4))
-(fn if-lazy [cond true? false?]
-  (if cond (true?) (false?))
 (fn fact [n]
-  (if-lazy (> n 0)
+  (if (> n 0)
      (* n (fact (- n 1)))
      1))
-
 (fn fib [n]
   (if (<= n 1)
     n
@@ -18,3 +15,5 @@
 (p (fact 3))
 (p (fib 6))
 (z?)
+(def name (read-line "Input your name: "))
+(println (++ (++ "Hello, " name) "!"))

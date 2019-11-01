@@ -1,7 +1,12 @@
 package co.gyeongmin.lisp.builtin
 
+import java.io.{BufferedReader, InputStreamReader, StringReader}
+import java.util.StringTokenizer
+
 import co.gyeongmin.lisp.Main.LispActiveRecord
 import co.gyeongmin.lisp.tokens.{BuiltinLispFunc, EagerSymbol, EvalError, LazySymbol, LispString, LispUnitValue, LispValue, UnknownSymbolNameError}
+
+import scala.io.StdIn
 
 object Builtin {
   def symbols: LispActiveRecord = Map(
@@ -11,6 +16,13 @@ object Builtin {
         x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
         y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
         res <- x + y
+      } yield res
+    },
+    EagerSymbol("++") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        res <- x ++ y
       } yield res
     },
     EagerSymbol("-") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
@@ -54,11 +66,26 @@ object Builtin {
         }
       } yield execResult
     },
+    EagerSymbol("print") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        str <- x.printable()
+        _ = print(str)
+      } yield LispUnitValue
+    },
     EagerSymbol("println") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
         x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
         str <- x.printable()
         _ = println(str)
       } yield LispUnitValue
+    },
+    EagerSymbol("read-line") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        prompt <- x.printable()
+        _ = print(prompt)
+        str = new BufferedReader(new InputStreamReader(System.in))
+      } yield LispString(str.readLine())
     })
 }

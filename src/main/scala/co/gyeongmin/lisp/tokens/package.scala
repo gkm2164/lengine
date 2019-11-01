@@ -14,7 +14,7 @@ package object tokens {
   val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
   val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
   val CharRegex: Regex = """^'(.)'""".r
-  val StringRegex: Regex = """(^".*)""".r
+  val StringRegex: Regex = """^"(.*)""".r
 
   sealed trait LispToken
 
@@ -23,7 +23,10 @@ package object tokens {
 
     def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
 
-    def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++"))
+    def ++(other: LispValue): Either[EvalError, LispValue] = for {
+      str1 <- printable()
+      str2 <- other.printable()
+    } yield LispString(str1 + str2)
 
     def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+"))
 
@@ -167,7 +170,7 @@ package object tokens {
       case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))
       case RatioRegex(sign, over, under) => Right(RatioNumber(parseInteger(sign, over), parseInteger("+", under)))
       case CharRegex(chs) => Right(LispChar(chs))
-      case StringRegex(str) => Right(LispString(str))
+      case StringRegex(str) => Right(LispString(str.init))
       case str => Left(UnknownTokenError(s"what is it? [$str]"))
     }
 
