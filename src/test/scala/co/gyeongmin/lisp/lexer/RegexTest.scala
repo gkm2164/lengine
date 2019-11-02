@@ -1,6 +1,6 @@
-package co.gyeongmin.lisp.tokens
+package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.tokens.LispLexer.{TokenizeError, Tokenizer}
+import co.gyeongmin.lisp.lexer.LispLexer.{TokenizeError, Tokenizer}
 import org.scalatest._
 
 class RegexTest extends FlatSpec with Matchers {

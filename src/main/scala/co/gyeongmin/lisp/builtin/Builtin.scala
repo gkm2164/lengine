@@ -4,7 +4,7 @@ import java.io.{BufferedReader, InputStreamReader, StringReader}
 import java.util.StringTokenizer
 
 import co.gyeongmin.lisp.Main.LispActiveRecord
-import co.gyeongmin.lisp.tokens.{BuiltinLispFunc, EagerSymbol, EvalError, LazySymbol, LispString, LispUnitValue, LispValue, UnknownSymbolNameError}
+import co.gyeongmin.lisp.lexer.{BuiltinLispFunc, EagerSymbol, EvalError, LazySymbol, LispString, LispUnitValue, LispValue, UnknownSymbolNameError}
 
 import scala.io.StdIn
 
@@ -13,51 +13,51 @@ object Builtin {
     EagerSymbol("$$PROMPT$$") -> LispString("Glisp"),
     EagerSymbol("+") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x + y
       } yield res
     },
     EagerSymbol("++") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x ++ y
       } yield res
     },
     EagerSymbol("-") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x - y
       } yield res
     },
     EagerSymbol("*") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x * y
       } yield res
     },
     EagerSymbol(">") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x > y
       } yield res
     },
     EagerSymbol("<=") -> new BuiltinLispFunc(List(EagerSymbol("_1"), EagerSymbol("_2"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
         res <- x <= y
       } yield res
     },
     EagerSymbol("if") -> new BuiltinLispFunc(List(EagerSymbol("_1"), LazySymbol("_2"), LazySymbol("_3"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        cond <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
-        tClause <- env.get(LazySymbol("_2")).toRight(UnknownSymbolNameError)
-        fClause <- env.get(LazySymbol("_3")).toRight(UnknownSymbolNameError)
+        cond <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        tClause <- env.get(LazySymbol("_2")).toRight(UnknownSymbolNameError(LazySymbol("_2")))
+        fClause <- env.get(LazySymbol("_3")).toRight(UnknownSymbolNameError(LazySymbol("_3")))
         condEvalRes <- cond.?
         execResult <- if (condEvalRes) {
           tClause.execute(env)
@@ -68,27 +68,27 @@ object Builtin {
     },
     EagerSymbol("float") -> new BuiltinLispFunc(EagerSymbol("_1") :: Nil) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
         num <- x.toFloat
       } yield num
     },
     EagerSymbol("print") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
         str <- x.printable()
         _ = print(str)
       } yield LispUnitValue
     },
     EagerSymbol("println") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
         str <- x.printable()
         _ = println(str)
       } yield LispUnitValue
     },
     EagerSymbol("read-line") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
         prompt <- x.printable()
         _ = print(prompt)
         str = new BufferedReader(new InputStreamReader(System.in))
@@ -96,7 +96,7 @@ object Builtin {
     },
     EagerSymbol("quit") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
         exitCode <- x.toInt
         _ = System.exit(exitCode.value.toInt)
       } yield LispUnitValue

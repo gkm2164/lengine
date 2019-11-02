@@ -1,11 +1,12 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.Main.LispActiveRecord
-import co.gyeongmin.lisp.tokens.LispLexer._
+import co.gyeongmin.lisp.ast.LispError
+import co.gyeongmin.lisp.lexer.LispLexer._
 
 import scala.util.matching.Regex
 
-package object tokens {
+package object lexer {
   val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
   val MacroRegex: Regex = """#(.*)""".r
   val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
@@ -61,7 +62,11 @@ package object tokens {
 
   sealed trait LispNumber extends LispValue
 
-  sealed trait EvalError
+  sealed trait EvalError extends LispError
+
+  object EmptyBodyClauseError extends EvalError
+
+  case class FunctionApplyError(msg: String) extends EvalError
 
   trait LispFunc extends LispValue {
     def placeHolders: List[LispSymbol]
@@ -126,22 +131,24 @@ package object tokens {
     def name: String
   }
 
-  case object LispDef extends LispToken
-  case object LispFn extends LispToken
+  case object LispDef extends LispSymbol {
+    override def name: String = "def"
+  }
+  case object LispFn extends LispSymbol {
+    override def name: String = "fn"
+  }
 
-  case class LispClause(clause: List[LispValue]) extends LispValue
+  case class LispClause(body: List[LispValue]) extends LispValue
 
   case class EagerSymbol(name: String) extends LispSymbol
 
   case class LazySymbol(name: String) extends LispSymbol
 
-  case class UnexpectedTokenError(tk: LispToken, msg: String = "") extends EvalError
-
   case class UnimplementedOperationError(operation: String) extends EvalError
 
   case class NotAnExecutableError(value: String) extends EvalError
 
-  case class LispList(items: List[LispToken]) extends LispValue
+  case class LispList(items: List[LispValue]) extends LispValue
 
   case class LispMacro(body: String) extends LispValue
 
@@ -167,7 +174,7 @@ package object tokens {
 
   case object RightBracket extends LispToken
 
-  case object UnknownSymbolNameError extends EvalError
+  case class UnknownSymbolNameError(name: LispSymbol) extends EvalError
 
   case object EmptyTokenListError extends EvalError
 

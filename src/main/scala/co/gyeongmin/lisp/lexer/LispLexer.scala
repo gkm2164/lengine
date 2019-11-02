@@ -1,4 +1,4 @@
-package co.gyeongmin.lisp.tokens
+package co.gyeongmin.lisp.lexer
 
 object LispLexer {
 
