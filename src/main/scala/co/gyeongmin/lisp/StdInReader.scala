@@ -17,7 +17,7 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] with Debu
   }
 
   private val queue: mutable.Queue[Char] = new mutable.Queue()
-  private var EOLChar: Char = -1.toChar
+  private val EOFChar: Char = -1.toChar
 
   @scala.annotation.tailrec
   private def ensureQueueFill(): Either[Throwable, Unit] = {
@@ -25,12 +25,11 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] with Debu
     else Try(Option(StdIn.readLine(prompt.map(x => s"$x > ").getOrElse("GLisp > ")))) match {
       case Success(Some("")) => ensureQueueFill()
       case Success(Some(line)) =>
-        Right((line :+ EOLChar :+ EOLChar).foreach(ch => queue.enqueue(ch)))
+        Right((line :+ EOFChar).foreach(ch => queue.enqueue(ch)))
       case Success(None) => Left(new EOFException())
       case Failure(e) => Left(e)
     }
   }
-
 }
 
 trait DebugUtil {

@@ -38,6 +38,7 @@ class Tokenizer() {
         }
       }
 
+
       @scala.annotation.tailrec
       def loop(acc: StringBuilder): Either[TokenizeError, String] =
         if (!codeIterator.hasNext) Left(EOFError)
@@ -49,6 +50,10 @@ class Tokenizer() {
             Right(acc.mkString(""))
           case ch@(']' | ')') => Right(ch.toString)
           case ch@('"' | '\'') => takeString(acc.append(ch), ch, escape = false)
+          case ch if ch == -1.toChar && acc.nonEmpty => Right("")
+          case ch if ch == -1.toChar =>
+            closing = Some("")
+            Right(acc.mkString(""))
           case ch => loop(acc.append(ch))
         }
 
@@ -58,8 +63,7 @@ class Tokenizer() {
   def streamLoop: LazyList[LispToken] = next() match {
     case Right(v) => v #:: streamLoop
     case Left(EOFError) => LazyList.empty
-    case Left(e) =>
-      println(s"Error on $e")
+    case Left(e) => println(s"Error on $e")
       streamLoop
   }
 }

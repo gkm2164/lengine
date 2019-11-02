@@ -203,10 +203,8 @@ package object lexer {
   object LispToken {
     val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
 
-    val EOFChar: String = List(-1.toChar).mkString("")
-
     def apply(code: String): Either[TokenizeError, LispToken] = code match {
-      case EOFChar => Right(LispNop)
+      case "" => Right(LispNop)
       case "(" => Right(LeftParenthesis)
       case ")" => Right(RightParenthesis)
       case "[" => Right(LeftBracket)
