@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.Main.LispActiveRecord
+import co.gyeongmin.lisp.Main.{LispActiveRecord, eval, fnApply}
 import co.gyeongmin.lisp.ast.LispError
 import co.gyeongmin.lisp.lexer.LispLexer._
 
@@ -64,6 +64,8 @@ package object lexer {
 
   sealed trait EvalError extends LispError
 
+  case class InvalidValueError(errValue: LispValue) extends EvalError
+
   object EmptyBodyClauseError extends EvalError
 
   case class FunctionApplyError(msg: String) extends EvalError
@@ -72,7 +74,9 @@ package object lexer {
     def placeHolders: List[LispSymbol]
   }
 
-  abstract class BuiltinLispFunc(val placeHolders: List[LispSymbol]) extends LispFunc
+  abstract class BuiltinLispFunc(name: String, val placeHolders: List[LispSymbol]) extends LispFunc {
+    override def toString: String = s"BuiltinLispFunc($name)"
+  }
 
   case class IntegerNumber(value: Long) extends LispNumber {
     override def +(other: LispValue): Either[EvalError, LispValue] = other match {
@@ -134,11 +138,27 @@ package object lexer {
   case object LispDef extends LispSymbol {
     override def name: String = "def"
   }
+
   case object LispFn extends LispSymbol {
     override def name: String = "fn"
   }
 
-  case class LispClause(body: List[LispValue]) extends LispValue
+  case class LispClause(body: List[LispValue]) extends LispValue {
+    override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = (body match {
+      case Nil => Left(EmptyBodyClauseError)
+      case (symbol: LispSymbol) :: args => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
+      case value :: args => eval(value, env).map { case (v, _) => (v, args) }
+    }) flatMap {
+      case (firstStmtValue, args) => firstStmtValue match {
+        case fn: LispFunc => for {
+          symbolEnv <- fnApply(env, fn.placeHolders, args)
+          evalResult <- fn.execute(symbolEnv)
+        } yield evalResult
+        case v => Left(NotAnExecutableError(v.toString))
+      }
+    }
+  }
+
 
   case class EagerSymbol(name: String) extends LispSymbol
 
@@ -216,4 +236,5 @@ package object lexer {
 
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
   }
+
 }

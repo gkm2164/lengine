@@ -10,8 +10,6 @@ object LispLexer {
 
   case object WrongEscapeError extends TokenizeError
 
-  case object EmptyTokenError extends TokenizeError
-
   case object EOFError extends TokenizeError
 
 }

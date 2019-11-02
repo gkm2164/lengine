@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.ast._
+import co.gyeongmin.lisp.ast.{EmptyTokenListError, _}
 import co.gyeongmin.lisp.builtin.Builtin
 import co.gyeongmin.lisp.lexer._
 
@@ -18,52 +18,36 @@ object Main {
     case f@GeneralLispFunc(name, _, _) => Right((f, env.updated(name, f)))
     case d@LispValueDef(symbol, v) => symbol match {
       case EagerSymbol(_) => eval(v, env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
-      case LazySymbol(_) => Right((d, env.updated(symbol, v)))
+      case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(symbol, Nil, v))))
+      case errValue => Left(InvalidValueError(errValue))
     }
-    case symbol: LispSymbol => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map(x => (x, env))
-    case clause: LispClause => evalClause(clause, env)
+    case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
+    case clause: LispClause => clause.execute(env).map((_, env))
     case LispMacro(_) => Left(UnimplementedOperationError("realize macro"))
     case v: LispNumber => Right((v, env))
     case LispChar(_) | LispString(_) | LispList(_) | LispUnitValue | LispTrue | LispFalse => Right((lispValue, env))
+    case value => Left(UnimplementedOperationError(value.toString))
   }
 
-  // (def f 3)
-  // (def f (+ 3 5))
-  // (fn xt [a b c] (+3 5))
-  def evalClause(clause: LispClause, env: LispActiveRecord): Either[EvalError, (LispValue, LispActiveRecord)] = clause.body match {
-    case Nil => Left(EmptyBodyClauseError)
-    case (symbol: LispSymbol) :: args => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).flatMap {
-      case fn: LispFunc => for {
-        symbolEnv <- fnApply(env, fn.placeHolders, args)
-        evalResult <- fn.execute(symbolEnv)
-      } yield (evalResult, env)
-      case v => Right((v, env))
-    }
-    case tk :: _ => Left(NotAnExecutableError(tk.toString))
-  }
-
-  def fnApply(activeRecord: LispActiveRecord, symbols: List[LispSymbol],
-              argClause: List[LispValue]): Either[EvalError, LispActiveRecord] = {
+  def fnApply(env: LispActiveRecord, symbols: List[LispSymbol],
+              argClause: List[LispValue]): Either[EvalError, LispActiveRecord] =
     if (symbols.length != argClause.length) {
       Left(FunctionApplyError(s"expected symbol count is ${symbols.length}, but ${argClause.length} given"))
-    } else {
-          (symbols, argClause) match {
-        case (Nil, _) => Right(activeRecord)
-        case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
-          evalRes <- eval(arg, activeRecord)
-          (res, _) = evalRes
-          env <- fnApply(activeRecord.updated(e, res), symbolTail, argTail)
-        } yield env
-        case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-          fnApply(activeRecord.updated(l, GeneralLispFunc(l, Nil, arg)), symbolTail, argTail)
-      }
+    } else (symbols, argClause) match {
+      case (Nil, _) => Right(env)
+      case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
+        evalRes <- eval(arg, env)
+        (res, _) = evalRes
+        env <- fnApply(env.updated(e, res), symbolTail, argTail)
+      } yield env
+      case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
+        fnApply(env.updated(l, GeneralLispFunc(l, Nil, arg)), symbolTail, argTail)
+      case _ => Left(FunctionApplyError("there is an error"))
     }
-  }
 
   def evalLoop(tokens: LazyList[LispToken], env: LispActiveRecord): Either[LispError, LispValue] = for {
     parseResult <- parseValue(tokens)
     (stmt, remains) = parseResult
-    _ = println(parseResult)
     res <- eval(stmt, env)
     (_, nextEnv) = res
     nextRes <- evalLoop(remains, nextEnv)
@@ -88,6 +72,7 @@ object Main {
       res <- evalLoop(tokens, env)
     } yield res) match {
       case Right(_) =>
+      case Left(EmptyTokenListError) => println("== program finished ==")
       case Left(e) => println(s"failed with $e")
     }
   }
@@ -97,10 +82,10 @@ object Main {
   }
 
 
-  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], codes: LispValue) extends LispFunc {
+  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], code: LispValue) extends LispFunc {
     fn =>
     override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
-      evalResult <- eval(fn, env)
+      evalResult <- eval(code, env)
     } yield evalResult._1
   }
 
