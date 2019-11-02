@@ -19,7 +19,9 @@ package object tokens {
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
-    def toInt: Either[EvalError, Long] = Left(NotAnExecutableError("toInt"))
+    def toFloat: Either[EvalError, FloatNumber] = Left(NotAnExecutableError("toFloat"))
+
+    def toInt: Either[EvalError, IntegerNumber] = Left(NotAnExecutableError("toInt"))
 
     def execute(env: LispActiveRecord): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
 
@@ -95,16 +97,22 @@ package object tokens {
       case x => Left(UnimplementedOperationError(s"with $x"))
     }
 
-    override def toInt: Either[EvalError, Long] = Right(value)
+    override def toInt: Either[EvalError, IntegerNumber] = Right(this)
 
     override def printable(): Either[EvalError, String] = Right(value.toString)
   }
 
   case object LispNop extends LispToken
 
-  case class FloatNumber(value: Double) extends LispNumber
+  case class FloatNumber(value: Double) extends LispNumber {
+    override def printable(): Either[EvalError, String] = Right(value.toString)
+  }
 
-  case class RatioNumber(over: Long, under: Long) extends LispNumber
+  case class RatioNumber(over: Long, under: Long) extends LispNumber {
+    override def toFloat: Either[EvalError, FloatNumber] = Right(FloatNumber(over.toDouble / under))
+
+    override def printable(): Either[EvalError, String] = Right(s"$over/$under")
+  }
 
   case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumber
 
@@ -118,6 +126,9 @@ package object tokens {
     def name: String
   }
 
+  case object LispDef extends LispToken
+  case object LispFn extends LispToken
+
   case class EagerSymbol(name: String) extends LispSymbol
 
   case class LazySymbol(name: String) extends LispSymbol
@@ -128,7 +139,7 @@ package object tokens {
 
   case class NotAnExecutableError(value: String) extends EvalError
 
-  case class LispListType(items: List[LispValue]) extends LispValue
+  case class LispList(items: List[LispToken]) extends LispValue
 
   case class LispMacro(body: String) extends LispValue
 
@@ -173,6 +184,9 @@ package object tokens {
       case ")" => Right(RightParenthesis)
       case "[" => Right(LeftBracket)
       case "]" => Right(RightBracket)
+      case "'(" => Right(ListStartParenthesis)
+      case "def" => Right(LispDef)
+      case "fn" => Right(LispFn)
       case LazySymbolRegex(name) => Right(LazySymbol(name))
       case SymbolRegex(name) => Right(EagerSymbol(name))
       case MacroRegex(body) => Right(LispMacro(body))
@@ -193,6 +207,6 @@ package object tokens {
       numberPart * (if (sign == "-") -1 else 1)
     }
 
-    private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.toList.map(kv).toMap
+    private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
   }
 }

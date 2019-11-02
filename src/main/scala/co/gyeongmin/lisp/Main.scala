@@ -8,7 +8,6 @@ import co.gyeongmin.lisp.tokens._
 import scala.io.Source
 
 object Main {
-
   type LispActiveRecord = Map[LispSymbol, LispValue]
 
   object #:: {
@@ -19,6 +18,10 @@ object Main {
   def eval: LispState[LispValue] = (tokens, env) => tokens match {
     case LazyList() => Left(EmptyTokenListError)
     case LispNop #:: tail => eval(tail, env)
+    case ListStartParenthesis #:: tail => for {
+      split <- takeUntil(tail, ListStartParenthesis, RightParenthesis)
+      (left, right) = split
+    } yield (LispList(left.toList), right, env)
     case (s: LispSymbol) #:: t => env.get(s).toRight(UnknownSymbolNameError).map(v => (v, t, env))
     case (v: LispValue) #:: t => Right((v, t, env))
     case LeftParenthesis #:: afterLeftPar => evalClause(afterLeftPar, env)
@@ -52,12 +55,14 @@ object Main {
     case LazyList() => Left(EmptyTokenListError)
     case LispNop #:: tail => takeSymbols(tail)
     case LeftBracket #:: RightBracket #:: t => Right((Nil, t))
-    case LeftBracket #:: t => splitTokens(t, RightBracket).flatMap {
-      case (left, right) => sequence(left.map {
+    case LeftBracket #:: t => for {
+      tokens <- splitTokens(t, RightBracket)
+      (left, right) = tokens
+      x <- sequence(left.map {
         case s: LispSymbol => Right(s)
         case tk => Left(UnexpectedTokenError(tk))
-      }).map(x => (x, right))
-    }
+      })
+    } yield (x, right)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
@@ -66,8 +71,7 @@ object Main {
     def loop(acc: Vector[LispToken], remains: LazyList[LispToken], depth: Int): Either[EvalError, (LazyList[LispToken], LazyList[LispToken])] = remains match {
       case LazyList() => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc, tail, depth)
-      case tk #:: tail if tk == close && depth == 0 =>
-        Right((acc.to(LazyList), tail))
+      case tk #:: tail if tk == close && depth == 0 => Right((acc.to(LazyList), tail))
       case tk #:: tail if tk == close => loop(acc :+ tk, tail, depth - 1)
       case tk #:: tail if tk == open => loop(acc :+ tk, tail, depth + 1)
       case tk #:: t => loop(acc :+ tk, t, depth)
@@ -97,18 +101,18 @@ object Main {
   def evalClause: LispState[LispValue] = (tokens, env) => tokens match {
     case LazyList() => Left(EmptyTokenListError)
     case LispNop #:: tail => evalClause(tail, env)
-    case EagerSymbol("def") #:: (e: EagerSymbol) #:: t => for {
+    case LispDef #:: (e: EagerSymbol) #:: t => for {
       codeResult <- takeUntil(t, LeftParenthesis, RightParenthesis)
       (codes, remains) = codeResult
       evalRes <- eval(codes, env)
       (res, _, _) = evalRes
     } yield (res, remains, env.updated(e, res))
-    case EagerSymbol("def") #:: (l: LazySymbol) #:: t => for {
+    case LispDef #:: (l: LazySymbol) #:: t => for {
       codeResult <- takeUntil(t, LeftParenthesis, RightParenthesis)
       (code, remains) = codeResult
       res = GeneralLispFunc(Nil, code.to(LazyList))
     } yield (res, remains, env.updated(l, res))
-    case EagerSymbol("fn") #:: (e: LispSymbol) #:: t => for {
+    case LispFn #:: (e: LispSymbol) #:: t => for {
       symbolResult <- takeSymbols(t)
       (symbols, afterSymbols) = symbolResult
       codeResult <- takeUntil(afterSymbols, LeftParenthesis, RightParenthesis)
@@ -156,8 +160,10 @@ object Main {
     } yield res
   }
 
-  def printPrompt(env: LispActiveRecord): Either[EvalError, String] =
-    env.get(EagerSymbol("$$PROMPT$$")).toRight(UnknownSymbolNameError).flatMap(_.printable())
+  def printPrompt(env: LispActiveRecord): Either[EvalError, String] = for {
+    prompt <- env.get(EagerSymbol("$$PROMPT$$")).toRight(UnknownSymbolNameError)
+    ret <- prompt.printable()
+  } yield ret
 
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
@@ -165,16 +171,13 @@ object Main {
       val file = Source.fromFile(args.head)
       new Tokenizer(file.mkString(""))
     } else {
-      printPrompt(env)
       new Tokenizer(new StdInReader(printPrompt(env)))
     }
 
-    val result = for {
+    (for {
       tokens <- LispLexer.tokenize(tokenizer)
       res <- evalLoop(tokens, env)
-    } yield res
-
-    result match {
+    } yield res) match {
       case Right(_) =>
       case Left(e) => println(s"failed with $e")
     }

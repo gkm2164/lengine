@@ -66,6 +66,12 @@ object Builtin {
         }
       } yield execResult
     },
+    EagerSymbol("float") -> new BuiltinLispFunc(EagerSymbol("_1") :: Nil) {
+      override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
+        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
+        num <- x.toFloat
+      } yield num
+    },
     EagerSymbol("print") -> new BuiltinLispFunc(List(EagerSymbol("_1"))) {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
         x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
@@ -92,7 +98,7 @@ object Builtin {
       override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = for {
         x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError)
         exitCode <- x.toInt
-        _ = System.exit(exitCode.toInt)
+        _ = System.exit(exitCode.value.toInt)
       } yield LispUnitValue
     })
 }

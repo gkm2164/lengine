@@ -16,9 +16,7 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] {
     else Try(Option(StdIn.readLine(prompt.map(x => s"$x > ").getOrElse("GLisp > ")))) match {
       case Success(Some("")) => queueFill()
       case Success(Some(line)) =>
-        line.foreach(ch => queue.enqueue(ch))
-        val ch: Char = -1.toChar
-        queue.enqueue(ch)
+        (line :+ (-1.toChar)).foreach(ch => queue.enqueue(ch))
         Right(())
       case Success(None) => Left(new EOFException())
       case Failure(e) => Left(e)
