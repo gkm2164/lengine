@@ -129,6 +129,8 @@ package object tokens {
   case object LispDef extends LispToken
   case object LispFn extends LispToken
 
+  case class LispClause(clause: List[LispValue]) extends LispValue
+
   case class EagerSymbol(name: String) extends LispSymbol
 
   case class LazySymbol(name: String) extends LispSymbol
@@ -142,8 +144,6 @@ package object tokens {
   case class LispList(items: List[LispToken]) extends LispValue
 
   case class LispMacro(body: String) extends LispValue
-
-  case class LispClause(tokens: List[LispToken]) extends LispToken
 
   case object LispUnitValue extends LispValue {
     override def printable(): Either[EvalError, String] = Right("()")

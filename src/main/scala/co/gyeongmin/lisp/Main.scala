@@ -2,7 +2,6 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.builtin.Builtin
 import co.gyeongmin.lisp.monads._
-import co.gyeongmin.lisp.tokens.LispLexer.Tokenizer
 import co.gyeongmin.lisp.tokens._
 
 import scala.io.Source
@@ -138,17 +137,17 @@ object Main {
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
-  def fnApply(symbolEnv: LispActiveRecord, symbols: List[LispSymbol],
+  def fnApply(activeRecord: LispActiveRecord, symbols: List[LispSymbol],
               argClause: LazyList[LispToken]): Either[EvalError, LispActiveRecord] = symbols match {
-    case Nil => Right(symbolEnv)
+    case Nil => Right(activeRecord)
     case (e: EagerSymbol) :: t => for {
-      evalRes <- eval(argClause, symbolEnv)
+      evalRes <- eval(argClause, activeRecord)
       (res, remains, _) = evalRes
-      env <- fnApply(symbolEnv.updated(e, res), t, remains)
+      env <- fnApply(activeRecord.updated(e, res), t, remains)
     } yield env
     case (l: LazySymbol) :: t =>
       val (code, remains) = skipClause(argClause)
-      fnApply(symbolEnv.updated(l, GeneralLispFunc(Nil, code.to(LazyList))), t, remains)
+      fnApply(activeRecord.updated(l, GeneralLispFunc(Nil, code.to(LazyList))), t, remains)
   }
 
   def evalLoop(tokens: LazyList[LispToken], env: LispActiveRecord): Either[EvalError, LispValue] = tokens match {
@@ -190,5 +189,4 @@ object Main {
       (res, _, _) = evalResult
     } yield res
   }
-
 }

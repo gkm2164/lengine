@@ -1,7 +1,6 @@
 (def x 3)
 (def y 4)
 (def z? (println "Hello, Lisp2!"))
-(def l '(1 2 3 4 5))
 (println "Hello, Lisp!")
 (fn p [str] (println str))
 (p (+ 3 4))
