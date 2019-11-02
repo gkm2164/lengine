@@ -9,11 +9,6 @@ import scala.io.Source
 object Main {
   type LispActiveRecord = Map[LispSymbol, LispValue]
 
-  object #:: {
-    def unapply[A](s: LazyList[A]): Option[(A, LazyList[A])] =
-      if (s.nonEmpty) Some((s.head, s.tail)) else None
-  }
-
   def eval(lispValue: LispValue, env: LispActiveRecord): Either[EvalError, (LispValue, LispActiveRecord)] = lispValue match {
     case f@GeneralLispFunc(name, _, _) => Right((f, env.updated(name, f)))
     case d@LispValueDef(symbol, v) => symbol match {
@@ -45,11 +40,14 @@ object Main {
       case _ => Left(FunctionApplyError("there is an error"))
     }
 
-  def evalLoop(tokens: LazyList[LispToken], env: LispActiveRecord): Either[LispError, LispValue] = for {
+  def evalLoop(tokens: Stream[LispToken],
+               env: LispActiveRecord)
+              (implicit debugger: Option[Debugger]): Either[LispError, LispValue] = for {
     parseResult <- parseValue(tokens)
     (stmt, remains) = parseResult
     res <- eval(stmt, env)
-    (_, nextEnv) = res
+    (r, nextEnv) = res
+    _ = debugger.foreach(_.print(r))
     nextRes <- evalLoop(remains, nextEnv)
   } yield nextRes
 
@@ -58,13 +56,34 @@ object Main {
     ret <- prompt.printable()
   } yield ret
 
+  sealed trait Debugger {
+    def print(lispValue: LispValue): Unit
+  }
+
+  class ReplDebugger() extends Debugger {
+    def incAndGet: () => Int = {
+      var id = 0
+      () => {
+        id += 1
+        id
+      }
+    }
+
+    val idIssue: () => Int = incAndGet
+
+    override def print(lispValue: LispValue): Unit = lispValue.printable() match {
+      case Right(value) => println(s"res#${idIssue()} => $value")
+      case Left(_) => println(s"res#${idIssue()} => $lispValue")
+    }
+  }
+
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
-    val tokenizer: Tokenizer = if (args.nonEmpty) {
+    implicit val (tokenizer: Tokenizer, debugger: Option[Debugger]) = if (args.nonEmpty) {
       val file = Source.fromFile(args.head)
-      new Tokenizer(file.mkString(""))
+      (new Tokenizer(file.mkString("")), None)
     } else {
-      new Tokenizer(new StdInReader(printPrompt(env)))
+      (new Tokenizer(new StdInReader(printPrompt(env))), Some(new ReplDebugger()))
     }
 
     (for {
@@ -88,4 +107,5 @@ object Main {
       evalResult <- eval(code, env)
     } yield evalResult._1
   }
+
 }

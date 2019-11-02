@@ -6,7 +6,7 @@ import co.gyeongmin.lisp.ast.LispError
 import co.gyeongmin.lisp.lexer.{EvalError, LispToken}
 
 package object monads {
-  type LispState[A] = (LazyList[LispToken], LispActiveRecord) => Either[LispError, (A, LazyList[LispToken], LispActiveRecord)]
+  type LispState[A] = (Stream[LispToken], LispActiveRecord) => Either[LispError, (A, Stream[LispToken], LispActiveRecord)]
 
   implicit val lispStateMonad: Monad[LispState] = new Monad[LispState] {
     override def pure[A](x: A): LispState[A] = (tokens, env) => Right((x, tokens, env))

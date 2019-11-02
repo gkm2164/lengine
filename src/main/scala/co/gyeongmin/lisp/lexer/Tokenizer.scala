@@ -60,9 +60,9 @@ class Tokenizer() {
       loop(new StringBuilder()).flatMap(x => LispToken(x))
   }
 
-  def streamLoop: LazyList[LispToken] = next() match {
+  def streamLoop: Stream[LispToken] = next() match {
     case Right(v) => v #:: streamLoop
-    case Left(EOFError) => LazyList.empty
+    case Left(EOFError) => Stream.empty
     case Left(e) => println(s"Error on $e")
       streamLoop
   }

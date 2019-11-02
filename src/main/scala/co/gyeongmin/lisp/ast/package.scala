@@ -3,7 +3,7 @@ package co.gyeongmin.lisp
 import cats.Monad
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import co.gyeongmin.lisp.Main.{#::, GeneralLispFunc, LispValueDef}
+import co.gyeongmin.lisp.Main.{GeneralLispFunc, LispValueDef}
 import co.gyeongmin.lisp.lexer._
 
 import scala.reflect.ClassTag
@@ -16,7 +16,7 @@ package object ast {
 
   case class UnexpectedTokenError(tk: LispToken, msg: String = "") extends ParseError
 
-  type LispTokenState[A] = LazyList[LispToken] => Either[ParseError, (A, LazyList[LispToken])]
+  type LispTokenState[A] = Stream[LispToken] => Either[ParseError, (A, Stream[LispToken])]
 
   implicit val lispTokenStateMonad: Monad[LispTokenState] = new Monad[LispTokenState] {
     override def flatMap[A, B](fa: LispTokenState[A])(f: A => LispTokenState[B]): LispTokenState[B] = tokens => fa(tokens) match {
@@ -36,7 +36,7 @@ package object ast {
   }
 
   def parseValue: LispTokenState[LispValue] = {
-    case LazyList() => Left(EmptyTokenListError)
+    case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
     case ListStartParenthesis #:: tail => parseList(tail)
     case LeftParenthesis #:: afterLeftPar => parseClause(afterLeftPar)
@@ -45,7 +45,7 @@ package object ast {
   }
 
   def parseDef: LispTokenState[LispValueDef] = {
-    case LazyList() => Left(EmptyTokenListError)
+    case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseDef(tail)
     case (x: LispSymbol) #:: tail => parseValue(tail).map { case (v, remains) => (LispValueDef(x, v), remains) }
     case tk #:: _ => Left(UnexpectedTokenError(tk))
@@ -53,7 +53,7 @@ package object ast {
 
   def parseList: LispTokenState[LispList] = {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
-      case LazyList() => Left(EmptyTokenListError)
+      case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
       case RightParenthesis #:: tail => Right((acc.toList, tail))
       case tokens => (for {
@@ -66,7 +66,7 @@ package object ast {
   }
 
   def takeToken[A <: LispToken](implicit ct: ClassTag[A]): LispTokenState[A] = {
-    case LazyList() => Left(EmptyTokenListError)
+    case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => takeToken[A](ct)(tail)
     case (tk: A) #:: tail => Right((tk, tail))
     case tk #:: _ => Left(UnexpectedTokenError(tk))
@@ -76,7 +76,7 @@ package object ast {
 
   def parseArgs: LispTokenState[List[LispSymbol]] = {
     def loop(acc: Vector[LispSymbol]): LispTokenState[List[LispSymbol]] = {
-      case LazyList() => Left(EmptyTokenListError)
+      case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
       case RightBracket #:: tail => Right((acc.toList, tail))
       case tokens => (for {
@@ -108,7 +108,7 @@ package object ast {
 
   def parseClause: LispTokenState[LispValue] = tks => {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
-      case LazyList() => Left(EmptyTokenListError)
+      case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
       case RightParenthesis #:: tail => Right((acc.toList, tail))
       case tokens => (for {

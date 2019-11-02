@@ -16,5 +16,6 @@ $ sbt "run [filename]"
 $ sbt run
 GLisp > (println (+ 3 5))
 8
+res0 => ()
 ...
 ```
