@@ -11,10 +11,10 @@ package object lexer {
 
   sealed trait LispValue extends LispToken {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = this match {
-      case f@GeneralLispFunc(name, _, _) => Right((f, env.updated(name, f)))
+      case f@LispFuncDef(name, lambda) => Right((f, env.updated(name, lambda)))
       case d@LispValueDef(symbol, v) => symbol match {
         case EagerSymbol(_) => v.eval(env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
-        case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(symbol, Nil, v))))
+        case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(Nil, v))))
         case errValue => Left(InvalidValueError(errValue))
       }
       case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
@@ -22,6 +22,7 @@ package object lexer {
       case LispMacro(_) => Left(UnimplementedOperationError("realize macro"))
       case v: LispNumber => Right((v, env))
       case LispChar(_) | LispString(_) | LispList(_) | LispUnitValue | LispTrue | LispFalse => Right((this, env))
+      case v: GeneralLispFunc => Right((v, env))
       case value => Left(UnimplementedOperationError(value.toString))
     }
 
@@ -87,20 +88,20 @@ package object lexer {
       if (placeHolders.length != args.length) {
         Left(FunctionApplyError(s"expected symbol count is ${placeHolders.length}, but ${args.length} given"))
       } else {
-        def loop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
-          (placeHolders, args) match {
-            case (Nil, _) => Right(env)
+        def applyLoop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
+          (symbols, args) match {
+            case (Nil, Nil) => Right(accEnv)
             case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
-              evalRes <- arg.eval(env)
+              evalRes <- arg.eval(accEnv)
               (res, _) = evalRes
-              env <- loop(env.updated(e, res), symbolTail, argTail)
-            } yield env
+              appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
+            } yield appliedEnv
             case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-              loop(env.updated(l, GeneralLispFunc(l, Nil, arg)), symbolTail, argTail)
-            case _ => Left(FunctionApplyError("there is an error"))
+              applyLoop(accEnv.updated(l, GeneralLispFunc(Nil, arg)), symbolTail, argTail)
+            case x => Left(FunctionApplyError(s"there is an error: ${x}"))
           }
 
-        loop(env, placeHolders, args)
+        applyLoop(env, placeHolders, args)
       }
     }
   }
@@ -178,6 +179,10 @@ package object lexer {
 
   case object LispFn extends LispSymbol {
     override def name: String = "fn"
+  }
+
+  case object LispLambda extends LispSymbol {
+    override def name: String = "lambda"
   }
 
   case class LispClause(body: List[LispValue]) extends LispValue {
@@ -270,6 +275,7 @@ package object lexer {
       case "'(" => Right(ListStartParenthesis)
       case "def" => Right(LispDef)
       case "fn" => Right(LispFn)
+      case "lambda" => Right(LispLambda)
       case LazySymbolRegex(name) => Right(LazySymbol(name))
       case SymbolRegex(name) => Right(EagerSymbol(name))
       case MacroRegex(body) => Right(LispMacro(body))
@@ -297,7 +303,11 @@ package object lexer {
     override def placeHolders: List[LispSymbol] = Nil
   }
 
-  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
+  case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispFunc {
+    override def placeHolders: List[LispSymbol] = Nil
+  }
+
+  case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
     fn =>
     override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
       evalResult <- body.eval(env)

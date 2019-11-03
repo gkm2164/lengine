@@ -65,11 +65,15 @@ package object parser {
     } yield acc
   }
 
-  def parseFunc: LispTokenState[GeneralLispFunc] = for {
-    symbol <- parseSymbol
+  def parseLambda: LispTokenState[GeneralLispFunc] = for {
     args <- parseArgs
     value <- parseValue
-  } yield GeneralLispFunc(symbol, args, value)
+  } yield GeneralLispFunc(args, value)
+
+  def parseFunc: LispTokenState[LispFuncDef] = for {
+    symbol <- parseSymbol
+    lambda <- parseLambda
+  } yield LispFuncDef(symbol, lambda)
 
   implicit class LispTokenStateSyntax[A](x: LispTokenState[A]) {
     def |[B >: A](y: LispTokenState[B]): LispTokenState[B] = tokens => {
@@ -91,13 +95,19 @@ package object parser {
       } yield res) (tokens)
     }
 
-    val fnState: LispTokenState[GeneralLispFunc] = for {
+    val lambda: LispTokenState[GeneralLispFunc] = for {
+      _ <- takeToken[LispLambda.type]
+      lambda <- parseLambda
+      _ <- takeToken[RightParenthesis.type]
+    } yield lambda
+
+    val defFn: LispTokenState[LispFuncDef] = for {
       _ <- takeToken[LispFn.type]
       func <- parseFunc
       _ <- takeToken[RightParenthesis.type]
     } yield func
 
-    val defState: LispTokenState[LispValueDef] = for {
+    val defVar: LispTokenState[LispValueDef] = for {
       _ <- takeToken[LispDef.type]
       d <- parseDef
       _ <- takeToken[RightParenthesis.type]
@@ -107,6 +117,6 @@ package object parser {
       res <- loop(Vector.empty)
     } yield LispClause(res)
 
-    (fnState | defState | clause)(tks)
+    (lambda | defFn | defVar | clause)(tks)
   }
 }
