@@ -30,6 +30,11 @@ res2 => ()
 ...
 ```
 
-### Remain issues
+### Remain issues, features
 
+#### Feature
+- Pattern match
+- Lambda
+
+#### Issues
 - Recovery from error while REPL execution error

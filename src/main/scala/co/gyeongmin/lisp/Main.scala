@@ -14,7 +14,7 @@ object Main {
               (implicit debugger: Option[Debugger]): Either[LispError, LispValue] = for {
     parseResult <- parseValue(tokens)
     (stmt, remains) = parseResult
-    res <- LispExec.eval(stmt, env)
+    res <- stmt.eval(env)
     (r, nextEnv) = res
     _ = debugger.foreach(_.print(r))
     nextRes <- evalLoop(remains, nextEnv)

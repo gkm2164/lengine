@@ -12,8 +12,8 @@ object Builtin {
       symbol ->
         new BuiltinLispFunc(symbol, List(EagerSymbol("_1"), EagerSymbol("_2"))) {
           override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-            x <- env refer es("_1")
-            y <- env refer es("_2")
+            x <- env refer E("_1")
+            y <- env refer E("_2")
             res <- f(x, y)
           } yield res
         }
@@ -22,7 +22,7 @@ object Builtin {
       symbol ->
         new BuiltinLispFunc(symbol, EagerSymbol("_1") :: Nil) {
           override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-            x <- env refer es("_1")
+            x <- env refer E("_1")
             res <- f(x)
           } yield res
         }
@@ -32,37 +32,38 @@ object Builtin {
     def ->@(f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, BuiltinLispFunc) = binaryStmtFunc(x, f)
   }
 
-  def es(name: String) = EagerSymbol(name)
-  def ls(name: String) = LazySymbol(name)
+  def E(name: String) = EagerSymbol(name)
+  def L(name: String) = LazySymbol(name)
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
-    es("$$PROMPT$$") -> LispString("Glisp"),
-    es("nil") -> LispList(Nil),
+    E("$$PROMPT$$") -> LispString("Glisp"),
+    E("nil") -> LispList(Nil),
 
-    es("+") ->@ (_ + _),
-    es("-") ->@ (_ - _),
-    es("++") ->@ (_ ++ _),
-    es("*") ->@ (_ * _),
-    es("/") ->@ (_ / _),
-    es("%") ->@ (_ % _),
-    es(">") ->@ (_ > _),
-    es("<") ->@ (_ < _),
-    es(">=") ->@ (_ >= _),
-    es("<=") ->@ (_ <= _),
-    es("&&") ->@ (_ && _),
-    es("||") ->@ (_ || _),
-    es("head") ->! (_.list.map(_.head)),
-    es("tail") ->! (_.list.map(_.tail)),
-    es("cons") ->@ (_ :: _),
-    es("eq") ->@ (_ == _),
-    es("not") ->! (_.!),
-    es("len") ->! (_.list.map(_.length)),
+    E("+") ->@ (_ + _),
+    E("-") ->@ (_ - _),
+    E("++") ->@ (_ ++ _),
+    E("*") ->@ (_ * _),
+    E("/") ->@ (_ / _),
+    E("%") ->@ (_ % _),
+    E(">") ->@ (_ > _),
+    E("<") ->@ (_ < _),
+    E(">=") ->@ (_ >= _),
+    E("<=") ->@ (_ <= _),
+    E("&&") ->@ (_ && _),
+    E("||") ->@ (_ || _),
+    E("head") ->! (_.list.map(_.head)),
+    E("tail") ->! (_.list.map(_.tail)),
+    E("cons") ->@ (_ :: _),
+    E("eq") ->@ (_ == _),
+    E("not") ->! (_.!),
+    E("len") ->! (_.list.map(_.length)),
 
-    es("if") -> new BuiltinLispFunc(es("if"), es("_1") :: ls("_2") :: ls("_3") :: Nil) {
+    // If statements should receive second and third parameters as Lazy evaluation
+    E("if") -> new BuiltinLispFunc(E("if"), E("_1") :: L("_2") :: L("_3") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        cond <- env refer es("_1")
-        tClause <- env refer ls("_2")
-        fClause <- env refer ls("_3")
+        cond <- env refer E("_1")
+        tClause <- env refer L("_2")
+        fClause <- env refer L("_3")
         condEvalRes <- cond.toBoolean
         execResult <- if (condEvalRes) {
           tClause.execute(env)
@@ -71,37 +72,37 @@ object Builtin {
         }
       } yield execResult
     },
-    es("float") -> new BuiltinLispFunc(es("float"), es("_1") :: Nil) {
+    E("float") -> new BuiltinLispFunc(E("float"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer es("_1")
+        x <- env refer E("_1")
         num <- x.toFloat
       } yield num
     },
-    es("print") -> new BuiltinLispFunc(es("print"), es("_1") :: Nil) {
+    E("print") -> new BuiltinLispFunc(E("print"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer es("_1")
+        x <- env refer E("_1")
         str <- x.printable()
         _ = print(str)
       } yield LispUnitValue
     },
-    es("println") -> new BuiltinLispFunc(es("println"), es("_1") :: Nil) {
+    E("println") -> new BuiltinLispFunc(E("println"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer es("_1")
+        x <- env refer E("_1")
         str <- x.printable()
         _ = println(str)
       } yield LispUnitValue
     },
-    es("read-line") -> new BuiltinLispFunc(es("read-line"), es("_1") :: Nil) {
+    E("read-line") -> new BuiltinLispFunc(E("read-line"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer es("_1")
+        x <- env refer E("_1")
         prompt <- x.printable()
         _ = print(prompt)
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
     },
-    es("quit") -> new BuiltinLispFunc(es("quit"), es("_1") :: Nil) {
+    E("quit") -> new BuiltinLispFunc(E("quit"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer es("_1")
+        x <- env refer E("_1")
         exitCode <- x.toInt
         _ = System.exit(exitCode.value.toInt)
       } yield LispUnitValue

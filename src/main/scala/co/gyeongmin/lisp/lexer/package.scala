@@ -6,19 +6,25 @@ import co.gyeongmin.lisp.execution._
 import scala.util.matching.Regex
 
 package object lexer {
-  val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
-  val MacroRegex: Regex = """#(.*)""".r
-  val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
-  val NumberRegex: Regex = """([+\-])?([\d]+)""".r
-  val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
-  val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
-  val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
-  val CharRegex: Regex = """^'(.)'""".r
-  val StringRegex: Regex = """^"(.*)""".r
 
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
+    def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = this match {
+      case f@GeneralLispFunc(name, _, _) => Right((f, env.updated(name, f)))
+      case d@LispValueDef(symbol, v) => symbol match {
+        case EagerSymbol(_) => v.eval(env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
+        case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(symbol, Nil, v))))
+        case errValue => Left(InvalidValueError(errValue))
+      }
+      case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
+      case clause: LispClause => clause.execute(env).map((_, env))
+      case LispMacro(_) => Left(UnimplementedOperationError("realize macro"))
+      case v: LispNumber => Right((v, env))
+      case LispChar(_) | LispString(_) | LispList(_) | LispUnitValue | LispTrue | LispFalse => Right((this, env))
+      case value => Left(UnimplementedOperationError(value.toString))
+    }
+
     def ::(other: LispValue): Either[EvalError, LispList] = this match {
       case LispList(items) => Right(LispList(other :: items))
       case k => Left(NotAnExecutableError(s":: to not a list value, $this, $k"))
@@ -76,6 +82,27 @@ package object lexer {
 
   trait LispFunc extends LispValue {
     def placeHolders: List[LispSymbol]
+
+    def apply(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
+      if (placeHolders.length != args.length) {
+        Left(FunctionApplyError(s"expected symbol count is ${placeHolders.length}, but ${args.length} given"))
+      } else {
+        def loop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
+          (placeHolders, args) match {
+            case (Nil, _) => Right(env)
+            case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
+              evalRes <- arg.eval(env)
+              (res, _) = evalRes
+              env <- loop(env.updated(e, res), symbolTail, argTail)
+            } yield env
+            case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
+              loop(env.updated(l, GeneralLispFunc(l, Nil, arg)), symbolTail, argTail)
+            case _ => Left(FunctionApplyError("there is an error"))
+          }
+
+        loop(env, placeHolders, args)
+      }
+    }
   }
 
   abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSymbol]) extends LispFunc {
@@ -157,18 +184,17 @@ package object lexer {
     override def execute(env: LispEnvironment): Either[EvalError, LispValue] = (body match {
       case Nil => Left(EmptyBodyClauseError)
       case (symbol: LispSymbol) :: args => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
-      case value :: args => LispExec.eval(value, env).map { case (v, _) => (v, args) }
+      case value :: args => value.eval(env).map { case (v, _) => (v, args) }
     }) flatMap {
       case (firstStmtValue, args) => firstStmtValue match {
         case fn: LispFunc => for {
-          symbolEnv <- LispExec.fnApply(env, fn.placeHolders, args)
+          symbolEnv <- fn(env, args)
           evalResult <- fn.execute(symbolEnv)
         } yield evalResult
         case v => Left(NotAnExecutableError(v.toString))
       }
     }
   }
-
 
   case class EagerSymbol(name: String) extends LispSymbol
 
@@ -178,6 +204,7 @@ package object lexer {
     def length: LispValue = IntegerNumber(items.length)
 
     def head: LispValue = items.head
+
     def tail: LispValue = LispList(items.tail)
 
     override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
@@ -185,6 +212,7 @@ package object lexer {
       case (acc, Left(_)) => acc :+ "#Unprintable"
     }.mkString("(", ", ", ")"))
   }
+
   case class LispMacro(body: String) extends LispValue
 
   case object LispUnitValue extends LispValue {
@@ -203,11 +231,11 @@ package object lexer {
   }
 
   case object LispTrue extends LispBoolean {
-    override def toBoolean : Either[EvalError, Boolean] = Right(true)
+    override def toBoolean: Either[EvalError, Boolean] = Right(true)
   }
 
   case object LispFalse extends LispBoolean {
-    override def toBoolean : Either[EvalError, Boolean] = Right(false)
+    override def toBoolean: Either[EvalError, Boolean] = Right(false)
   }
 
   case object LeftParenthesis extends LispToken
@@ -222,7 +250,16 @@ package object lexer {
 
 
   object LispToken {
-    val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
+    private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
+    private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
+    private val MacroRegex: Regex = """#(.*)""".r
+    private val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
+    private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
+    private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
+    private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
+    private val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
+    private val CharRegex: Regex = """^'(.)'""".r
+    private val StringRegex: Regex = """^"(.*)""".r
 
     def apply(code: String): Either[TokenizeError, LispToken] = code match {
       case "" => Right(LispNop)
@@ -256,17 +293,14 @@ package object lexer {
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
   }
 
-
   case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
     override def placeHolders: List[LispSymbol] = Nil
   }
 
-
-  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], code: LispValue) extends LispFunc {
+  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
     fn =>
     override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-      evalResult <- LispExec.eval(code, env)
+      evalResult <- body.eval(env)
     } yield evalResult._1
   }
-
 }
