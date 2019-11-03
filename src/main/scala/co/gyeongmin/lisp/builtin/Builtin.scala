@@ -33,7 +33,8 @@ object Builtin {
   }
 
   def E(name: String) = EagerSymbol(name)
-  def L(name: String) = LazySymbol(name)
+  def L(name: String) = ListSymbol(name)
+  def Z(name: String) = LazySymbol(name)
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
     E("$$PROMPT$$") -> LispString("Glisp"),
@@ -68,11 +69,11 @@ object Builtin {
     E("len") ->! (_.list.map(_.length)),
 
     // If statements should receive second and third parameters as Lazy evaluation
-    E("if") -> new BuiltinLispFunc(E("if"), E("_1") :: L("_2") :: L("_3") :: Nil) {
+    E("if") -> new BuiltinLispFunc(E("if"), E("_1") :: Z("_2") :: Z("_3") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
         cond <- env refer E("_1")
-        tClause <- env refer L("_2")
-        fClause <- env refer L("_3")
+        tClause <- env refer Z("_2")
+        fClause <- env refer Z("_3")
         condEvalRes <- cond.toBoolean
         execResult <- if (condEvalRes) {
           tClause.eval(env)
@@ -81,9 +82,9 @@ object Builtin {
         }
       } yield execResult._1
     },
-    E("list") -> new BuiltinLispFunc(E("list"), ListSymbol("_1") :: Nil) {
+    E("list") -> new BuiltinLispFunc(E("list"), L("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        list <- env refer ListSymbol("_1")
+        list <- env refer L("_1")
         x <- list.list
       } yield x
     },

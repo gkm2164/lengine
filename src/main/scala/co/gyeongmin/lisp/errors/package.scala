@@ -22,6 +22,8 @@ package object errors {
 
   case object UnresolvedSymbolError extends EvalError
 
+  case object ProgramFinishedError extends EvalError
+
 
   sealed trait ParseError extends LispError
 

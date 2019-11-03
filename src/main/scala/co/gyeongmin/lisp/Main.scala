@@ -10,8 +10,10 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
+
   implicit class X(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
+
     def updateHistory(stmt: LispValue, res: LispValue): LispEnvironment = env.get(HistorySymbol) match {
       case Some(LispList(items)) => env.updated(HistorySymbol, LispList(stmt :: items))
       case _ => env
@@ -34,7 +36,6 @@ object Main {
     prompt <- env.get(EagerSymbol("$$PROMPT$$")).toRight(UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
     ret <- prompt.printable()
   } yield ret
-
 
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
