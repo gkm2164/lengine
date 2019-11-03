@@ -56,6 +56,7 @@ object Builtin {
     es("cons") ->@ (_ :: _),
     es("eq") ->@ (_ == _),
     es("not") ->! (_.!),
+    es("len") ->! (_.list.map(_.length)),
 
     es("if") -> new BuiltinLispFunc(es("if"), es("_1") :: ls("_2") :: ls("_3") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {

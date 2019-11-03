@@ -175,6 +175,8 @@ package object lexer {
   case class LazySymbol(name: String) extends LispSymbol
 
   case class LispList(items: List[LispValue]) extends LispValue {
+    def length: LispValue = IntegerNumber(items.length)
+
     def head: LispValue = items.head
     def tail: LispValue = LispList(items.tail)
 
