@@ -1,4 +1,4 @@
-# Lisp Parser written in Scala
+# Lengine, another Lisp Engine
 
 ## How to run?
 
@@ -68,8 +68,8 @@ res2 => ()
 ### Remain issues, features
 
 #### Feature
+- Function overriding
 - Pattern match
-- Lambda implemented
 
 #### Issues
 - Recovery from error while REPL execution error
