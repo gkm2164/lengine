@@ -19,8 +19,8 @@ package object lexer {
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
-    def ::(other: LispValue): Either[EvalError, LispList] = other match {
-      case LispList(items) => Right(LispList(this :: items))
+    def ::(other: LispValue): Either[EvalError, LispList] = this match {
+      case LispList(items) => Right(LispList(other :: items))
       case k => Left(NotAnExecutableError(s":: to not a list value, $this, $k"))
     }
 
@@ -64,6 +64,12 @@ package object lexer {
     def ==(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("=="))
 
     def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable"))
+
+    def list: Either[EvalError, LispList] = this match {
+      case l@LispList(_) => Right(l)
+      case _ => Left(NotAnExecutableError("this is not a list type"))
+    }
+
   }
 
   sealed trait LispNumber extends LispValue
@@ -86,6 +92,12 @@ package object lexer {
       case IntegerNumber(num) => Right(IntegerNumber(value - num))
       case x => Left(UnimplementedOperationError(s"with $x"))
     }
+
+    override def ==(other: LispValue): Either[EvalError, LispValue] = other match {
+      case IntegerNumber(num) => Right(LispBoolean(value == num))
+      case x => Left(UnimplementedOperationError(s"with $x"))
+    }
+
 
     override def *(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(IntegerNumber(value * num))
@@ -163,12 +175,14 @@ package object lexer {
   case class LazySymbol(name: String) extends LispSymbol
 
   case class LispList(items: List[LispValue]) extends LispValue {
+    def head: LispValue = items.head
+    def tail: LispValue = LispList(items.tail)
+
     override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
       case (acc, Right(v)) => acc :+ v
       case (acc, Left(_)) => acc :+ "#Unprintable"
     }.mkString("(", ", ", ")"))
   }
-
   case class LispMacro(body: String) extends LispValue
 
   case object LispUnitValue extends LispValue {
@@ -182,12 +196,16 @@ package object lexer {
     }
   }
 
+  object LispBoolean {
+    def apply(boolean: Boolean): LispBoolean = if (boolean) LispTrue else LispFalse
+  }
+
   case object LispTrue extends LispBoolean {
-    override def toBoolean: Either[EvalError, Boolean] = Right(true)
+    override def toBoolean : Either[EvalError, Boolean] = Right(true)
   }
 
   case object LispFalse extends LispBoolean {
-    override def toBoolean: Either[EvalError, Boolean] = Right(false)
+    override def toBoolean : Either[EvalError, Boolean] = Right(false)
   }
 
   case object LeftParenthesis extends LispToken
