@@ -49,7 +49,14 @@ class Tokenizer() {
             Right(acc.mkString(""))
           case ch@(']' | ')') => Right(ch.toString)
           case ch@('"' | '\'') => takeString(acc.append(ch), ch, escape = false)
-          case ch if ch == -1.toChar && acc.nonEmpty => Right("")
+          case ';' if acc.isEmpty =>
+            takeString(new StringBuilder(), '\n', escape = false)
+            Right("")
+          case ';' =>
+            takeString(new StringBuilder(), '\n', escape = false)
+            closing = Some("")
+            Right(acc.mkString(""))
+          case ch if ch == -1.toChar && acc.isEmpty => Right("")
           case ch if ch == -1.toChar =>
             closing = Some("")
             Right(acc.mkString(""))
