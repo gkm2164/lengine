@@ -29,3 +29,7 @@ GLisp > (println (tail (cons 3 (cons 5 nil))))
 res2 => ()
 ...
 ```
+
+### Remain issues
+
+- Recovery from error while REPL execution error
