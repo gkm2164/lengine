@@ -30,11 +30,44 @@ res2 => ()
 ...
 ```
 
+### Features
+- Function definition
+
+```lisp
+;;; Define function
+;;; (fn [name] [symbols] [body])
+;;; ex) adder takes a and b
+(fn add (a b) (+ a b))
+
+```
+
+- Define value
+
+```lisp
+;;; Define variable
+;;; (def [name] [body])
+;;; ex) set x to be 3
+(def x 3)
+```
+
+- Lambda
+
+```lisp
+;;; Lambda as value
+;;; (lambda [args] [body])
+;;; ex) Lambda which takes 2 variable and add them
+(lambda (a b) (+ a b))
+
+;;; same as fn...
+(def add (lambda (a b) (+ a b)))
+;;; == (fn add (+ a b))
+```
+
 ### Remain issues, features
 
 #### Feature
 - Pattern match
-- Lambda
+- Lambda implemented
 
 #### Issues
 - Recovery from error while REPL execution error

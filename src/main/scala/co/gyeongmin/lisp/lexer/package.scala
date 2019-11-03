@@ -82,6 +82,9 @@ package object lexer {
   sealed trait LispNumber extends LispValue
 
   trait LispFunc extends LispValue {
+    override def printable(): Either[EvalError, String] = Right(s"lambda with $placeHoldersAsString")
+
+    def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.name).mkString(", ") else "no parameters"
     def placeHolders: List[LispSymbol]
 
     def apply(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
@@ -313,4 +316,5 @@ package object lexer {
       evalResult <- body.eval(env)
     } yield evalResult._1
   }
+
 }
