@@ -37,6 +37,18 @@ object Builtin {
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
     E("$$PROMPT$$") -> LispString("Glisp"),
+    E("$$HISTORY$$") -> LispList(Nil),
+    E("history") -> new LispFunc {
+      override def placeHolders: List[LispSymbol] = Nil
+
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
+        history <- env refer E("$$HISTORY$$")
+        historyList <- history.list
+      } yield {
+        println(historyList.items.mkString("\n"))
+        LispUnit
+      }
+    },
     E("nil") -> LispList(Nil),
 
     E("+") ->@ (_ + _),

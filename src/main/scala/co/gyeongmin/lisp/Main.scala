@@ -9,6 +9,14 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
+  implicit class X(env: LispEnvironment) {
+    val HistorySymbol = EagerSymbol("$$HISTORY$$")
+    def updateHistory(stmt: LispValue, res: LispValue): LispEnvironment = env.get(HistorySymbol) match {
+      case Some(LispList(items)) => env.updated(HistorySymbol, LispList(res :: items))
+      case _ => env
+    }
+  }
+
   def evalLoop(tokens: Stream[LispToken],
                env: LispEnvironment)
               (implicit debugger: Option[Debugger]): Either[LispError, LispValue] = for {
@@ -16,8 +24,9 @@ object Main {
     (stmt, remains) = parseResult
     res <- stmt.eval(env)
     (r, nextEnv) = res
+    historyEnv = nextEnv.updateHistory(stmt, r)
     _ = debugger.foreach(_.print(r))
-    nextRes <- evalLoop(remains, nextEnv)
+    nextRes <- evalLoop(remains, historyEnv)
   } yield nextRes
 
   def printPrompt(env: LispEnvironment): Either[EvalError, String] = for {
@@ -64,4 +73,7 @@ object Main {
       case Left(e) => println(s"failed with $e")
     }
   }
+
+  object UnableToReachHere extends LispError
+
 }
