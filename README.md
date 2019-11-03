@@ -17,5 +17,15 @@ $ sbt run
 GLisp > (println (+ 3 5))
 8
 res0 => ()
+```
+
+You can test list also
+```bash
+GLisp > (println (cons 3 (cons 5 nil)))
+(3 5)
+res1 => ()
+GLisp > (println (tail (cons 3 (cons 5 nil))))
+(5)
+res2 => ()
 ...
 ```
