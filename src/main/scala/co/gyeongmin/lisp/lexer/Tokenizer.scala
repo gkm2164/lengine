@@ -37,7 +37,6 @@ class Tokenizer() {
         }
       }
 
-
       @scala.annotation.tailrec
       def loop(acc: StringBuilder): Either[TokenizeError, String] =
         if (!codeIterator.hasNext) Left(EOFError)

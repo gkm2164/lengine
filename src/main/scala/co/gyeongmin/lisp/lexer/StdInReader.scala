@@ -6,7 +6,7 @@ import co.gyeongmin.lisp.debug.DebugUtil
 
 import scala.collection.mutable
 import scala.io.StdIn
-import scala.util.{Failure, Success, Try}
+import scala.util._
 
 class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] with DebugUtil {
   override def hasNext: Boolean = ensureQueueFill().isRight

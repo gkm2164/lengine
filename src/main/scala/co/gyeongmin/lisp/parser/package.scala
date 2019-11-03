@@ -67,8 +67,8 @@ package object parser {
 
   def parseLambda: LispTokenState[GeneralLispFunc] = for {
     args <- parseArgs
-    value <- parseValue
-  } yield GeneralLispFunc(args, value)
+    body <- parseValue
+  } yield GeneralLispFunc(args, body)
 
   def parseFunc: LispTokenState[LispFuncDef] = for {
     symbol <- parseSymbol

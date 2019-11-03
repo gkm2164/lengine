@@ -3,7 +3,7 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.parser._
 import co.gyeongmin.lisp.builtin._
 import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.execution._
+import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer._
 
 import scala.io.Source
@@ -12,7 +12,7 @@ object Main {
   implicit class X(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
     def updateHistory(stmt: LispValue, res: LispValue): LispEnvironment = env.get(HistorySymbol) match {
-      case Some(LispList(items)) => env.updated(HistorySymbol, LispList(res :: items))
+      case Some(LispList(items)) => env.updated(HistorySymbol, LispList(stmt :: items))
       case _ => env
     }
   }

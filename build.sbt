@@ -1,4 +1,4 @@
-name := "lisp-parser"
+name := "lengine"
 
 version := "0.1"
 
