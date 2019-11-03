@@ -4,7 +4,7 @@
 
 ### Execute Code
 ```bash
-$ git clone https://github.com/gkm2164/lisp-parser
+$ git clone https://github.com/gkm2164/lengine
 $ sbt compile
 $ sbt "run [filename]"
 
