@@ -2,20 +2,20 @@
 (def y 4)
 (def z? (println "Hello, Lisp2!"))
 (println "Hello, Lisp!")
-(fn p [str] (println str))
+(fn p (str) (println str))
 (p (+ 3 4))
-(fn fact [n]
+(fn fact (n)
   (if (> n 0)
      (* n (fact (- n 1)))
      1))
-(fn fact-tailrec [acc n]
+(fn fact-tailrec (acc n)
   (if (> n 0) (fact-tailrec (* acc n) (- n 1))
    acc))
 
 (p (fact 3))
 (p (fact-tailrec 1 3))
 
-(fn fib [n]
+(fn fib (n)
   (if (<= n 1)
     n
     (+ (fib (- n 1)) (fib (- n 2)))))

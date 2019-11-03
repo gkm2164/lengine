@@ -9,7 +9,6 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
-
   def evalLoop(tokens: Stream[LispToken],
                env: LispEnvironment)
               (implicit debugger: Option[Debugger]): Either[LispError, LispValue] = for {

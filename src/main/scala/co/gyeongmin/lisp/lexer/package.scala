@@ -19,13 +19,20 @@ package object lexer {
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
+    def ::(other: LispValue): Either[EvalError, LispList] = other match {
+      case LispList(items) => Right(LispList(this :: items))
+      case k => Left(NotAnExecutableError(s":: to not a list value, $this, $k"))
+    }
+
+    def ! : Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("!"))
+
     def toFloat: Either[EvalError, FloatNumber] = Left(NotAnExecutableError("toFloat"))
 
     def toInt: Either[EvalError, IntegerNumber] = Left(NotAnExecutableError("toInt"))
 
     def execute(env: LispEnvironment): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
 
-    def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
+    def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
 
     def ++(other: LispValue): Either[EvalError, LispValue] = for {
       str1 <- printable()
@@ -65,8 +72,8 @@ package object lexer {
     def placeHolders: List[LispSymbol]
   }
 
-  abstract class BuiltinLispFunc(name: String, val placeHolders: List[LispSymbol]) extends LispFunc {
-    override def toString: String = s"BuiltinLispFunc($name)"
+  abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSymbol]) extends LispFunc {
+    override def toString: String = s"BuiltinLispFunc(${symbol.name})"
   }
 
   case class IntegerNumber(value: Long) extends LispNumber {
@@ -155,7 +162,12 @@ package object lexer {
 
   case class LazySymbol(name: String) extends LispSymbol
 
-  case class LispList(items: List[LispValue]) extends LispValue
+  case class LispList(items: List[LispValue]) extends LispValue {
+    override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
+      case (acc, Right(v)) => acc :+ v
+      case (acc, Left(_)) => acc :+ "#Unprintable"
+    }.mkString("(", ", ", ")"))
+  }
 
   case class LispMacro(body: String) extends LispValue
 
@@ -163,12 +175,19 @@ package object lexer {
     override def printable(): Either[EvalError, String] = Right("()")
   }
 
-  case object LispTrue extends LispValue {
-    override def ? : Either[EvalError, Boolean] = Right(true)
+  abstract class LispBoolean extends LispValue {
+    override def ! : Either[EvalError, LispBoolean] = this match {
+      case LispTrue => Right(LispFalse)
+      case LispFalse => Right(LispTrue)
+    }
   }
 
-  case object LispFalse extends LispValue {
-    override def ? : Either[EvalError, Boolean] = Right(false)
+  case object LispTrue extends LispBoolean {
+    override def toBoolean: Either[EvalError, Boolean] = Right(true)
+  }
+
+  case object LispFalse extends LispBoolean {
+    override def toBoolean: Either[EvalError, Boolean] = Right(false)
   }
 
   case object LeftParenthesis extends LispToken
