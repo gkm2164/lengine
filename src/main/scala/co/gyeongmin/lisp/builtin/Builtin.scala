@@ -12,8 +12,8 @@ object Builtin {
       symbol ->
         new BuiltinLispFunc(symbol, List(EagerSymbol("_1"), EagerSymbol("_2"))) {
           override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-            x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
-            y <- env.get(EagerSymbol("_2")).toRight(UnknownSymbolNameError(EagerSymbol("_2")))
+            x <- env refer es("_1")
+            y <- env refer es("_2")
             res <- f(x, y)
           } yield res
         }
@@ -22,7 +22,7 @@ object Builtin {
       symbol ->
         new BuiltinLispFunc(symbol, EagerSymbol("_1") :: Nil) {
           override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-            x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+            x <- env refer es("_1")
             res <- f(x)
           } yield res
         }
@@ -32,33 +32,36 @@ object Builtin {
     def ->@(f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, BuiltinLispFunc) = binaryStmtFunc(x, f)
   }
 
+  def es(name: String) = EagerSymbol(name)
+  def ls(name: String) = LazySymbol(name)
+
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
-    EagerSymbol("$$PROMPT$$") -> LispString("Glisp"),
-    EagerSymbol("nil") -> LispList(Nil),
+    es("$$PROMPT$$") -> LispString("Glisp"),
+    es("nil") -> LispList(Nil),
 
-    EagerSymbol("+") ->@ (_ + _),
-    EagerSymbol("-") ->@ (_ - _),
-    EagerSymbol("++") ->@ (_ ++ _),
-    EagerSymbol("*") ->@ (_ * _),
-    EagerSymbol("/") ->@ (_ / _),
-    EagerSymbol("%") ->@ (_ % _),
-    EagerSymbol(">") ->@ (_ > _),
-    EagerSymbol("<") ->@ (_ < _),
-    EagerSymbol(">=") ->@ (_ >= _),
-    EagerSymbol("<=") ->@ (_ <= _),
-    EagerSymbol("&&") ->@ (_ && _),
-    EagerSymbol("||") ->@ (_ || _),
-    EagerSymbol("head") ->! (_.list.map(_.head)),
-    EagerSymbol("tail") ->! (_.list.map(_.tail)),
-    EagerSymbol("cons") ->@ (_ :: _),
-    EagerSymbol("eq") ->@ (_ == _),
-    EagerSymbol("not") ->! (_.!),
+    es("+") ->@ (_ + _),
+    es("-") ->@ (_ - _),
+    es("++") ->@ (_ ++ _),
+    es("*") ->@ (_ * _),
+    es("/") ->@ (_ / _),
+    es("%") ->@ (_ % _),
+    es(">") ->@ (_ > _),
+    es("<") ->@ (_ < _),
+    es(">=") ->@ (_ >= _),
+    es("<=") ->@ (_ <= _),
+    es("&&") ->@ (_ && _),
+    es("||") ->@ (_ || _),
+    es("head") ->! (_.list.map(_.head)),
+    es("tail") ->! (_.list.map(_.tail)),
+    es("cons") ->@ (_ :: _),
+    es("eq") ->@ (_ == _),
+    es("not") ->! (_.!),
 
-    EagerSymbol("if") -> new BuiltinLispFunc(EagerSymbol("if"), List(EagerSymbol("_1"), LazySymbol("_2"), LazySymbol("_3"))) {
+    es("if") -> new BuiltinLispFunc(es("if"), es("_1") :: ls("_2") :: ls("_3") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        cond <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
-        tClause <- env.get(LazySymbol("_2")).toRight(UnknownSymbolNameError(LazySymbol("_2")))
-        fClause <- env.get(LazySymbol("_3")).toRight(UnknownSymbolNameError(LazySymbol("_3")))
+        cond <- env refer es("_1")
+        tClause <- env refer ls("_2")
+        fClause <- env refer ls("_3")
         condEvalRes <- cond.toBoolean
         execResult <- if (condEvalRes) {
           tClause.execute(env)
@@ -67,39 +70,43 @@ object Builtin {
         }
       } yield execResult
     },
-    EagerSymbol("float") -> new BuiltinLispFunc(EagerSymbol("float"), EagerSymbol("_1") :: Nil) {
+    es("float") -> new BuiltinLispFunc(es("float"), es("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        x <- env refer es("_1")
         num <- x.toFloat
       } yield num
     },
-    EagerSymbol("print") -> new BuiltinLispFunc(EagerSymbol("print"), List(EagerSymbol("_1"))) {
+    es("print") -> new BuiltinLispFunc(es("print"), es("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        x <- env refer es("_1")
         str <- x.printable()
         _ = print(str)
       } yield LispUnitValue
     },
-    EagerSymbol("println") -> new BuiltinLispFunc(EagerSymbol("println"), List(EagerSymbol("_1"))) {
+    es("println") -> new BuiltinLispFunc(es("println"), es("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        x <- env refer es("_1")
         str <- x.printable()
         _ = println(str)
       } yield LispUnitValue
     },
-    EagerSymbol("read-line") -> new BuiltinLispFunc(EagerSymbol("read-line"), List(EagerSymbol("_1"))) {
+    es("read-line") -> new BuiltinLispFunc(es("read-line"), es("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        x <- env refer es("_1")
         prompt <- x.printable()
         _ = print(prompt)
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
     },
-    EagerSymbol("quit") -> new BuiltinLispFunc(EagerSymbol("quit"), List(EagerSymbol("_1"))) {
+    es("quit") -> new BuiltinLispFunc(es("quit"), es("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env.get(EagerSymbol("_1")).toRight(UnknownSymbolNameError(EagerSymbol("_1")))
+        x <- env refer es("_1")
         exitCode <- x.toInt
         _ = System.exit(exitCode.value.toInt)
       } yield LispUnitValue
     })
+
+  implicit class LispEnvironmentSyntax(x: LispEnvironment) {
+    def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] = x.get(symbol).toRight(UnknownSymbolNameError(symbol))
+  }
 }
