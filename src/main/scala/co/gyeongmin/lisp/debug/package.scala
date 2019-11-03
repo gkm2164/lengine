@@ -44,6 +44,7 @@ package object debug {
         case lexer.LispLambda => "lambda: Keyword for define lambda"
         case EagerSymbol(name) => s"$name: eager evaluation symbol"
         case LazySymbol(name) => s"$name: lazy evaluation symbol"
+        case ListSymbol(name) => s"$name: a symbol for list"
       }
       case _: LispClause => s"_: Lisp clause"
       case list: LispList => list.printable() match {

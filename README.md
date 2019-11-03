@@ -9,7 +9,7 @@ $ sbt compile
 $ sbt "run [filename]"
 
 # ex)
-$ sbt "run testCode.lisp" 
+$ sbt "run ./examples/testCode.lisp" 
  
 ```
 
@@ -63,6 +63,16 @@ res2 => ()
 ;;; same as fn...
 (def add (lambda (a b) (+ a b)))
 ;;; == (fn add (+ a b))
+```
+
+- use list
+
+```lisp
+;;; use list as value
+;;; (list values*)
+;;; ex) List for 1 2 3 4 5
+(list 1 2 3 4 5)
+;;; == (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
 ```
 
 ### Remain issues, features

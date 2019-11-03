@@ -16,3 +16,5 @@
   (reverse-loop nil xs))
 
 (println (reverse xs))
+
+(println (reverse (list 1 2 3 4 5)))

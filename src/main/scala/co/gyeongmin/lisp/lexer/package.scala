@@ -85,27 +85,38 @@ package object lexer {
     override def printable(): Either[EvalError, String] = Right(s"lambda with $this")
 
     def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.name).mkString(", ") else "no parameters"
+
     def placeHolders: List[LispSymbol]
 
-    def applyEnv(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
-      if (placeHolders.length != args.length) {
-        Left(FunctionApplyError(s"expected symbol count is ${placeHolders.length}, but ${args.length} given"))
-      } else {
-        def applyLoop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
-          (symbols, args) match {
-            case (Nil, Nil) => Right(accEnv)
-            case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
-              evalRes <- arg.eval(accEnv)
-              (res, _) = evalRes
-              appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
-            } yield appliedEnv
-            case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-              applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
-            case x => Left(FunctionApplyError(s"there is an error: ${x}"))
-          }
-
-        applyLoop(env, placeHolders, args)
+    private def transform(list: List[Either[EvalError, LispValue]]): Either[EvalError, List[LispValue]] = {
+      @scala.annotation.tailrec
+      def loop(acc: Vector[LispValue], remains: List[Either[EvalError, LispValue]]): Either[EvalError, List[LispValue]] = remains match {
+        case Nil => Right(acc.toList)
+        case Right(v) :: tail => loop(acc :+ v, tail)
+        case Left(e) :: _ => Left(e)
       }
+
+      loop(Vector.empty, list)
+    }
+
+    def applyEnv(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
+      def applyLoop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
+        (symbols, args) match {
+          case (Nil, Nil) => Right(accEnv)
+          case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
+            evalRes <- arg.eval(accEnv)
+            (res, _) = evalRes
+            appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
+          } yield appliedEnv
+          case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
+            applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
+          case ((l: ListSymbol) :: Nil, args) =>
+            val argList: Either[EvalError, List[LispValue]] = transform(args.map(_.eval(env).map(_._1)))
+            argList.map(x => accEnv.updated(l, LispList(x)))
+          case x => Left(FunctionApplyError(s"there is an error: $x"))
+        }
+
+      applyLoop(env, placeHolders, args)
     }
   }
 
@@ -210,6 +221,8 @@ package object lexer {
 
   case class LazySymbol(name: String) extends LispSymbol
 
+  case class ListSymbol(name: String) extends LispSymbol
+
   case class LispList(items: List[LispValue]) extends LispValue {
     def length: LispValue = IntegerNumber(items.length)
 
@@ -220,7 +233,7 @@ package object lexer {
     override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
       case (acc, Right(v)) => acc :+ v
       case (acc, Left(_)) => acc :+ "#Unprintable"
-    }.mkString("(", ", ", ")"))
+    }.mkString("(", " ", ")"))
   }
 
   case class LispMacro(body: String) extends LispValue
@@ -264,6 +277,7 @@ package object lexer {
     private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
     private val MacroRegex: Regex = """#(.*)""".r
     private val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
+    private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\*)""".r
     private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
     private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
     private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
@@ -284,6 +298,7 @@ package object lexer {
       case "true" => Right(LispTrue)
       case "false" => Right(LispFalse)
       case LazySymbolRegex(name) => Right(LazySymbol(name))
+      case ListSymbolRegex(name) => Right(ListSymbol(name))
       case SymbolRegex(name) => Right(EagerSymbol(name))
       case MacroRegex(body) => Right(LispMacro(body))
       case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))

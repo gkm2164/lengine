@@ -81,6 +81,12 @@ object Builtin {
         }
       } yield execResult._1
     },
+    E("list") -> new BuiltinLispFunc(E("list"), ListSymbol("_1") :: Nil) {
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
+        list <- env refer ListSymbol("_1")
+        x <- list.list
+      } yield x
+    },
     E("float") -> new BuiltinLispFunc(E("float"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
         x <- env refer E("_1")
