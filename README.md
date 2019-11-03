@@ -7,7 +7,9 @@
 $ git clone https://github.com/gkm2164/lisp-parser
 $ sbt compile
 $ sbt "run [filename]"
-# ex) $ sbt "run testCode.lisp" 
+
+# ex)
+$ sbt "run testCode.lisp" 
  
 ```
 
