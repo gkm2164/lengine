@@ -22,6 +22,7 @@
 
 (p (fib 6))
 (z?)
+(println 3/5)
 (println (float 3/5))
 (def name (read-line "Input your name: "))
 (println (++ (++ "Hello, " name) "!"))

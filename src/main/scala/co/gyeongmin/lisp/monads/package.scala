@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp
 
 import cats.Monad
-import co.gyeongmin.lisp.Main.LispActiveRecord
-import co.gyeongmin.lisp.ast.LispError
-import co.gyeongmin.lisp.lexer.{EvalError, LispToken}
+import co.gyeongmin.lisp.execution._
+import co.gyeongmin.lisp.errors.LispError
+import co.gyeongmin.lisp.lexer._
 
 package object monads {
-  type LispState[A] = (Stream[LispToken], LispActiveRecord) => Either[LispError, (A, Stream[LispToken], LispActiveRecord)]
+  type LispState[A] = (Stream[LispToken], LispEnvironment) => Either[LispError, (A, Stream[LispToken], LispEnvironment)]
 
   implicit val lispStateMonad: Monad[LispState] = new Monad[LispState] {
     override def pure[A](x: A): LispState[A] = (tokens, env) => Right((x, tokens, env))

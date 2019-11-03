@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.lexer.LispLexer.TokenizeError
+import co.gyeongmin.lisp.errors.TokenizeError
 import org.scalatest._
 
 class RegexTest extends FlatSpec with Matchers {
@@ -12,7 +12,7 @@ class RegexTest extends FlatSpec with Matchers {
   case class InvalidMatch(x: LispToken) extends Error
 
   "tokenizer" should "work well" in {
-    println(LispLexer.tokenize(new Tokenizer("(a b c)")))
+    println(Tokenizer.tokenize(new Tokenizer("(a b c)")))
   }
 
 //  "number regex" should "match given numbers(represented in common lisp" in {

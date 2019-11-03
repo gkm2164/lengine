@@ -1,8 +1,7 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.Main.{LispActiveRecord, eval, fnApply}
-import co.gyeongmin.lisp.ast.LispError
-import co.gyeongmin.lisp.lexer.LispLexer._
+import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.execution._
 
 import scala.util.matching.Regex
 
@@ -24,7 +23,7 @@ package object lexer {
 
     def toInt: Either[EvalError, IntegerNumber] = Left(NotAnExecutableError("toInt"))
 
-    def execute(env: LispActiveRecord): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
+    def execute(env: LispEnvironment): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
 
     def ? : Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
 
@@ -61,14 +60,6 @@ package object lexer {
   }
 
   sealed trait LispNumber extends LispValue
-
-  sealed trait EvalError extends LispError
-
-  case class InvalidValueError(errValue: LispValue) extends EvalError
-
-  object EmptyBodyClauseError extends EvalError
-
-  case class FunctionApplyError(msg: String) extends EvalError
 
   trait LispFunc extends LispValue {
     def placeHolders: List[LispSymbol]
@@ -144,14 +135,14 @@ package object lexer {
   }
 
   case class LispClause(body: List[LispValue]) extends LispValue {
-    override def execute(env: LispActiveRecord): Either[EvalError, LispValue] = (body match {
+    override def execute(env: LispEnvironment): Either[EvalError, LispValue] = (body match {
       case Nil => Left(EmptyBodyClauseError)
       case (symbol: LispSymbol) :: args => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
-      case value :: args => eval(value, env).map { case (v, _) => (v, args) }
+      case value :: args => LispExec.eval(value, env).map { case (v, _) => (v, args) }
     }) flatMap {
       case (firstStmtValue, args) => firstStmtValue match {
         case fn: LispFunc => for {
-          symbolEnv <- fnApply(env, fn.placeHolders, args)
+          symbolEnv <- LispExec.fnApply(env, fn.placeHolders, args)
           evalResult <- fn.execute(symbolEnv)
         } yield evalResult
         case v => Left(NotAnExecutableError(v.toString))
@@ -163,10 +154,6 @@ package object lexer {
   case class EagerSymbol(name: String) extends LispSymbol
 
   case class LazySymbol(name: String) extends LispSymbol
-
-  case class UnimplementedOperationError(operation: String) extends EvalError
-
-  case class NotAnExecutableError(value: String) extends EvalError
 
   case class LispList(items: List[LispValue]) extends LispValue
 
@@ -194,11 +181,6 @@ package object lexer {
 
   case object RightBracket extends LispToken
 
-  case class UnknownSymbolNameError(name: LispSymbol) extends EvalError
-
-  case object EmptyTokenListError extends EvalError
-
-  case object UnresolvedSymbolError extends EvalError
 
   object LispToken {
     val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
@@ -233,6 +215,19 @@ package object lexer {
     }
 
     private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
+  }
+
+
+  case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
+    override def placeHolders: List[LispSymbol] = Nil
+  }
+
+
+  case class GeneralLispFunc(symbol: LispSymbol, placeHolders: List[LispSymbol], code: LispValue) extends LispFunc {
+    fn =>
+    override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
+      evalResult <- LispExec.eval(code, env)
+    } yield evalResult._1
   }
 
 }

@@ -1,6 +1,8 @@
-package co.gyeongmin.lisp
+package co.gyeongmin.lisp.lexer
 
 import java.io.EOFException
+
+import co.gyeongmin.lisp.debug.DebugUtil
 
 import scala.collection.mutable
 import scala.io.StdIn
@@ -29,12 +31,5 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] with Debu
       case Success(None) => Left(new EOFException())
       case Failure(e) => Left(e)
     }
-  }
-}
-
-trait DebugUtil {
-  def debug(msg: String = "")(f: => Unit): Unit = {
-    println(msg)
-    f
   }
 }

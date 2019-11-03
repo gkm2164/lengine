@@ -3,19 +3,12 @@ package co.gyeongmin.lisp
 import cats.Monad
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import co.gyeongmin.lisp.Main.{GeneralLispFunc, LispValueDef}
+import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.lexer._
 
 import scala.reflect.ClassTag
 
-package object ast {
-
-  sealed trait ParseError extends LispError
-
-  case object EmptyTokenListError extends ParseError
-
-  case class UnexpectedTokenError(tk: LispToken, msg: String = "") extends ParseError
-
+package object parser {
   type LispTokenState[A] = Stream[LispToken] => Either[ParseError, (A, Stream[LispToken])]
 
   implicit val lispTokenStateMonad: Monad[LispTokenState] = new Monad[LispTokenState] {
@@ -135,7 +128,4 @@ package object ast {
 
     (fnState | defState | clause)(tks)
   }
-
-  trait LispError
-
 }

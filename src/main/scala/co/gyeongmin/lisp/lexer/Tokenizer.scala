@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.lexer.LispLexer.{EOFError, TokenizeError, WrongEscapeError}
-
+import co.gyeongmin.lisp.errors._
 
 class Tokenizer() {
   var codeIterator: Iterator[Char] = _
@@ -66,4 +65,8 @@ class Tokenizer() {
     case Left(e) => println(s"Error on $e")
       streamLoop
   }
+}
+
+object Tokenizer {
+  def tokenize(code: Tokenizer): Either[TokenizeError, Stream[LispToken]] = Right(code.streamLoop)
 }
