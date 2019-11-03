@@ -21,7 +21,7 @@ package object lexer {
       case clause: LispClause => clause.execute(env).map((_, env))
       case LispMacro(_) => Left(UnimplementedOperationError("realize macro"))
       case v: LispNumber => Right((v, env))
-      case LispChar(_) | LispString(_) | LispList(_) | LispUnitValue | LispTrue | LispFalse => Right((this, env))
+      case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((this, env))
       case v: GeneralLispFunc => Right((v, env))
       case value => Left(UnimplementedOperationError(value.toString))
     }
@@ -223,7 +223,7 @@ package object lexer {
 
   case class LispMacro(body: String) extends LispValue
 
-  case object LispUnitValue extends LispValue {
+  case object LispUnit extends LispValue {
     override def printable(): Either[EvalError, String] = Right("()")
   }
 
@@ -279,6 +279,8 @@ package object lexer {
       case "def" => Right(LispDef)
       case "fn" => Right(LispFn)
       case "lambda" => Right(LispLambda)
+      case "true" => Right(LispTrue)
+      case "false" => Right(LispFalse)
       case LazySymbolRegex(name) => Right(LazySymbol(name))
       case SymbolRegex(name) => Right(EagerSymbol(name))
       case MacroRegex(body) => Right(LispMacro(body))

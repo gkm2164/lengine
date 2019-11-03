@@ -83,14 +83,14 @@ object Builtin {
         x <- env refer E("_1")
         str <- x.printable()
         _ = print(str)
-      } yield LispUnitValue
+      } yield LispUnit
     },
     E("println") -> new BuiltinLispFunc(E("println"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
         x <- env refer E("_1")
         str <- x.printable()
         _ = println(str)
-      } yield LispUnitValue
+      } yield LispUnit
     },
     E("read-line") -> new BuiltinLispFunc(E("read-line"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
@@ -105,7 +105,7 @@ object Builtin {
         x <- env refer E("_1")
         exitCode <- x.toInt
         _ = System.exit(exitCode.value.toInt)
-      } yield LispUnitValue
+      } yield LispUnit
     })
 
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {

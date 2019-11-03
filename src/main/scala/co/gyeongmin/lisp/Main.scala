@@ -2,6 +2,7 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.parser._
 import co.gyeongmin.lisp.builtin._
+import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
@@ -25,26 +26,6 @@ object Main {
     ret <- prompt.printable()
   } yield ret
 
-  sealed trait Debugger {
-    def print(lispValue: LispValue): Unit
-  }
-
-  class ReplDebugger() extends Debugger {
-    def incAndGet: () => Int = {
-      var id = 0
-      () => {
-        id += 1
-        id
-      }
-    }
-
-    val idIssue: () => Int = incAndGet
-
-    override def print(lispValue: LispValue): Unit = lispValue.printable() match {
-      case Right(value) => println(s"res#${idIssue()} => $value")
-      case Left(_) => println(s"res#${idIssue()} => $lispValue")
-    }
-  }
 
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
