@@ -11,7 +11,7 @@ package object lexer {
 
   sealed trait LispValue extends LispToken {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = this match {
-      case f@LispFuncDef(name, lambda) => Right((f, env.updated(name, lambda)))
+      case f@LispFuncDef(symbol, fn) => Right((f, env.updated(symbol, fn)))
       case d@LispValueDef(symbol, v) => symbol match {
         case EagerSymbol(_) => v.eval(env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
         case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(Nil, v))))
@@ -82,12 +82,12 @@ package object lexer {
   sealed trait LispNumber extends LispValue
 
   trait LispFunc extends LispValue {
-    override def printable(): Either[EvalError, String] = Right(s"lambda with $placeHoldersAsString")
+    override def printable(): Either[EvalError, String] = Right(s"lambda with $this")
 
     def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.name).mkString(", ") else "no parameters"
     def placeHolders: List[LispSymbol]
 
-    def apply(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
+    def applyEnv(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
       if (placeHolders.length != args.length) {
         Left(FunctionApplyError(s"expected symbol count is ${placeHolders.length}, but ${args.length} given"))
       } else {
@@ -100,7 +100,7 @@ package object lexer {
               appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
             } yield appliedEnv
             case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-              applyLoop(accEnv.updated(l, GeneralLispFunc(Nil, arg)), symbolTail, argTail)
+              applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
             case x => Left(FunctionApplyError(s"there is an error: ${x}"))
           }
 
@@ -191,12 +191,14 @@ package object lexer {
   case class LispClause(body: List[LispValue]) extends LispValue {
     override def execute(env: LispEnvironment): Either[EvalError, LispValue] = (body match {
       case Nil => Left(EmptyBodyClauseError)
-      case (symbol: LispSymbol) :: args => env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
-      case value :: args => value.eval(env).map { case (v, _) => (v, args) }
+      case (symbol: LispSymbol) :: args =>
+        env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
+      case value :: args =>
+        value.eval(env).map { case (v, _) => (v, args) }
     }) flatMap {
       case (firstStmtValue, args) => firstStmtValue match {
         case fn: LispFunc => for {
-          symbolEnv <- fn(env, args)
+          symbolEnv <- fn.applyEnv(env, args)
           evalResult <- fn.execute(symbolEnv)
         } yield evalResult
         case v => Left(NotAnExecutableError(v.toString))
@@ -313,7 +315,6 @@ package object lexer {
   }
 
   case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
-    fn =>
     override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
       evalResult <- body.eval(env)
     } yield evalResult._1

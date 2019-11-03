@@ -1,8 +1,8 @@
 package co.gyeongmin.lisp
 
 import cats.Monad
-import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.errors.{LispError, ParseError}
+import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer._
 
 package object monads {

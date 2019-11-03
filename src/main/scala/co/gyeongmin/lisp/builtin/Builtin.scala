@@ -37,8 +37,17 @@ object Builtin {
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
     E("$$PROMPT$$") -> LispString("Glisp"),
+    E("$$HISTORY$$") -> LispList(Nil),
+    E("history") -> new BuiltinLispFunc(E("history"), Nil) {
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
+        history <- env refer E("$$HISTORY$$")
+        historyList <- history.list
+      } yield {
+        println(historyList.items.mkString("\n"))
+        LispUnit
+      }
+    },
     E("nil") -> LispList(Nil),
-
     E("+") ->@ (_ + _),
     E("-") ->@ (_ - _),
     E("++") ->@ (_ ++ _),
@@ -66,11 +75,11 @@ object Builtin {
         fClause <- env refer L("_3")
         condEvalRes <- cond.toBoolean
         execResult <- if (condEvalRes) {
-          tClause.execute(env)
+          tClause.eval(env)
         } else {
-          fClause.execute(env)
+          fClause.eval(env)
         }
-      } yield execResult
+      } yield execResult._1
     },
     E("float") -> new BuiltinLispFunc(E("float"), E("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
@@ -100,12 +109,11 @@ object Builtin {
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
     },
-    E("quit") -> new BuiltinLispFunc(E("quit"), E("_1") :: Nil) {
-      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-        x <- env refer E("_1")
-        exitCode <- x.toInt
-        _ = System.exit(exitCode.value.toInt)
-      } yield LispUnit
+    E("quit") -> new BuiltinLispFunc(E("quit"), Nil) {
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = {
+        System.exit(0)
+        Right(LispUnit)
+      }
     })
 
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {

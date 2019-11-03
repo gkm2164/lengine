@@ -10,10 +10,7 @@
 (println xs)
 (println (n-th 2 xs))
 
-(fn reverse-loop (acc xs)
-  (if (eq (len xs) 0)
-    acc
-    (reverse-loop (cons (head xs) acc) (tail xs))))
+(fn reverse-loop (acc xs) (if (eq (len xs) 0) acc (reverse-loop (cons (head xs) acc) (tail xs))))
 
 (fn reverse (xs)
   (reverse-loop nil xs))
