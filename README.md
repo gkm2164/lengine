@@ -80,6 +80,3 @@ res2 => ()
 #### Feature
 - Function overriding
 - Pattern match
-
-#### Issues
-- Recovery from error while REPL execution error
