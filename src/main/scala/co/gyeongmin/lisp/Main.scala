@@ -66,8 +66,7 @@ object Main {
       runLoop(tokenizer, env) match {
         case Right(_) =>
         case Left((EvalParseError(EmptyTokenListError), _)) =>
-        case Left((e, _)) =>
-          println(s"failed with $e")
+        case Left((e, _)) => println(e.message)
       }
     } else {
       replLoop(env)
