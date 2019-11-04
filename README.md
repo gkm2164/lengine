@@ -92,18 +92,28 @@ x
 (and false true) ;;; == false
 (>= 3 0) ;;; == true
 (or (>= 3 0) (<= 0 1)) ;;; == true
+;;; and, or, eq, >=, <=, >, <
 
 ;;; not allowed
 (and true 3) ;;; ???
-;;; and, or, eq, >=, <=, >, <
 ```
+
+- Import library
+```lisp
+;;; Import library
+;;; (import [path])
+(import "libs/sequence") ;;; import sequence operations
+;;; test
+(map (list 1 2 3 4 5) (lambda (x) (+ x 1)))
+;;; == (list 2 3 4 5 6)
+``
 
 ### To be implemented
 
 #### Feature
 - Function overriding
 - Pattern match
-- Import modules
+- Namespace
 - History feature
 - Floating, Rational Number operations
 - Complex number operations
