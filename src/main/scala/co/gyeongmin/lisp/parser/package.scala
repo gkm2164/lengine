@@ -15,12 +15,14 @@ package object parser {
     _ <- takeToken[RightPar.type]
   } yield ComplexNumber(real, imagine)
 
+  import cats.syntax.either._
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
     case ListStartPar #:: tail => parseList(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
+    case (m: LispMacro) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
     case (tk: LispValue) #:: tail => Right((tk, tail))
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
@@ -132,4 +134,5 @@ package object parser {
 
     (lambda | defFn | defVar | importVar | clause)(tks)
   }
+
 }

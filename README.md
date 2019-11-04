@@ -146,3 +146,4 @@ x
 - Namespace
 - Stream
 - History feature
+- Binary generation

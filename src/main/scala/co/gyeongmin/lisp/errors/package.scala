@@ -65,10 +65,22 @@ package object errors {
     override def message: String = s"given $k is not a number type"
   }
 
+  case class ParseTokenizeError(e: TokenizeError) extends ParseError {
+    override def message: String = s"tokenizer error: ${e.message}"
+  }
+
   sealed trait TokenizeError extends LispError
 
   case class UnknownTokenError(str: String) extends TokenizeError {
     override def message: String = s"Unknown token error"
+  }
+
+  case class InvalidNumberType(v: String) extends TokenizeError {
+    override def message: String = s"invalid number type: $v"
+  }
+
+  case class UnknownMacroError(v: String) extends TokenizeError {
+    override def message: String = s"Unknown macro: $v"
   }
 
   case object RatioUnderZeroNotAllowed extends TokenizeError {

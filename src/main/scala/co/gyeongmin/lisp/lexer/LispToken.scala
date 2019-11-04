@@ -77,6 +77,7 @@ sealed trait LispNumber extends LispValue {
   protected final def signature(o: Long): Long = if (o >= 0) 1 else -1
 
   protected final def abs(a: Long): Long = if (a >= 0) a else -a
+
   @scala.annotation.tailrec
   protected final def gcd(a: Long, b: Long): Long = {
     if (b == 0) a
@@ -137,8 +138,8 @@ case class IntegerNumber(value: Long) extends LispNumber {
       val d = gcd(abs(o), abs(under))
       Right(RatioNumber(o / d, under / d))
     case ComplexNumber(real, imagine) => for {
-      r <- value * real
-      i <- value * imagine
+      r <- this * real
+      i <- this * imagine
     } yield ComplexNumber(r, i)
     case x => Left(UnimplementedOperationError(s"*", x))
   }
@@ -290,7 +291,54 @@ case class LispList(items: List[LispValue]) extends LispValue {
   }.mkString("(", " ", ")"))
 }
 
-case class LispMacro(body: String) extends LispValue
+case class LispMacro(body: String) extends LispValue {
+  // #2r00100
+  // #2r-00100
+  // #16rBEAF
+  // #16rbeaf
+  // #b..
+  // #o..
+  // #x..
+  val NumberRegex: Regex = """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+)""".r
+
+  val charNumMap: Map[Char, Int] =
+    ('0' to '9').zipWithIndex.toMap ++
+      ('a' to 'z').zipWithIndex.toMap.mapValues(_ + 10) ++
+      ('A' to 'Z').zipWithIndex.toMap.mapValues(_ + 10)
+
+  // need error handling
+  def parseNumber(base: Int, number: String): Either[TokenizeError, Long] = {
+    @scala.annotation.tailrec
+    def loop(acc: Long, remains: String): Either[TokenizeError, Long] = if (remains == "") {
+      Right(acc)
+    } else {
+      val h = charNumMap(remains.head)
+      if (h > base) Left(InvalidNumberType(s"given character(${remains.head}) exceeds given base($base)"))
+      else loop(acc * base + h, remains.tail)
+    }
+
+    loop(0, number)
+  }
+
+  def realize: Either[TokenizeError, LispValue] = body match {
+    case NumberRegex(base, sign, number) =>
+      val b = base match {
+        case "b" => 2
+        case "o" => 8
+        case "x" => 16
+        case _ => Integer.parseInt(base.dropRight(1))
+      }
+
+      val s = Option(sign).map {
+        case "+" => 1
+        case "-" => -1
+        case "" => 1
+      }.getOrElse(1)
+
+      parseNumber(b, number).map(v => IntegerNumber(v * s))
+    case v => Left(UnknownMacroError(v))
+  }
+}
 
 case object LispUnit extends LispValue {
   override def printable(): Either[EvalError, String] = Right("()")
@@ -348,6 +396,7 @@ object LispToken {
   private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
   private val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
   private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\*)""".r
+  private val MacroRegex: Regex = """#(.+)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
   private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
   private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
@@ -369,6 +418,7 @@ object LispToken {
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
     case "import" => Right(LispImport)
+    case MacroRegex(body) => Right(LispMacro(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))
