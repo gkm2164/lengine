@@ -243,6 +243,7 @@ case object LeftBracket extends LispToken
 
 case object RightBracket extends LispToken
 
+case object LispImport extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
@@ -269,6 +270,7 @@ object LispToken {
     case "lambda" => Right(LispLambda)
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
+    case "import" => Right(LispImport)
     case LazySymbolRegex(name) => Right(LazySymbol(name))
     case ListSymbolRegex(name) => Right(ListSymbol(name))
     case SymbolRegex(name) => Right(EagerSymbol(name))
@@ -298,6 +300,10 @@ case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
 }
 
 case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispFunc {
+  override def placeHolders: List[LispSymbol] = Nil
+}
+
+case class LispImportDef(path: LispValue) extends LispFunc {
   override def placeHolders: List[LispSymbol] = Nil
 }
 

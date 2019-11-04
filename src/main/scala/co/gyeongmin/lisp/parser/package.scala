@@ -113,10 +113,16 @@ package object parser {
       _ <- takeToken[RightParenthesis.type]
     } yield d
 
+    val importVar: LispTokenState[LispImportDef] = for {
+      _ <- takeToken[LispImport.type]
+      d <- parseValue
+      _ <- takeToken[RightParenthesis.type]
+    } yield LispImportDef(d)
+
     val clause: LispTokenState[LispClause] = for {
       res <- loop(Vector.empty)
     } yield LispClause(res)
 
-    (lambda | defFn | defVar | clause)(tks)
+    (lambda | defFn | defVar | importVar | clause)(tks)
   }
 }

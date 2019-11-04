@@ -23,10 +23,10 @@ object Main {
 
   def evalLoop(tokens: Stream[LispToken],
                env: LispEnvironment)
-              (implicit debugger: Option[Debugger]): Either[EvalError, LispValue] = for {
-    parseResult <- parseValue(tokens).leftMap(x => EvalParseError(x))
+              (implicit debugger: Option[Debugger]): Either[(EvalError, LispEnvironment), (LispValue, LispEnvironment)] = for {
+    parseResult <- parseValue(tokens).leftMap(x => (EvalParseError(x), env))
     (stmt, remains) = parseResult
-    res <- stmt.eval(env)
+    res <- stmt.eval(env).leftMap((_, env))
     (r, nextEnv) = res
     historyEnv = nextEnv.updateHistory(stmt, r)
     _ = debugger.foreach(_.print(r))
@@ -38,9 +38,9 @@ object Main {
     ret <- prompt.printable()
   } yield ret
 
-  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit debugger: Option[Debugger]): Either[(LispError, LispEnvironment), LispValue] = for {
+  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit debugger: Option[Debugger]): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] = for {
     tokens <- Tokenizer.tokenize(tokenizer).leftMap(x => (EvalTokenizeError(x), env))
-    res <- evalLoop(tokens, env).leftMap((_, env))
+    res <- evalLoop(tokens, env)
   } yield res
 
   @scala.annotation.tailrec
@@ -56,17 +56,25 @@ object Main {
     }
   }
 
+  def runFile(path: String, env: LispEnvironment): LispEnvironment = {
+    val refinedPath = if (path.endsWith(".lisp")) path else path + ".lisp"
+    val file = Source.fromFile(refinedPath)
+    val tokenizer = new Tokenizer(file.mkString(""))
+    implicit val debugger: Option[Debugger] = None
+    runLoop(tokenizer, env) match {
+      case Right((_, env)) => env
+      case Left((EvalParseError(EmptyTokenListError), env)) => env
+      case Left((e, env)) =>
+        println(e.message)
+        env
+    }
+  }
+
   def main(args: Array[String]): Unit = {
     val env = Builtin.symbols
+
     if (args.nonEmpty) {
-      val file = Source.fromFile(args.head)
-      val tokenizer = new Tokenizer(file.mkString(""))
-      implicit val debugger: Option[Debugger] = None
-      runLoop(tokenizer, env) match {
-        case Right(_) =>
-        case Left((EvalParseError(EmptyTokenListError), _)) =>
-        case Left((e, _)) => println(e.message)
-      }
+      runFile(args.head, env)
     } else {
       replLoop(env)
     }
