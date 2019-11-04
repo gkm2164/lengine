@@ -60,6 +60,34 @@ res2 => ()
 <a name="features" />
 
 ## Features
+
+- Data types
+```lisp
+;;; integer
+0
+#2r100 ;;; binary number 100
+#xabcd ;;; hex number abcd
+#18rabcdefgh ;; base 18 number abcdefgh
+#2r-100 ;;; negative number for binary 100
+
+;;; Float number
+0.0
+-0.35
+
+;;; Ratio number
+3/5
+-3/5
+
+;;; Complex Number
+#C(30 20) ;;; 30 + 20i
+#C(3/5 1/4) ;;; (3/5) + (1/4)i
+#C(0.3 2.4) ;;; 0.3 + 2.4i
+
+;;; String
+"Hello World!"
+"\"This is escape example for double quote!\""
+```
+
 - Function definition
 
 ```lisp
@@ -140,6 +168,7 @@ x
 ### To be implemented
 
 #### Feature
+- Char Type
 - Floating, Rational, Complex Number operations
 - Function overriding
 - Pattern match
