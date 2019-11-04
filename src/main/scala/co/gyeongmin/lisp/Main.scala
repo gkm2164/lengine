@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.parser._
 import co.gyeongmin.lisp.builtin._
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.execution.LispEnvironment
+import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 import scala.io.Source
@@ -20,10 +20,12 @@ object Main {
     }
   }
 
+  import cats.syntax.either._
+
   def evalLoop(tokens: Stream[LispToken],
                env: LispEnvironment)
-              (implicit debugger: Option[Debugger]): Either[LispError, LispValue] = for {
-    parseResult <- parseValue(tokens)
+              (implicit debugger: Option[Debugger]): Either[EvalError, LispValue] = for {
+    parseResult <- parseValue(tokens).leftMap(x => EvalParseError(x))
     (stmt, remains) = parseResult
     res <- stmt.eval(env)
     (r, nextEnv) = res
@@ -37,25 +39,38 @@ object Main {
     ret <- prompt.printable()
   } yield ret
 
-  def main(args: Array[String]): Unit = {
-    val env = Builtin.symbols
-    implicit val (tokenizer: Tokenizer, debugger: Option[Debugger]) = if (args.nonEmpty) {
-      val file = Source.fromFile(args.head)
-      (new Tokenizer(file.mkString("")), None)
-    } else {
-      (new Tokenizer(new StdInReader(printPrompt(env))), Some(new ReplDebugger()))
-    }
+  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit debugger: Option[Debugger]): Either[(LispError, LispEnvironment), LispValue] = for {
+    tokens <- Tokenizer.tokenize(tokenizer).leftMap(x => (EvalTokenizeError(x), env))
+    res <- evalLoop(tokens, env).leftMap((_, env))
+  } yield res
 
-    (for {
-      tokens <- Tokenizer.tokenize(tokenizer)
-      res <- evalLoop(tokens, env)
-    } yield res) match {
-      case Right(_) =>
-      case Left(EmptyTokenListError) => println("== program finished ==")
-      case Left(e) => println(s"failed with $e")
+  @scala.annotation.tailrec
+  def replLoop(env: LispEnvironment): Unit = {
+    val tokenizer = new Tokenizer(new StdInReader(printPrompt(env)))
+    implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger())
+    runLoop(tokenizer, env) match {
+      case Right(_) => ()
+      case Left((EvalParseError(EmptyTokenListError), _)) =>
+      case Left((e, env)) =>
+        println(e.message)
+        replLoop(env)
     }
   }
 
-  object UnableToReachHere extends LispError
-
+  def main(args: Array[String]): Unit = {
+    val env = Builtin.symbols
+    if (args.nonEmpty) {
+      val file = Source.fromFile(args.head)
+      val tokenizer = new Tokenizer(file.mkString(""))
+      implicit val debugger: Option[Debugger] = None
+      runLoop(tokenizer, env) match {
+        case Right(_) =>
+        case Left((EvalParseError(EmptyTokenListError), _)) =>
+        case Left((e, _)) =>
+          println(s"failed with $e")
+      }
+    } else {
+      replLoop(env)
+    }
+  }
 }

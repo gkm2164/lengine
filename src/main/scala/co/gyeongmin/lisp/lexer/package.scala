@@ -10,71 +10,53 @@ package object lexer {
   sealed trait LispToken
 
   sealed trait LispValue extends LispToken {
-    def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = this match {
-      case f@LispFuncDef(symbol, fn) => Right((f, env.updated(symbol, fn)))
-      case d@LispValueDef(symbol, v) => symbol match {
-        case EagerSymbol(_) => v.eval(env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
-        case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(Nil, v))))
-        case errValue => Left(InvalidValueError(errValue))
-      }
-      case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
-      case clause: LispClause => clause.execute(env).map((_, env))
-      case LispMacro(_) => Left(UnimplementedOperationError("realize macro"))
-      case v: LispNumber => Right((v, env))
-      case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((this, env))
-      case v: GeneralLispFunc => Right((v, env))
-      case value => Left(UnimplementedOperationError(value.toString))
-    }
-
     def ::(other: LispValue): Either[EvalError, LispList] = this match {
       case LispList(items) => Right(LispList(other :: items))
-      case k => Left(NotAnExecutableError(s":: to not a list value, $this, $k"))
+      case k => Left(UnimplementedOperationError(s":: to not a list value, $this, $k", this))
     }
 
-    def ! : Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("!"))
+    def ! : Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("!", this))
 
-    def toFloat: Either[EvalError, FloatNumber] = Left(NotAnExecutableError("toFloat"))
+    def toFloat: Either[EvalError, FloatNumber] = Left(UnimplementedOperationError("toFloat", this))
 
-    def toInt: Either[EvalError, IntegerNumber] = Left(NotAnExecutableError("toInt"))
+    def toInt: Either[EvalError, IntegerNumber] = Left(UnimplementedOperationError("toInt", this))
 
-    def execute(env: LispEnvironment): Either[EvalError, LispValue] = Left(NotAnExecutableError("?"))
-
-    def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?"))
+    def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?", this))
 
     def ++(other: LispValue): Either[EvalError, LispValue] = for {
       str1 <- printable()
       str2 <- other.printable()
     } yield LispString(str1 + str2)
 
-    def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+"))
+    def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+", this))
 
-    def -(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("-"))
+    def -(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("-", this))
 
-    def *(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("*"))
+    def *(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("*", this))
 
-    def /(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("/"))
+    def /(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("/", this))
 
-    def %(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("%"))
+    def %(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("%", this))
 
-    def ||(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("||"))
+    def ||(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("||", this))
 
-    def &&(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("&&"))
+    def &&(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("&&", this))
 
-    def >(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">"))
+    def >(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">", this))
 
-    def >=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">="))
+    def >=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">=", this))
 
-    def <(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<"))
+    def <(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<", this))
 
-    def <=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<="))
+    def <=(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("<=", this))
 
-    def ==(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("=="))
+    def ==(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("==", this))
 
-    def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable"))
+    def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable", this))
 
     def list: Either[EvalError, LispList] = this match {
       case l@LispList(_) => Right(l)
-      case _ => Left(NotAnExecutableError("this is not a list type"))
+      case _ => Left(UnimplementedOperationError("this is not a list type", this))
     }
 
   }
@@ -87,75 +69,44 @@ package object lexer {
     def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.name).mkString(", ") else "no parameters"
 
     def placeHolders: List[LispSymbol]
-
-    private def transform(list: List[Either[EvalError, LispValue]]): Either[EvalError, List[LispValue]] = {
-      @scala.annotation.tailrec
-      def loop(acc: Vector[LispValue], remains: List[Either[EvalError, LispValue]]): Either[EvalError, List[LispValue]] = remains match {
-        case Nil => Right(acc.toList)
-        case Right(v) :: tail => loop(acc :+ v, tail)
-        case Left(e) :: _ => Left(e)
-      }
-
-      loop(Vector.empty, list)
-    }
-
-    def applyEnv(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
-      def applyLoop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
-        (symbols, args) match {
-          case (Nil, Nil) => Right(accEnv)
-          case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
-            evalRes <- arg.eval(accEnv)
-            (res, _) = evalRes
-            appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
-          } yield appliedEnv
-          case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-            applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
-          case ((l: ListSymbol) :: Nil, args) =>
-            val argList: Either[EvalError, List[LispValue]] = transform(args.map(_.eval(env).map(_._1)))
-            argList.map(x => accEnv.updated(l, LispList(x)))
-          case x => Left(FunctionApplyError(s"there is an error: $x"))
-        }
-
-      applyLoop(env, placeHolders, args)
-    }
   }
 
   abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSymbol]) extends LispFunc {
-    override def toString: String = s"BuiltinLispFunc(${symbol.name})"
+    def execute(env: LispEnvironment): Either[EvalError, LispValue]
   }
 
   case class IntegerNumber(value: Long) extends LispNumber {
     override def +(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(IntegerNumber(value + num))
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError(s"+", x))
     }
 
     override def -(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(IntegerNumber(value - num))
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError(s"-", x))
     }
 
     override def ==(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(LispBoolean(value == num))
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError(s"==", x))
     }
 
 
     override def *(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(IntegerNumber(value * num))
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError(s"*", x))
     }
 
     override def >(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
       case FloatNumber(num) => Right(if (value.toDouble > num) LispTrue else LispFalse)
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError(">", x))
     }
 
     override def <=(other: LispValue): Either[EvalError, LispValue] = other match {
       case IntegerNumber(num) => Right(if (value <= num) LispTrue else LispFalse)
       case FloatNumber(num) => Right(if (value.toDouble <= num) LispTrue else LispFalse)
-      case x => Left(UnimplementedOperationError(s"with $x"))
+      case x => Left(UnimplementedOperationError("<=", x))
     }
 
     override def toInt: Either[EvalError, IntegerNumber] = Right(this)
@@ -199,23 +150,7 @@ package object lexer {
     override def name: String = "lambda"
   }
 
-  case class LispClause(body: List[LispValue]) extends LispValue {
-    override def execute(env: LispEnvironment): Either[EvalError, LispValue] = (body match {
-      case Nil => Left(EmptyBodyClauseError)
-      case (symbol: LispSymbol) :: args =>
-        env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
-      case value :: args =>
-        value.eval(env).map { case (v, _) => (v, args) }
-    }) flatMap {
-      case (firstStmtValue, args) => firstStmtValue match {
-        case fn: LispFunc => for {
-          symbolEnv <- fn.applyEnv(env, args)
-          evalResult <- fn.execute(symbolEnv)
-        } yield evalResult
-        case v => Left(NotAnExecutableError(v.toString))
-      }
-    }
-  }
+  case class LispClause(body: List[LispValue]) extends LispValue
 
   case class EagerSymbol(name: String) extends LispSymbol
 
@@ -329,10 +264,5 @@ package object lexer {
     override def placeHolders: List[LispSymbol] = Nil
   }
 
-  case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
-    override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
-      evalResult <- body.eval(env)
-    } yield evalResult._1
-  }
-
+  case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc
 }
