@@ -5,11 +5,11 @@ import co.gyeongmin.lisp.execution._
 
 import scala.util.matching.Regex
 
-
 sealed trait LispToken
 
 sealed trait LispValue extends LispToken {
-  def toNumber: Either[EvalError, LispNumber] = this match {
+  //package private
+  private[lexer] def toNumber: Either[EvalError, LispNumber] = this match {
     case x: LispNumber => Right(x)
     case v => Left(NotANumberType(v))
   }
@@ -21,6 +21,8 @@ sealed trait LispValue extends LispToken {
 
   def not: Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("!", this))
 
+  def neg: Either[EvalError, LispNumber] = Left(UnimplementedOperationError("neg", this))
+
   def toFloat: Either[EvalError, FloatNumber] = Left(UnimplementedOperationError("toFloat", this))
 
   def toInt: Either[EvalError, IntegerNumber] = Left(UnimplementedOperationError("toInt", this))
@@ -29,33 +31,33 @@ sealed trait LispValue extends LispToken {
 
   def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
 
-  def +(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("+", this))
+  def +(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("+", this))
 
-  def -(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("-", this))
+  def -(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("-", this))
 
-  def *(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("*", this))
+  def *(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("*", this))
 
-  def /(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("/", this))
+  def /(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("/", this))
 
-  def %(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("%", this))
+  def %(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("%", this))
 
-  def or(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("||", this))
+  def or(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("||", this))
 
-  def and(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("&&", this))
+  def and(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("&&", this))
 
-  def gt(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError(">", this))
+  def gt(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError(">", this))
 
-  final def gte(other: LispValue): Either[EvalError, LispValue] = for {
+  final def gte(other: LispValue): Either[EvalError, LispBoolean] = for {
     isGt <- gt(other)
     isEq <- eq(other)
     res <- isGt.or(isEq)
   } yield res
 
-  final def lt(other: LispValue): Either[EvalError, LispValue] = gte(other).flatMap(_.not)
+  final def lt(other: LispValue): Either[EvalError, LispBoolean] = gte(other).flatMap(_.not)
 
-  final def lte(other: LispValue): Either[EvalError, LispValue] = gt(other).flatMap(_.not)
+  final def lte(other: LispValue): Either[EvalError, LispBoolean] = gt(other).flatMap(_.not)
 
-  def eq(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("==", this))
+  def eq(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("==", this))
 
   def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable", this))
 
@@ -71,7 +73,17 @@ sealed trait LispValue extends LispToken {
   }
 }
 
-sealed trait LispNumber extends LispValue
+sealed trait LispNumber extends LispValue {
+  protected final def signature(o: Long): Long = if (o >= 0) 1 else -1
+
+  protected final def abs(a: Long): Long = if (a >= 0) a else -a
+  @scala.annotation.tailrec
+  protected final def gcd(a: Long, b: Long): Long = {
+    if (b == 0) a
+    else if (a < b) gcd(b, a)
+    else gcd(a - b, b)
+  }
+}
 
 trait LispFunc extends LispValue {
   override def printable(): Either[EvalError, String] = Right(s"lambda with $this")
@@ -86,10 +98,16 @@ abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSy
 }
 
 case class IntegerNumber(value: Long) extends LispNumber {
-  override def +(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
+
+  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value + num))
     case FloatNumber(num) => Right(FloatNumber(value.toDouble + num))
-    case RatioNumber(over, under) => Right(RatioNumber(value * under + over, under))
+    case RatioNumber(over, under) =>
+      val o = value * under + over
+      val u = under
+      val g = gcd(abs(o), abs(u))
+      Right(RatioNumber(o / g, u / g))
     case ComplexNumber(real, imagine) => for {
       newReal <- this + real
       r <- newReal.toNumber
@@ -97,32 +115,52 @@ case class IntegerNumber(value: Long) extends LispNumber {
     case x => Left(UnimplementedOperationError(s"+", x))
   }
 
-  override def -(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value - num))
+    case FloatNumber(num) => Right(FloatNumber(value.toDouble - num))
+    case RatioNumber(over, under) =>
+      val o = value * under - over
+      val g = gcd(abs(o), abs(under))
+      Right(RatioNumber(o / g, under / g))
+    case ComplexNumber(real, imagine) => for {
+      newReal <- this + real
+      r <- newReal.toNumber
+    } yield ComplexNumber(r, imagine)
     case x => Left(UnimplementedOperationError(s"-", x))
   }
 
-  override def *(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value * num))
+    case FloatNumber(num) => Right(FloatNumber(value * num))
+    case RatioNumber(over, under) =>
+      val o = over * value
+      val d = gcd(abs(o), abs(under))
+      Right(RatioNumber(o / d, under / d))
+    case ComplexNumber(real, imagine) => for {
+      r <- value * real
+      i <- value * imagine
+    } yield ComplexNumber(r, i)
     case x => Left(UnimplementedOperationError(s"*", x))
   }
 
-  override def /(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value / num))
+    case FloatNumber(num) => Right(FloatNumber(num / value))
+    case RatioNumber(o, u) => this * RatioNumber(u, o)
     case x => Left(UnimplementedOperationError(s"/", x))
   }
 
-  override def %(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def %(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value % num))
     case x => Left(UnimplementedOperationError(s"%", x))
   }
 
-  override def eq(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def eq(other: LispValue): Either[EvalError, LispBoolean] = other match {
     case IntegerNumber(num) => Right(LispBoolean(value == num))
     case x => Left(UnimplementedOperationError(s"==", x))
   }
 
-  override def gt(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def gt(other: LispValue): Either[EvalError, LispBoolean] = other match {
     case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
     case FloatNumber(num) => Right(if (value.toDouble > num) LispTrue else LispFalse)
     case x => Left(UnimplementedOperationError(">", x))
@@ -136,29 +174,56 @@ case class IntegerNumber(value: Long) extends LispNumber {
 case object LispNop extends LispToken
 
 case class FloatNumber(value: Double) extends LispNumber {
+  override def neg: Either[EvalError, LispNumber] = Right(FloatNumber(-value))
+
   override def printable(): Either[EvalError, String] = Right(value.toString)
 }
 
 case class RatioNumber(over: Long, under: Long) extends LispNumber {
+  override def neg: Either[EvalError, LispNumber] = Right(RatioNumber(-over, under))
+
   override def toFloat: Either[EvalError, FloatNumber] = Right(FloatNumber(over.toDouble / under))
 
   override def printable(): Either[EvalError, String] = Right(s"$over/$under")
+
+  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(rOver, rUnder) =>
+      val newUnder = under * rUnder
+      val newOver = over * rUnder + rOver * under
+      val div = gcd(newUnder, newOver)
+      Right(RatioNumber(newOver / div, newUnder / div))
+    case i: IntegerNumber => i + this
+    case _ => Left(UnimplementedOperationError("+: RatioNumber", other))
+  }
+
+  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(rOver, rUnder) =>
+      val newUnder = under * rUnder
+      val newOver = over * rUnder - rOver * under
+      val div = gcd(newUnder, newOver)
+      Right(RatioNumber(newOver / div, newUnder / div))
+    case _ => Left(UnimplementedOperationError("-: RatioNumber", other))
+  }
 }
 
 case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumber {
   override def printable(): Either[EvalError, String] = for {
     a <- real.printable()
     b <- imagine.printable()
-  } yield s"complex number {real: $a + imagine: ${b}}"
+  } yield s"complex number {real: $a + imagine: $b}"
 
-  override def *(other: LispValue): Either[EvalError, LispValue] = other match {
+  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
     case ComplexNumber(r, i) => for {
       a <- real * r
       b <- real * i
       c <- imagine * r
       d <- imagine * i
-      newR <- a - d
-      newI <- b + c
+      newReal <- a - d
+      newImagine <- b + c
+    } yield ComplexNumber(newReal, newImagine)
+    case i: LispNumber => for {
+      newR <- real * i
+      newI <- imagine * i
       newReal <- newR.toNumber
       newImagine <- newI.toNumber
     } yield ComplexNumber(newReal, newImagine)
@@ -237,13 +302,13 @@ abstract class LispBoolean extends LispValue {
     case LispFalse => Right(LispTrue)
   }
 
-  override def and(other: LispValue): Either[EvalError, LispValue] = (this, other) match {
+  override def and(other: LispValue): Either[EvalError, LispBoolean] = (this, other) match {
     case (LispTrue, LispTrue) => Right(LispTrue)
-    case (_:LispBoolean, _: LispBoolean) => Right(LispFalse)
+    case (_: LispBoolean, _: LispBoolean) => Right(LispFalse)
     case (_, v) => Left(UnimplementedOperationError("and: Boolean", v))
   }
 
-  override def or(other: LispValue): Either[EvalError, LispValue] = (this, other) match {
+  override def or(other: LispValue): Either[EvalError, LispBoolean] = (this, other) match {
     case (LispFalse, LispFalse) => Right(LispFalse)
     case (_: LispBoolean, _: LispBoolean) => Right(LispTrue)
     case (_, v) => Left(UnimplementedOperationError("or: Boolean", v))
@@ -304,13 +369,17 @@ object LispToken {
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
     case "import" => Right(LispImport)
-    case LazySymbolRegex(name) => Right(LazySymbol(name))
-    case ListSymbolRegex(name) => Right(ListSymbol(name))
-    case SymbolRegex(name) => Right(EagerSymbol(name))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))
-    case RatioRegex(sign, over, under) => Right(RatioNumber(parseInteger(sign, over), parseInteger("+", under)))
+    case RatioRegex(sign, over, under) =>
+      val o = parseInteger(sign, over)
+      val u = parseInteger("+", under)
+      if (u == 0) Left(RatioUnderZeroNotAllowed)
+      else Right(RatioNumber(o, u))
+    case LazySymbolRegex(name) => Right(LazySymbol(name))
+    case ListSymbolRegex(name) => Right(ListSymbol(name))
+    case SymbolRegex(name) => Right(EagerSymbol(name))
     case CharRegex(chs) => Right(LispChar(chs))
     case StringRegex(str) => Right(LispString(str.init))
     case str => Left(UnknownTokenError(s"what is it? [$str]"))

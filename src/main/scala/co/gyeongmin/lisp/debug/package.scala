@@ -26,7 +26,7 @@ package object debug {
         case ComplexNumber(real, imagine) => (for {
           r <- real.printable()
           i <- imagine.printable()
-        } yield s"complex number {real: $r + imagine: $i}").getOrElse("unknown error!")
+        } yield s"{real: $r + imagine: $i}: ComplexNumber").getOrElse("unknown number error!")
       }
       case func: lexer.LispFunc => func match {
         case func: BuiltinLispFunc => func.printable() match {

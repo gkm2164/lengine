@@ -21,6 +21,12 @@ GLisp > (println (+ 3 5))
 res0 => ()
 ```
 
+- To quit REPL,
+
+```bash
+GLisp > (quit)
+``` 
+
 You can test List type also
 ```bash
 GLisp > (println (cons 3 (cons 5 nil)))

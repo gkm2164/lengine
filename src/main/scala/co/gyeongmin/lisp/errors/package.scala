@@ -71,6 +71,10 @@ package object errors {
     override def message: String = s"Unknown token error"
   }
 
+  case object RatioUnderZeroNotAllowed extends TokenizeError {
+    override def message: String = s"under of rational number should be greater than 0"
+  }
+
   case object WrongEscapeError extends TokenizeError {
     override def message: String = s"wrong escape usages"
   }
