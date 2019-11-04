@@ -7,6 +7,7 @@ import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 object Builtin {
+
   implicit class LispSymbolSyntax(x: LispSymbol) {
     private def binaryStmtFunc(symbol: LispSymbol, f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, BuiltinLispFunc) =
       symbol ->
@@ -33,7 +34,9 @@ object Builtin {
   }
 
   def E(name: String) = EagerSymbol(name)
+
   def L(name: String) = ListSymbol(name)
+
   def Z(name: String) = LazySymbol(name)
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
@@ -55,18 +58,18 @@ object Builtin {
     E("*") ->@ (_ * _),
     E("/") ->@ (_ / _),
     E("%") ->@ (_ % _),
-    E(">") ->@ (_ > _),
-    E("<") ->@ (_ < _),
-    E(">=") ->@ (_ >= _),
-    E("<=") ->@ (_ <= _),
-    E("&&") ->@ (_ && _),
-    E("||") ->@ (_ || _),
-    E("head") ->! (_.list.map(_.head)),
-    E("tail") ->! (_.list.map(_.tail)),
+    E(">") ->@ (_ gt _),
+    E("<") ->@ (_ lt _),
+    E(">=") ->@ (_ gte _),
+    E("<=") ->@ (_ lte _),
+    E("and") ->@ (_ and _),
+    E("or") ->@ (_ or _),
+    E("head") ->! (_.head),
+    E("tail") ->! (_.tail),
     E("cons") ->@ (_ :: _),
-    E("eq") ->@ (_ == _),
-    E("not") ->! (_.!),
-    E("len") ->! (_.list.map(_.length)),
+    E("eq") ->@ (_ eq _),
+    E("not") ->! (_.not),
+    E("len") ->! (_.length),
 
     // If statements should receive second and third parameters as Lazy evaluation
     E("if") -> new BuiltinLispFunc(E("if"), E("_1") :: Z("_2") :: Z("_3") :: Nil) {
@@ -126,4 +129,5 @@ object Builtin {
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {
     def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] = x.get(symbol).toRight(UnknownSymbolNameError(symbol))
   }
+
 }

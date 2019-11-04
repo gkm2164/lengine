@@ -6,4 +6,4 @@
 (fn concat (xs*)
   (concat-loop "" xs*))
 
-(concat "123" "456" "789")
+(println (concat "123" "456" "789"))

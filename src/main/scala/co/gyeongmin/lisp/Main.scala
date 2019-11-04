@@ -10,7 +10,6 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
-
   implicit class X(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
 
@@ -52,7 +51,7 @@ object Main {
       case Right(_) => ()
       case Left((EvalParseError(EmptyTokenListError), _)) =>
       case Left((e, env)) =>
-        println(e.message)
+        println(s"[ERROR] ${e.message}\n")
         replLoop(env)
     }
   }

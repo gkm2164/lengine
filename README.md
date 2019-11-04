@@ -75,6 +75,20 @@ res2 => ()
 ;;; == (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
 ```
 
+- operators
+
+```lisp
+;;; boolean operators
+(and true true) ;;; == true
+(and false true) ;;; == false
+(>= 3 0) ;;; == true
+(or (>= 3 0) (<= 0 1)) ;;; == true
+
+;;; not allowed
+(and true 3) ;;; ???
+;;; and, or, eq, >=, <=, >, <
+```
+
 ### Remain issues, features
 
 #### Feature
