@@ -92,14 +92,24 @@ case class IntegerNumber(value: Long) extends LispNumber {
     case x => Left(UnimplementedOperationError(s"-", x))
   }
 
-  override def eq(other: LispValue): Either[EvalError, LispValue] = other match {
-    case IntegerNumber(num) => Right(LispBoolean(value == num))
-    case x => Left(UnimplementedOperationError(s"==", x))
-  }
-
   override def *(other: LispValue): Either[EvalError, LispValue] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value * num))
     case x => Left(UnimplementedOperationError(s"*", x))
+  }
+
+  override def /(other: LispValue): Either[EvalError, LispValue] = other match {
+    case IntegerNumber(num) => Right(IntegerNumber(value / num))
+    case x => Left(UnimplementedOperationError(s"/", x))
+  }
+
+  override def %(other: LispValue): Either[EvalError, LispValue] = other match {
+    case IntegerNumber(num) => Right(IntegerNumber(value % num))
+    case x => Left(UnimplementedOperationError(s"%", x))
+  }
+
+  override def eq(other: LispValue): Either[EvalError, LispValue] = other match {
+    case IntegerNumber(num) => Right(LispBoolean(value == num))
+    case x => Left(UnimplementedOperationError(s"==", x))
   }
 
   override def gt(other: LispValue): Either[EvalError, LispValue] = other match {
