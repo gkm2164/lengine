@@ -1,5 +1,13 @@
 # Lengine, another Lisp Engine
 
+## Table of contents
+
+- [How to run](#how-to-run)
+- [Features](#features)
+- [To be implemented](#to-be-implemented)
+
+
+<a name="how-to-run" />
 ## How to run?
 
 ### Execute Code
@@ -38,7 +46,18 @@ res2 => ()
 ...
 ```
 
-### Features
+## Sample Code
+- refer to ```examples``` folder
+```lisp
+;;; map list with 2 adder
+(import "libs/sequence")
+
+(def nums (list 1 2 3 4 5))
+(map nums (lambda (x) (+ x 2))
+```
+
+<a name="features" />
+## Features
 - Function definition
 
 ```lisp
@@ -114,12 +133,13 @@ x
 ;;; == (list 2 3 4 5 6)
 ```
 
+<a name="to-be-implemented" />
 ### To be implemented
 
 #### Feature
+- Floating, Rational, Complex Number operations
 - Function overriding
 - Pattern match
 - Namespace
+- Stream
 - History feature
-- Floating, Rational Number operations
-- Complex number operations
