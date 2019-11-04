@@ -50,6 +50,15 @@ res2 => ()
 ;;; (def [name] [body])
 ;;; ex) set x to be 3
 (def x 3)
+x
+
+;;; ex) define lazy symbol
+(def x? 3)
+;;; which equals to
+(fn x? () 3)
+
+;;; and you can use with
+(x?)
 ```
 
 - Lambda
@@ -89,8 +98,12 @@ res2 => ()
 ;;; and, or, eq, >=, <=, >, <
 ```
 
-### Remain issues, features
+### To be implemented
 
 #### Feature
 - Function overriding
 - Pattern match
+- Import modules
+- History feature
+- Floating, Rational Number operations
+- Complex number operations
