@@ -9,6 +9,11 @@ import scala.util.matching.Regex
 sealed trait LispToken
 
 sealed trait LispValue extends LispToken {
+  def toNumber: Either[EvalError, LispNumber] = this match {
+    case x: LispNumber => Right(x)
+    case v => Left(NotANumberType(v))
+  }
+
   def ::(other: LispValue): Either[EvalError, LispList] = this match {
     case LispList(items) => Right(LispList(other :: items))
     case k => Left(UnimplementedOperationError(s":: to not a list value, $this, $k", this))
@@ -64,7 +69,6 @@ sealed trait LispValue extends LispToken {
     case l@LispList(_) => Right(l)
     case _ => Left(UnimplementedOperationError("this is not a list type", this))
   }
-
 }
 
 sealed trait LispNumber extends LispValue
@@ -84,6 +88,12 @@ abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSy
 case class IntegerNumber(value: Long) extends LispNumber {
   override def +(other: LispValue): Either[EvalError, LispValue] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value + num))
+    case FloatNumber(num) => Right(FloatNumber(value.toDouble + num))
+    case RatioNumber(over, under) => Right(RatioNumber(value * under + over, under))
+    case ComplexNumber(real, imagine) => for {
+      newReal <- this + real
+      r <- newReal.toNumber
+    } yield ComplexNumber(r, imagine)
     case x => Left(UnimplementedOperationError(s"+", x))
   }
 
@@ -135,7 +145,26 @@ case class RatioNumber(over: Long, under: Long) extends LispNumber {
   override def printable(): Either[EvalError, String] = Right(s"$over/$under")
 }
 
-case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumber
+case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumber {
+  override def printable(): Either[EvalError, String] = for {
+    a <- real.printable()
+    b <- imagine.printable()
+  } yield s"complex number {real: $a + imagine: ${b}}"
+
+  override def *(other: LispValue): Either[EvalError, LispValue] = other match {
+    case ComplexNumber(r, i) => for {
+      a <- real * r
+      b <- real * i
+      c <- imagine * r
+      d <- imagine * i
+      newR <- a - d
+      newI <- b + c
+      newReal <- newR.toNumber
+      newImagine <- newI.toNumber
+    } yield ComplexNumber(newReal, newImagine)
+    case _ => Left(UnimplementedOperationError("*: ComplexNumber", other))
+  }
+}
 
 case class LispChar(chs: String) extends LispValue
 
@@ -233,11 +262,15 @@ case object LispFalse extends LispBoolean {
   override def toBoolean: Either[EvalError, Boolean] = Right(false)
 }
 
-case object LeftParenthesis extends LispToken
+case object MacroParenthesis extends LispToken
 
-case object ListStartParenthesis extends LispToken
+case object CmplxNPar extends LispToken
 
-case object RightParenthesis extends LispToken
+case object LeftPar extends LispToken
+
+case object ListStartPar extends LispToken
+
+case object RightPar extends LispToken
 
 case object LeftBracket extends LispToken
 
@@ -248,7 +281,6 @@ case object LispImport extends LispToken
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
   private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
-  private val MacroRegex: Regex = """#(.*)""".r
   private val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
   private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\*)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
@@ -260,11 +292,12 @@ object LispToken {
 
   def apply(code: String): Either[TokenizeError, LispToken] = code match {
     case "" => Right(LispNop)
-    case "(" => Right(LeftParenthesis)
-    case ")" => Right(RightParenthesis)
+    case "(" => Right(LeftPar)
+    case ")" => Right(RightPar)
+    case "#C(" => Right(CmplxNPar)
     case "[" => Right(LeftBracket)
     case "]" => Right(RightBracket)
-    case "'(" => Right(ListStartParenthesis)
+    case "'(" => Right(ListStartPar)
     case "def" => Right(LispDef)
     case "fn" => Right(LispFn)
     case "lambda" => Right(LispLambda)
@@ -274,7 +307,6 @@ object LispToken {
     case LazySymbolRegex(name) => Right(LazySymbol(name))
     case ListSymbolRegex(name) => Right(ListSymbol(name))
     case SymbolRegex(name) => Right(EagerSymbol(name))
-    case MacroRegex(body) => Right(LispMacro(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))

@@ -23,7 +23,10 @@ package object debug {
         case IntegerNumber(value) => s"$value: Integer"
         case FloatNumber(value) => s"$value: Float"
         case RatioNumber(over, under) => s"$over/$under: Rational"
-        case ComplexNumber(real, imagine) => s"$real + ${imagine}i: Complex Number"
+        case ComplexNumber(real, imagine) => (for {
+          r <- real.printable()
+          i <- imagine.printable()
+        } yield s"complex number {real: $r + imagine: $i}").getOrElse("unknown error!")
       }
       case func: lexer.LispFunc => func match {
         case func: BuiltinLispFunc => func.printable() match {

@@ -43,4 +43,9 @@ package object monads {
 
     override def pure[A](x: A): LispTokenState[A] = tokens => Right((x, tokens))
   }
+
+  object LispTokenState {
+    def pure[A](x: A): LispTokenState[A] = lispTokenStateMonad.pure(x)
+    def error(err: ParseError): LispTokenState[Nothing] = _ => Left(err)
+  }
 }

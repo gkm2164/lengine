@@ -9,11 +9,18 @@ import co.gyeongmin.lisp.monads._
 import scala.reflect.ClassTag
 
 package object parser {
+  def parseComplexNumber: LispTokenState[ComplexNumber] = for {
+    real <- takeToken[LispNumber]
+    imagine <- takeToken[LispNumber]
+    _ <- takeToken[RightPar.type]
+  } yield ComplexNumber(real, imagine)
+
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
-    case ListStartParenthesis #:: tail => parseList(tail)
-    case LeftParenthesis #:: afterLeftPar => parseClause(afterLeftPar)
+    case ListStartPar #:: tail => parseList(tail)
+    case CmplxNPar #:: tail => parseComplexNumber(tail)
+    case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (tk: LispValue) #:: tail => Right((tk, tail))
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
@@ -29,7 +36,7 @@ package object parser {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
-      case RightParenthesis #:: tail => Right((acc.toList, tail))
+      case RightPar #:: tail => Right((acc.toList, tail))
       case tokens => (for {
         value <- parseValue
         res <- loop(acc :+ value)
@@ -52,7 +59,7 @@ package object parser {
     def loop(acc: Vector[LispSymbol]): LispTokenState[List[LispSymbol]] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
-      case RightParenthesis #:: tail => Right((acc.toList, tail))
+      case RightPar #:: tail => Right((acc.toList, tail))
       case tokens => (for {
         value <- parseSymbol
         res <- loop(acc :+ value)
@@ -60,7 +67,7 @@ package object parser {
     }
 
     for {
-      _ <- takeToken[LeftParenthesis.type]
+      _ <- takeToken[LeftPar.type]
       acc <- loop(Vector.empty)
     } yield acc
   }
@@ -88,7 +95,7 @@ package object parser {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
-      case RightParenthesis #:: tail => Right((acc.toList, tail))
+      case RightPar #:: tail => Right((acc.toList, tail))
       case tokens => (for {
         value <- parseValue
         res <- loop(acc :+ value)
@@ -98,25 +105,25 @@ package object parser {
     val lambda: LispTokenState[GeneralLispFunc] = for {
       _ <- takeToken[LispLambda.type]
       lambda <- parseLambda
-      _ <- takeToken[RightParenthesis.type]
+      _ <- takeToken[RightPar.type]
     } yield lambda
 
     val defFn: LispTokenState[LispFuncDef] = for {
       _ <- takeToken[LispFn.type]
       func <- parseFunc
-      _ <- takeToken[RightParenthesis.type]
+      _ <- takeToken[RightPar.type]
     } yield func
 
     val defVar: LispTokenState[LispValueDef] = for {
       _ <- takeToken[LispDef.type]
       d <- parseDef
-      _ <- takeToken[RightParenthesis.type]
+      _ <- takeToken[RightPar.type]
     } yield d
 
     val importVar: LispTokenState[LispImportDef] = for {
       _ <- takeToken[LispImport.type]
       d <- parseValue
-      _ <- takeToken[RightParenthesis.type]
+      _ <- takeToken[RightPar.type]
     } yield LispImportDef(d)
 
     val clause: LispTokenState[LispClause] = for {

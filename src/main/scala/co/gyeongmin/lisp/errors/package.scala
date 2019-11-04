@@ -22,6 +22,10 @@ package object errors {
     override def message: String = s"not implemented for $operation for $typeToken"
   }
 
+  case class NotANumberType(k: LispValue) extends EvalError {
+    override def message: String = s"given $k is not a number type"
+  }
+
   case class NotAnExecutableError(value: LispValue) extends EvalError {
     override def message: String = s"$value is not executable"
   }
@@ -57,6 +61,9 @@ package object errors {
     override def message: String = s"unknown token: $tk, $msg"
   }
 
+  case class NotNumberType(k: LispValue) extends ParseError {
+    override def message: String = s"given $k is not a number type"
+  }
 
   sealed trait TokenizeError extends LispError
 
