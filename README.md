@@ -140,6 +140,18 @@ x
 ;;; == (fn add (+ a b))
 ```
 
+- Introduce local variable
+
+```lisp
+;;; introduct local variable
+;;; (let [name] [value] [body])
+;;; ex) define variable x and use it in that scope
+(import "libs/sequence")  ;;; below example code require sequence library 
+
+(let name (read-line "Type your name: ")
+  (println (concat "Hello, " name "!")))
+```
+
 - use list
 
 ```lisp
