@@ -19,7 +19,7 @@ package object parser {
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
-    case ListStartPar #:: tail => parseList(tail)
+    case LeftBracket #:: tail => parseList(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: LispMacro) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
@@ -38,7 +38,7 @@ package object parser {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
-      case RightPar #:: tail => Right((acc.toList, tail))
+      case RightBracket #:: tail => Right((acc.toList, tail))
       case tokens => (for {
         value <- parseValue
         res <- loop(acc :+ value)

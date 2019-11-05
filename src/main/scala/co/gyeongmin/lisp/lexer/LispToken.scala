@@ -518,8 +518,6 @@ case object CmplxNPar extends LispToken
 
 case object LeftPar extends LispToken
 
-case object ListStartPar extends LispToken
-
 case object RightPar extends LispToken
 
 case object LeftBracket extends LispToken
@@ -556,7 +554,6 @@ object LispToken {
     case "#C(" => Right(CmplxNPar)
     case "[" => Right(LeftBracket)
     case "]" => Right(RightBracket)
-    case "'(" => Right(ListStartPar)
     case "def" => Right(LispDef)
     case "fn" => Right(LispFn)
     case "let" => Right(LispLet)
