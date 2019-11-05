@@ -27,7 +27,13 @@ sealed trait LispValue extends LispToken {
 
   def toInt: Either[EvalError, IntegerNumber] = Left(UnimplementedOperationError("toInt", this))
 
+  def toRatio: Either[EvalError, RatioNumber] = Left(UnimplementedOperationError("toRatio", this))
+
+  def toComplexNumber: Either[EvalError, ComplexNumber] = Left(UnimplementedOperationError("toComplexNumber", this))
+
+
   def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?", this))
+
 
   def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
 
@@ -74,6 +80,27 @@ sealed trait LispValue extends LispToken {
 }
 
 sealed trait LispNumber extends LispValue {
+  def isZero: Either[EvalError, LispBoolean] = this match {
+    case IntegerNumber(value) => Right(LispBoolean(value == 0))
+    case FloatNumber(value) => Right(LispBoolean(value == 0))
+    case RatioNumber(over, _) => Right(LispBoolean(over == 0))
+    case ComplexNumber(real, imagine) => for {
+      a <- real.isZero
+      b <- imagine.isZero
+      res <- a and b
+    } yield res
+  }
+
+  final def zero: Either[EvalError, LispNumber] = this match {
+    case IntegerNumber(_) => Right(IntegerNumber(0))
+    case FloatNumber(_) => Right(FloatNumber(0))
+    case RatioNumber(_, under) => Right(RatioNumber(0, under))
+    case ComplexNumber(r, i) => for {
+      real <- r.zero
+      imagine <- i.zero
+    } yield ComplexNumber(real, imagine)
+  }
+
   protected final def signature(o: Long): Long = if (o >= 0) 1 else -1
 
   protected final def abs(a: Long): Long = if (a >= 0) a else -a
@@ -101,18 +128,15 @@ abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSy
 case class IntegerNumber(value: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
 
+  override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(ComplexNumber(this, IntegerNumber(0)))
+
+  override def toRatio: Either[EvalError, RatioNumber] = Right(RatioNumber(value, 1))
+
   override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value + num))
-    case FloatNumber(num) => Right(FloatNumber(value.toDouble + num))
-    case RatioNumber(over, under) =>
-      val o = value * under + over
-      val u = under
-      val g = gcd(abs(o), abs(u))
-      Right(RatioNumber(o / g, u / g))
-    case ComplexNumber(real, imagine) => for {
-      newReal <- this + real
-      r <- newReal.toNumber
-    } yield ComplexNumber(r, imagine)
+    case f: FloatNumber => this.toFloat.flatMap(_ + f)
+    case r: RatioNumber => this.toRatio.flatMap(_ + r)
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ + c)
     case x => Left(UnimplementedOperationError(s"+", x))
   }
 
@@ -148,6 +172,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
     case IntegerNumber(num) => Right(IntegerNumber(value / num))
     case FloatNumber(num) => Right(FloatNumber(num / value))
     case RatioNumber(o, u) => this * RatioNumber(u, o)
+    case cn: ComplexNumber => this.toComplexNumber.flatMap(_ / cn)
     case x => Left(UnimplementedOperationError(s"/", x))
   }
 
@@ -178,6 +203,32 @@ case class FloatNumber(value: Double) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(FloatNumber(-value))
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
+
+  override def toComplexNumber: Either[EvalError, ComplexNumber] =
+    zero.map(z => ComplexNumber(this, z))
+
+  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case IntegerNumber(v) => Right(FloatNumber(value + v))
+    case FloatNumber(v) => Right(FloatNumber(value + v))
+    case v => Left(UnimplementedOperationError("+: LispNumber", v))
+  }
+
+  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case IntegerNumber(v) => Right(FloatNumber(value - v))
+    case FloatNumber(v) => Right(FloatNumber(value - v))
+    case v => Left(UnimplementedOperationError("-: LispNumber", v))
+  }
+
+  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case FloatNumber(v) => Right(FloatNumber(value * v))
+    case v => Left(UnimplementedOperationError("*: FloatNumber", v))
+  }
+
+  override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case FloatNumber(v) => Right(FloatNumber(value / v))
+    case x: ComplexNumber => this.toComplexNumber.flatMap(_ / x)
+    case v => Left(UnimplementedOperationError("/: FloatNumber", v))
+  }
 }
 
 case class RatioNumber(over: Long, under: Long) extends LispNumber {
@@ -213,6 +264,8 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
     b <- imagine.printable()
   } yield s"complex number {real: $a + imagine: $b}"
 
+  override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(this)
+
   override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
     case ComplexNumber(r, i) => for {
       a <- real * r
@@ -221,7 +274,11 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
       d <- imagine * i
       newReal <- a - d
       newImagine <- b + c
-    } yield ComplexNumber(newReal, newImagine)
+      imagineZero <- newImagine.isZero
+    } yield imagineZero match {
+      case LispFalse => ComplexNumber(newReal, newImagine)
+      case LispTrue => newReal
+    }
     case i: LispNumber => for {
       newR <- real * i
       newI <- imagine * i
@@ -229,6 +286,28 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
       newImagine <- newI.toNumber
     } yield ComplexNumber(newReal, newImagine)
     case _ => Left(UnimplementedOperationError("*: ComplexNumber", other))
+  }
+
+  override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case c@ComplexNumber(r, i) => for {
+      iNeg <- i.neg
+      underOther = ComplexNumber(r, iNeg)
+      under <- c * underOther
+      newOver <- this * underOther
+      newOverCmplx <- newOver.toComplexNumber
+      newReal <- newOverCmplx.real / under
+      newImagine <- newOverCmplx.imagine / under
+    } yield ComplexNumber(newReal, newImagine)
+    case int: IntegerNumber => for {
+      r <- real / int
+      i <- imagine / int
+    } yield ComplexNumber(r, i)
+    case float: FloatNumber => for {
+      r <- real / float
+      i <- imagine / float
+    } yield ComplexNumber(r, i)
+
+    case _ => Left(UnimplementedOperationError("/: ComplexNumber", other))
   }
 }
 
@@ -374,8 +453,6 @@ case object LispTrue extends LispBoolean {
 case object LispFalse extends LispBoolean {
   override def toBoolean: Either[EvalError, Boolean] = Right(false)
 }
-
-case object MacroParenthesis extends LispToken
 
 case object CmplxNPar extends LispToken
 
