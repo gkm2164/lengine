@@ -94,6 +94,20 @@ package object parser {
     }
   }
 
+  def parseStmtLoop: LispTokenState[List[LispValue]] = tks => {
+    def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
+      case Stream.Empty => Left(EmptyTokenListError)
+      case LispNop #:: tail => loop(acc)(tail)
+      case RightPar #:: tail => Right((acc.toList, tail))
+      case tokens => (for {
+        value <- parseValue
+        res <- loop(acc :+ value)
+      } yield res)(tokens)
+    }
+
+    loop(Vector.empty)(tks)
+  }
+
   def parseClause: LispTokenState[LispValue] = tks => {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
       case Stream.Empty => Left(EmptyTokenListError)
@@ -114,6 +128,11 @@ package object parser {
       body <- parseValue
       _ <- takeToken[RightPar.type]
     } yield LispLetDef(name, value, body)
+
+    val doStmt: LispTokenState[LispDoStmt] = for {
+      _ <- takeToken[LispDo.type]
+      stmts <- parseStmtLoop
+    } yield LispDoStmt(stmts)
 
     val lambda: LispTokenState[GeneralLispFunc] = for {
       _ <- takeToken[LispLambda.type]
@@ -143,7 +162,7 @@ package object parser {
       res <- loop(Vector.empty)
     } yield LispClause(res)
 
-    (lambda | let | defFn | defVar | importVar | clause)(tks)
+    (lambda | let | doStmt | defFn | defVar | importVar | clause)(tks)
   }
 
 }

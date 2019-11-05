@@ -129,12 +129,10 @@ res1 => ()
 x
 
 ;;; ex) define lazy symbol
-(def x? 3)
-;;; which equals to
-(fn x? () 3)
+(def 'x (+ 3 3))
 
 ;;; and you can use with
-(x?)
+'x
 ```
 
 - Lambda

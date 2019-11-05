@@ -21,3 +21,9 @@
 (println (float 3/5))
 (let (name (read-line "Input your name: "))
   (println (concat "Hello, " name "!")))
+
+(fn run-something () (do
+  (println (+ 3 5))
+  (println (+ 4 6))
+  (println (/ 1 #C(1.0 2.0)))))
+

@@ -547,6 +547,8 @@ case object LispFn extends LispToken
 
 case object LispLambda extends LispToken
 
+case object LispDo extends LispToken
+
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
   private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
@@ -574,6 +576,7 @@ object LispToken {
     case "import" => Right(LispImport)
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
+    case "do" => Right(LispDo)
     case MacroRegex(body) => Right(LispMacro(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
@@ -611,6 +614,27 @@ case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
   override def placeHolders: List[LispSymbol] = Nil
 
   override def recoverStmt(): String = s"(def ${symbol.recoverStmt()} ${value.recoverStmt()})"
+}
+
+case class LispDoStmt(body: List[LispValue]) extends LispFunc {
+  override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"(do ${body.map(_.recoverStmt()).mkString(" ")})"
+
+  def runBody(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = {
+    def loop(env: LispEnvironment,
+             remains: List[LispValue],
+             lastExec: LispValue): Either[EvalError, (LispValue, LispEnvironment)] = remains match {
+      case Nil => Right((lastExec, env))
+      case head :: tail => for {
+        headEvalRes <- head.eval(env)
+        (v, nextEnv) = headEvalRes
+        res <- loop(nextEnv, tail, v)
+      } yield res
+    }
+
+    loop(env, body, LispUnit)
+  }
 }
 
 case class LispLetDef(name: LispSymbol, value: LispValue, body: LispValue) extends LispFunc {
