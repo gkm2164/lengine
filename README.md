@@ -169,7 +169,6 @@ x
 
 #### Feature
 - Char Type
-- Floating, Rational, Complex Number operations
 - Function overriding
 - Pattern match
 - Namespace

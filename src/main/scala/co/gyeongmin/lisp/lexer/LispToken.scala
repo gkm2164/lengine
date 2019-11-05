@@ -125,6 +125,7 @@ abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSy
   def execute(env: LispEnvironment): Either[EvalError, LispValue]
 }
 
+// Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
 case class IntegerNumber(value: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
 
@@ -132,48 +133,38 @@ case class IntegerNumber(value: Long) extends LispNumber {
 
   override def toRatio: Either[EvalError, RatioNumber] = Right(RatioNumber(value, 1))
 
+  override def toFloat: Either[EvalError, FloatNumber] = Right(FloatNumber(value.toFloat))
+
   override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value + num))
-    case f: FloatNumber => this.toFloat.flatMap(_ + f)
     case r: RatioNumber => this.toRatio.flatMap(_ + r)
+    case f: FloatNumber => this.toFloat.flatMap(_ + f)
     case c: ComplexNumber => this.toComplexNumber.flatMap(_ + c)
-    case x => Left(UnimplementedOperationError(s"+", x))
+    case _ => Left(UnimplementedOperationError(s"+", other))
   }
 
   override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value - num))
-    case FloatNumber(num) => Right(FloatNumber(value.toDouble - num))
-    case RatioNumber(over, under) =>
-      val o = value * under - over
-      val g = gcd(abs(o), abs(under))
-      Right(RatioNumber(o / g, under / g))
-    case ComplexNumber(real, imagine) => for {
-      newReal <- this + real
-      r <- newReal.toNumber
-    } yield ComplexNumber(r, imagine)
-    case x => Left(UnimplementedOperationError(s"-", x))
+    case r: RatioNumber => this.toRatio.flatMap(_ - r)
+    case f: FloatNumber => this.toFloat.flatMap(_ - f)
+    case cn: ComplexNumber => this.toComplexNumber.flatMap(_ - cn)
+    case _ => Left(UnimplementedOperationError(s"-", other))
   }
 
   override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value * num))
-    case FloatNumber(num) => Right(FloatNumber(value * num))
-    case RatioNumber(over, under) =>
-      val o = over * value
-      val d = gcd(abs(o), abs(under))
-      Right(RatioNumber(o / d, under / d))
-    case ComplexNumber(real, imagine) => for {
-      r <- this * real
-      i <- this * imagine
-    } yield ComplexNumber(r, i)
-    case x => Left(UnimplementedOperationError(s"*", x))
+    case r: RatioNumber => this.toRatio.flatMap(_ * r)
+    case f: FloatNumber => this.toFloat.flatMap(_ * f)
+    case cn: ComplexNumber => this.toComplexNumber.flatMap(_ * cn)
+    case _ => Left(UnimplementedOperationError(s"*", other))
   }
 
   override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
     case IntegerNumber(num) => Right(IntegerNumber(value / num))
-    case FloatNumber(num) => Right(FloatNumber(num / value))
-    case RatioNumber(o, u) => this * RatioNumber(u, o)
+    case r: RatioNumber => this.toRatio.flatMap(_ / r)
+    case f: FloatNumber => this.toFloat.flatMap(_ / f)
     case cn: ComplexNumber => this.toComplexNumber.flatMap(_ / cn)
-    case x => Left(UnimplementedOperationError(s"/", x))
+    case _ => Left(UnimplementedOperationError(s"/", other))
   }
 
   override def %(other: LispValue): Either[EvalError, LispNumber] = other match {
@@ -197,7 +188,56 @@ case class IntegerNumber(value: Long) extends LispNumber {
   override def printable(): Either[EvalError, String] = Right(value.toString)
 }
 
-case object LispNop extends LispToken
+case class RatioNumber(over: Long, under: Long) extends LispNumber {
+  override def neg: Either[EvalError, LispNumber] = Right(RatioNumber(-over, under))
+
+  override def toFloat: Either[EvalError, FloatNumber] = Right(FloatNumber(over.toDouble / under))
+
+  override def toComplexNumber: Either[EvalError, ComplexNumber] = zero.map(z => ComplexNumber(this, z))
+
+  override def printable(): Either[EvalError, String] = Right(s"$over/$under")
+
+  def normalize: LispNumber = {
+    val div = gcd(abs(over), abs(under))
+    if (div == under) IntegerNumber(over / div)
+    else RatioNumber(over / div, under / div)
+  }
+
+  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(rOver, rUnder) => Right(RatioNumber(over * rUnder + rOver * under, under * rUnder).normalize)
+    case i: IntegerNumber => i.toRatio.flatMap(this + _)
+    case f: FloatNumber => this.toFloat.flatMap(_ + f)
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ + c)
+    case _ => Left(UnimplementedOperationError("+: RatioNumber", other))
+  }
+
+  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(rOver, rUnder) => Right(RatioNumber(over * rUnder - rOver * under, under * rUnder).normalize)
+    case i: IntegerNumber => i.toRatio.flatMap(this - _)
+    case f: FloatNumber => this.toFloat.flatMap(_ - f)
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ - c)
+    case _ => Left(UnimplementedOperationError("-: RatioNumber", other))
+  }
+
+  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(over2, under2) =>
+      val RatioNumber(lOver, lUnder) = RatioNumber(over, under2)
+      val RatioNumber(rOver, rUnder) = RatioNumber(over2, under)
+      Right(RatioNumber(lOver * rOver, lUnder * rUnder).normalize)
+    case i: IntegerNumber => i.toRatio.flatMap(this * _)
+    case f: FloatNumber => this.toFloat.flatMap(_ * f)
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ * c)
+    case _ => Left(UnimplementedOperationError("*: RatioNumber", other))
+  }
+
+  override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case RatioNumber(rOver, rUnder) => this * RatioNumber(rUnder, rOver)
+    case i: IntegerNumber => i.toRatio.flatMap(this / _)
+    case f: FloatNumber => this.toFloat.flatMap(_ / f)
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
+    case _ => Left(UnimplementedOperationError("/: RatioNumber", other))
+  }
+}
 
 case class FloatNumber(value: Double) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(FloatNumber(-value))
@@ -208,53 +248,35 @@ case class FloatNumber(value: Double) extends LispNumber {
     zero.map(z => ComplexNumber(this, z))
 
   override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
-    case IntegerNumber(v) => Right(FloatNumber(value + v))
+    case i: IntegerNumber => i.toFloat.flatMap(this + _)
+    case r: RatioNumber => r.toFloat.flatMap(this + _)
     case FloatNumber(v) => Right(FloatNumber(value + v))
-    case v => Left(UnimplementedOperationError("+: LispNumber", v))
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ + c)
+    case _ => Left(UnimplementedOperationError("+: LispNumber", other))
   }
 
   override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
-    case IntegerNumber(v) => Right(FloatNumber(value - v))
+    case i: IntegerNumber => i.toFloat.flatMap(this - _)
+    case r: RatioNumber => r.toFloat.flatMap(this - _)
     case FloatNumber(v) => Right(FloatNumber(value - v))
-    case v => Left(UnimplementedOperationError("-: LispNumber", v))
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ - c)
+    case _ => Left(UnimplementedOperationError("-: LispNumber", other))
   }
 
   override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case i: IntegerNumber => i.toFloat.flatMap(this * _)
+    case r: RatioNumber => r.toFloat.flatMap(this * _)
     case FloatNumber(v) => Right(FloatNumber(value * v))
-    case v => Left(UnimplementedOperationError("*: FloatNumber", v))
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ * c)
+    case _ => Left(UnimplementedOperationError("*: FloatNumber", other))
   }
 
   override def /(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case i: IntegerNumber => i.toFloat.flatMap(this / _)
+    case r: RatioNumber => r.toFloat.flatMap(this / _)
     case FloatNumber(v) => Right(FloatNumber(value / v))
-    case x: ComplexNumber => this.toComplexNumber.flatMap(_ / x)
-    case v => Left(UnimplementedOperationError("/: FloatNumber", v))
-  }
-}
-
-case class RatioNumber(over: Long, under: Long) extends LispNumber {
-  override def neg: Either[EvalError, LispNumber] = Right(RatioNumber(-over, under))
-
-  override def toFloat: Either[EvalError, FloatNumber] = Right(FloatNumber(over.toDouble / under))
-
-  override def printable(): Either[EvalError, String] = Right(s"$over/$under")
-
-  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
-    case RatioNumber(rOver, rUnder) =>
-      val newUnder = under * rUnder
-      val newOver = over * rUnder + rOver * under
-      val div = gcd(newUnder, newOver)
-      Right(RatioNumber(newOver / div, newUnder / div))
-    case i: IntegerNumber => i + this
-    case _ => Left(UnimplementedOperationError("+: RatioNumber", other))
-  }
-
-  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
-    case RatioNumber(rOver, rUnder) =>
-      val newUnder = under * rUnder
-      val newOver = over * rUnder - rOver * under
-      val div = gcd(newUnder, newOver)
-      Right(RatioNumber(newOver / div, newUnder / div))
-    case _ => Left(UnimplementedOperationError("-: RatioNumber", other))
+    case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
+    case _ => Left(UnimplementedOperationError("/: FloatNumber", other))
   }
 }
 
@@ -264,27 +286,45 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
     b <- imagine.printable()
   } yield s"complex number {real: $a + imagine: $b}"
 
+  def normalize: LispNumber = (for {
+    z <- imagine.zero
+  } yield if (z == imagine) real else this).getOrElse(this)
+
   override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(this)
 
-  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
+  override def +(other: LispValue): Either[EvalError, LispNumber] = other match {
     case ComplexNumber(r, i) => for {
-      a <- real * r
-      b <- real * i
-      c <- imagine * r
-      d <- imagine * i
-      newReal <- a - d
-      newImagine <- b + c
-      imagineZero <- newImagine.isZero
-    } yield imagineZero match {
-      case LispFalse => ComplexNumber(newReal, newImagine)
-      case LispTrue => newReal
-    }
-    case i: LispNumber => for {
-      newR <- real * i
-      newI <- imagine * i
-      newReal <- newR.toNumber
-      newImagine <- newI.toNumber
-    } yield ComplexNumber(newReal, newImagine)
+      newR <- real + r
+      newI <- imagine + i
+    } yield ComplexNumber(newR, newI).normalize
+    case _: LispNumber => other.toComplexNumber.flatMap(this + _)
+    case _ => Left(UnimplementedOperationError("+: ComplexNumber", other))
+  }
+
+  override def -(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case ComplexNumber(r, i) => for {
+      newR <- real - r
+      newI <- imagine - i
+    } yield ComplexNumber(newR, newI).normalize
+    case _: LispNumber => other.toComplexNumber.flatMap(this - _)
+    case _ => Left(UnimplementedOperationError("+: ComplexNumber", other))
+  }
+
+  override def *(other: LispValue): Either[EvalError, LispNumber] = other match {
+    case ComplexNumber(r, i) =>
+      val a = real
+      val b = imagine
+      val c = r
+      val d = i
+      for {
+        c0 <- a * c
+        c1 <- a * d
+        c2 <- b * c
+        c3 <- b * d
+        newReal <- c0 - c3
+        newImagine <- c1 + c2
+      } yield ComplexNumber(newReal, newImagine).normalize
+    case _: LispNumber => other.toComplexNumber.flatMap(this * _)
     case _ => Left(UnimplementedOperationError("*: ComplexNumber", other))
   }
 
@@ -297,19 +337,13 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
       newOverCmplx <- newOver.toComplexNumber
       newReal <- newOverCmplx.real / under
       newImagine <- newOverCmplx.imagine / under
-    } yield ComplexNumber(newReal, newImagine)
-    case int: IntegerNumber => for {
-      r <- real / int
-      i <- imagine / int
-    } yield ComplexNumber(r, i)
-    case float: FloatNumber => for {
-      r <- real / float
-      i <- imagine / float
-    } yield ComplexNumber(r, i)
-
+    } yield ComplexNumber(newReal, newImagine).normalize
+    case _: LispNumber => other.toComplexNumber.flatMap(this / _)
     case _ => Left(UnimplementedOperationError("/: ComplexNumber", other))
   }
 }
+
+case object LispNop extends LispToken
 
 case class LispChar(chs: String) extends LispValue
 
