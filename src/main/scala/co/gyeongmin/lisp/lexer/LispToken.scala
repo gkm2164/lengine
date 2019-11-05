@@ -363,6 +363,7 @@ case object LispNop extends LispToken
 
 case class LispChar(chs: Char) extends LispValue {
   override def printable(): Either[EvalError, String] = Right(chs.toString)
+
   override def recoverStmt(): String = s"'$chs'"
 }
 
@@ -434,7 +435,7 @@ case class LispMacro(body: String) extends LispValue {
   val NumberRegex: Regex = """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+)""".r
   val CharRegex: Regex = """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.?)""".r
 
-  val charNumMap: Map[Char, Int] =
+  private val charNumMap: Map[Char, Int] =
     ('0' to '9').zipWithIndex.toMap ++
       ('a' to 'z').zipWithIndex.toMap.mapValues(_ + 10) ++
       ('A' to 'Z').zipWithIndex.toMap.mapValues(_ + 10)
@@ -570,9 +571,9 @@ object LispToken {
     case "fn" => Right(LispFn)
     case "let" => Right(LispLet)
     case "lambda" => Right(LispLambda)
+    case "import" => Right(LispImport)
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
-    case "import" => Right(LispImport)
     case MacroRegex(body) => Right(LispMacro(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))

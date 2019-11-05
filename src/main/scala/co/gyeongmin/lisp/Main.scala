@@ -12,8 +12,7 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
-
-  implicit class X(env: LispEnvironment) {
+  implicit class LispEnvironmentSyntax(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
 
     def updateHistory(stmt: LispValue, inc: AtomicLong, res: LispValue): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {

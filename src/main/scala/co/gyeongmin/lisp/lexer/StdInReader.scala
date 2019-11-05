@@ -19,7 +19,7 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] with Debu
   }
 
   private val queue: mutable.Queue[Char] = new mutable.Queue()
-  private val EOFChar: Char = -1.toChar
+  private val EOFChar: Char = 0xFFFF
 
   @scala.annotation.tailrec
   private def ensureQueueFill(): Either[Throwable, Unit] = {

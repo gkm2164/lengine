@@ -3,7 +3,6 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.lexer._
 
 package object errors {
-
   trait LispError {
     def message: String
   }
@@ -94,5 +93,4 @@ package object errors {
   case object EOFError extends TokenizeError {
     override def message: String = s"EOF"
   }
-
 }

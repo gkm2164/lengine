@@ -7,7 +7,6 @@ import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 object Builtin {
-
   implicit class LispSymbolSyntax(x: LispSymbol) {
     private def binaryStmtFunc(symbol: LispSymbol, f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, BuiltinLispFunc) =
       symbol ->
@@ -143,5 +142,4 @@ object Builtin {
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {
     def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] = x.get(symbol).toRight(UnknownSymbolNameError(symbol))
   }
-
 }

@@ -28,7 +28,7 @@ package object debug {
           i <- imagine.printable()
         } yield s"{real: $r + imagine: $i}: ComplexNumber").getOrElse("unknown number error!")
       }
-      case func: lexer.LispFunc => func match {
+      case func: LispFunc => func match {
         case func: BuiltinLispFunc => func.printable() match {
           case Right(str) => s"$str: Built in function"
           case Left(_) => s"#unable to print: Built in function"
@@ -41,8 +41,8 @@ package object debug {
         case LispValueDef(symbol, value) => s"variable definition to ${symbol.debug()} -> ${value.debug()}"
         case _ => "#unknown symbol"
       }
-      case lexer.LispChar(chs) => s"$chs: Char"
-      case lexer.LispString(value) =>s""""$value": String"""
+      case LispChar(chs) => s"$chs: Char"
+      case LispString(value) =>s""""$value": String"""
       case symbol: LispSymbol => symbol match {
         case EagerSymbol(name) => s"$name: eager evaluation symbol"
         case LazySymbol(name) => s"$name: lazy evaluation symbol"
@@ -54,10 +54,10 @@ package object debug {
         case Left(_) => "#unable to print: List"
       }
       case _: LispMacro => s"_: Macro"
-      case lexer.LispUnit => s"(): Unit"
+      case LispUnit => s"(): Unit"
       case boolean: LispBoolean => boolean match {
-        case lexer.LispFalse => s"false: Boolean"
-        case lexer.LispTrue => s"true: Boolean"
+        case LispFalse => s"false: Boolean"
+        case LispTrue => s"true: Boolean"
         case x => s"$x(unknown): Boolean"
       }
     }

@@ -4,7 +4,7 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.lexer._
-import co.gyeongmin.lisp.monads._
+import co.gyeongmin.lisp.monad._
 
 import scala.reflect.ClassTag
 

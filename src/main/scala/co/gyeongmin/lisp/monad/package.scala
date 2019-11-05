@@ -1,11 +1,10 @@
 package co.gyeongmin.lisp
 
 import cats.Monad
-import co.gyeongmin.lisp.errors.{LispError, ParseError}
-import co.gyeongmin.lisp.execution.LispEnvironment
+import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.lexer._
 
-package object monads {
+package object monad {
   type LispTokenState[A] = Stream[LispToken] => Either[ParseError, (A, Stream[LispToken])]
 
   implicit val lispTokenStateMonad: Monad[LispTokenState] = new Monad[LispTokenState] {
