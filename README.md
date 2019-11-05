@@ -216,4 +216,4 @@ res3 => 8
 - Binary generation
 
 ### etc.
-- Friend project: [kand](https://github.com/eunmin/kand): LISP, type system enhanced, and could be run on Java Virtual Machine
+- Friend project: [kand](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
