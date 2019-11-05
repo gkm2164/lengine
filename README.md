@@ -148,6 +148,17 @@ x
 ;;; == (fn add (+ a b))
 ```
 
+- DO stmt
+
+```lisp
+;;; Do stmt
+;;; (do stmts*)
+(do (println 3)
+    (println 4)
+    (println 5))
+;;; print 3 4 5 line by line and return Unit
+```
+
 - Introduce local variable
 
 ```lisp
