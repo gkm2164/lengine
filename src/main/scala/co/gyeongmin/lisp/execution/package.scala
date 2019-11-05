@@ -6,7 +6,6 @@ import co.gyeongmin.lisp.lexer._
 package object execution {
   type LispEnvironment = Map[LispSymbol, LispValue]
 
-
   implicit class LispExecutionSyntax(v: LispValue) {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = v match {
       case f@LispFuncDef(symbol, fn) => Right((f, env.updated(symbol, fn)))
