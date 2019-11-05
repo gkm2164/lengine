@@ -13,12 +13,16 @@
 
 ### Execute Code
 ```bash
+# SBT should be installed in your local machine
 $ git clone https://github.com/gkm2164/lengine
-$ sbt compile
-$ sbt "run [filename]"
+$ ./install.sh
+$ ./lengine [filename]?
 
-# ex)
-$ sbt "run ./examples/testCode.lisp" 
+# ex) run lisp code
+$ ./lengine ./examples/testCode.lisp
+
+# ex) run REPL
+$ ./lengine
  
 ```
 

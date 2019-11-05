@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ -f lengine.jar ]; then
+  java -jar lengine.jar $@
+else
+  echo 'Lengine is not compiled. run "./install.sh"'
+fi
