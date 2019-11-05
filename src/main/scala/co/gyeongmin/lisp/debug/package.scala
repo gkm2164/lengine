@@ -44,9 +44,6 @@ package object debug {
       case lexer.LispChar(chs) => s"$chs: Char"
       case lexer.LispString(value) =>s""""$value": String"""
       case symbol: LispSymbol => symbol match {
-        case lexer.LispDef => "def: Keyword for define variable"
-        case lexer.LispFn => "fn: Keyword for define function"
-        case lexer.LispLambda => "lambda: Keyword for define lambda"
         case EagerSymbol(name) => s"$name: eager evaluation symbol"
         case LazySymbol(name) => s"$name: lazy evaluation symbol"
         case ListSymbol(name) => s"$name: a symbol for list"

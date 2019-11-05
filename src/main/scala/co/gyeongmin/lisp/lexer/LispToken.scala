@@ -8,6 +8,8 @@ import scala.util.matching.Regex
 sealed trait LispToken
 
 sealed trait LispValue extends LispToken {
+  def recoverStmt(): String
+
   //package private
   private[lexer] def toNumber: Either[EvalError, LispNumber] = this match {
     case x: LispNumber => Right(x)
@@ -123,6 +125,8 @@ trait LispFunc extends LispValue {
 
 abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSymbol]) extends LispFunc {
   def execute(env: LispEnvironment): Either[EvalError, LispValue]
+
+  override def recoverStmt(): String = s"(lambda ${placeHolders.map(_.recoverStmt()).mkString(" ")} #native)"
 }
 
 // Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
@@ -186,6 +190,8 @@ case class IntegerNumber(value: Long) extends LispNumber {
   override def toInt: Either[EvalError, IntegerNumber] = Right(this)
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
+
+  override def recoverStmt(): String = s"$value"
 }
 
 case class RatioNumber(over: Long, under: Long) extends LispNumber {
@@ -237,6 +243,8 @@ case class RatioNumber(over: Long, under: Long) extends LispNumber {
     case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
     case _ => Left(UnimplementedOperationError("/: RatioNumber", other))
   }
+
+  override def recoverStmt(): String = s"$over/$under"
 }
 
 case class FloatNumber(value: Double) extends LispNumber {
@@ -278,6 +286,8 @@ case class FloatNumber(value: Double) extends LispNumber {
     case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
     case _ => Left(UnimplementedOperationError("/: FloatNumber", other))
   }
+
+  override def recoverStmt(): String = s"$value"
 }
 
 case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumber {
@@ -341,11 +351,19 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber) extends LispNumb
     case _: LispNumber => other.toComplexNumber.flatMap(this / _)
     case _ => Left(UnimplementedOperationError("/: ComplexNumber", other))
   }
+
+  override def recoverStmt(): String = s"#C(${real.recoverStmt()} ${imagine.recoverStmt()})"
+}
+
+object ComplexNumber {
+
 }
 
 case object LispNop extends LispToken
 
-case class LispChar(chs: String) extends LispValue
+case class LispChar(chs: String) extends LispValue {
+  override def recoverStmt(): String = s"'$chs'"
+}
 
 case class LispString(value: String) extends LispValue {
   override def printable(): Either[EvalError, String] = Right(value)
@@ -360,31 +378,29 @@ case class LispString(value: String) extends LispValue {
   override def head: Either[EvalError, LispValue] = Right(LispChar(value.head.toString))
 
   override def tail: Either[EvalError, LispValue] = Right(LispString(value.tail))
+
+  override def recoverStmt(): String = s""""$value""""
 }
 
 sealed trait LispSymbol extends LispValue {
   def name: String
 }
 
-case object LispDef extends LispSymbol {
-  override def name: String = "def"
+case class LispClause(body: List[LispValue]) extends LispValue {
+  override def recoverStmt(): String = s"(${body.map(_.recoverStmt()).mkString(" ")})"
 }
 
-case object LispFn extends LispSymbol {
-  override def name: String = "fn"
+case class EagerSymbol(name: String) extends LispSymbol {
+  override def recoverStmt(): String = s"$name"
 }
 
-case object LispLambda extends LispSymbol {
-  override def name: String = "lambda"
+case class LazySymbol(name: String) extends LispSymbol {
+  override def recoverStmt(): String = s"$name"
 }
 
-case class LispClause(body: List[LispValue]) extends LispValue
-
-case class EagerSymbol(name: String) extends LispSymbol
-
-case class LazySymbol(name: String) extends LispSymbol
-
-case class ListSymbol(name: String) extends LispSymbol
+case class ListSymbol(name: String) extends LispSymbol {
+  override def recoverStmt(): String = s"$name"
+}
 
 case class LispList(items: List[LispValue]) extends LispValue {
   override def ++(other: LispValue): Either[EvalError, LispValue] = other match {
@@ -402,6 +418,8 @@ case class LispList(items: List[LispValue]) extends LispValue {
     case (acc, Right(v)) => acc :+ v
     case (acc, Left(_)) => acc :+ "#Unprintable"
   }.mkString("(", " ", ")"))
+
+  override def recoverStmt(): String = s"(list ${items.map(_.recoverStmt()).mkString(" ")})"
 }
 
 case class LispMacro(body: String) extends LispValue {
@@ -451,10 +469,14 @@ case class LispMacro(body: String) extends LispValue {
       parseNumber(b, number).map(v => IntegerNumber(v * s))
     case v => Left(UnknownMacroError(v))
   }
+
+  override def recoverStmt(): String = s"#$body"
 }
 
 case object LispUnit extends LispValue {
   override def printable(): Either[EvalError, String] = Right("()")
+
+  override def recoverStmt(): String = "()"
 }
 
 abstract class LispBoolean extends LispValue {
@@ -482,10 +504,14 @@ object LispBoolean {
 
 case object LispTrue extends LispBoolean {
   override def toBoolean: Either[EvalError, Boolean] = Right(true)
+
+  override def recoverStmt(): String = "true"
 }
 
 case object LispFalse extends LispBoolean {
   override def toBoolean: Either[EvalError, Boolean] = Right(false)
+
+  override def recoverStmt(): String = "false"
 }
 
 case object CmplxNPar extends LispToken
@@ -501,6 +527,14 @@ case object LeftBracket extends LispToken
 case object RightBracket extends LispToken
 
 case object LispImport extends LispToken
+
+case object LispLet extends LispToken
+
+case object LispDef extends LispToken
+
+case object LispFn extends LispToken
+
+case object LispLambda extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
@@ -525,6 +559,7 @@ object LispToken {
     case "'(" => Right(ListStartPar)
     case "def" => Right(LispDef)
     case "fn" => Right(LispFn)
+    case "let" => Right(LispLet)
     case "lambda" => Right(LispLambda)
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
@@ -558,15 +593,37 @@ object LispToken {
 }
 
 case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
+  def registerSymbol(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = symbol match {
+    case EagerSymbol(_) => value.eval(env).map { case (evaluatedValue, _) => (this, env.updated(symbol, evaluatedValue)) }
+    case LazySymbol(_) => Right((this, env.updated(symbol, GeneralLispFunc(Nil, value))))
+    case errValue => Left(InvalidSymbolName(errValue))
+  }
+
   override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"(def ${symbol.recoverStmt()} ${value.recoverStmt()})"
+}
+
+case class LispLetDef(name: LispSymbol, value: LispValue, body: LispValue) extends LispFunc {
+
+  override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"(let ${name.recoverStmt()} ${value.recoverStmt()} ${body.recoverStmt()})"
 }
 
 case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispFunc {
   override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String =
+    s"(fn ${symbol.recoverStmt()} (${fn.placeHolders.map(_.recoverStmt()).mkString(" ")}) ${fn.body.recoverStmt()})"
 }
 
 case class LispImportDef(path: LispValue) extends LispFunc {
   override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"(import ${path.recoverStmt()})"
 }
 
-case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc
+case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
+  override def recoverStmt(): String = s"(lambda (${placeHolders.map(_.recoverStmt()).mkString(" ")}) ${body.recoverStmt()})"
+}

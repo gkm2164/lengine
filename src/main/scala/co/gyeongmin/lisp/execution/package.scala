@@ -10,18 +10,15 @@ package object execution {
   implicit class LispExecutionSyntax(v: LispValue) {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = v match {
       case f@LispFuncDef(symbol, fn) => Right((f, env.updated(symbol, fn)))
-      case d@LispValueDef(symbol, v) => symbol match {
-        case EagerSymbol(_) => v.eval(env).map { case (evaluatedValue, _) => (d, env.updated(symbol, evaluatedValue)) }
-        case LazySymbol(_) => Right((d, env.updated(symbol, GeneralLispFunc(Nil, v))))
-        case errValue => Left(InvalidSymbolName(errValue))
-      }
+      case l: LispLetDef => l.execute(env).map((_, env))
+      case d: LispValueDef => d.registerSymbol(env)
       case LispImportDef(LispString(path)) => Right(LispUnit, Main.runFile(path, env))
       case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
       case clause: LispClause => clause.execute(env).map((_, env))
       case m: LispMacro => Left(UnimplementedOperationError("macro", m))
-      case v: LispNumber => Right((v, env))
+      case n: LispNumber => Right((n, env))
       case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((v, env))
-      case v: GeneralLispFunc => Right((v, env))
+      case f: GeneralLispFunc => Right((f, env))
       case value => Left(UnimplementedOperationError("value is not handlable yet", value))
     }
   }
@@ -49,6 +46,7 @@ package object execution {
           } yield appliedEnv
           case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
             applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
+          case ((l: ListSymbol) :: Nil, Nil) => Right(accEnv.updated(l, LispList(Nil)))
           case ((l: ListSymbol) :: Nil, args) =>
             val argList: Either[EvalError, List[LispValue]] = transform(args.map(_.eval(env).map(_._1)))
             argList.map(x => accEnv.updated(l, LispList(x)))
@@ -64,6 +62,17 @@ package object execution {
         evalResult <- body.eval(env)
       } yield evalResult._1
       case v => Left(NotAnExecutableError(v))
+    }
+  }
+
+  implicit class LispLetDefExecutionSyntax(letStmt: LispLetDef) {
+    def execute(env: LispEnvironment): Either[EvalError, LispValue] = {
+      val LispLetDef(name, value, body) = letStmt
+      for {
+        valueEvalRes <- value.eval(env)
+        (v, _) = valueEvalRes
+        bodyRes <- body.eval(env.updated(name, v))
+      } yield bodyRes._1
     }
   }
 

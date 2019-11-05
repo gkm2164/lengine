@@ -1,4 +1,5 @@
 (import "libs/math")
+(import "libs/sequence")
 
 (def x 3)
 (def y 4)
@@ -14,5 +15,5 @@
 (z?)
 (println 3/5)
 (println (float 3/5))
-(def name (read-line "Input your name: "))
-(println (++ (++ "Hello, " name) "!"))
+(let name (read-line "Input your name: ")
+  (println (concat "Hello, " name "!")))

@@ -7,6 +7,7 @@ import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 object Builtin {
+
   implicit class LispSymbolSyntax(x: LispSymbol) {
     private def binaryStmtFunc(symbol: LispSymbol, f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, BuiltinLispFunc) =
       symbol ->
@@ -39,16 +40,26 @@ object Builtin {
   def Z(name: String) = LazySymbol(name)
 
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
-    E("$$PROMPT$$") -> LispString("Glisp"),
+    E("$$PROMPT$$") -> LispString("lengine"),
     E("$$HISTORY$$") -> LispList(Nil),
-    E("history") -> new BuiltinLispFunc(E("history"), Nil) {
+    E("history") -> new BuiltinLispFunc(E("history"), ListSymbol("_1") :: Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = for {
         history <- env refer E("$$HISTORY$$")
+        arg <- env refer L("_1")
+        argList <- arg.list
         historyList <- history.list
-      } yield {
-        println(historyList.items.mkString("\n"))
-        LispUnit
-      }
+        historyRun <- argList.items.headOption match {
+          case Some(IntegerNumber(v)) => historyList.items.reverse.drop(v.toInt).headOption match {
+            case None => Right(LispUnit)
+            case Some(value) => value.eval(env).map(_._1)
+          }
+          case Some(tk) => Left(UnimplementedOperationError("history", tk))
+          case None => println(historyList.items.reverse.map(_.recoverStmt()).zipWithIndex.map {
+            case (stmt, idx) => s"$idx: $stmt"
+          }.mkString("\n"))
+            Right(LispUnit)
+        }
+      } yield historyRun
     },
     E("nil") -> LispList(Nil),
     E("+") ->@ (_ + _),

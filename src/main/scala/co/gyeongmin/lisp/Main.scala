@@ -12,14 +12,16 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
+
   implicit class X(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
+
     def updateHistory(stmt: LispValue, inc: AtomicLong, res: LispValue): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {
       case Some(LispList(items)) =>
         val num = inc.getAndIncrement()
         val varName = s"res$num"
         (Some(varName), env.updated(HistorySymbol, LispList(stmt :: items))
-                           .updated(EagerSymbol(varName), res))
+          .updated(EagerSymbol(varName), res))
       case _ => (None, env)
     }
   }

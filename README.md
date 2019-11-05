@@ -25,7 +25,7 @@ $ sbt "run ./examples/testCode.lisp"
 ### REPL
 ```bash
 $ sbt run
-GLisp > (println (+ 3 5))
+lengine > (println (+ 3 5))
 8
 res0 => ()
 ```
@@ -33,17 +33,17 @@ res0 => ()
 - To quit REPL,
 
 ```bash
-GLisp > (quit)
+lengine > (quit)
 ``` 
 
 You can test List type also
 ```bash
-GLisp > (println (cons 3 (cons 5 nil)))
+lengine > (println (cons 3 (cons 5 nil)))
 (3 5)
-res1 => ()
-GLisp > (println (tail (cons 3 (cons 5 nil))))
+res0 => ()
+lengine > (println (tail (cons 3 (cons 5 nil))))
 (5)
-res2 => ()
+res1 => ()
 ...
 ```
 
@@ -161,6 +161,23 @@ x
 ;;; test
 (map (list 1 2 3 4 5) (lambda (x) (+ x 1)))
 ;;; == (list 2 3 4 5 6)
+
+```
+
+- REPL history
+
+```lisp
+;;; See history or use the history
+;;; (history [index of history]?)
+;;; ex) see history result
+(history)        ;;; command history is also accumulated to history
+0: (+ 3 5)       ;;; examples
+1: (println 3)
+
+
+;;; run 
+(history 0)
+res3 => 8
 ```
 
 <a name="to-be-implemented" />
@@ -173,5 +190,4 @@ x
 - Pattern match
 - Namespace
 - Stream
-- History feature
 - Binary generation

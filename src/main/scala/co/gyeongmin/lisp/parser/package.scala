@@ -104,6 +104,14 @@ package object parser {
       } yield res) (tokens)
     }
 
+    val let: LispTokenState[LispLetDef] = for {
+      _ <- takeToken[LispLet.type]
+      name <- takeToken[LispSymbol]
+      value <- parseValue
+      body <- parseValue
+      _ <- takeToken[RightPar.type]
+    } yield LispLetDef(name, value, body)
+
     val lambda: LispTokenState[GeneralLispFunc] = for {
       _ <- takeToken[LispLambda.type]
       lambda <- parseLambda
@@ -132,6 +140,7 @@ package object parser {
       res <- loop(Vector.empty)
     } yield LispClause(res)
 
-    (lambda | defFn | defVar | importVar | clause)(tks)
+    (lambda | let | defFn | defVar | importVar | clause)(tks)
   }
+
 }
