@@ -2,10 +2,17 @@
 
 ## Table of contents
 
+- [Envorinment](#environment)
 - [How to run](#how-to-run)
 - [Features](#features)
 - [To be implemented](#to-be-implemented)
 
+
+<a name="environment" />
+
+## Environment
+- Compiled at Scala 2.12.10
+- [SBT](https://www.scala-sbt.org/) should be installed
 
 <a name="how-to-run" />
 
