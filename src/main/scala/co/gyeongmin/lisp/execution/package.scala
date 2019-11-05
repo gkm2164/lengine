@@ -12,6 +12,7 @@ package object execution {
       case l: LispLetDef => l.execute(env).map((_, env))
       case d: LispValueDef => d.registerSymbol(env)
       case LispImportDef(LispString(path)) => Right(LispUnit, Main.runFile(path, env))
+      case l: LazySymbol => env.get(l).toRight(UnknownSymbolNameError(l)).flatMap(_.eval(env))
       case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
       case clause: LispClause => clause.execute(env).map((_, env))
       case m: LispMacro => Left(UnimplementedOperationError("macro", m))

@@ -549,9 +549,9 @@ case object LispLambda extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
-  private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*)""".r
-  private val LazySymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\?)""".r
-  private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=][a-zA-Z0-9\-+/*%<>=]*\*)""".r
+  private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
+  private val LazySymbolRegex: Regex = """('[a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
+  private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*)""".r
   private val MacroRegex: Regex = """#(.+)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
   private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
@@ -604,7 +604,7 @@ object LispToken {
 case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
   def registerSymbol(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = symbol match {
     case EagerSymbol(_) => value.eval(env).map { case (evaluatedValue, _) => (this, env.updated(symbol, evaluatedValue)) }
-    case LazySymbol(_) => Right((this, env.updated(symbol, GeneralLispFunc(Nil, value))))
+    case LazySymbol(_) => Right((this, env.updated(symbol, value)))
     case errValue => Left(InvalidSymbolName(errValue))
   }
 
