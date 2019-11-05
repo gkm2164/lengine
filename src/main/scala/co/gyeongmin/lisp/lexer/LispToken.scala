@@ -361,7 +361,8 @@ object ComplexNumber {
 
 case object LispNop extends LispToken
 
-case class LispChar(chs: String) extends LispValue {
+case class LispChar(chs: Char) extends LispValue {
+  override def printable(): Either[EvalError, String] = Right(chs.toString)
   override def recoverStmt(): String = s"'$chs'"
 }
 
@@ -375,7 +376,7 @@ case class LispString(value: String) extends LispValue {
 
   override def length: Either[EvalError, LispValue] = Right(IntegerNumber(value.length))
 
-  override def head: Either[EvalError, LispValue] = Right(LispChar(value.head.toString))
+  override def head: Either[EvalError, LispValue] = Right(LispChar(value.head))
 
   override def tail: Either[EvalError, LispValue] = Right(LispString(value.tail))
 
@@ -431,6 +432,7 @@ case class LispMacro(body: String) extends LispValue {
   // #o..
   // #x..
   val NumberRegex: Regex = """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+)""".r
+  val CharRegex: Regex = """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.?)""".r
 
   val charNumMap: Map[Char, Int] =
     ('0' to '9').zipWithIndex.toMap ++
@@ -459,14 +461,22 @@ case class LispMacro(body: String) extends LispValue {
         case "x" => 16
         case _ => Integer.parseInt(base.dropRight(1))
       }
-
       val s = Option(sign).map {
         case "+" => 1
         case "-" => -1
         case "" => 1
       }.getOrElse(1)
-
       parseNumber(b, number).map(v => IntegerNumber(v * s))
+    case CharRegex(char) => char match {
+      case "Backspace" => Right(LispChar('\b'))
+      case "Tab" => Right(LispChar('\t'))
+      case "Linefeed" => Right(LispChar('\n'))
+      case "Page" => Right(LispChar('\f'))
+      case "Return" => Right(LispChar('\r'))
+      case "Rubout" => Right(LispChar(0x08))
+      case "Space" => Right(LispChar(' '))
+      case ch => Right(LispChar(ch.head))
+    }
     case v => Left(UnknownMacroError(v))
   }
 
@@ -518,6 +528,8 @@ case object CmplxNPar extends LispToken
 
 case object LeftPar extends LispToken
 
+case object ListStartPar extends LispToken
+
 case object RightPar extends LispToken
 
 case object LeftBracket extends LispToken
@@ -544,7 +556,6 @@ object LispToken {
   private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
   private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
   private val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
-  private val CharRegex: Regex = """^'(.)'""".r
   private val StringRegex: Regex = """^"(.*)""".r
 
   def apply(code: String): Either[TokenizeError, LispToken] = code match {
@@ -552,6 +563,7 @@ object LispToken {
     case "(" => Right(LeftPar)
     case ")" => Right(RightPar)
     case "#C(" => Right(CmplxNPar)
+    case "'(" => Right(ListStartPar)
     case "[" => Right(LeftBracket)
     case "]" => Right(RightBracket)
     case "def" => Right(LispDef)
@@ -573,7 +585,6 @@ object LispToken {
     case LazySymbolRegex(name) => Right(LazySymbol(name))
     case ListSymbolRegex(name) => Right(ListSymbol(name))
     case SymbolRegex(name) => Right(EagerSymbol(name))
-    case CharRegex(chs) => Right(LispChar(chs))
     case StringRegex(str) => Right(LispString(str.init))
     case str => Left(UnknownTokenError(s"what is it? [$str]"))
   }

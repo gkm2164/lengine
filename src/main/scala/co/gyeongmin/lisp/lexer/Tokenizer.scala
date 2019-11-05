@@ -47,7 +47,7 @@ class Tokenizer() {
             closing = Some(ch.toString)
             Right(acc.mkString(""))
           case ch@(']' | ')') => Right(ch.toString)
-          case ch@('"' | '\'') => takeString(acc.append(ch), ch, escape = false)
+          case '"' => takeString(acc.append('"'), '"', escape = false)
           case ';' if acc.isEmpty =>
             takeString(new StringBuilder(), '\n', escape = false)
             Right("")

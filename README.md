@@ -90,9 +90,19 @@ res1 => ()
 -3/5
 
 ;;; Complex Number
-#C(30 20) ;;; 30 + 20i
+#C(30 20)   ;;; 30 + 20i
 #C(3/5 1/4) ;;; (3/5) + (1/4)i
 #C(0.3 2.4) ;;; 0.3 + 2.4i
+
+;;; Character
+#\a         ;;; a
+#\A         ;;; A
+#\c         ;;; c
+#\Backspace ;;; \b
+#\Linefeed  ;;; \n
+#\Page      ;;; \p
+#\Return    ;;; \r
+#\Rubout    ;;; like \b
 
 ;;; String
 "Hello World!"
@@ -144,22 +154,24 @@ x
 
 ```lisp
 ;;; introduct local variable
-;;; (let [name] [value] [body])
+;;; (let ([name] [value]) [body])
 ;;; ex) define variable x and use it in that scope
 (import "libs/sequence")  ;;; below example code require sequence library 
 
-(let name (read-line "Type your name: ")
+(let (name (read-line "Type your name: "))
   (println (concat "Hello, " name "!")))
 ```
 
-- use list
+- List
 
 ```lisp
 ;;; use list as value
 ;;; (list values*)
 ;;; ex) List for 1 2 3 4 5
+(cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
 (list 1 2 3 4 5)
-;;; == (cons 1 (cons 2 (cons 3 (cons 4 (cons 5 nil)))))
+[1 2 3 4 5]
+;;; List type of List(1, 2, 3, 4, 5)
 ```
 
 - operators

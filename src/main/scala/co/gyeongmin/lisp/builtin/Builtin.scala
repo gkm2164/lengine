@@ -80,6 +80,10 @@ object Builtin {
     E("eq") ->@ (_ eq _),
     E("not") ->! (_.not),
     E("len") ->! (_.length),
+    E("now") -> new BuiltinLispFunc(E("now"), Nil) {
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
+        Right(IntegerNumber(System.currentTimeMillis()))
+    },
 
     // If statements should receive second and third parameters as Lazy evaluation
     E("if") -> new BuiltinLispFunc(E("if"), E("_1") :: Z("_2") :: Z("_3") :: Nil) {

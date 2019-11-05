@@ -15,5 +15,5 @@
 (z?)
 (println 3/5)
 (println (float 3/5))
-(let name (read-line "Input your name: ")
+(let (name (read-line "Input your name: "))
   (println (concat "Hello, " name "!")))

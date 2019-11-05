@@ -19,7 +19,8 @@ package object parser {
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
-    case LeftBracket #:: tail => parseList(tail)
+    case ListStartPar #:: tail => parseList(RightPar)(tail)
+    case LeftBracket #:: tail => parseList(RightBracket)(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: LispMacro) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
@@ -34,11 +35,11 @@ package object parser {
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
-  def parseList: LispTokenState[LispList] = {
+  def parseList(listEndToken: LispToken = RightBracket): LispTokenState[LispList] = {
     def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case LispNop #:: tail => loop(acc)(tail)
-      case RightBracket #:: tail => Right((acc.toList, tail))
+      case x #:: tail if x == listEndToken => Right((acc.toList, tail))
       case tokens => (for {
         value <- parseValue
         res <- loop(acc :+ value)
@@ -106,8 +107,10 @@ package object parser {
 
     val let: LispTokenState[LispLetDef] = for {
       _ <- takeToken[LispLet.type]
+      _ <- takeToken[LeftPar.type]
       name <- takeToken[LispSymbol]
       value <- parseValue
+      _ <- takeToken[RightPar.type]
       body <- parseValue
       _ <- takeToken[RightPar.type]
     } yield LispLetDef(name, value, body)
