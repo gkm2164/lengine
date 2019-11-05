@@ -214,3 +214,6 @@ res3 => 8
 - Namespace
 - Stream
 - Binary generation
+
+### etc.
+- Friend project: [kand](https://github.com/eunmin/kand): LISP, type system enhanced, and could be run on Java Virtual Machine
