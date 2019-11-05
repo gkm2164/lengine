@@ -14,7 +14,7 @@ package object debug {
   sealed trait Debugger {
     def printError(e: errors.LispError): Unit
 
-    def print(lispValue: LispValue): Unit
+    def print(varName: Option[String], lispValue: LispValue): Unit
   }
 
   implicit class LispValueDebug(x: LispValue) {
@@ -77,7 +77,7 @@ package object debug {
 
     val idIssue: () => Int = incAndGet
 
-    override def print(lispValue: LispValue): Unit = println(s"res#${idIssue()} => ${lispValue.debug()}\n")
+    override def print(varName: Option[String], lispValue: LispValue): Unit = println(s"${varName.getOrElse("res_")} => ${lispValue.debug()}\n")
 
     override def printError(e: errors.LispError): Unit = println(e)
   }

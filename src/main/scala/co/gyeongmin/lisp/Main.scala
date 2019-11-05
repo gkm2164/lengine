@@ -1,8 +1,10 @@
 package co.gyeongmin.lisp
 
+import java.util.concurrent.atomic.AtomicLong
+
 import co.gyeongmin.lisp.parser._
 import co.gyeongmin.lisp.builtin._
-import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
+import co.gyeongmin.lisp.debug._
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
@@ -12,14 +14,19 @@ import scala.io.Source
 object Main {
   implicit class X(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
-
-    def updateHistory(stmt: LispValue, res: LispValue): LispEnvironment = env.get(HistorySymbol) match {
-      case Some(LispList(items)) => env.updated(HistorySymbol, LispList(stmt :: items))
-      case _ => env
+    def updateHistory(stmt: LispValue, inc: AtomicLong, res: LispValue): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {
+      case Some(LispList(items)) =>
+        val num = inc.getAndIncrement()
+        val varName = s"res$num"
+        (Some(varName), env.updated(HistorySymbol, LispList(stmt :: items))
+                           .updated(EagerSymbol(varName), res))
+      case _ => (None, env)
     }
   }
 
   import cats.syntax.either._
+
+  private val inc = new AtomicLong()
 
   def evalLoop(tokens: Stream[LispToken],
                env: LispEnvironment)
@@ -28,8 +35,8 @@ object Main {
     (stmt, remains) = parseResult
     res <- stmt.eval(env).leftMap((_, env))
     (r, nextEnv) = res
-    historyEnv = nextEnv.updateHistory(stmt, r)
-    _ = debugger.foreach(_.print(r))
+    (varName, historyEnv) = nextEnv.updateHistory(stmt, inc, r)
+    _ = debugger.foreach(_.print(varName, r))
     nextRes <- evalLoop(remains, historyEnv)
   } yield nextRes
 

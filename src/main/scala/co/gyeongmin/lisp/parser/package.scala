@@ -134,5 +134,4 @@ package object parser {
 
     (lambda | defFn | defVar | importVar | clause)(tks)
   }
-
 }
