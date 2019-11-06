@@ -256,5 +256,5 @@ res3 => 8
 - Binary generation
 - Loop
 
-### etc.
-- Friend project: [kand](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
+### Friend Projects
+- [KAND](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
