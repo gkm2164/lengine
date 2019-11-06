@@ -65,15 +65,14 @@ sealed trait LispValue extends LispToken {
 
   final def lte(other: LispValue): Either[EvalError, LispBoolean] = gt(other).flatMap(_.not)
 
-  def eq(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("==", this))
+  def eq(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("=", this))
+
+  def neq(other: LispValue): Either[EvalError, LispBoolean] = for {
+    v <- this.eq(other)
+    x <- v.not
+  } yield x
 
   def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable", this))
-
-  def length: Either[EvalError, LispValue] = Left(UnimplementedOperationError("length", this))
-
-  def head: Either[EvalError, LispValue] = Left(UnimplementedOperationError("head", this))
-
-  def tail: Either[EvalError, LispValue] = Left(UnimplementedOperationError("tail", this))
 
   def list: Either[EvalError, LispList] = this match {
     case l@LispList(_) => Right(l)
@@ -375,11 +374,7 @@ case class LispString(value: String) extends LispValue {
     case v => Left(UnimplementedOperationError("++: String", v))
   }
 
-  override def length: Either[EvalError, LispValue] = Right(IntegerNumber(value.length))
-
-  override def head: Either[EvalError, LispValue] = Right(LispChar(value.head))
-
-  override def tail: Either[EvalError, LispValue] = Right(LispString(value.tail))
+  override def list: Either[EvalError, LispList] = Right(LispList(value.toList.map(x => LispChar(x))))
 
   override def recoverStmt(): String = s""""$value""""
 }
@@ -410,11 +405,11 @@ case class LispList(items: List[LispValue]) extends LispValue {
     case v => Left(UnimplementedOperationError("++: List", v))
   }
 
-  override def length: Either[EvalError, LispValue] = Right(IntegerNumber(items.length))
+  def length: Either[EvalError, LispValue] = Right(IntegerNumber(items.length))
 
-  override def head: Either[EvalError, LispValue] = Right(items.head)
+  def head: Either[EvalError, LispValue] = Right(items.head)
 
-  override def tail: Either[EvalError, LispValue] = Right(LispList(items.tail))
+  def tail: Either[EvalError, LispValue] = Right(LispList(items.tail))
 
   override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
     case (acc, Right(v)) => acc :+ v

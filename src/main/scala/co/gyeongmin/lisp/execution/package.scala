@@ -93,7 +93,7 @@ package object execution {
       applyLoop(env, f.placeHolders, args)
     }
 
-    def run(env: LispEnvironment): Either[EvalError, LispValue] = f match {
+    def runFn(env: LispEnvironment): Either[EvalError, LispValue] = f match {
       case func: BuiltinLispFunc => func.execute(env)
       case GeneralLispFunc(_, body) => for {
         evalResult <- body.eval(env)
@@ -124,7 +124,7 @@ package object execution {
       case (firstStmtValue, args) => firstStmtValue match {
         case fn: LispFunc => for {
           symbolEnv <- fn.applyEnv(env, args)
-          evalResult <- fn.run(symbolEnv)
+          evalResult <- fn.runFn(symbolEnv)
         } yield evalResult
         case v => Left(NotAnExecutableError(v))
       }

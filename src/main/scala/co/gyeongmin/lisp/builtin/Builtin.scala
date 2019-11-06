@@ -73,12 +73,13 @@ object Builtin {
     E("<=") ->@ (_ lte _),
     E("and") ->@ (_ and _),
     E("or") ->@ (_ or _),
-    E("head") ->! (_.head),
-    E("tail") ->! (_.tail),
+    E("head") ->! (_.list.flatMap(_.head)),
+    E("tail") ->! (_.list.flatMap(_.tail)),
     E("cons") ->@ (_ :: _),
-    E("eq") ->@ (_ eq _),
+    E("=") ->@ (_ eq _),
+    E("\\=") ->@ (_ neq _),
     E("not") ->! (_.not),
-    E("len") ->! (_.length),
+    E("len") ->! (_.list.flatMap(_.length)),
     E("now") -> new BuiltinLispFunc(E("now"), Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
         Right(IntegerNumber(System.currentTimeMillis()))
