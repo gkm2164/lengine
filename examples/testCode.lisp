@@ -1,3 +1,4 @@
+#!/bin/scheme
 (import "libs/math")
 (import "libs/sequence")
 
