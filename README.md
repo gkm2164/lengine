@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-- [Envorinment](#environment)
+- [Environment](#environment)
 - [How to run](#how-to-run)
 - [Features](#features)
 - [To be implemented](#to-be-implemented)
