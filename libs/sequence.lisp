@@ -1,8 +1,10 @@
 ;;; Sequence operator libraries
 ;;; Written by Gyeongmin Go
 
+(import "libs/utils")
+
 (fn concat-loop (acc xs)
-  (if (eq (len xs) 0)
+  (if (empty? xs)
     acc
     (concat-loop (++ acc (head xs)) (tail xs))))
 
@@ -20,13 +22,10 @@
 (fn reverse (xs)
   (reverse-loop nil xs))
 
-(fn empty? (seq) (eq (len seq) 0))
+(fn empty? (seq) (= (len seq) 0))
 
 ;;; map sequence to given f
-(fn map (seq f)
-  (if (empty? seq)
-    nil
-    (cons (f (head seq)) (map (tail seq) f))))
+(fn map (seq f) (loop for x in seq (f x)))
 
 ;;; flatten sequence of sequences
 (fn flatten (seq-of-seq)
@@ -36,5 +35,5 @@
 
 (fn range (from to)
     (if (< from to)
-        (cons from (range (+ from 1) to))
+        (cons from (range (inc from) to))
         (cons from nil)))

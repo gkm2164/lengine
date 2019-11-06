@@ -1,4 +1,3 @@
-#!/bin/scheme
 (import "libs/math")
 (import "libs/sequence")
 
@@ -9,7 +8,7 @@
   (if cond? 'a 'b))
 
 ;;; quit should not be called
-(if-test (eq 0 1) (quit) (println "World"))
+(if-test (= 0 1) (quit) (println "World"))
 
 (println "Hello, Lisp!")
 (fn p (str) (println str))
@@ -45,3 +44,6 @@
       for y in '(2 3 4 5 6)
       (do (println x)
           (+ x y)))
+
+(println (map '(1 2 3 4 5)
+              (lambda (x) (+ x 1))))
