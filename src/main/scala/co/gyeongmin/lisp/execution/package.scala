@@ -3,6 +3,8 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.lexer._
 
+import scala.annotation.tailrec
+
 package object execution {
   type LispEnvironment = Map[LispSymbol, LispValue]
 
@@ -12,6 +14,7 @@ package object execution {
       case l: LispLetDef => l.execute(env).map((_, env))
       case d: LispValueDef => d.registerSymbol(env)
       case l: LispDoStmt => l.runBody(env)
+      case l: LispLoopStmt => l.runBody(env).map((_, env))
       case LispImportDef(LispString(path)) => Right(LispUnit, Main.runFile(path, env))
       case l: LazySymbol => env.get(l).toRight(UnknownSymbolNameError(l)).flatMap(_.eval(env))
       case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
@@ -21,6 +24,39 @@ package object execution {
       case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((v, env))
       case f: GeneralLispFunc => Right((f, env))
       case value => Left(UnimplementedOperationError("value is not handlable yet", value))
+    }
+  }
+
+  def traverse(list: List[Either[EvalError, LispList]]): Either[EvalError, LispList] = {
+    @tailrec
+    def loop(acc: Vector[LispValue], remains: List[Either[EvalError, LispList]]): Either[EvalError, LispList] = remains match {
+      case Nil => Right(LispList(acc.toList))
+      case Left(e) :: _ => Left(e)
+      case Right(LispList(items)) :: tail => loop(acc ++ items, tail)
+    }
+
+    loop(Vector.empty, list)
+  }
+
+  implicit class LispLoopStmtSyntax(f: LispLoopStmt) {
+    def runBody(env: LispEnvironment): Either[EvalError, LispValue] = {
+      val LispLoopStmt(fors, body) = f
+
+      def envApplyLoop(stmts: List[LispForStmt], env: LispEnvironment): Either[EvalError, LispList] = stmts match {
+        case Nil => body.eval(env).map(x => LispList(List(x._1)))
+        case LispForStmt(symbol, v) :: tail =>
+          v.eval(env).flatMap {
+            case (value, _) => value.list.flatMap {
+              case LispList(items) =>
+                traverse(for {
+                  item <- items
+                  nextEnv = env.updated(symbol, item)
+                } yield envApplyLoop(tail, nextEnv))
+            }
+          }
+      }
+
+      envApplyLoop(fors, env)
     }
   }
 
@@ -94,4 +130,5 @@ package object execution {
       }
     }
   }
+
 }

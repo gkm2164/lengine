@@ -33,3 +33,8 @@
   (if (empty? seq-of-seq)
     nil
     (++ (head seq-of-seq) (flatten (tail seq-of-seq)))))
+
+(fn range (from to)
+    (if (< from to)
+        (cons from (range (+ from 1) to))
+        (cons from nil)))

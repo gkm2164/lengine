@@ -549,6 +549,12 @@ case object LispLambda extends LispToken
 
 case object LispDo extends LispToken
 
+case object LispLoop extends LispToken
+
+case object LispFor extends LispToken
+
+case object LispIn extends LispToken
+
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
   private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
@@ -574,6 +580,9 @@ object LispToken {
     case "let" => Right(LispLet)
     case "lambda" => Right(LispLambda)
     case "import" => Right(LispImport)
+    case "loop" => Right(LispLoop)
+    case "for" => Right(LispFor)
+    case "in" => Right(LispIn)
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
     case "do" => Right(LispDo)
@@ -602,6 +611,18 @@ object LispToken {
   }
 
   private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
+}
+
+case class LispForStmt(symbol: LispSymbol, seq: LispValue) extends LispFunc {
+  override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"for ${symbol.name} in ${seq.recoverStmt()}"
+}
+
+case class LispLoopStmt(forStmts: List[LispForStmt], body: LispValue) extends LispFunc {
+  override def placeHolders: List[LispSymbol] = Nil
+
+  override def recoverStmt(): String = s"(loop ${forStmts.map(_.recoverStmt()).mkString(" ")} ${body.recoverStmt()})"
 }
 
 case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {

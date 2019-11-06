@@ -7,7 +7,9 @@
 (fn if-test (cond? 'a 'b)
   (if cond? 'a 'b))
 
-(if-test (eq 0 1) (println "Hello") (println "World"))
+;;; quit should not be called
+(if-test (eq 0 1) (quit) (println "World"))
+
 (println "Hello, Lisp!")
 (fn p (str) (println str))
 (p (+ 3 4))
@@ -27,3 +29,7 @@
   (println (+ 4 6))
   (println (/ 1 #C(1.0 2.0)))))
 
+(loop for x in '(1 2 3 4 5)
+      for y in '(2 3 4 5 6)
+      (do (println x)
+          (+ x y)))
