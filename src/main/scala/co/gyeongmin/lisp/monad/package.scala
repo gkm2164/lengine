@@ -25,7 +25,7 @@ package object monad {
   }
 
   object LispTokenState {
-    def pure[A](x: A): LispTokenState[A] = lispTokenStateMonad.pure(x)
+    def apply[A](x: A): LispTokenState[A] = lispTokenStateMonad.pure(x)
     def error(err: ParseError): LispTokenState[Nothing] = _ => Left(err)
   }
 }
