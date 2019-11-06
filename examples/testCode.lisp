@@ -18,17 +18,28 @@
 (p (fact-tailrec 1 3))
 
 (p (fib 6))
+;;; lazy call test
 (println 'z)
+
+;;; print ratio type
 (println 3/5)
+
+;;; test casting ratio to float
 (println (float 3/5))
+
+;;; let test
 (let (name (read-line "Input your name: "))
   (println (concat "Hello, " name "!")))
 
+;;; do test
 (fn run-something () (do
   (println (+ 3 5))
   (println (+ 4 6))
   (println (/ 1 #C(1.0 2.0)))))
 
+(run-something)
+
+;;; loop test
 (loop for x in '(1 2 3 4 5)
       for y in '(2 3 4 5 6)
       (do (println x)
