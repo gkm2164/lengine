@@ -148,7 +148,7 @@ x
 ;;; == (fn add (+ a b))
 ```
 
-- DO stmt
+- do statement
 
 ```lisp
 ;;; Do stmt
@@ -159,10 +159,10 @@ x
 ;;; print 3 4 5 line by line and return Unit
 ```
 
-- Loop Stmt
+- loop statement
 
 ```lisp
-;;; Loop stmt
+;;; Loop stmt with for comprehension
 ;;; (loop [for-stmt]+ [body])
 ;;; -- for stmt
 ;;; for [symbol] in [list]
@@ -254,7 +254,7 @@ res3 => 8
 - Namespace
 - Stream
 - Binary generation
-- Loop
+- Loop with only condition
 
 ### Friend Projects
 - [KAND](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
