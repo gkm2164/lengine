@@ -210,7 +210,7 @@ x
 (and false true) ;;; == false
 (>= 3 0) ;;; == true
 (or (>= 3 0) (<= 0 1)) ;;; == true
-;;; and, or, eq, >=, <=, >, <
+;;; and, or, =(equal), /=(not equal), >=, <=, >, <
 
 ;;; not allowed
 (and true 3) ;;; ???

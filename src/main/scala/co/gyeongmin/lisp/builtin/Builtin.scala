@@ -77,7 +77,7 @@ object Builtin {
     E("tail") ->! (_.list.flatMap(_.tail)),
     E("cons") ->@ (_ :: _),
     E("=") ->@ (_ eq _),
-    E("\\=") ->@ (_ neq _),
+    E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
     E("len") ->! (_.list.flatMap(_.length)),
     E("now") -> new BuiltinLispFunc(E("now"), Nil) {
