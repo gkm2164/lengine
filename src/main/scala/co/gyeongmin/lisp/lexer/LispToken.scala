@@ -117,9 +117,9 @@ sealed trait LispNumber extends LispValue {
 trait LispFunc extends LispValue {
   override def printable(): Either[EvalError, String] = Right(s"lambda with $this")
 
-  def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.name).mkString(", ") else "no parameters"
+  def placeHoldersAsString: String = if (placeHolders.nonEmpty) placeHolders.map(_.recoverStmt()).mkString(", ") else "no parameters"
 
-  def placeHolders: List[LispSymbol]
+  def placeHolders: List[LispValue]
 }
 
 abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSymbol]) extends LispFunc {
@@ -405,6 +405,11 @@ case class LispList(items: List[LispValue]) extends LispValue {
     case v => Left(UnimplementedOperationError("++: List", v))
   }
 
+  override def eq(other: LispValue): Either[EvalError, LispBoolean] = other match {
+    case LispList(rItems) => Right(LispBoolean(items == rItems))
+    case v => Left(UnimplementedOperationError("=: List", v))
+  }
+
   def length: Either[EvalError, LispValue] = Right(IntegerNumber(items.length))
 
   def head: Either[EvalError, LispValue] = Right(items.head)
@@ -524,6 +529,8 @@ case object CmplxNPar extends LispToken
 
 case object LeftPar extends LispToken
 
+case object LispNil extends LispToken
+
 case object ListStartPar extends LispToken
 
 case object RightPar extends LispToken
@@ -581,6 +588,7 @@ object LispToken {
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
     case "do" => Right(LispDo)
+    case "nil" => Right(LispNil)
     case MacroRegex(body) => Right(LispMacro(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
@@ -608,33 +616,25 @@ object LispToken {
   private def mapFor(str: Iterable[Char], kv: Char => (Char, Int)): Map[Char, Int] = str.map(kv).toMap
 }
 
-case class LispForStmt(symbol: LispSymbol, seq: LispValue) extends LispFunc {
-  override def placeHolders: List[LispSymbol] = Nil
-
+case class LispForStmt(symbol: LispSymbol, seq: LispValue) extends LispValue {
   override def recoverStmt(): String = s"for ${symbol.name} in ${seq.recoverStmt()}"
 }
 
-case class LispLoopStmt(forStmts: List[LispForStmt], body: LispValue) extends LispFunc {
-  override def placeHolders: List[LispSymbol] = Nil
-
+case class LispLoopStmt(forStmts: List[LispForStmt], body: LispValue) extends LispValue {
   override def recoverStmt(): String = s"(loop ${forStmts.map(_.recoverStmt()).mkString(" ")} ${body.recoverStmt()})"
 }
 
-case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispFunc {
+case class LispValueDef(symbol: LispSymbol, value: LispValue) extends LispValue {
   def registerSymbol(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = symbol match {
     case EagerSymbol(_) => value.eval(env).map { case (evaluatedValue, _) => (this, env.updated(symbol, evaluatedValue)) }
     case LazySymbol(_) => Right((this, env.updated(symbol, value)))
     case errValue => Left(InvalidSymbolName(errValue))
   }
 
-  override def placeHolders: List[LispSymbol] = Nil
-
   override def recoverStmt(): String = s"(def ${symbol.recoverStmt()} ${value.recoverStmt()})"
 }
 
-case class LispDoStmt(body: List[LispValue]) extends LispFunc {
-  override def placeHolders: List[LispSymbol] = Nil
-
+case class LispDoStmt(body: List[LispValue]) extends LispValue {
   override def recoverStmt(): String = s"(do ${body.map(_.recoverStmt()).mkString(" ")})"
 
   def runBody(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = {
@@ -653,16 +653,11 @@ case class LispDoStmt(body: List[LispValue]) extends LispFunc {
   }
 }
 
-case class LispLetDef(name: LispSymbol, value: LispValue, body: LispValue) extends LispFunc {
-
-  override def placeHolders: List[LispSymbol] = Nil
-
+case class LispLetDef(name: LispSymbol, value: LispValue, body: LispValue) extends LispValue {
   override def recoverStmt(): String = s"(let ${name.recoverStmt()} ${value.recoverStmt()} ${body.recoverStmt()})"
 }
 
-case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispFunc {
-  override def placeHolders: List[LispSymbol] = Nil
-
+case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispValue {
   override def recoverStmt(): String =
     s"(fn ${symbol.recoverStmt()} (${fn.placeHolders.map(_.recoverStmt()).mkString(" ")}) ${fn.body.recoverStmt()})"
 }
@@ -673,6 +668,10 @@ case class LispImportDef(path: LispValue) extends LispFunc {
   override def recoverStmt(): String = s"(import ${path.recoverStmt()})"
 }
 
-case class GeneralLispFunc(placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
+case class GeneralLispFunc(placeHolders: List[LispValue], body: LispValue) extends LispFunc {
   override def recoverStmt(): String = s"(lambda (${placeHolders.map(_.recoverStmt()).mkString(" ")}) ${body.recoverStmt()})"
+}
+
+case class OverridableFunc(funcList: Vector[LispFunc]) extends LispValue {
+  override def recoverStmt(): String = funcList.map(_.recoverStmt()).mkString("\n")
 }

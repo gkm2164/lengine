@@ -8,9 +8,17 @@ import scala.annotation.tailrec
 package object execution {
   type LispEnvironment = Map[LispSymbol, LispValue]
 
+  implicit class LispEnvironmentSyntax(env: LispEnvironment) {
+    def addFn(symbol: LispSymbol, f: LispFunc): Either[EvalError, LispEnvironment] = env.get(symbol) match {
+      case Some(OverridableFunc(functions)) => Right(env.updated(symbol, OverridableFunc(functions :+ f)))
+      case Some(v) => Left(SymbolNotOverridable(v))
+      case None => Right(env.updated(symbol, OverridableFunc(Vector(f))))
+    }
+  }
+
   implicit class LispExecutionSyntax(v: LispValue) {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = v match {
-      case f@LispFuncDef(symbol, fn) => Right((f, env.updated(symbol, fn)))
+      case LispFuncDef(symbol, fn) => env.addFn(symbol, fn).map((fn, _))
       case l: LispLetDef => l.execute(env).map((_, env))
       case d: LispValueDef => d.registerSymbol(env)
       case l: LispDoStmt => l.runBody(env)
@@ -60,6 +68,25 @@ package object execution {
     }
   }
 
+  implicit class LispOverridableFunctionSyntax(f: OverridableFunc) {
+    def findApplyFunc(env: LispEnvironment, args: List[LispValue]): Either[EvalError, (LispFunc, LispEnvironment)] = {
+      val OverridableFunc(functions) = f
+
+      @scala.annotation.tailrec
+      def loop(remainFunctions: List[LispFunc]): Either[EvalError, (LispFunc, LispEnvironment)] = remainFunctions match {
+        case Nil => Left(UnableToFindFunction)
+        case f :: t => f.applyEnv(env, args) match {
+          case Left(FunctionApplyError(_)) => loop(t)
+          case Left(e) => Left(e)
+          case Right(symbolEnv) => Right((f, symbolEnv))
+        }
+      }
+
+      loop(functions.toList)
+    }
+
+  }
+
   implicit class LispFuncExecutionSyntax(f: LispFunc) {
     private def transform(list: List[Either[EvalError, LispValue]]): Either[EvalError, List[LispValue]] = {
       @scala.annotation.tailrec
@@ -73,13 +100,12 @@ package object execution {
     }
 
     def applyEnv(env: LispEnvironment, args: List[LispValue]): Either[EvalError, LispEnvironment] = {
-      def applyLoop(accEnv: LispEnvironment, symbols: List[LispSymbol], args: List[LispValue]): Either[EvalError, LispEnvironment] =
+      def applyLoop(accEnv: LispEnvironment, symbols: List[LispValue], args: List[LispValue]): Either[EvalError, LispEnvironment] =
         (symbols, args) match {
           case (Nil, Nil) => Right(accEnv)
           case ((e: EagerSymbol) :: symbolTail, arg :: argTail) => for {
-            evalRes <- arg.eval(accEnv)
-            (res, _) = evalRes
-            appliedEnv <- applyLoop(accEnv.updated(e, res), symbolTail, argTail)
+            evalRes <- arg.eval(env)
+            appliedEnv <- applyLoop(accEnv.updated(e, evalRes._1), symbolTail, argTail)
           } yield appliedEnv
           case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
             applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
@@ -87,6 +113,12 @@ package object execution {
           case ((l: ListSymbol) :: Nil, args) =>
             val argList: Either[EvalError, List[LispValue]] = transform(args.map(_.eval(env).map(_._1)))
             argList.map(x => accEnv.updated(l, LispList(x)))
+          case (v :: symbolTail, arg :: argTail) => for {
+            argEvalRes <- arg.eval(env)
+            vRes <- v.eq(argEvalRes._1)
+            envRes <- if (vRes == LispTrue) applyLoop(accEnv, symbolTail, argTail)
+            else Left(FunctionApplyError("eval error"))
+          } yield envRes
           case x => Left(FunctionApplyError(s"there is an error: $x"))
         }
 
@@ -122,6 +154,11 @@ package object execution {
         value.eval(env).map { case (v, _) => (v, args) }
     }) flatMap {
       case (firstStmtValue, args) => firstStmtValue match {
+        case of: OverridableFunc => for {
+          findRes <- of.findApplyFunc(env, args)
+          (fn, symbolEnv) = findRes
+          evalResult <- fn.runFn(symbolEnv)
+        } yield evalResult
         case fn: LispFunc => for {
           symbolEnv <- fn.applyEnv(env, args)
           evalResult <- fn.runFn(symbolEnv)

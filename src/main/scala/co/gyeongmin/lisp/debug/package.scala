@@ -28,6 +28,8 @@ package object debug {
           i <- imagine.printable()
         } yield s"{real: $r + imagine: $i}: ComplexNumber").getOrElse("unknown number error!")
       }
+      case LispFuncDef(symbol, fn) => s"function definition to ${symbol.debug()} -> ${fn.debug()}"
+      case LispValueDef(symbol, value) => s"variable definition to ${symbol.debug()} -> ${value.debug()}"
       case func: LispFunc => func match {
         case func: BuiltinLispFunc => func.printable() match {
           case Right(str) => s"$str: Built in function"
@@ -37,8 +39,6 @@ package object debug {
           case Right(value) => s"$value: Lambda"
           case Left(_) => s"#unable to print: Lambda"
         }
-        case LispFuncDef(symbol, fn) => s"function definition to ${symbol.debug()} -> ${fn.debug()}"
-        case LispValueDef(symbol, value) => s"variable definition to ${symbol.debug()} -> ${value.debug()}"
         case _ => "#unknown symbol"
       }
       case LispChar(chs) => s"$chs: Char"
@@ -60,6 +60,11 @@ package object debug {
         case LispTrue => s"true: Boolean"
         case x => s"$x(unknown): Boolean"
       }
+      case LispDoStmt(_) => s"do statement"
+      case LispForStmt(symbol, seq) => s"for statement with ${symbol.debug()} in ${seq.debug()}"
+      case LispLetDef(name, _, _) => s"let statement define ${name.debug()}"
+      case LispLoopStmt(_, _) => s"loop statement"
+      case OverridableFunc(functions) => s"${functions.length} amount of functions are defined"
     }
   }
 

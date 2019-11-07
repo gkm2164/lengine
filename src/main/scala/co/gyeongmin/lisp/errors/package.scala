@@ -93,4 +93,12 @@ package object errors {
   case object EOFError extends TokenizeError {
     override def message: String = s"EOF"
   }
+
+  case class SymbolNotOverridable(v: LispValue) extends EvalError {
+    override def message: String = s"$v is not an overridable function symbol"
+  }
+
+  object UnableToFindFunction extends EvalError {
+    override def message: String = s"unable to find overridable functions"
+  }
 }

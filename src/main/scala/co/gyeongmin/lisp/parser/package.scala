@@ -20,6 +20,7 @@ package object parser {
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
+    case LispNil #:: tail => LispTokenState(LispList(Nil))(tail)
     case ListStartPar #:: tail => parseList(takeToken[RightPar.type])(tail)
     case LeftBracket #:: tail => parseList(takeToken[RightBracket.type])(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
@@ -50,9 +51,9 @@ package object parser {
 
   def parseSymbol: LispTokenState[LispSymbol] = takeToken[LispSymbol]
 
-  def parseArgs: LispTokenState[List[LispSymbol]] = for {
+  def parseArgs: LispTokenState[List[LispValue]] = for {
     _ <- takeToken[LeftPar.type]
-    acc <- many(parseSymbol)
+    acc <- many(parseValue)
     _ <- takeToken[RightPar.type]
   } yield acc
 

@@ -17,10 +17,12 @@
     (head list)
     (n-th (- n 1) (tail list))))
 
-(fn reverse-loop (acc xs) (if (eq (len xs) 0) acc (reverse-loop (cons (head xs) acc) (tail xs))))
+(fn reverse-loop (acc nil) (do
+   acc))
+(fn reverse-loop (acc xs) (do
+  (reverse-loop (cons (head xs) acc) (tail xs))))
 
-(fn reverse (xs)
-  (reverse-loop nil xs))
+(fn reverse (xs) (reverse-loop nil xs))
 
 (fn empty? (seq) (= (len seq) 0))
 

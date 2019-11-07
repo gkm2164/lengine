@@ -47,3 +47,15 @@
 
 (println (map '(1 2 3 4 5)
               (lambda (x) (+ x 1))))
+
+;;; override test
+(fn p-test (a b) (println a))
+(fn p-test (a b c) (println b))
+
+(p-test "a" "b") ;;; should print a
+(p-test "a" "b" "c") ;;; should print b
+
+(fn fact-match (acc 1) acc)
+(fn fact-match (acc n) (fact-match (* acc n) (- n 1)))
+
+(println (fact-match 1 5))

@@ -117,6 +117,15 @@ res1 => ()
 ;;; ex) adder takes a and b
 (fn add (a b) (+ a b))
 
+
+;;; Function override
+(fn add (a b) (+ a b))
+(fn add (a b c) (+ (+ a b) c))
+
+;;; Function pattern match
+(fn fact (acc 0) acc)
+(fn fact (acc n) (fact (* acc n) (- n 1)))
+(println (fact 5)) ;;; 120
 ```
 
 - Define value
@@ -249,8 +258,6 @@ res3 => 8
 
 #### Feature
 - Char Type
-- Function overriding
-- Pattern match
 - Namespace
 - Stream
 - Binary generation
