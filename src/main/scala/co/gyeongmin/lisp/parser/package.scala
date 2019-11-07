@@ -20,8 +20,8 @@ package object parser {
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseValue(tail)
-    case ListStartPar #:: tail => parseList(RightPar)(tail)
-    case LeftBracket #:: tail => parseList(RightBracket)(tail)
+    case ListStartPar #:: tail => parseList(takeToken[RightPar.type])(tail)
+    case LeftBracket #:: tail => parseList(takeToken[RightBracket.type])(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: LispMacro) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
@@ -36,19 +36,10 @@ package object parser {
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
-  def parseList(listEndToken: LispToken = RightBracket): LispTokenState[LispList] = {
-    def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
-      case Stream.Empty => Left(EmptyTokenListError)
-      case LispNop #:: tail => loop(acc)(tail)
-      case x #:: tail if x == listEndToken => Right((acc.toList, tail))
-      case tokens => (for {
-        value <- parseValue
-        res <- loop(acc :+ value)
-      } yield res) (tokens)
-    }
-
-    loop(Vector.empty).map { list => LispList(list) }
-  }
+  def parseList[A](lastParser: LispTokenState[A]): LispTokenState[LispList] = for {
+    items <- many(parseValue)
+    _ <- lastParser
+  } yield LispList(items)
 
   def takeToken[A <: LispToken](implicit ct: ClassTag[A]): LispTokenState[A] = {
     case Stream.Empty => Left(EmptyTokenListError)
@@ -59,22 +50,11 @@ package object parser {
 
   def parseSymbol: LispTokenState[LispSymbol] = takeToken[LispSymbol]
 
-  def parseArgs: LispTokenState[List[LispSymbol]] = {
-    def loop(acc: Vector[LispSymbol]): LispTokenState[List[LispSymbol]] = {
-      case Stream.Empty => Left(EmptyTokenListError)
-      case LispNop #:: tail => loop(acc)(tail)
-      case RightPar #:: tail => Right((acc.toList, tail))
-      case tokens => (for {
-        value <- parseSymbol
-        res <- loop(acc :+ value)
-      } yield res) (tokens)
-    }
-
-    for {
-      _ <- takeToken[LeftPar.type]
-      acc <- loop(Vector.empty)
-    } yield acc
-  }
+  def parseArgs: LispTokenState[List[LispSymbol]] = for {
+    _ <- takeToken[LeftPar.type]
+    acc <- many(parseSymbol)
+    _ <- takeToken[RightPar.type]
+  } yield acc
 
   def parseLambda: LispTokenState[GeneralLispFunc] = for {
     args <- parseArgs
@@ -95,20 +75,6 @@ package object parser {
     }
   }
 
-  def takeUntilRightPar: LispTokenState[List[LispValue]] = tks => {
-    def loop(acc: Vector[LispValue]): LispTokenState[List[LispValue]] = {
-      case Stream.Empty => Left(EmptyTokenListError)
-      case LispNop #:: tail => loop(acc)(tail)
-      case RightPar #:: tail => Right((acc.toList, tail))
-      case tokens => (for {
-        value <- parseValue
-        res <- loop(acc :+ value)
-      } yield res) (tokens)
-    }
-
-    loop(Vector.empty)(tks)
-  }
-
   def many[A <: LispValue](parser: LispTokenState[A]): LispTokenState[List[A]] = tks => {
     def loop(acc: Vector[A]): LispTokenState[List[A]] = {
       case Stream.Empty => Right((acc.toList, Stream.empty))
@@ -118,6 +84,7 @@ package object parser {
         case Right((v, tail)) => loop(acc :+ v)(tail)
       }
     }
+
     loop(Vector.empty)(tks)
   }
 
@@ -138,7 +105,8 @@ package object parser {
       _ <- takeToken[RightPar.type]
     } yield LispLetDef(name, value, body)) (tail)
     case LispDo #:: tail => (for {
-      stmts <- takeUntilRightPar
+      stmts <- many(parseValue)
+      _ <- takeToken[RightPar.type]
     } yield LispDoStmt(stmts)) (tail)
     case LispLambda #:: tail => (for {
       lambda <- parseLambda
@@ -161,9 +129,10 @@ package object parser {
       body <- parseValue
       _ <- takeToken[RightPar.type]
     } yield LispLoopStmt(forStmts, body)) (tail)
-    case RightPar #:: tail => LispTokenState(LispUnit) (tail)
+    case RightPar #:: tail => LispTokenState(LispUnit)(tail)
     case last => (for {
-      res <- takeUntilRightPar
+      res <- many(parseValue)
+      _ <- takeToken[RightPar.type]
     } yield LispClause(res)) (last)
   }
 }
