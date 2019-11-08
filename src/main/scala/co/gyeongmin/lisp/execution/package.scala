@@ -76,8 +76,8 @@ package object execution {
       def loop(remainFunctions: List[LispFunc]): Either[EvalError, (LispFunc, LispEnvironment)] = remainFunctions match {
         case Nil => Left(UnableToFindFunction)
         case f :: t => f.applyEnv(env, args) match {
-          case Left(_) => loop(t)
-//          case Left(e) => Left(e)
+          case Left(FunctionApplyError(_)) => loop(t)
+          case Left(e) => Left(e)
           case Right(symbolEnv) => Right((f, symbolEnv))
         }
       }
@@ -119,7 +119,7 @@ package object execution {
             envRes <- if (vRes == LispTrue) applyLoop(accEnv, symbolTail, argTail)
             else Left(FunctionApplyError("eval error"))
           } yield envRes
-          case x => Left(FunctionApplyError(s"there is an error: ${symbols.length} parameters required but ${applyingArgs.length}"))
+          case _ => Left(FunctionApplyError(s"there is an error: ${symbols.length} parameters required but ${applyingArgs.length}"))
         }
 
       applyLoop(env, f.placeHolders, applyingArgs)

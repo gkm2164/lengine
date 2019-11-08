@@ -11,7 +11,7 @@ sealed trait LispValue extends LispToken {
   def recoverStmt(): String
 
   //package private
-  private[lexer] def toNumber: Either[EvalError, LispNumber] = this match {
+  def toNumber: Either[EvalError, LispNumber] = this match {
     case x: LispNumber => Right(x)
     case v => Left(NotANumberType(v))
   }
@@ -25,45 +25,21 @@ sealed trait LispValue extends LispToken {
 
   def neg: Either[EvalError, LispNumber] = Left(UnimplementedOperationError("neg", this))
 
-  def toFloat: Either[EvalError, FloatNumber] = Left(UnimplementedOperationError("toFloat", this))
-
   def toInt: Either[EvalError, IntegerNumber] = Left(UnimplementedOperationError("toInt", this))
 
   def toRatio: Either[EvalError, RatioNumber] = Left(UnimplementedOperationError("toRatio", this))
 
-  def toComplexNumber: Either[EvalError, ComplexNumber] = Left(UnimplementedOperationError("toComplexNumber", this))
+  def toFloat: Either[EvalError, FloatNumber] = Left(UnimplementedOperationError("toFloat", this))
 
+  def toComplexNumber: Either[EvalError, ComplexNumber] = Left(UnimplementedOperationError("toComplexNumber", this))
 
   def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?", this))
 
-
   def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
-
-  def +(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("+", this))
-
-  def -(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("-", this))
-
-  def *(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("*", this))
-
-  def /(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("/", this))
-
-  def %(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("%", this))
 
   def or(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("||", this))
 
   def and(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("&&", this))
-
-  def gt(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError(">", this))
-
-  final def gte(other: LispValue): Either[EvalError, LispBoolean] = for {
-    isGt <- gt(other)
-    isEq <- eq(other)
-    res <- isGt.or(isEq)
-  } yield res
-
-  final def lt(other: LispValue): Either[EvalError, LispBoolean] = gte(other).flatMap(_.not)
-
-  final def lte(other: LispValue): Either[EvalError, LispBoolean] = gt(other).flatMap(_.not)
 
   def eq(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("=", this))
 
@@ -112,6 +88,28 @@ sealed trait LispNumber extends LispValue {
     else if (a < b) gcd(b, a)
     else gcd(a - b, b)
   }
+
+  def +(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("+", this))
+
+  def -(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("-", this))
+
+  def *(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("*", this))
+
+  def /(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("/", this))
+
+  def %(other: LispValue): Either[EvalError, LispNumber] = Left(UnimplementedOperationError("%", this))
+
+  def gt(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError(">", this))
+
+  final def gte(other: LispValue): Either[EvalError, LispBoolean] = for {
+    isGt <- gt(other)
+    isEq <- eq(other)
+    res <- isGt.or(isEq)
+  } yield res
+
+  final def lt(other: LispValue): Either[EvalError, LispBoolean] = gte(other).flatMap(_.not)
+
+  final def lte(other: LispValue): Either[EvalError, LispBoolean] = gt(other).flatMap(_.not)
 }
 
 trait LispFunc extends LispValue {
@@ -539,6 +537,8 @@ case object LeftBracket extends LispToken
 
 case object RightBracket extends LispToken
 
+case object LispLoop extends LispToken
+
 case object LispImport extends LispToken
 
 case object LispLet extends LispToken
@@ -550,8 +550,6 @@ case object LispFn extends LispToken
 case object LispLambda extends LispToken
 
 case object LispDo extends LispToken
-
-case object LispLoop extends LispToken
 
 case object LispFor extends LispToken
 

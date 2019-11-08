@@ -7,23 +7,25 @@ import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 object Builtin {
-  def defBuiltinFn(symbolName: LispSymbol, args: List[LispSymbol])(f: LispEnvironment => Either[EvalError, LispValue]): OverridableFunc =
-    OverridableFunc(Vector(new BuiltinLispFunc(symbolName, args) {
+  def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(f: LispEnvironment => Either[EvalError, LispValue]): OverridableFunc =
+    OverridableFunc(Vector(new BuiltinLispFunc(symbolName, args.toList) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] = f(env)
     }))
 
   implicit class LispSymbolSyntax(x: LispSymbol) {
-    private def binaryStmtFunc(symbol: LispSymbol, f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
-      symbol -> defBuiltinFn(symbol, List(EagerSymbol("_1"), EagerSymbol("_2"))) { env =>
+    private def binaryNumberStmtFunc(symbol: LispSymbol, f: (LispNumber, LispNumber) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
+      symbol -> defBuiltinFn(symbol, EagerSymbol("_1"), EagerSymbol("_2")) { env =>
         for {
           x <- env refer E("_1")
           y <- env refer E("_2")
-          res <- f(x, y)
+          xNum <- x.toNumber
+          yNum <- y.toNumber
+          res <- f(xNum, yNum)
         } yield res
       }
 
     private def unaryStmtFunc(symbol: LispSymbol, f: LispValue => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
-      symbol -> defBuiltinFn(symbol, EagerSymbol("_1") :: Nil) { env =>
+      symbol -> defBuiltinFn(symbol, EagerSymbol("_1")) { env =>
         for {
           x <- env refer E("_1")
           res <- f(x)
@@ -32,7 +34,7 @@ object Builtin {
 
     def ->!(f: LispValue => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) = unaryStmtFunc(x, f)
 
-    def ->@(f: (LispValue, LispValue) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, f)
+    def ->@(f: (LispNumber, LispNumber) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) = binaryNumberStmtFunc(x, f)
   }
 
   def E(name: String) = EagerSymbol(name)
@@ -44,7 +46,7 @@ object Builtin {
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
     E("$$PROMPT$$") -> LispString("lengine"),
     E("$$HISTORY$$") -> LispList(Nil),
-    E("history") -> defBuiltinFn(E("history"), ListSymbol("_1") :: Nil) { env =>
+    E("history") -> defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
       for {
         history <- env refer E("$$HISTORY$$")
         arg <- env refer L("_1")
@@ -82,12 +84,11 @@ object Builtin {
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
     E("len") ->! (_.list.flatMap(_.length)),
-    E("now") -> defBuiltinFn(E("now"), Nil) { _ =>
+    E("now") -> defBuiltinFn(E("now")) { _ =>
       Right(IntegerNumber(System.currentTimeMillis()))
     },
     // If statements should receive second and third parameters as Lazy evaluation
-    E("if") -> defBuiltinFn(E("if"),
-      E("_1") :: Z("_2") :: Z("_3") :: Nil) { env =>
+    E("if") -> defBuiltinFn(E("if"), E("_1"), Z("_2"), Z("_3")) { env =>
       for {
         cond <- env refer E("_1")
         tClause <- env refer Z("_2")
@@ -100,33 +101,33 @@ object Builtin {
         }
       } yield execResult._1
     },
-    E("list") -> defBuiltinFn(E("list"), L("_1") :: Nil) { env =>
+    E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
       for {
         list <- env refer L("_1")
         x <- list.list
       } yield x
     },
-    E("float") -> defBuiltinFn(E("float"), E("_1") :: Nil) { env =>
+    E("float") -> defBuiltinFn(E("float"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
         num <- x.toFloat
       } yield num
     },
-    E("print") -> defBuiltinFn(E("print"), E("_1") :: Nil) { env =>
+    E("print") -> defBuiltinFn(E("print"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
         str <- x.printable()
         _ = print(str)
       } yield LispUnit
     },
-    E("println") -> defBuiltinFn(E("println"), E("_1") :: Nil) { env =>
+    E("println") -> defBuiltinFn(E("println"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
         str <- x.printable()
         _ = println(str)
       } yield LispUnit
     },
-    E("read-line") -> defBuiltinFn(E("read-line"), E("_1") :: Nil) { env =>
+    E("read-line") -> defBuiltinFn(E("read-line"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
         prompt <- x.printable()
@@ -134,14 +135,14 @@ object Builtin {
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
     },
-    E("exit") -> defBuiltinFn(E("exit"), E("_1") :: Nil) { env =>
+    E("exit") -> defBuiltinFn(E("exit"), E("_1")) { env =>
       for {
         exitCode <- env refer E("_1")
         exitCodeInt <- exitCode.toInt
         _ = System.exit(exitCodeInt.value.toInt)
       } yield LispUnit
     },
-    E("quit") -> defBuiltinFn(E("quit"), Nil) { _ =>
+    E("quit") -> defBuiltinFn(E("quit")) { _ =>
       System.exit(0)
       Right(LispUnit)
     })
