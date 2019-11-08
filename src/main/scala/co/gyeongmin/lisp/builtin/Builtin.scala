@@ -14,7 +14,7 @@ object Builtin {
 
   implicit class LispSymbolSyntax(x: LispSymbol) {
     private def binaryNumberStmtFunc(symbol: LispSymbol, f: (LispNumber, LispNumber) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
-      symbol -> defBuiltinFn(symbol, EagerSymbol("_1"), EagerSymbol("_2")) { env =>
+      symbol -> defBuiltinFn(symbol, E("_1"), E("_2")) { env =>
         for {
           x <- env refer E("_1")
           y <- env refer E("_2")
@@ -25,7 +25,7 @@ object Builtin {
       }
 
     private def unaryStmtFunc(symbol: LispSymbol, f: LispValue => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
-      symbol -> defBuiltinFn(symbol, EagerSymbol("_1")) { env =>
+      symbol -> defBuiltinFn(symbol, E("_1")) { env =>
         for {
           x <- env refer E("_1")
           res <- f(x)

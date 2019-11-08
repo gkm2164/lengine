@@ -27,7 +27,7 @@ package object execution {
       case l: LazySymbol => env.get(l).toRight(UnknownSymbolNameError(l)).flatMap(_.eval(env))
       case e: LispSymbol => env.get(e).toRight(UnknownSymbolNameError(e)).map((_, env))
       case clause: LispClause => clause.execute(env).map((_, env))
-      case m: LispMacro => Left(UnimplementedOperationError("macro", m))
+      case m: SpecialToken => Left(UnimplementedOperationError("macro", m))
       case n: LispNumber => Right((n, env))
       case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((v, env))
       case f: GeneralLispFunc => Right((f, env))

@@ -25,7 +25,7 @@ package object parser {
     case LeftBracket #:: tail => parseList(takeToken[RightBracket.type])(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
-    case (m: LispMacro) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
+    case (m: SpecialToken) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
     case (tk: LispValue) #:: tail => Right((tk, tail))
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }

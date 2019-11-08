@@ -126,6 +126,10 @@ abstract class BuiltinLispFunc(symbol: LispSymbol, val placeHolders: List[LispSy
   override def recoverStmt(): String = s"(lambda ${placeHolders.map(_.recoverStmt()).mkString(" ")} #native)"
 }
 
+case class LispMacro(symbol: LispSymbol, placeHolders: List[LispSymbol], body: LispValue) extends LispFunc {
+  override def recoverStmt(): String = s"(defmacro (${placeHolders.map(_.recoverStmt()).mkString(" ")}) ${body.recoverStmt()})"
+}
+
 // Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
 case class IntegerNumber(value: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
@@ -422,7 +426,7 @@ case class LispList(items: List[LispValue]) extends LispValue {
   override def recoverStmt(): String = s"(list ${items.map(_.recoverStmt()).mkString(" ")})"
 }
 
-case class LispMacro(body: String) extends LispValue {
+case class SpecialToken(body: String) extends LispValue {
   // #2r00100
   // #2r-00100
   // #16rBEAF
@@ -557,10 +561,10 @@ case object LispIn extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
-  private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
+  private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
   private val LazySymbolRegex: Regex = """('[a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
   private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*)""".r
-  private val MacroRegex: Regex = """#(.+)""".r
+  private val SpecialValueRegex: Regex = """#(.+)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
   private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
   private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
@@ -587,7 +591,7 @@ object LispToken {
     case "false" => Right(LispFalse)
     case "do" => Right(LispDo)
     case "nil" => Right(LispNil)
-    case MacroRegex(body) => Right(LispMacro(body))
+    case SpecialValueRegex(body) => Right(SpecialToken(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))

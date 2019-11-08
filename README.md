@@ -262,6 +262,7 @@ res3 => 8
 - Stream
 - Binary generation
 - Loop with only condition
+- Macro implementation
 
 ### Friend Projects
 - [KAND](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine

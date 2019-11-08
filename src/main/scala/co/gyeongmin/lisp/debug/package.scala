@@ -53,7 +53,7 @@ package object debug {
         case Right(str) => s"$str: List"
         case Left(_) => "#unable to print: List"
       }
-      case _: LispMacro => s"_: Macro"
+      case _: SpecialToken => s"_: Macro"
       case LispUnit => s"(): Unit"
       case boolean: LispBoolean => boolean match {
         case LispFalse => s"false: Boolean"
