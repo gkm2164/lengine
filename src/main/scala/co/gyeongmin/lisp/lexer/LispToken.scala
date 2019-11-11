@@ -566,7 +566,7 @@ object LispToken {
   private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*)""".r
   private val SpecialValueRegex: Regex = """#(.+)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
-  private val RatioRegex: Regex = """([+\-])?([\d]+)/(-?[\d]+)""".r
+  private val RatioRegex: Regex = """([+\-])?([\d]+)/([+\-]?)([\d]+)""".r
   private val FloatingPointRegex: Regex = """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
   private val FloatingPointRegex2: Regex = """([+\-])?(\d+)?(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
   private val StringRegex: Regex = """^"(.*)""".r
@@ -595,9 +595,9 @@ object LispToken {
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case v@FloatingPointRegex2(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))
-    case RatioRegex(sign, over, under) =>
-      val o = parseInteger(sign, over)
-      val u = parseInteger("+", under)
+    case RatioRegex(overSign, over, underSign, under) =>
+      val o = parseInteger(overSign, over)
+      val u = parseInteger(underSign, under)
       if (u == 0) Left(RatioUnderZeroNotAllowed)
       else Right(RatioNumber(o, u))
     case LazySymbolRegex(name) => Right(LazySymbol(name))
