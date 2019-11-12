@@ -26,14 +26,14 @@ package object parser {
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: SpecialToken) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
-    case (tk: LispValue) #:: tail => Right((tk, tail))
+    case (tk: LispValue) #:: tail => LispTokenState(tk)(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => parseDef(tail)
-    case (x: LispSymbol) #:: tail => parseValue(tail).map { case (v, remains) => (LispValueDef(x, v), remains) }
+    case (x: LispSymbol) #:: tail => parseValue.map(v => LispValueDef(x, v))(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
@@ -45,7 +45,7 @@ package object parser {
   def takeToken[A <: LispToken](implicit ct: ClassTag[A]): LispTokenState[A] = {
     case Stream.Empty => Left(EmptyTokenListError)
     case LispNop #:: tail => takeToken[A](ct)(tail)
-    case (tk: A) #:: tail => Right((tk, tail))
+    case (tk: A) #:: tail => LispTokenState(tk)(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
@@ -78,10 +78,10 @@ package object parser {
 
   def many[A <: LispValue](parser: LispTokenState[A]): LispTokenState[List[A]] = tks => {
     def loop(acc: Vector[A]): LispTokenState[List[A]] = {
-      case Stream.Empty => Right((acc.toList, Stream.empty))
+      case Stream.Empty => LispTokenState(acc.toList)(Stream.empty)
       case LispNop #:: tail => loop(acc)(tail)
       case lst => parser(lst) match {
-        case Left(_) => Right((acc.toList, lst))
+        case Left(_) => LispTokenState(acc.toList)(lst)
         case Right((v, tail)) => loop(acc :+ v)(tail)
       }
     }

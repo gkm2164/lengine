@@ -12,6 +12,8 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
+  val PROMPT = LispString("lengine")
+
   implicit class LispEnvironmentSyntax(env: LispEnvironment) {
     val HistorySymbol = EagerSymbol("$$HISTORY$$")
 
@@ -46,10 +48,12 @@ object Main {
     ret <- prompt.printable()
   } yield ret
 
-  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit debugger: Option[Debugger]): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] = for {
-    tokens <- Tokenizer.tokenize(tokenizer).leftMap(x => (EvalTokenizeError(x), env))
-    res <- evalLoop(tokens, env)
-  } yield res
+  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit debugger: Option[Debugger]): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] = {
+    for {
+      tokens <- Tokenizer.tokenize(tokenizer).leftMap(x => (EvalTokenizeError(x), env))
+      res <- evalLoop(tokens, env)
+    } yield res
+  }
 
   @scala.annotation.tailrec
   def replLoop(env: LispEnvironment): Unit = {

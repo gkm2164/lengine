@@ -17,7 +17,7 @@ package object monad {
       case Left(e) => Left(e)
       case Right(v) => v match {
         case (Left(a), tail) => tailRecM(a)(f)(tail)
-        case (Right(b), tail) => Right((b, tail))
+        case (Right(b), tail) => pure(b)(tail)
       }
     }
 
