@@ -67,7 +67,6 @@ object Builtin {
     },
     E("+") ->@ (_ + _),
     E("-") ->@ (_ - _),
-    E("++") ->@ (_ ++ _),
     E("*") ->@ (_ * _),
     E("/") ->@ (_ / _),
     E("%") ->@ (_ % _),
@@ -84,6 +83,13 @@ object Builtin {
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
     E("len") ->! (_.list.flatMap(_.length)),
+    E("++") -> defBuiltinFn(E("++"), E("_1"), E("_2")) { env =>
+      for {
+        x <- env refer E("_1")
+        y <- env refer E("_2")
+        res <- x ++ y
+      } yield res
+    },
     E("now") -> defBuiltinFn(E("now")) { _ =>
       Right(IntegerNumber(System.currentTimeMillis()))
     },
