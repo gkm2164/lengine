@@ -145,6 +145,31 @@ package object execution {
     }
   }
 
+  implicit class LispValueDefExecutionSyntax(stmt: LispValueDef) {
+    def registerSymbol(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = stmt.symbol match {
+      case EagerSymbol(_) => stmt.value.eval(env).map { case (evaluatedValue, _) => (stmt, env.updated(stmt.symbol, evaluatedValue)) }
+      case LazySymbol(_) => Right((stmt, env.updated(stmt.symbol, stmt.value)))
+      case errValue => Left(InvalidSymbolName(errValue))
+    }
+  }
+
+  implicit class LispDoExecutionSymtax(stmt: LispDoStmt) {
+    def runBody(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = {
+      def loop(env: LispEnvironment,
+               remains: List[LispValue],
+               lastExec: LispValue): Either[EvalError, (LispValue, LispEnvironment)] = remains match {
+        case Nil => Right((lastExec, env))
+        case head :: tail => for {
+          headEvalRes <- head.eval(env)
+          (v, nextEnv) = headEvalRes
+          res <- loop(nextEnv, tail, v)
+        } yield res
+      }
+
+      loop(env, stmt.body, LispUnit)
+    }
+  }
+
   implicit class LispClauseExecutionSyntax(c: LispClause) {
     def execute(env: LispEnvironment): Either[EvalError, LispValue] = (c.body match {
       case Nil => Left(EmptyBodyClauseError)
