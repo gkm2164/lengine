@@ -2,7 +2,6 @@ package co.gyeongmin.lisp.lexer
 
 import co.gyeongmin.lisp.errors._
 
-import scala.collection.immutable
 import scala.util.matching.Regex
 
 trait LispValue extends LispToken {
