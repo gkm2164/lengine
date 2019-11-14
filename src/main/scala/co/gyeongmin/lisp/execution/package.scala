@@ -29,7 +29,7 @@ package object execution {
       case clause: LispClause => clause.execute(env).map((_, env))
       case m: SpecialToken => Left(UnimplementedOperationError("macro", m))
       case n: LispNumber => Right((n, env))
-      case LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((v, env))
+      case LispObject(_) | LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse => Right((v, env))
       case f: GeneralLispFunc => Right((f, env))
       case value => Left(UnimplementedOperationError("value is not handlable yet", value))
     }
@@ -179,6 +179,7 @@ package object execution {
         value.eval(env).map { case (v, _) => (v, args) }
     }) flatMap {
       case (firstStmtValue, args) => firstStmtValue match {
+        case obj: LispObject => obj.refer(args)
         case of: OverridableFunc => for {
           findRes <- of.findApplyFunc(env, args)
           (fn, symbolEnv) = findRes

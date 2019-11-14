@@ -98,6 +98,14 @@ package object errors {
     override def message: String = s"$v is not an overridable function symbol"
   }
 
+  case class ObjectKeyNotExist(key: String) extends EvalError {
+    override def message: String = s"$key is not exist in object"
+  }
+
+  case object KeyIsNotReferSymbol extends EvalError {
+    override def message: String = "given value is not a key type"
+  }
+
   object UnableToFindFunction extends EvalError {
     override def message: String = s"unable to find overridable functions"
   }

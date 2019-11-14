@@ -66,6 +66,8 @@ object LispToken {
     case "'(" => Right(ListStartPar)
     case "[" => Right(LeftBracket)
     case "]" => Right(RightBracket)
+    case "{" => Right(LeftBrace)
+    case "}" => Right(RightBrace)
     case "def" => Right(LispDef)
     case "fn" => Right(LispFn)
     case "let" => Right(LispLet)

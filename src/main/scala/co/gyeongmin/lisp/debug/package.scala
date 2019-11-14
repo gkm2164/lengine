@@ -41,6 +41,7 @@ package object debug {
         }
         case _ => "#unknown symbol"
       }
+      case obj: LispObject => s"${obj.recoverStmt()}: Object"
       case LispChar(chs) => s"$chs: Char"
       case LispString(value) =>s""""$value": String"""
       case symbol: LispSymbol => symbol match {

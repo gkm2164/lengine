@@ -364,10 +364,6 @@ case class LispClause(body: List[LispValue]) extends LispValue {
   override def recoverStmt(): String = s"(${body.map(_.recoverStmt()).mkString(" ")})"
 }
 
-case class ObjectType(map: Map[ObjectReferSymbol, LispValue]) extends LispValue {
-  override def recoverStmt(): String = s"{${map.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}" }.mkString(" ")}"
-}
-
 case class EagerSymbol(name: String) extends LispSymbol {
   override def recoverStmt(): String = s"$name"
 }
@@ -381,7 +377,7 @@ case class ListSymbol(name: String) extends LispSymbol {
 }
 
 case class ObjectReferSymbol(name: String) extends LispSymbol {
-  override def recoverStmt(): String = s"$name"
+  override def recoverStmt(): String = s":$name"
 }
 
 case class LispList(items: List[LispValue]) extends LispValue {
@@ -544,8 +540,29 @@ case class OverridableFunc(funcList: Vector[LispFunc]) extends LispValue {
   override def recoverStmt(): String = funcList.map(_.recoverStmt()).mkString("\n")
 }
 
-case class LispObjectValue(kv: Map[String, LispValue]) extends LispValue {
-  private def keyValueString = kv.map { case (key, value) => s":$key ${value.recoverStmt()}"}.mkString(" ")
+case class LispObject(kv: Map[ObjectReferSymbol, LispValue]) extends LispValue {
+  def traverse(errorOrValues: List[Either[EvalError, LispValue]]): Either[EvalError, LispValue] = {
+    @scala.annotation.tailrec
+    def loop(acc: Vector[LispValue], remains: List[Either[EvalError, LispValue]]): Either[EvalError, LispList] = remains match {
+      case Nil => Right(LispList(acc.toList))
+      case Right(v) :: t => loop(acc :+ v, t)
+      case Left(e) :: _ => Left(e)
+    }
+
+    loop(Vector.empty, errorOrValues)
+  }
+
+  def refer(args: List[LispValue]): Either[EvalError, LispValue] = {
+    val result = args.map {
+      case ors: ObjectReferSymbol => kv.get(ors).toRight(ObjectKeyNotExist(ors.recoverStmt()))
+      case _ => Left(KeyIsNotReferSymbol)
+    }
+
+    traverse(result)
+  }
+
+  private def keyValueString = kv.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}"}.mkString(" ")
 
   override def recoverStmt(): String = s"{$keyValueString}"
+
 }

@@ -31,14 +31,13 @@ package object parser {
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
-  def parseBrace: LispTokenState[LispObjectValue] = for {
-    _ <- takeToken[LeftBrace.type]
+  def parseBrace: LispTokenState[LispObject] = for {
     keyValuePairs <- many(for {
       key <- takeToken[ObjectReferSymbol]
       value <- parseValue
-    } yield key.name -> value)
+    } yield key -> value)
     _ <- takeToken[RightBrace.type]
-  } yield LispObjectValue(keyValuePairs.toMap)
+  } yield LispObject(keyValuePairs.toMap)
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty => Left(EmptyTokenListError)
