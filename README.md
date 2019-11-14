@@ -107,6 +107,13 @@ res1 => ()
 ;;; String
 "Hello World!"
 "\"This is escape example for double quote!\""
+
+;;; Object
+{
+  :id 1
+  :name "Gyeongmin Go"
+  :email "gkm2164@gmail.com"
+}
 ```
 
 - Function definition

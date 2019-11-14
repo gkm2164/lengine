@@ -541,24 +541,12 @@ case class OverridableFunc(funcList: Vector[LispFunc]) extends LispValue {
 }
 
 case class LispObject(kv: Map[ObjectReferSymbol, LispValue]) extends LispValue {
-  def traverse(errorOrValues: List[Either[EvalError, LispValue]]): Either[EvalError, LispValue] = {
-    @scala.annotation.tailrec
-    def loop(acc: Vector[LispValue], remains: List[Either[EvalError, LispValue]]): Either[EvalError, LispList] = remains match {
-      case Nil => Right(LispList(acc.toList))
-      case Right(v) :: t => loop(acc :+ v, t)
-      case Left(e) :: _ => Left(e)
-    }
-
-    loop(Vector.empty, errorOrValues)
-  }
-
   def refer(args: List[LispValue]): Either[EvalError, LispValue] = {
-    val result = args.map {
+    if (args.length != 1) Left(KeyIsNotReferSymbol)
+    else args.head match {
       case ors: ObjectReferSymbol => kv.get(ors).toRight(ObjectKeyNotExist(ors.recoverStmt()))
       case _ => Left(KeyIsNotReferSymbol)
     }
-
-    traverse(result)
   }
 
   private def keyValueString = kv.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}"}.mkString(" ")
