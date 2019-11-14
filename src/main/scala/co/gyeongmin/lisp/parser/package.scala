@@ -23,12 +23,22 @@ package object parser {
     case LispNil #:: tail => LispTokenState(LispList(Nil))(tail)
     case ListStartPar #:: tail => parseList(takeToken[RightPar.type])(tail)
     case LeftBracket #:: tail => parseList(takeToken[RightBracket.type])(tail)
+    case LeftBrace #:: tail => parseBrace(tail)
     case CmplxNPar #:: tail => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: SpecialToken) #:: tail => m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
     case (tk: LispValue) #:: tail => LispTokenState(tk)(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
+
+  def parseBrace: LispTokenState[LispObjectValue] = for {
+    _ <- takeToken[LeftBrace.type]
+    keyValuePairs <- many(for {
+      key <- takeToken[ObjectReferSymbol]
+      value <- parseValue
+    } yield key.name -> value)
+    _ <- takeToken[RightBrace.type]
+  } yield LispObjectValue(keyValuePairs.toMap)
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty => Left(EmptyTokenListError)
@@ -76,7 +86,7 @@ package object parser {
     }
   }
 
-  def many[A <: LispValue](parser: LispTokenState[A]): LispTokenState[List[A]] = tks => {
+  def many[A](parser: LispTokenState[A]): LispTokenState[List[A]] = tks => {
     def loop(acc: Vector[A]): LispTokenState[List[A]] = {
       case Stream.Empty => LispTokenState(acc.toList)(Stream.empty)
       case LispNop #:: tail => loop(acc)(tail)

@@ -42,11 +42,11 @@ class Tokenizer() {
         if (!codeIterator.hasNext) Left(EOFError)
         else codeIterator.next() match {
           case ' ' | '\t' | '\n' => Right(acc.mkString(""))
-          case ch@('(' | '[') => Right(acc.append(ch).mkString(""))
-          case ch@(']' | ')') if acc.nonEmpty =>
+          case ch@('(' | '[' | '{') => Right(acc.append(ch).mkString(""))
+          case ch@(']' | ')' | '}') if acc.nonEmpty =>
             closing = Some(ch.toString)
             Right(acc.mkString(""))
-          case ch@(']' | ')') => Right(ch.toString)
+          case ch@(']' | ')' | '}') => Right(ch.toString)
           case '"' => takeString(acc.append('"'), '"', escape = false)
           case ';' if acc.isEmpty =>
             takeString(new StringBuilder(), '\n', escape = false)

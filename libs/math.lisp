@@ -3,9 +3,8 @@
      (* n (fact (- n 1)))
      1))
 
-(fn fact-tailrec (acc n)
-  (if (> n 0) (fact-tailrec (* acc n) (- n 1))
-   acc))
+(fn fact-tailrec (acc 0) acc)
+(fn fact-tailrec (acc n) (fact-tailrec (* acc n) (- n 1)))
 
 (fn fib (n)
   (if (<= n 1)

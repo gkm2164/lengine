@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.lexer
 
 import co.gyeongmin.lisp.errors._
 
+import scala.collection.immutable
 import scala.util.matching.Regex
 
 trait LispValue extends LispToken {
@@ -363,6 +364,9 @@ case class LispClause(body: List[LispValue]) extends LispValue {
   override def recoverStmt(): String = s"(${body.map(_.recoverStmt()).mkString(" ")})"
 }
 
+case class ObjectType(map: Map[ObjectReferSymbol, LispValue]) extends LispValue {
+  override def recoverStmt(): String = s"{${map.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}" }.mkString(" ")}"
+}
 
 case class EagerSymbol(name: String) extends LispSymbol {
   override def recoverStmt(): String = s"$name"
@@ -373,6 +377,10 @@ case class LazySymbol(name: String) extends LispSymbol {
 }
 
 case class ListSymbol(name: String) extends LispSymbol {
+  override def recoverStmt(): String = s"$name"
+}
+
+case class ObjectReferSymbol(name: String) extends LispSymbol {
   override def recoverStmt(): String = s"$name"
 }
 
@@ -534,4 +542,10 @@ case class LispImportDef(path: LispValue) extends LispValue {
 
 case class OverridableFunc(funcList: Vector[LispFunc]) extends LispValue {
   override def recoverStmt(): String = funcList.map(_.recoverStmt()).mkString("\n")
+}
+
+case class LispObjectValue(kv: Map[String, LispValue]) extends LispValue {
+  private def keyValueString = kv.map { case (key, value) => s":$key ${value.recoverStmt()}"}.mkString(" ")
+
+  override def recoverStmt(): String = s"{$keyValueString}"
 }

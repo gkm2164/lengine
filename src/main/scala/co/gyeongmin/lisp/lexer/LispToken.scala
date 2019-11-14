@@ -19,6 +19,10 @@ case object ListStartPar extends LispToken
 
 case object RightPar extends LispToken
 
+case object LeftBrace extends LispToken
+
+case object RightBrace extends LispToken
+
 case object LeftBracket extends LispToken
 
 case object RightBracket extends LispToken
@@ -43,6 +47,7 @@ case object LispIn extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
+  private val ObjectReferSymbolRegex: Regex = """:([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
   private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
   private val LazySymbolRegex: Regex = """('[a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
   private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*)""".r
@@ -82,6 +87,7 @@ object LispToken {
       val u = parseInteger(underSign, under)
       if (u == 0) Left(RatioUnderZeroNotAllowed)
       else Right(RatioNumber(o, u))
+    case ObjectReferSymbolRegex(name) => Right(ObjectReferSymbol(name))
     case LazySymbolRegex(name) => Right(LazySymbol(name))
     case ListSymbolRegex(name) => Right(ListSymbol(name))
     case SymbolRegex(name) => Right(EagerSymbol(name))
