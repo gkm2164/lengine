@@ -232,6 +232,13 @@ x
 (and true 3) ;;; ???
 ```
 
+- Object refer
+```lisp
+;;;
+({:hello 1} :hello) ;;; == 1
+
+```
+
 - Import library
 ```lisp
 ;;; Import library
