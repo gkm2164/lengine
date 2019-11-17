@@ -5,17 +5,17 @@ import co.gyeongmin.lisp.errors._
 import scala.util.matching.Regex
 
 trait LispValue extends LispToken {
+  def toSeq: Either[EvalError, LispSeq] = this match {
+    case seq: LispSeq => Right(seq)
+    case v => Left(NotASeqType(v))
+  }
+
   def recoverStmt(): String
 
   //package private
   def toNumber: Either[EvalError, LispNumber] = this match {
     case x: LispNumber => Right(x)
     case v => Left(NotANumberType(v))
-  }
-
-  def ::(other: LispValue): Either[EvalError, LispList] = this match {
-    case LispList(items) => Right(LispList(other :: items))
-    case k => Left(UnimplementedOperationError(s":: to not a list value, $this, $k", this))
   }
 
   def not: Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("!", this))
@@ -32,8 +32,6 @@ trait LispValue extends LispToken {
 
   def toBoolean: Either[EvalError, Boolean] = Left(UnimplementedOperationError("?", this))
 
-  def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
-
   def or(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("||", this))
 
   def and(other: LispValue): Either[EvalError, LispBoolean] = Left(UnimplementedOperationError("&&", this))
@@ -46,11 +44,6 @@ trait LispValue extends LispToken {
   } yield x
 
   def printable(): Either[EvalError, String] = Left(UnimplementedOperationError("printable", this))
-
-  def list: Either[EvalError, LispList] = this match {
-    case l@LispList(_) => Right(l)
-    case _ => Left(UnimplementedOperationError("this is not a list type", this))
-  }
 }
 
 sealed trait LispNumber extends LispValue {
@@ -341,7 +334,7 @@ case class LispChar(chs: Char) extends LispValue {
   override def recoverStmt(): String = s"'$chs'"
 }
 
-case class LispString(value: String) extends LispValue {
+case class LispString(value: String) extends LispSeq {
   override def printable(): Either[EvalError, String] = Right(value)
 
   override def ++(other: LispValue): Either[EvalError, LispValue] = other match {
@@ -349,7 +342,7 @@ case class LispString(value: String) extends LispValue {
     case v => Left(UnimplementedOperationError("++: String", v))
   }
 
-  override def list: Either[EvalError, LispList] = Right(LispList(value.toList.map(x => LispChar(x))))
+  override def toList: Either[EvalError, LispList] = Right(LispList(value.toList.map(x => LispChar(x))))
 
   override def recoverStmt(): String = s""""$value""""
 }
@@ -378,7 +371,18 @@ case class ObjectReferSymbol(name: String) extends LispSymbol {
   override def recoverStmt(): String = s":$name"
 }
 
-case class LispList(items: List[LispValue]) extends LispValue {
+abstract class LispSeq extends LispValue {
+  def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
+
+  def ::(other: LispValue): Either[EvalError, LispList] = this match {
+    case LispList(items) => Right(LispList(other :: items))
+    case k => Left(UnimplementedOperationError(s":: to not a list value, $this, $k", this))
+  }
+
+  def toList: Either[EvalError, LispList] = Left(UnimplementedOperationError(s"$this is not a list value", this))
+}
+
+case class LispList(items: List[LispValue]) extends LispSeq {
   override def ++(other: LispValue): Either[EvalError, LispValue] = other match {
     case LispList(rvalue) => Right(LispList(items ++ rvalue))
     case v => Left(UnimplementedOperationError("++: List", v))
@@ -394,6 +398,8 @@ case class LispList(items: List[LispValue]) extends LispValue {
   def head: Either[EvalError, LispValue] = Right(items.head)
 
   def tail: Either[EvalError, LispValue] = Right(LispList(items.tail))
+
+  override def toList: Either[EvalError, LispList] = Right(this)
 
   override def printable(): Either[EvalError, String] = Right(items.map(_.printable()).foldLeft(Vector.empty[String]) {
     case (acc, Right(v)) => acc :+ v

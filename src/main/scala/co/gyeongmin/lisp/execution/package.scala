@@ -54,7 +54,7 @@ package object execution {
         case Nil => body.eval(env).map(x => LispList(List(x._1)))
         case LispForStmt(symbol, v) :: tail =>
           v.eval(env).flatMap {
-            case (value, _) => value.list.flatMap {
+            case (value, _) => value.toSeq.flatMap(_.toList).flatMap {
               case LispList(items) =>
                 traverse(for {
                   item <- items

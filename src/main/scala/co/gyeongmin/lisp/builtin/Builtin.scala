@@ -50,8 +50,8 @@ object Builtin {
       for {
         history <- env refer E("$$HISTORY$$")
         arg <- env refer L("_1")
-        argList <- arg.list
-        historyList <- history.list
+        argList <- arg.toSeq.flatMap(_.toList)
+        historyList <- history.toSeq.flatMap(_.toList)
         historyRun <- argList.items.headOption match {
           case Some(IntegerNumber(v)) => historyList.items.reverse.drop(v.toInt).headOption match {
             case None => Right(LispUnit)
@@ -76,18 +76,24 @@ object Builtin {
     E("<=") ->@ (_ lte _),
     E("and") ->@ (_ and _),
     E("or") ->@ (_ or _),
-    E("head") ->! (_.list.flatMap(_.head)),
-    E("tail") ->! (_.list.flatMap(_.tail)),
-    E("cons") ->@ (_ :: _),
+    E("head") ->! (_.toSeq.flatMap(_.toList).flatMap(_.head)),
+    E("tail") ->! (_.toSeq.flatMap(_.toList).flatMap(_.tail)),
+    E("cons") ->@ ((x, y) => for {
+      xList <- x.toSeq.flatMap(_.toList)
+      yList <- y.toSeq.flatMap(_.toList)
+      res <- xList :: yList
+    } yield res),
     E("=") ->@ (_ eq _),
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
-    E("len") ->! (_.list.flatMap(_.length)),
+    E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length))),
     E("++") -> defBuiltinFn(E("++"), E("_1"), E("_2")) { env =>
       for {
         x <- env refer E("_1")
         y <- env refer E("_2")
-        res <- x ++ y
+        xSeq <- x.toSeq
+        ySeq <- y.toSeq
+        res <- xSeq ++ ySeq
       } yield res
     },
     E("now") -> defBuiltinFn(E("now")) { _ =>
@@ -110,7 +116,7 @@ object Builtin {
     E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
       for {
         list <- env refer L("_1")
-        x <- list.list
+        x <- list.toSeq.flatMap(_.toList)
       } yield x
     },
     E("float") -> defBuiltinFn(E("float"), E("_1")) { env =>

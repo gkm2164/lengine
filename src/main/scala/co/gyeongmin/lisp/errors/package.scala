@@ -25,6 +25,10 @@ package object errors {
     override def message: String = s"given $k is not a number type"
   }
 
+  case class NotASeqType(k: LispValue) extends EvalError {
+    override def message: String = s"given $k is not a sequence type"
+  }
+
   case class NotAnExecutableError(value: LispValue) extends EvalError {
     override def message: String = s"$value is not executable"
   }

@@ -48,6 +48,7 @@ package object debug {
         case EagerSymbol(name) => s"$name: eager evaluation symbol"
         case LazySymbol(name) => s"$name: lazy evaluation symbol"
         case ListSymbol(name) => s"$name: a symbol for list"
+        case ObjectReferSymbol(name) => s":$name: a symbol for object reference"
       }
       case _: LispClause => s"_: Lisp clause"
       case list: LispList => list.printable() match {
