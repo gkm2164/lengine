@@ -109,7 +109,6 @@ sealed trait LispNumber extends LispValue {
   final def lte(other: LispValue): Either[EvalError, LispBoolean] = gt(other).flatMap(_.not)
 }
 
-
 // Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
 case class IntegerNumber(value: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
@@ -548,8 +547,7 @@ case class LispObject(kv: Map[ObjectReferSymbol, LispValue]) extends LispValue {
     }
   }
 
-  private def keyValueString = kv.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}"}.mkString(" ")
+  private def keyValueString = kv.map { case (key, value) => s"${key.recoverStmt()} ${value.recoverStmt()}" }.mkString(" ")
 
   override def recoverStmt(): String = s"{$keyValueString}"
-
 }
