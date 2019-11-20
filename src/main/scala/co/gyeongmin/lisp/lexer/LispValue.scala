@@ -342,9 +342,22 @@ case class LispString(value: String) extends LispSeq {
     case v => Left(UnimplementedOperationError("++: String", v))
   }
 
+  override def head: Either[EvalError, LispValue] =
+    if (value.length > 0) Right(LispChar(value.head))
+    else Left(StringIsEmptyError)
+
+  override def tail: Either[EvalError, LispValue] =
+    if (value.nonEmpty) Right(LispString(value.tail))
+    else Left(StringIsEmptyError)
+
   override def toList: Either[EvalError, LispList] = Right(LispList(value.toList.map(x => LispChar(x))))
 
   override def recoverStmt(): String = s""""$value""""
+
+  override def ::(other: LispValue): Either[EvalError, LispSeq] = other match {
+    case LispChar(chs) => Right(LispString(chs + value))
+    case v => Left(InvalidTypeError(v, "Char"))
+  }
 }
 
 sealed trait LispSymbol extends LispValue {
@@ -372,12 +385,13 @@ case class ObjectReferSymbol(name: String) extends LispSymbol {
 }
 
 abstract class LispSeq extends LispValue {
-  def ++(other: LispValue): Either[EvalError, LispValue] = Left(UnimplementedOperationError("++", this))
+  def ++(other: LispValue): Either[EvalError, LispValue]
 
-  def ::(other: LispValue): Either[EvalError, LispList] = this match {
-    case LispList(items) => Right(LispList(other :: items))
-    case k => Left(UnimplementedOperationError(s":: to not a list value, $this, $k", this))
-  }
+  def ::(other: LispValue): Either[EvalError, LispSeq]
+
+  def head: Either[EvalError, LispValue]
+
+  def tail: Either[EvalError, LispValue]
 
   def toList: Either[EvalError, LispList] = Left(UnimplementedOperationError(s"$this is not a list value", this))
 }
@@ -388,6 +402,9 @@ case class LispList(items: List[LispValue]) extends LispSeq {
     case v => Left(UnimplementedOperationError("++: List", v))
   }
 
+  override def ::(other: LispValue): Either[EvalError, LispSeq] =
+    Right(LispList(other :: items))
+
   override def eq(other: LispValue): Either[EvalError, LispBoolean] = other match {
     case LispList(rItems) => Right(LispBoolean(items == rItems))
     case v => Left(UnimplementedOperationError("=: List", v))
@@ -395,9 +412,9 @@ case class LispList(items: List[LispValue]) extends LispSeq {
 
   def length: Either[EvalError, LispValue] = Right(IntegerNumber(items.length))
 
-  def head: Either[EvalError, LispValue] = Right(items.head)
+  override def head: Either[EvalError, LispValue] = Right(items.head)
 
-  def tail: Either[EvalError, LispValue] = Right(LispList(items.tail))
+  override def tail: Either[EvalError, LispValue] = Right(LispList(items.tail))
 
   override def toList: Either[EvalError, LispList] = Right(this)
 

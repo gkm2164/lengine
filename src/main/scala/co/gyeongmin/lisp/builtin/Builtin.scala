@@ -76,13 +76,16 @@ object Builtin {
     E("<=") ->@ (_ lte _),
     E("and") ->@ (_ and _),
     E("or") ->@ (_ or _),
-    E("head") ->! (_.toSeq.flatMap(_.toList).flatMap(_.head)),
-    E("tail") ->! (_.toSeq.flatMap(_.toList).flatMap(_.tail)),
-    E("cons") ->@ ((x, y) => for {
-      xList <- x.toSeq.flatMap(_.toList)
-      yList <- y.toSeq.flatMap(_.toList)
-      res <- xList :: yList
-    } yield res),
+    E("head") ->! (_.toSeq.flatMap(_.head)),
+    E("tail") ->! (_.toSeq.flatMap(_.tail)),
+    E("cons") -> defBuiltinFn(E("cons"), E("_1"), E("_2")) { env =>
+      for {
+        x <- env refer E("_1")
+        y <- env refer E("_2")
+        yList <- y.toSeq
+        res <- x :: yList
+      } yield res
+    },
     E("=") ->@ (_ eq _),
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),

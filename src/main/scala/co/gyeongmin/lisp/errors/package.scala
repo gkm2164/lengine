@@ -33,6 +33,14 @@ package object errors {
     override def message: String = s"$value is not executable"
   }
 
+  case class InvalidTypeError(value: LispValue, t: String) extends EvalError {
+    override def message: String = s"$value is not $t type"
+  }
+
+  case object StringIsEmptyError extends EvalError {
+    override def message: String = "given value is empty string"
+  }
+
   case class UnknownSymbolNameError(name: LispSymbol) extends EvalError {
     override def message: String = s"unknown symbol name: ${name.name}"
   }
