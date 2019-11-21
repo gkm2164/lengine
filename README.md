@@ -171,8 +171,9 @@ x
 ;;; (do stmts*)
 (do (println 3)
     (println 4)
-    (println 5))
-;;; print 3 4 5 line by line and return Unit
+    (println 5)
+    return 0)
+;;; print 3 4 5 line by line and return 0
 ```
 
 - loop statement
