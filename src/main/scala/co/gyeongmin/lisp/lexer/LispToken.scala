@@ -37,6 +37,8 @@ case object LispDef extends LispToken
 
 case object LispFn extends LispToken
 
+case object LispReturn extends LispToken
+
 case object LispLambda extends LispToken
 
 case object LispDo extends LispToken
@@ -79,6 +81,7 @@ object LispToken {
     case "true" => Right(LispTrue)
     case "false" => Right(LispFalse)
     case "do" => Right(LispDo)
+    case "return" => Right(LispReturn)
     case "nil" => Right(LispNil)
     case SpecialValueRegex(body) => Right(SpecialToken(body))
     case v@FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))

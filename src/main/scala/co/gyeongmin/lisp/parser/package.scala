@@ -116,8 +116,10 @@ package object parser {
     } yield LispLetDef(name, value, body)) (tail)
     case LispDo #:: tail => (for {
       stmts <- many(parseValue)
+      _ <- takeToken[LispReturn.type]
+      retStmt <- parseValue
       _ <- takeToken[RightPar.type]
-    } yield LispDoStmt(stmts)) (tail)
+    } yield LispDoStmt(stmts :+ retStmt)) (tail)
     case LispLambda #:: tail => (for {
       lambda <- parseLambda
       _ <- takeToken[RightPar.type]
