@@ -29,7 +29,7 @@ class Tokenizer() {
         if (!codeIterator.hasNext) Left(EOFError)
         else codeIterator.next() match {
           case '\\' if escape => takeString(builder.append("\\"), wrap, escape = false)
-          case '\\' => takeString(builder.append("\\"), wrap, escape = true)
+          case '\\' => takeString(builder, wrap, escape = true)
           case ch if ch == wrap && escape => takeString(builder.append(wrap), wrap, escape = false)
           case ch if ch == wrap => Right(builder.append(wrap).mkString(""))
           case _ if escape => Left(WrongEscapeError)
