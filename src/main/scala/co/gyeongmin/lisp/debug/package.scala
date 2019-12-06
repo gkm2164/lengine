@@ -28,6 +28,7 @@ package object debug {
           i <- imagine.printable()
         } yield s"{real: $r + imagine: $i}: ComplexNumber").getOrElse("unknown number error!")
       }
+      case LispNamespace(LispString(ns)) => s"namespace declaration: $ns"
       case LispFuncDef(symbol, fn) => s"function definition to ${symbol.debug()} -> ${fn.debug()}"
       case LispValueDef(symbol, value) => s"variable definition to ${symbol.debug()} -> ${value.debug()}"
       case func: LispFunc => func match {

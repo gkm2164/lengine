@@ -553,6 +553,11 @@ case class LispFuncDef(symbol: LispSymbol, fn: GeneralLispFunc) extends LispValu
     s"(fn ${symbol.recoverStmt()} (${fn.placeHolders.map(_.recoverStmt()).mkString(" ")}) ${fn.body.recoverStmt()})"
 }
 
+case class LispNamespace(namespace: LispString) extends LispValue {
+  override def recoverStmt(): String =
+    s"""(ns "$namespace")"""
+}
+
 case class LispImportDef(path: LispValue) extends LispValue {
   override def recoverStmt(): String = s"(import ${path.recoverStmt()})"
 }

@@ -141,6 +141,10 @@ package object parser {
       body <- parseValue
       _ <- takeToken[RightPar.type]
     } yield LispLoopStmt(forStmts, body)) (tail)
+    case LispNs #:: tail => (for {
+      namespace <- takeToken[LispString]
+      _ <- takeToken[RightPar.type]
+    } yield LispNamespace(namespace))(tail)
     case RightPar #:: tail => LispTokenState(LispUnit)(tail)
     case last => (for {
       res <- many(parseValue)

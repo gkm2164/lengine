@@ -13,6 +13,7 @@ mainClass := Some("co.gyeongmin.lisp.Main")
 assemblyJarName in assembly := "lengine.jar"
 
 libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0"
+libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0"
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.8"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
 

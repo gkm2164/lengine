@@ -19,6 +19,7 @@ package object execution {
   implicit class LispExecutionSyntax(v: LispValue) {
     def eval(env: LispEnvironment): Either[EvalError, (LispValue, LispEnvironment)] = v match {
       case LispFuncDef(symbol, fn) => env.addFn(symbol, fn).map((fn, _))
+      case n@LispNamespace(ns) => Right(n, env.updated(EagerSymbol("$$NAMESPACE$$"), ns))
       case l: LispLetDef => l.execute(env).map((_, env))
       case d: LispValueDef => d.registerSymbol(env)
       case l: LispDoStmt => l.runBody(env)

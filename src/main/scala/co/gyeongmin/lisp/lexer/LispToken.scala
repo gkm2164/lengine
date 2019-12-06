@@ -37,6 +37,8 @@ case object LispDef extends LispToken
 
 case object LispFn extends LispToken
 
+case object LispNs extends LispToken
+
 case object LispReturn extends LispToken
 
 case object LispLambda extends LispToken
@@ -49,10 +51,10 @@ case object LispIn extends LispToken
 
 object LispToken {
   private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
-  private val ObjectReferSymbolRegex: Regex = """:([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
-  private val SymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
-  private val LazySymbolRegex: Regex = """('[a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*)""".r
-  private val ListSymbolRegex: Regex = """([a-zA-Z\-+/*%<>=?][a-zA-Z0-9\-+/*%<>=?]*\*)""".r
+  private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z\-+/*%<>=?][.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
+  private val SymbolRegex: Regex = """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
+  private val LazySymbolRegex: Regex = """('[$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*)""".r
+  private val ListSymbolRegex: Regex = """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
   private val SpecialValueRegex: Regex = """#(.+)""".r
   private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
   private val RatioRegex: Regex = """([+\-])?([\d]+)/([+\-]?)([\d]+)""".r
@@ -73,6 +75,7 @@ object LispToken {
     case "def" => Right(LispDef)
     case "fn" => Right(LispFn)
     case "let" => Right(LispLet)
+    case "ns" => Right(LispNs)
     case "lambda" => Right(LispLambda)
     case "import" => Right(LispImport)
     case "loop" => Right(LispLoop)
