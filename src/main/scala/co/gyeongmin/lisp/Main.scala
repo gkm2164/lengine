@@ -12,10 +12,10 @@ import co.gyeongmin.lisp.lexer._
 import scala.io.Source
 
 object Main {
-  val PROMPT = LispString("lengine")
+  final val PROMPT: LispString = LispString("lengine")
 
   implicit class LispEnvironmentSyntax(env: LispEnvironment) {
-    val HistorySymbol = EagerSymbol("$$HISTORY$$")
+    final val HistorySymbol: EagerSymbol = EagerSymbol("$$HISTORY$$")
 
     def updateHistory(stmt: LispValue, inc: AtomicLong, res: LispValue): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {
       case Some(LispList(items)) =>
