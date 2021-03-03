@@ -7,7 +7,7 @@ import scala.util.matching.Regex
 trait LispValue extends LispToken {
   def toSeq: Either[EvalError, LispSeq] = this match {
     case seq: LispSeq => Right(seq)
-    case v            => Left(NotASeqType(v))
+    case v            => Left(NotASeqTypeError(v))
   }
 
   def recoverStmt(): String
@@ -15,7 +15,7 @@ trait LispValue extends LispToken {
   //package private
   def toNumber: Either[EvalError, LispNumber] = this match {
     case x: LispNumber => Right(x)
-    case v             => Left(NotANumberType(v))
+    case v             => Left(NotANumberTypeError(v))
   }
 
   def not: Either[EvalError, LispBoolean] = Left(
@@ -548,7 +548,7 @@ case class SpecialToken(body: String) extends LispValue {
       val h = charNumMap(remains.head)
       if (h > base)
         Left(
-          InvalidNumberType(
+          InvalidNumberTokenTypeError(
             s"given character(${remains.head}) exceeds given base($base)"
           )
         )
@@ -687,12 +687,12 @@ case class OverridableFunc(funcList: Vector[LispFunc]) extends LispValue {
 
 case class LispObject(kv: Map[ObjectReferSymbol, LispValue]) extends LispValue {
   def refer(args: List[LispValue]): Either[EvalError, LispValue] = {
-    if (args.length != 1) Left(KeyIsNotReferSymbol)
+    if (args.length != 1) Left(KeyIsNotReferSymbolError)
     else
       args.head match {
         case ors: ObjectReferSymbol =>
-          kv.get(ors).toRight(ObjectKeyNotExist(ors.recoverStmt()))
-        case _ => Left(KeyIsNotReferSymbol)
+          kv.get(ors).toRight(ObjectKeyNotExistError(ors.recoverStmt()))
+        case _ => Left(KeyIsNotReferSymbolError)
       }
   }
 

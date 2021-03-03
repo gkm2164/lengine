@@ -25,11 +25,11 @@ package object errors {
       s"not implemented for $operation for $typeToken"
   }
 
-  case class NotANumberType(k: LispValue) extends EvalError {
+  case class NotANumberTypeError(k: LispValue) extends EvalError {
     override def message: String = s"given $k is not a number type"
   }
 
-  case class NotASeqType(k: LispValue) extends EvalError {
+  case class NotASeqTypeError(k: LispValue) extends EvalError {
     override def message: String = s"given $k is not a sequence type"
   }
 
@@ -61,7 +61,7 @@ package object errors {
     override def message: String = s"lexing error: ${x.message}"
   }
 
-  case class InvalidSymbolName(lispSymbol: LispSymbol) extends EvalError {
+  case class InvalidSymbolNameError(lispSymbol: LispSymbol) extends EvalError {
     override def message: String = s"$lispSymbol is not definable"
   }
 
@@ -76,7 +76,7 @@ package object errors {
     override def message: String = s"unknown token: $tk, $msg"
   }
 
-  case class NotNumberType(k: LispValue) extends ParseError {
+  case class UnableToParseNumberTypeError(k: LispValue) extends ParseError {
     override def message: String = s"given $k is not a number type"
   }
 
@@ -90,7 +90,7 @@ package object errors {
     override def message: String = s"Unknown token error"
   }
 
-  case class InvalidNumberType(v: String) extends TokenizeError {
+  case class InvalidNumberTokenTypeError(v: String) extends TokenizeError {
     override def message: String = s"invalid number type: $v"
   }
 
@@ -98,7 +98,7 @@ package object errors {
     override def message: String = s"Unknown macro: $v"
   }
 
-  case object RatioUnderZeroNotAllowed extends TokenizeError {
+  case object RatioUnderZeroNotAllowedError extends TokenizeError {
     override def message: String =
       s"under of rational number should be greater than 0"
   }
@@ -111,15 +111,15 @@ package object errors {
     override def message: String = s"EOF"
   }
 
-  case class SymbolNotOverridable(v: LispValue) extends EvalError {
+  case class SymbolNotOverridableError(v: LispValue) extends EvalError {
     override def message: String = s"$v is not an overridable function symbol"
   }
 
-  case class ObjectKeyNotExist(key: String) extends EvalError {
+  case class ObjectKeyNotExistError(key: String) extends EvalError {
     override def message: String = s"$key is not exist in object"
   }
 
-  case object KeyIsNotReferSymbol extends EvalError {
+  case object KeyIsNotReferSymbolError extends EvalError {
     override def message: String = "given value is not a key type"
   }
 

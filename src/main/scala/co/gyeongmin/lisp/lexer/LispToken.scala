@@ -101,7 +101,7 @@ object LispToken {
     case RatioRegex(overSign, over, underSign, under) =>
       val o = parseInteger(overSign, over)
       val u = parseInteger(underSign, under)
-      if (u == 0) Left(RatioUnderZeroNotAllowed)
+      if (u == 0) Left(RatioUnderZeroNotAllowedError)
       else Right(RatioNumber(o, u))
     case ObjectReferSymbolRegex(name) => Right(ObjectReferSymbol(name))
     case LazySymbolRegex(name)        => Right(LazySymbol(name))

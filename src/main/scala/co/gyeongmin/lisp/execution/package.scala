@@ -15,7 +15,7 @@ package object execution {
     ): Either[EvalError, LispEnvironment] = env.get(symbol) match {
       case Some(OverridableFunc(functions)) =>
         Right(env.updated(symbol, OverridableFunc(functions :+ f)))
-      case Some(v) => Left(SymbolNotOverridable(v))
+      case Some(v) => Left(SymbolNotOverridableError(v))
       case None    => Right(env.updated(symbol, OverridableFunc(Vector(f))))
     }
   }
@@ -210,7 +210,7 @@ package object execution {
           (stmt, env.updated(stmt.symbol, evaluatedValue))
         }
       case LazySymbol(_) => Right((stmt, env.updated(stmt.symbol, stmt.value)))
-      case errValue      => Left(InvalidSymbolName(errValue))
+      case errValue      => Left(InvalidSymbolNameError(errValue))
     }
   }
 
