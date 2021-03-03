@@ -424,7 +424,7 @@ case class LispString(value: String) extends LispSeq {
     }
 
   override def head: Either[EvalError, LispValue] =
-    if (value.length > 0) Right(LispChar(value.head))
+    if (value.nonEmpty) Right(LispChar(value.head))
     else Left(StringIsEmptyError)
 
   override def tail: Either[EvalError, LispValue] =

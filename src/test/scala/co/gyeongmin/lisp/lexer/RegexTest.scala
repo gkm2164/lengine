@@ -1,25 +1,9 @@
 package co.gyeongmin.lisp.lexer
 
 import co.gyeongmin.lisp.errors.UnknownTokenError
-import co.gyeongmin.lisp.lexer.Tokenizer.tokenize
 import org.scalatest._
 
 class RegexTest extends FlatSpec with Matchers {
-  "tokenizer" should "parse statement" in {
-
-    tokenize(new Tokenizer("(a b c)")) should be(
-      Right(
-        Stream(
-          LeftPar,
-          EagerSymbol("a"),
-          EagerSymbol("b"),
-          EagerSymbol("c"),
-          RightPar
-        )
-      )
-    )
-  }
-
   "number regex" should "match given numbers(represented in common lisp" in {
     LispToken("0") should be(Right(IntegerNumber(0)))
     LispToken("-0") should be(Right(IntegerNumber(0)))
