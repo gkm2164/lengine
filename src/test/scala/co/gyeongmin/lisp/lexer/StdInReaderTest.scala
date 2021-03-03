@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.lexer
 
 import org.scalatest.{FlatSpec, Matchers}
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream}
 
 class StdInReaderTest extends FlatSpec with Matchers {
   "StdInReader" should "read stdin well" in {

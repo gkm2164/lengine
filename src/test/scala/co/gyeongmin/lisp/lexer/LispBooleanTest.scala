@@ -10,4 +10,9 @@ class LispBooleanTest extends FlatSpec with Matchers {
     boolValue1.and(boolValue2) should be(Right(LispFalse))
     boolValue1.or(boolValue2) should be(Right(LispTrue))
   }
+
+  "toBoolean" should "return proper value" in {
+    LispTrue.toBoolean should be(Right(true))
+    LispFalse.toBoolean should be(Right(false))
+  }
 }
