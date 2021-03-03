@@ -7,13 +7,19 @@ import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
 
 object Builtin {
-  def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(f: LispEnvironment => Either[EvalError, LispValue]): OverridableFunc =
+  def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(
+    f: LispEnvironment => Either[EvalError, LispValue]
+  ): OverridableFunc =
     OverridableFunc(Vector(new BuiltinLispFunc(symbolName, args.toList) {
-      override def execute(env: LispEnvironment): Either[EvalError, LispValue] = f(env)
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
+        f(env)
     }))
 
   implicit class LispSymbolSyntax(x: LispSymbol) {
-    private def binaryNumberStmtFunc(symbol: LispSymbol, f: (LispNumber, LispNumber) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
+    private def binaryNumberStmtFunc(
+      symbol: LispSymbol,
+      f: (LispNumber, LispNumber) => Either[EvalError, LispValue]
+    ): (LispSymbol, OverridableFunc) =
       symbol -> defBuiltinFn(symbol, E("_1"), E("_2")) { env =>
         for {
           x <- env refer E("_1")
@@ -24,7 +30,10 @@ object Builtin {
         } yield res
       }
 
-    private def unaryStmtFunc(symbol: LispSymbol, f: LispValue => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) =
+    private def unaryStmtFunc(
+      symbol: LispSymbol,
+      f: LispValue => Either[EvalError, LispValue]
+    ): (LispSymbol, OverridableFunc) =
       symbol -> defBuiltinFn(symbol, E("_1")) { env =>
         for {
           x <- env refer E("_1")
@@ -32,9 +41,13 @@ object Builtin {
         } yield res
       }
 
-    def ->!(f: LispValue => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) = unaryStmtFunc(x, f)
+    def ->!(
+      f: LispValue => Either[EvalError, LispValue]
+    ): (LispSymbol, OverridableFunc) = unaryStmtFunc(x, f)
 
-    def ->@(f: (LispNumber, LispNumber) => Either[EvalError, LispValue]): (LispSymbol, OverridableFunc) = binaryNumberStmtFunc(x, f)
+    def ->@(
+      f: (LispNumber, LispNumber) => Either[EvalError, LispValue]
+    ): (LispSymbol, OverridableFunc) = binaryNumberStmtFunc(x, f)
   }
 
   def E(name: String) = EagerSymbol(name)
@@ -53,14 +66,22 @@ object Builtin {
         argList <- arg.toSeq.flatMap(_.toList)
         historyList <- history.toSeq.flatMap(_.toList)
         historyRun <- argList.items.headOption match {
-          case Some(IntegerNumber(v)) => historyList.items.reverse.drop(v.toInt).headOption match {
-            case None => Right(LispUnit)
-            case Some(value) => value.eval(env).map(_._1)
-          }
+          case Some(IntegerNumber(v)) =>
+            historyList.items.reverse.drop(v.toInt).headOption match {
+              case None        => Right(LispUnit)
+              case Some(value) => value.eval(env).map(_._1)
+            }
           case Some(tk) => Left(UnimplementedOperationError("history", tk))
-          case None => println(historyList.items.reverse.map(_.recoverStmt()).zipWithIndex.map {
-            case (stmt, idx) => s"$idx: $stmt"
-          }.mkString("\n"))
+          case None =>
+            println(
+              historyList.items.reverse
+                .map(_.recoverStmt())
+                .zipWithIndex
+                .map { case (stmt, idx) =>
+                  s"$idx: $stmt"
+                }
+                .mkString("\n")
+            )
             Right(LispUnit)
         }
       } yield historyRun
@@ -109,11 +130,12 @@ object Builtin {
         tClause <- env refer Z("_2")
         fClause <- env refer Z("_3")
         condEvalRes <- cond.toBoolean
-        execResult <- if (condEvalRes) {
-          tClause.eval(env)
-        } else {
-          fClause.eval(env)
-        }
+        execResult <-
+          if (condEvalRes) {
+            tClause.eval(env)
+          } else {
+            fClause.eval(env)
+          }
       } yield execResult._1
     },
     E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
@@ -160,10 +182,12 @@ object Builtin {
     E("quit") -> defBuiltinFn(E("quit")) { _ =>
       System.exit(0)
       Right(LispUnit)
-    })
+    }
+  )
 
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {
-    def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] = x.get(symbol).toRight(UnknownSymbolNameError(symbol))
+    def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] =
+      x.get(symbol).toRight(UnknownSymbolNameError(symbol))
   }
 
 }

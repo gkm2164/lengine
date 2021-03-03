@@ -17,8 +17,12 @@ package object errors {
     override def message: String = s"function apply error: $msg"
   }
 
-  case class UnimplementedOperationError(operation: String, typeToken: LispValue) extends EvalError {
-    override def message: String = s"not implemented for $operation for $typeToken"
+  case class UnimplementedOperationError(
+      operation: String,
+      typeToken: LispValue
+  ) extends EvalError {
+    override def message: String =
+      s"not implemented for $operation for $typeToken"
   }
 
   case class NotANumberType(k: LispValue) extends EvalError {
@@ -61,14 +65,14 @@ package object errors {
     override def message: String = s"$lispSymbol is not definable"
   }
 
-
   sealed trait ParseError extends LispError
 
   case object EmptyTokenListError extends ParseError {
     override def message: String = s"no more token left to parse"
   }
 
-  case class UnexpectedTokenError(tk: LispToken, msg: String = "") extends ParseError {
+  case class UnexpectedTokenError(tk: LispToken, msg: String = "")
+      extends ParseError {
     override def message: String = s"unknown token: $tk, $msg"
   }
 
@@ -95,7 +99,8 @@ package object errors {
   }
 
   case object RatioUnderZeroNotAllowed extends TokenizeError {
-    override def message: String = s"under of rational number should be greater than 0"
+    override def message: String =
+      s"under of rational number should be greater than 0"
   }
 
   case object WrongEscapeError extends TokenizeError {
