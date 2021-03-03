@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.lexer
 
 import co.gyeongmin.lisp.errors._
 
+import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 trait LispValue extends LispToken {
@@ -528,7 +529,9 @@ case class SpecialToken(body: String) extends LispValue {
   // #b..
   // #o..
   // #x..
-  val NumberRegex: Regex = """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+)""".r
+
+  val NumberRegex: Regex =
+    """([0-9]+r|b|o|x)([+\-]?)(([0-9a-zA-Z]+)(/([0-9a-zA-Z]+))?)""".r
   val CharRegex: Regex =
     """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.?)""".r
 
@@ -538,28 +541,42 @@ case class SpecialToken(body: String) extends LispValue {
       ('A' to 'Z').zipWithIndex.toMap.mapValues(_ + 10)
 
   // need error handling
-  def parseNumber(base: Int, number: String): Either[TokenizeError, Long] = {
-    @scala.annotation.tailrec
-    def loop(acc: Long, remains: String): Either[TokenizeError, Long] = if (
-      remains == ""
-    ) {
-      Right(acc)
-    } else {
-      val h = charNumMap(remains.head)
-      if (h > base)
-        Left(
-          InvalidNumberTokenTypeError(
-            s"given character(${remains.head}) exceeds given base($base)"
+  def parseNumber(
+    base: Int,
+    sign: Int,
+    number: String
+  ): Either[TokenizeError, LispNumber] = {
+    @tailrec
+    def loop(acc: Long, remains: String): Either[TokenizeError, LispNumber] =
+      if (remains == "") {
+        Right(IntegerNumber(acc * sign))
+      } else if (remains.head == '/') {
+        parseNumber(base, 1, remains.tail) match {
+          case Right(IntegerNumber(num)) => Right(RatioNumber(acc * sign, num))
+          case Right(_) =>
+            Left(
+              InvalidNumberTokenTypeError(
+                s"given character($remains) is not correct type of number"
+              )
+            )
+          case Left(err) => Left(err)
+        }
+      } else {
+        val h = charNumMap(remains.head)
+        if (h > base)
+          Left(
+            InvalidNumberTokenTypeError(
+              s"given character(${remains.head}) exceeds given base($base)"
+            )
           )
-        )
-      else loop(acc * base + h, remains.tail)
-    }
+        else loop(acc * base + h, remains.tail)
+      }
 
     loop(0, number)
   }
 
   def realize: Either[TokenizeError, LispValue] = body match {
-    case NumberRegex(base, sign, number) =>
+    case NumberRegex(base, sign, number, _, _, _) =>
       val b = base match {
         case "b" => 2
         case "o" => 8
@@ -573,7 +590,7 @@ case class SpecialToken(body: String) extends LispValue {
           case ""  => 1
         }
         .getOrElse(1)
-      parseNumber(b, number).map(v => IntegerNumber(v * s))
+      parseNumber(b, s, number)
     case CharRegex(char) =>
       char match {
         case "Backspace" => Right(LispChar('\b'))

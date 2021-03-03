@@ -15,9 +15,12 @@ class SpecialTokenTest extends FlatSpec with Matchers {
 
     specialTokenVerifier("b11010101", IntegerNumber(213))
     specialTokenVerifier("b+11010101", IntegerNumber(213))
+    specialTokenVerifier("b-11010101", IntegerNumber(-213))
     specialTokenVerifier("o325", IntegerNumber(213))
     specialTokenVerifier("xD5", IntegerNumber(213))
     specialTokenVerifier("16r+D5", IntegerNumber(213))
+    specialTokenVerifier("b1101/11", RatioNumber(13, 3))
+    specialTokenVerifier("b-1101/11", RatioNumber(-13, 3))
     specialTokenVerifier("\\Backspace", LispChar('\b'))
     specialTokenVerifier("\\Space", LispChar(' '))
     specialTokenVerifier("\\c", LispChar('c'))
