@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer
 
 import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.lexer.tokens.LispToken
 
 class Tokenizer() {
   var codeIterator: Iterator[Char] = _
@@ -83,6 +84,7 @@ class Tokenizer() {
 }
 
 object Tokenizer {
-  def tokenize(code: Tokenizer): Either[TokenizeError, Stream[LispToken]] =
+  def tokenize(code: Tokenizer): Either[TokenizeError, Stream[LispToken]] = {
     Right(code.streamLoop)
+  }
 }

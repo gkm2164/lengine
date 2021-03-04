@@ -5,6 +5,7 @@
 
 (fn fact-tailrec (acc 0) acc)
 (fn fact-tailrec (acc n) (fact-tailrec (* acc n) (- n 1)))
+(fn fact-tailrec (n) (fact-tailrec 1 n))
 
 (fn fib (n)
   (if (<= n 1)

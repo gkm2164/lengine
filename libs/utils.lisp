@@ -4,3 +4,6 @@
 
 (fn inc (x)
     (+ x 1))
+
+(fn dec (x)
+    (- x 1))

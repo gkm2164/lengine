@@ -1,13 +1,16 @@
 package co.gyeongmin.lisp
 
 import java.util.concurrent.atomic.AtomicLong
-
 import co.gyeongmin.lisp.parser._
 import co.gyeongmin.lisp.builtin._
 import co.gyeongmin.lisp.debug._
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.execution._
 import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.lexer.tokens.LispToken
+import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 
 import scala.io.Source
 
@@ -60,14 +63,13 @@ object Main {
 
   def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit
     debugger: Option[Debugger]
-  ): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] = {
+  ): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {
       tokens <- Tokenizer
         .tokenize(tokenizer)
         .leftMap(x => (EvalTokenizeError(x), env))
       res <- evalLoop(tokens, env)
     } yield res
-  }
 
   @scala.annotation.tailrec
   def replLoop(env: LispEnvironment): Unit = {
@@ -86,7 +88,7 @@ object Main {
     val refinedPath = if (path.endsWith(".lisp")) path else path + ".lisp"
     val file = Source.fromFile(refinedPath)
     val tokenizer = new Tokenizer(file.mkString(""))
-    implicit val debugger: Option[Debugger] = None
+    implicit val debugger: Option[Debugger] = Some(new ReplDebugger)
     runLoop(tokenizer, env) match {
       case Right((_, env))                                  => env
       case Left((EvalParseError(EmptyTokenListError), env)) => env

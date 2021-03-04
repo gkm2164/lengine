@@ -1,7 +1,39 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.lexer.statements.{
+  LispDoStmt,
+  LispForStmt,
+  LispFuncDef,
+  LispImportDef,
+  LispLetDef,
+  LispLoopStmt,
+  LispNamespace,
+  LispValueDef
+}
+import co.gyeongmin.lisp.lexer.tokens.SpecialToken
+import co.gyeongmin.lisp.lexer.values.{
+  LispChar,
+  LispClause,
+  LispObject,
+  LispUnit,
+  LispValue
+}
+import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.{
+  BuiltinLispFunc,
+  GeneralLispFunc,
+  LispFunc,
+  OverridableFunc
+}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{
+  EagerSymbol,
+  LazySymbol,
+  LispSymbol,
+  ListSymbol
+}
 
 import scala.annotation.tailrec
 

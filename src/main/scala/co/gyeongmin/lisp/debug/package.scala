@@ -1,6 +1,45 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
+import co.gyeongmin.lisp.lexer.statements.{
+  LispDoStmt,
+  LispForStmt,
+  LispFuncDef,
+  LispLetDef,
+  LispLoopStmt,
+  LispNamespace,
+  LispValueDef
+}
+import co.gyeongmin.lisp.lexer.tokens.SpecialToken
+import co.gyeongmin.lisp.lexer.values.{
+  LispChar,
+  LispClause,
+  LispObject,
+  LispUnit,
+  LispValue
+}
+import co.gyeongmin.lisp.lexer.values.numbers.{
+  ComplexNumber,
+  FloatNumber,
+  IntegerNumber,
+  LispNumber,
+  RatioNumber
+}
+import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.{
+  BuiltinLispFunc,
+  GeneralLispFunc,
+  LispFunc,
+  OverridableFunc
+}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{
+  EagerSymbol,
+  LazySymbol,
+  LispSymbol,
+  ListSymbol,
+  ObjectReferSymbol
+}
 
 package object debug {
 
@@ -50,7 +89,7 @@ package object debug {
             }
           case _ => "#unknown symbol"
         }
-      case obj: LispObject   => s"${obj.recoverStmt()}: Object"
+      case obj: LispObject   => s"${obj.recoverStmt}: Object"
       case LispChar(chs)     => s"$chs: Char"
       case LispString(value) => s""""$value": String"""
       case symbol: LispSymbol =>

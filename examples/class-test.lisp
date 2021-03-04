@@ -4,6 +4,8 @@
 
 (fn add (x y) (+ x y))
 
-(fn -main (args) do
+(fn main (args) (do
     (println "2345")
-    return ())
+    return ()))
+
+(main [])

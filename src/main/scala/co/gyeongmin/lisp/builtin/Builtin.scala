@@ -1,10 +1,24 @@
 package co.gyeongmin.lisp.builtin
 
-import java.io._
+import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
 
+import java.io._
 import co.gyeongmin.lisp.errors._
 import co.gyeongmin.lisp.execution._
-import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
+import co.gyeongmin.lisp.lexer.values.functions.{
+  BuiltinLispFunc,
+  OverridableFunc
+}
+import co.gyeongmin.lisp.lexer.values.numbers.{IntegerNumber, LispNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispSeq, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{
+  EagerSymbol,
+  LazySymbol,
+  LispSymbol,
+  ListSymbol
+}
 
 object Builtin {
   def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(
@@ -16,17 +30,18 @@ object Builtin {
     }))
 
   implicit class LispSymbolSyntax(x: LispSymbol) {
-    private def binaryNumberStmtFunc(
+    private def binaryStmtFunc[T <: LispValue](
       symbol: LispSymbol,
-      f: (LispNumber, LispNumber) => Either[EvalError, LispValue]
+      retriever: LispValue => Either[EvalError, T],
+      f: (T, T) => Either[EvalError, LispValue]
     ): (LispSymbol, OverridableFunc) =
       symbol -> defBuiltinFn(symbol, E("_1"), E("_2")) { env =>
         for {
           x <- env refer E("_1")
           y <- env refer E("_2")
-          xNum <- x.toNumber
-          yNum <- y.toNumber
-          res <- f(xNum, yNum)
+          xVal <- retriever(x)
+          yVal <- retriever(y)
+          res <- f(xVal, yVal)
         } yield res
       }
 
@@ -47,7 +62,15 @@ object Builtin {
 
     def ->@(
       f: (LispNumber, LispNumber) => Either[EvalError, LispValue]
-    ): (LispSymbol, OverridableFunc) = binaryNumberStmtFunc(x, f)
+    ): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, _.toNumber, f)
+
+    def ->#(
+      f: (LispBoolean, LispBoolean) => Either[EvalError, LispBoolean]
+    ): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, _.as[LispBoolean], f)
+
+    def ->%(
+      f: (LispSeq, LispSeq) => Either[EvalError, LispValue]
+    ): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, _.toSeq, f)
   }
 
   def E(name: String) = EagerSymbol(name)
@@ -75,7 +98,7 @@ object Builtin {
           case None =>
             println(
               historyList.items.reverse
-                .map(_.recoverStmt())
+                .map(_.recoverStmt)
                 .zipWithIndex
                 .map { case (stmt, idx) =>
                   s"$idx: $stmt"
@@ -95,8 +118,8 @@ object Builtin {
     E("<") ->@ (_ lt _),
     E(">=") ->@ (_ gte _),
     E("<=") ->@ (_ lte _),
-    E("and") ->@ (_ and _),
-    E("or") ->@ (_ or _),
+    E("and") -># (_ and _),
+    E("or") -># (_ or _),
     E("head") ->! (_.toSeq.flatMap(_.head)),
     E("tail") ->! (_.toSeq.flatMap(_.tail)),
     E("cons") -> defBuiltinFn(E("cons"), E("_1"), E("_2")) { env =>
@@ -111,15 +134,7 @@ object Builtin {
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
     E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length))),
-    E("++") -> defBuiltinFn(E("++"), E("_1"), E("_2")) { env =>
-      for {
-        x <- env refer E("_1")
-        y <- env refer E("_2")
-        xSeq <- x.toSeq
-        ySeq <- y.toSeq
-        res <- xSeq ++ ySeq
-      } yield res
-    },
+    E("++") ->% (_ ++ _),
     E("now") -> defBuiltinFn(E("now")) { _ =>
       Right(IntegerNumber(System.currentTimeMillis()))
     },
@@ -144,12 +159,7 @@ object Builtin {
         x <- list.toSeq.flatMap(_.toList)
       } yield x
     },
-    E("float") -> defBuiltinFn(E("float"), E("_1")) { env =>
-      for {
-        x <- env refer E("_1")
-        num <- x.toFloat
-      } yield num
-    },
+    E("float") ->! (_.toFloat),
     E("print") -> defBuiltinFn(E("print"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
@@ -189,5 +199,4 @@ object Builtin {
     def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] =
       x.get(symbol).toRight(UnknownSymbolNameError(symbol))
   }
-
 }

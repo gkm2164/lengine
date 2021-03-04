@@ -3,7 +3,53 @@ package co.gyeongmin.lisp
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.lexer.statements.{
+  LispDoStmt,
+  LispForStmt,
+  LispFuncDef,
+  LispImportDef,
+  LispLetDef,
+  LispLoopStmt,
+  LispNamespace,
+  LispValueDef
+}
+import co.gyeongmin.lisp.lexer.tokens.{
+  CmplxNPar,
+  LeftBrace,
+  LeftBracket,
+  LeftPar,
+  LispDef,
+  LispDo,
+  LispFn,
+  LispFor,
+  LispImport,
+  LispIn,
+  LispLambda,
+  LispLet,
+  LispLoop,
+  LispNil,
+  LispNop,
+  LispNs,
+  LispReturn,
+  LispToken,
+  ListStartPar,
+  RightBrace,
+  RightBracket,
+  RightPar,
+  SpecialToken
+}
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
+import co.gyeongmin.lisp.lexer.{statements, values, _}
+import co.gyeongmin.lisp.lexer.values.{
+  LispClause,
+  LispObject,
+  LispUnit,
+  LispValue,
+  numbers
+}
+import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.monad._
 
 import scala.reflect.ClassTag
@@ -13,7 +59,7 @@ package object parser {
     real <- takeToken[LispNumber]
     imagine <- takeToken[LispNumber]
     _ <- takeToken[RightPar.type]
-  } yield ComplexNumber(real, imagine)
+  } yield numbers.ComplexNumber(real, imagine)
 
   import cats.syntax.either._
 
@@ -38,13 +84,13 @@ package object parser {
       value <- parseValue
     } yield key -> value)
     _ <- takeToken[RightBrace.type]
-  } yield LispObject(keyValuePairs.toMap)
+  } yield values.LispObject(keyValuePairs.toMap)
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty     => Left(EmptyTokenListError)
     case LispNop #:: tail => parseDef(tail)
     case (x: LispSymbol) #:: tail =>
-      parseValue.map(v => LispValueDef(x, v))(tail)
+      parseValue.map(v => statements.LispValueDef(x, v))(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
@@ -77,7 +123,7 @@ package object parser {
   def parseFunc: LispTokenState[LispFuncDef] = for {
     symbol <- parseSymbol
     lambda <- parseLambda
-  } yield LispFuncDef(symbol, lambda)
+  } yield statements.LispFuncDef(symbol, lambda)
 
   implicit class LispTokenStateSyntax[A](x: LispTokenState[A]) {
     def |[B >: A](y: LispTokenState[B]): LispTokenState[B] = tokens => {
@@ -107,7 +153,7 @@ package object parser {
     symbol <- takeToken[LispSymbol]
     _ <- takeToken[LispIn.type]
     value <- parseValue
-  } yield LispForStmt(symbol, value)
+  } yield statements.LispForStmt(symbol, value)
 
   def parseClause: LispTokenState[LispValue] = {
     case LispLet #:: tail =>

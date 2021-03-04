@@ -1,6 +1,8 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.lexer._
+import co.gyeongmin.lisp.lexer.tokens.LispToken
+import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 
 package object errors {
   trait LispError {
