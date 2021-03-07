@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
+import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.LispTrue
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -12,16 +13,36 @@ class ComplexNumberTest extends FlatSpec with Matchers {
   it should "pass" in {
     one.printable() should be(Right(s"complex number {real: 1 + imagine: 1}"))
 
+    (one + one) should be(
+      Right(ComplexNumber(IntegerNumber(2), IntegerNumber(2)))
+    )
+
+    (one + IntegerNumber(1)) should be(
+      Right(ComplexNumber(IntegerNumber(2), IntegerNumber(1)))
+    )
+
     (one - one) should be(
       Right(IntegerNumber(0))
+    )
+
+    (one - IntegerNumber(1)) should be(
+      Right(ComplexNumber(IntegerNumber(0), IntegerNumber(1)))
     )
 
     (one * one) should be(
       Right(ComplexNumber(IntegerNumber(0), IntegerNumber(2)))
     )
 
+    (one * IntegerNumber(1)) should be(
+      Right(ComplexNumber(IntegerNumber(1), IntegerNumber(1)))
+    )
+
     (one / one) should be(
       Right(IntegerNumber(1))
+    )
+
+    (one / IntegerNumber(1)) should be(
+      Right(ComplexNumber(IntegerNumber(1), IntegerNumber(1)))
     )
 
     one.toComplexNumber should be(Right(one))
@@ -31,5 +52,12 @@ class ComplexNumberTest extends FlatSpec with Matchers {
     )
 
     one.zero should be(Right(ComplexNumber(IntegerNumber(0), IntegerNumber(0))))
+  }
+
+  it should "fail" in {
+    (one + LispUnit) should matchPattern { case Left(_) => }
+    (one - LispUnit) should matchPattern { case Left(_) => }
+    (one * LispUnit) should matchPattern { case Left(_) => }
+    (one / LispUnit) should matchPattern { case Left(_) => }
   }
 }
