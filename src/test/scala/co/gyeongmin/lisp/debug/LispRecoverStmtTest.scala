@@ -20,9 +20,19 @@ import co.gyeongmin.lisp.lexer.values.functions.{
   LispFunc,
   OverridableFunc
 }
-import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, IntegerNumber}
+import co.gyeongmin.lisp.lexer.values.numbers.{
+  ComplexNumber,
+  FloatNumber,
+  IntegerNumber,
+  RatioNumber
+}
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{
+  EagerSymbol,
+  LazySymbol,
+  ListSymbol,
+  ObjectReferSymbol
+}
 import org.easymock.EasyMock.{expect, replay}
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatestplus.easymock.EasyMockSugar.mock
@@ -96,9 +106,34 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
       "#C(1 1)"
     )
 
+    assertStmt(LispChar('c'), "#\\c")
+
     assertStmt(
-      LispChar('c'),
-      "#\\c"
+      FloatNumber(3.5),
+      "3.5"
+    )
+
+    assertStmt(
+      RatioNumber(3, 5),
+      "3/5"
+    )
+  }
+
+  "debug" should "work" in {
+    RatioNumber(1, 3).debug() should be("1/3: Rational")
+    LispNamespace(LispString("something")).debug() should be(
+      s"namespace declaration: something"
+    )
+    LispFuncDef(
+      EagerSymbol("a"),
+      GeneralLispFunc(List(EagerSymbol("a")), LispUnit)
+    ).debug() should be(
+      "function definition to a: eager evaluation symbol -> (lambda (a) ()): Lambda"
+    )
+    LazySymbol("'a").debug() should be("'a: lazy evaluation symbol")
+    ListSymbol("a*").debug() should be("a*: a symbol for list")
+    ObjectReferSymbol("a").debug() should be(
+      ":a: a symbol for object reference"
     )
   }
 }

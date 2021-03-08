@@ -124,15 +124,6 @@ package object parser {
     lambda <- parseLambda
   } yield LispFuncDef(symbol, lambda)
 
-  implicit class LispTokenStateSyntax[A](x: LispTokenState[A]) {
-    def |[B >: A](y: LispTokenState[B]): LispTokenState[B] = tokens => {
-      x(tokens) match {
-        case Right(v) => Right(v)
-        case Left(_)  => y(tokens)
-      }
-    }
-  }
-
   def many[A](parser: LispTokenState[A]): LispTokenState[List[A]] = tks => {
     def loop(acc: Vector[A]): LispTokenState[List[A]] = {
       case Stream.Empty     => LispTokenState(acc.toList)(Stream.empty)
