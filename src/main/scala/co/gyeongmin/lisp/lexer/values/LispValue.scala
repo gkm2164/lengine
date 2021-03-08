@@ -67,4 +67,20 @@ trait LispValue extends LispToken {
   def toFloat: Either[EvalError, FloatNumber] = as[FloatNumber]
 
   def toComplexNumber: Either[EvalError, ComplexNumber] = as[ComplexNumber]
+
+  protected def traverse(
+    vector: Vector[Either[EvalError, String]]
+  ): Either[EvalError, Vector[String]] = {
+    vector.foldLeft[Either[EvalError, Vector[String]]](Right(Vector()))(
+      (acc, elem) =>
+        acc match {
+          case Right(res) =>
+            elem match {
+              case Right(value) => Right(res :+ value)
+              case Left(e)      => Left(e)
+            }
+          case l @ Left(_) => l
+        }
+    )
+  }
 }

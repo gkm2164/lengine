@@ -32,5 +32,7 @@ class LibraryTest extends FlatSpec with Matchers {
     runCommand("libs/math", "(fact 5)") should include("120: Integer")
     runCommand("libs/math", "(fact-tailrec 5)") should include("120: Integer")
     runCommand("libs/math", "(fib 3)") should include("2: Integer")
+    runCommand("libs/math", "(abs 1)") should include("1: Integer")
+    runCommand("libs/math", "(abs -1)") should include("1: Integer")
   }
 }

@@ -74,7 +74,7 @@ object Main {
   @scala.annotation.tailrec
   def replLoop(env: LispEnvironment): Unit = {
     val tokenizer = new Tokenizer(new StdInReader(printPrompt(env)))
-    implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger())
+    implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger)
     runLoop(tokenizer, env) match {
       case Right(_)                                       => ()
       case Left((EvalParseError(EmptyTokenListError), _)) =>
@@ -88,7 +88,7 @@ object Main {
     val refinedPath = if (path.endsWith(".lisp")) path else path + ".lisp"
     val file = Source.fromFile(refinedPath)
     val tokenizer = new Tokenizer(file.mkString(""))
-    implicit val debugger: Option[Debugger] = Some(new ReplDebugger)
+    implicit val debugger: Option[Debugger] = None
     runLoop(tokenizer, env) match {
       case Right((_, env))                                  => env
       case Left((EvalParseError(EmptyTokenListError), env)) => env

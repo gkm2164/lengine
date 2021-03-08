@@ -11,3 +11,8 @@
   (if (<= n 1)
     n
     (+ (fib (- n 1)) (fib (- n 2)))))
+
+(fn abs (n)
+  (if (< n 0)
+    (neg n)
+    n))

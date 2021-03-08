@@ -133,6 +133,7 @@ object Builtin {
     E("=") ->@ (_ eq _),
     E("/=") ->@ (_ neq _),
     E("not") ->! (_.not),
+    E("neg") ->! (_.toNumber.flatMap(_.neg)),
     E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length))),
     E("++") ->% (_ ++ _),
     E("now") -> defBuiltinFn(E("now")) { _ =>
