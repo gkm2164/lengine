@@ -83,8 +83,9 @@ case class RatioNumber(over: Long, under: Long) extends LispNumber {
           RatioNumber(oa, ua) = a
           RatioNumber(ob, ub) = b
         } yield LispBoolean(oa == ob && ua == ub)
-      case f: FloatNumber => this.toFloat.flatMap(x => x eq f)
-      case _              => Left(UnimplementedOperationError("=: RatioNumber", other))
+      case f: FloatNumber   => this.toFloat.flatMap(_ eq f)
+      case c: ComplexNumber => this.toComplexNumber.flatMap(_ eq c)
+      case _                => Left(UnimplementedOperationError("=: RatioNumber", other))
     }
 
   override def gt(other: LispValue): Either[EvalError, LispBoolean] = {

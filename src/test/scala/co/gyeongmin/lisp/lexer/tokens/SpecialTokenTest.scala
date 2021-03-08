@@ -28,4 +28,8 @@ class SpecialTokenTest extends FlatSpec with Matchers {
     specialTokenVerifier("\\Space", LispChar(' '))
     specialTokenVerifier("\\c", LispChar('c'))
   }
+
+  it should "fail" in {
+    SpecialToken("anything").realize should matchPattern { case Left(_) => }
+  }
 }

@@ -28,8 +28,6 @@ trait LispNumber extends LispValue {
       } yield ComplexNumber(real, imagine)
   }
 
-  protected final def signature(o: Long): Long = if (o >= 0) 1 else -1
-
   protected final def abs(a: Long): Long = if (a >= 0) a else -a
 
   @scala.annotation.tailrec

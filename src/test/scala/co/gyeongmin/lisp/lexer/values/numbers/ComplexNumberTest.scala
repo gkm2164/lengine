@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.lexer.values.LispUnit
-import co.gyeongmin.lisp.lexer.values.boolean.LispTrue
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import org.scalatest.{FlatSpec, Matchers}
 
 class ComplexNumberTest extends FlatSpec with Matchers {
@@ -51,6 +51,9 @@ class ComplexNumberTest extends FlatSpec with Matchers {
       Right(LispTrue)
     )
 
+    (one eq one) should be(Right(LispTrue))
+    (one eq IntegerNumber(1)) should be(Right(LispFalse))
+
     one.zero should be(Right(ComplexNumber(IntegerNumber(0), IntegerNumber(0))))
   }
 
@@ -59,5 +62,6 @@ class ComplexNumberTest extends FlatSpec with Matchers {
     (one - LispUnit) should matchPattern { case Left(_) => }
     (one * LispUnit) should matchPattern { case Left(_) => }
     (one / LispUnit) should matchPattern { case Left(_) => }
+    (one eq LispUnit) should matchPattern { case Left(_) => }
   }
 }

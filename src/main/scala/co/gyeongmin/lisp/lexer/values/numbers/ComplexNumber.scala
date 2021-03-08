@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
 case class ComplexNumber(real: LispNumber, imagine: LispNumber)
     extends LispNumber {
@@ -72,5 +73,17 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield ComplexNumber(newReal, newImagine).normalize
       case _: LispNumber => other.toComplexNumber.flatMap(this / _)
       case _             => Left(UnimplementedOperationError("/: ComplexNumber", other))
+    }
+
+  override def eq(other: LispValue): Either[EvalError, LispBoolean] =
+    other match {
+      case ComplexNumber(r, i) =>
+        for {
+          rResult <- real eq r
+          iResult <- imagine eq i
+          result <- rResult and iResult
+        } yield result
+      case _: LispNumber => other.toComplexNumber.flatMap(this eq _)
+      case _             => Left(UnimplementedOperationError("=: ComplexNumber", other))
     }
 }

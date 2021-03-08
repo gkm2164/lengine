@@ -19,40 +19,46 @@ class FloatNumberTest extends FlatSpec with Matchers {
 
   "arithmetic operations" should "work" in {
     number1.printable() should be(Right("10.0"))
-    (number1 + number2) should be(Right(FloatNumber(15.0)))
-    (number1 - number2) should be(Right(FloatNumber(5.0)))
-    (number1 * number2) should be(Right(FloatNumber(50.0)))
-    (number1 / number2) should be(Right(FloatNumber(2.0)))
-
     (number1 + intNumber) should be(Right(FloatNumber(11.0)))
-    (number1 - intNumber) should be(Right(FloatNumber(9.0)))
-    (number1 * intNumber) should be(Right(FloatNumber(10.0)))
-    (number1 / intNumber) should be(Right(FloatNumber(10.0)))
-
     (number1 + ratioNumber) should be(Right(FloatNumber(10.5)))
-    (number1 - ratioNumber) should be(Right(FloatNumber(9.5)))
-    (number1 * ratioNumber) should be(Right(FloatNumber(5.0)))
-    (number1 / ratioNumber) should be(Right(FloatNumber(20.0)))
-
+    (number1 + number2) should be(Right(FloatNumber(15.0)))
     (number1 + complexNumber) should be(
       Right(ComplexNumber(FloatNumber(13.0), FloatNumber(1.0)))
     )
+
+    (number1 - number2) should be(Right(FloatNumber(5.0)))
+    (number1 - intNumber) should be(Right(FloatNumber(9.0)))
+    (number1 - ratioNumber) should be(Right(FloatNumber(9.5)))
     (number1 - complexNumber) should be(
       Right(ComplexNumber(FloatNumber(7.0), FloatNumber(-1.0)))
     )
+
+    (number1 * number2) should be(Right(FloatNumber(50.0)))
+    (number1 * intNumber) should be(Right(FloatNumber(10.0)))
+    (number1 * ratioNumber) should be(Right(FloatNumber(5.0)))
     (number1 * complexNumber) should be(
       Right(ComplexNumber(FloatNumber(30.0), FloatNumber(10.0)))
     )
+
+    (number1 / number2) should be(Right(FloatNumber(2.0)))
+    (number1 / intNumber) should be(Right(FloatNumber(10.0)))
+    (number1 / ratioNumber) should be(Right(FloatNumber(20.0)))
     (number1 / complexNumber) should be(
       Right(ComplexNumber(FloatNumber(3.0), FloatNumber(-1.0)))
     )
 
-    (number1 + LispUnit) should matchPattern { case Left(_) => }
-    (number1 - LispUnit) should matchPattern { case Left(_) => }
-    (number1 * LispUnit) should matchPattern { case Left(_) => }
-    (number1 / LispUnit) should matchPattern { case Left(_) => }
+    number1.toRatio should be(Right(RatioNumber(10, 1)))
 
     number1.neg should be(Right(FloatNumber(-10.0)))
+
+    (number1 eq intNumber) should be(Right(LispFalse))
+    (number1 eq ratioNumber) should be(Right(LispFalse))
+    (number1 eq number1) should be(Right(LispTrue))
+    (number1 eq complexNumber) should be(Right(LispFalse))
+
+    (number1 gt intNumber) should be(Right(LispTrue))
+    (number1 gt ratioNumber) should be(Right(LispTrue))
+    (number1 gt number1) should be(Right(LispFalse))
   }
 
   "converting data type" should "work" in {
@@ -64,5 +70,15 @@ class FloatNumberTest extends FlatSpec with Matchers {
     FloatNumber(10.5).toRatio should be(
       Right(RatioNumber(21, 2))
     )
+  }
+
+  it should "fail" in {
+    (number1 + LispUnit) should matchPattern { case Left(_) => }
+    (number1 - LispUnit) should matchPattern { case Left(_) => }
+    (number1 * LispUnit) should matchPattern { case Left(_) => }
+    (number1 / LispUnit) should matchPattern { case Left(_) => }
+
+    (number1 eq LispUnit) should matchPattern { case Left(_) => }
+    (number1 gt LispUnit) should matchPattern { case Left(_) => }
   }
 }

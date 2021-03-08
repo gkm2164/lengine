@@ -8,6 +8,7 @@ import co.gyeongmin.lisp.lexer.statements.{
   LispForStmt,
   LispFuncDef,
   LispImportDef,
+  LispLetDef,
   LispLoopStmt,
   LispNamespace,
   LispValueDef
@@ -51,6 +52,11 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
     assertStmt(LispNamespace(LispString("hello")), "(ns \"hello\")")
 
     assertStmt(LispValueDef(EagerSymbol("a"), LispUnit), "(def a ())")
+
+    assertStmt(
+      LispLetDef(EagerSymbol("a"), LispUnit, LispUnit),
+      "(let a () ())"
+    )
 
     assertStmt(
       new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {

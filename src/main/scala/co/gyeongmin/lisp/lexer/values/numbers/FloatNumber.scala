@@ -69,15 +69,16 @@ case class FloatNumber(value: Double) extends LispNumber {
   override def eq(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
       case IntegerNumber(num) => Right(LispBoolean(value == num))
-      case r: RatioNumber     => r.toFloat.flatMap(_.eq(r))
+      case r: RatioNumber     => r.toFloat.flatMap(this eq _)
       case FloatNumber(num)   => Right(LispBoolean(value == num))
+      case c: ComplexNumber   => this.toComplexNumber.flatMap(_ eq c)
       case x                  => Left(UnimplementedOperationError(s"=", x))
     }
 
   override def gt(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
       case IntegerNumber(num) => Right(LispBoolean(value > num))
-      case r: RatioNumber     => r.toFloat.flatMap(_.gt(r))
+      case r: RatioNumber     => r.toFloat.flatMap(this gt _)
       case FloatNumber(num)   => Right(LispBoolean(value > num))
       case x                  => Left(UnimplementedOperationError(">", x))
     }
