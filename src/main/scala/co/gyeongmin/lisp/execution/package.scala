@@ -196,10 +196,17 @@ package object execution {
           case (v :: symbolTail, arg :: argTail) =>
             for {
               argEvalRes <- arg.eval(env)
-              vRes <- v.eq(argEvalRes._1)
+              (argEvalResult, _) = argEvalRes
+              vRes <- v eq argEvalResult
+              vResBool <- vRes.toBoolean
               envRes <-
-                if (vRes == LispTrue) applyLoop(accEnv, symbolTail, argTail)
-                else Left(FunctionApplyError("eval error"))
+                if (vResBool) applyLoop(accEnv, symbolTail, argTail)
+                else
+                  Left(
+                    FunctionApplyError(
+                      "is not applicable for the values are different"
+                    )
+                  )
             } yield envRes
           case _ =>
             Left(
