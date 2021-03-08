@@ -66,18 +66,18 @@ case class IntegerNumber(value: Long) extends LispNumber {
   override def eq(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
       case IntegerNumber(num) => Right(LispBoolean(value == num))
-      case x                  => Left(UnimplementedOperationError(s"==", x))
+      case r: RatioNumber     => this.toRatio.flatMap(_.eq(r))
+      case f: FloatNumber     => this.toFloat.flatMap(_.eq(f))
+      case x                  => Left(UnimplementedOperationError(s"=", x))
     }
 
   override def gt(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
       case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
-      case FloatNumber(num) =>
-        Right(if (value.toDouble > num) LispTrue else LispFalse)
-      case x => Left(UnimplementedOperationError(">", x))
+      case r: RatioNumber     => this.toRatio.flatMap(_.gt(r))
+      case f: FloatNumber     => this.toFloat.flatMap(_.gt(f))
+      case x                  => Left(UnimplementedOperationError(">", x))
     }
-
-  override def toInt: Either[EvalError, IntegerNumber] = Right(this)
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
 }

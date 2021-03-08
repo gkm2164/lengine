@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
 case class RatioNumber(over: Long, under: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(
@@ -71,4 +72,32 @@ case class RatioNumber(over: Long, under: Long) extends LispNumber {
       case c: ComplexNumber           => this.toComplexNumber.flatMap(_ / c)
       case _                          => Left(UnimplementedOperationError("/: RatioNumber", other))
     }
+
+  override def eq(other: LispValue): Either[EvalError, LispBoolean] =
+    other match {
+      case i: IntegerNumber => i.toRatio.flatMap(x => this eq x)
+      case r: RatioNumber =>
+        for {
+          a <- this.normalize.toRatio
+          b <- r.normalize.toRatio
+          RatioNumber(oa, ua) = a
+          RatioNumber(ob, ub) = b
+        } yield LispBoolean(oa == ob && ua == ub)
+      case f: FloatNumber => this.toFloat.flatMap(x => x eq f)
+      case _              => Left(UnimplementedOperationError("=: RatioNumber", other))
+    }
+
+  override def gt(other: LispValue): Either[EvalError, LispBoolean] = {
+    def comp(that: LispNumber) =
+      (this - that).flatMap(_.toRatio).map { case RatioNumber(over, _) =>
+        LispBoolean(over > 0)
+      }
+
+    other match {
+      case i: IntegerNumber => comp(i)
+      case r: RatioNumber   => comp(r)
+      case f: FloatNumber   => this.toFloat.flatMap(x => x gt f)
+      case _                => Left(UnimplementedOperationError("=: RatioNumber", other))
+    }
+  }
 }

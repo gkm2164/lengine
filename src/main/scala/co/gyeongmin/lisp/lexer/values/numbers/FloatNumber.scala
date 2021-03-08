@@ -2,11 +2,30 @@ package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
+
+import scala.annotation.tailrec
 
 case class FloatNumber(value: Double) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(FloatNumber(-value))
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
+
+  override def toInt: Either[EvalError, IntegerNumber] =
+    Right(IntegerNumber(value.toInt))
+
+  override def toRatio: Either[EvalError, RatioNumber] = {
+    @tailrec
+    def findUnder(acc: Int): Int =
+      if ((value * acc).toInt == value * acc) acc else findUnder(acc * 10)
+
+    val under = findUnder(1)
+
+    RatioNumber((value * under).toInt, under).normalize match {
+      case IntegerNumber(value) => Right(RatioNumber(value, 1))
+      case r: RatioNumber       => Right(r)
+    }
+  }
 
   override def toComplexNumber: Either[EvalError, ComplexNumber] =
     zero.map(z => ComplexNumber(this, z))
@@ -45,5 +64,21 @@ case class FloatNumber(value: Double) extends LispNumber {
       case FloatNumber(v)   => Right(FloatNumber(value / v))
       case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
       case _                => Left(UnimplementedOperationError("/: FloatNumber", other))
+    }
+
+  override def eq(other: LispValue): Either[EvalError, LispBoolean] =
+    other match {
+      case IntegerNumber(num) => Right(LispBoolean(value == num))
+      case r: RatioNumber     => r.toFloat.flatMap(_.eq(r))
+      case FloatNumber(num)   => Right(LispBoolean(value == num))
+      case x                  => Left(UnimplementedOperationError(s"=", x))
+    }
+
+  override def gt(other: LispValue): Either[EvalError, LispBoolean] =
+    other match {
+      case IntegerNumber(num) => Right(LispBoolean(value > num))
+      case r: RatioNumber     => r.toFloat.flatMap(_.gt(r))
+      case FloatNumber(num)   => Right(LispBoolean(value > num))
+      case x                  => Left(UnimplementedOperationError(">", x))
     }
 }

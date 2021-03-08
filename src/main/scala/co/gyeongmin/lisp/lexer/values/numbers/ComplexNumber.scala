@@ -11,8 +11,9 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
   } yield s"complex number {real: $a + imagine: $b}"
 
   def normalize: LispNumber = (for {
-    z <- imagine.zero
-  } yield if (z == imagine) real else this).getOrElse(this)
+    isImagineZero <- imagine.isZero
+    boolVal <- isImagineZero.toBoolean
+  } yield if (boolVal) real else this).getOrElse(this)
 
   override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(this)
 
