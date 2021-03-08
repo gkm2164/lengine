@@ -42,14 +42,6 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
 }
 
 package object debug {
-
-  trait DebugUtil {
-    def debug(msg: String = "")(f: => Unit): Unit = {
-      println(msg)
-      f
-    }
-  }
-
   sealed trait Debugger {
     def printError(e: errors.LispError): Unit
 

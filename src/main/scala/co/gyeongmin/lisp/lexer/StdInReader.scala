@@ -2,15 +2,11 @@ package co.gyeongmin.lisp.lexer
 
 import java.io.EOFException
 
-import co.gyeongmin.lisp.debug.DebugUtil
-
 import scala.collection.mutable
 import scala.io.StdIn
 import scala.util._
 
-class StdInReader(prompt: => Either[_, String])
-    extends Iterator[Char]
-    with DebugUtil {
+class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] {
   override def hasNext: Boolean = ensureQueueFill().isRight
 
   override def next(): Char = {
