@@ -39,7 +39,6 @@ import co.gyeongmin.lisp.lexer.tokens.{
   SpecialToken
 }
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.{statements, values, _}
 import co.gyeongmin.lisp.lexer.values.{
   LispClause,
   LispObject,
@@ -84,13 +83,13 @@ package object parser {
       value <- parseValue
     } yield key -> value)
     _ <- takeToken[RightBrace.type]
-  } yield values.LispObject(keyValuePairs.toMap)
+  } yield LispObject(keyValuePairs.toMap)
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty     => Left(EmptyTokenListError)
     case LispNop #:: tail => parseDef(tail)
     case (x: LispSymbol) #:: tail =>
-      parseValue.map(v => statements.LispValueDef(x, v))(tail)
+      parseValue.map(v => LispValueDef(x, v))(tail)
     case tk #:: _ => Left(UnexpectedTokenError(tk))
   }
 
@@ -123,7 +122,7 @@ package object parser {
   def parseFunc: LispTokenState[LispFuncDef] = for {
     symbol <- parseSymbol
     lambda <- parseLambda
-  } yield statements.LispFuncDef(symbol, lambda)
+  } yield LispFuncDef(symbol, lambda)
 
   implicit class LispTokenStateSyntax[A](x: LispTokenState[A]) {
     def |[B >: A](y: LispTokenState[B]): LispTokenState[B] = tokens => {
@@ -153,7 +152,7 @@ package object parser {
     symbol <- takeToken[LispSymbol]
     _ <- takeToken[LispIn.type]
     value <- parseValue
-  } yield statements.LispForStmt(symbol, value)
+  } yield LispForStmt(symbol, value)
 
   def parseClause: LispTokenState[LispValue] = {
     case LispLet #:: tail =>

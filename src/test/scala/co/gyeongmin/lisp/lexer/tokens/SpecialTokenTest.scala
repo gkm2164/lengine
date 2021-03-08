@@ -31,5 +31,15 @@ class SpecialTokenTest extends FlatSpec with Matchers {
 
   it should "fail" in {
     SpecialToken("anything").realize should matchPattern { case Left(_) => }
+    SpecialToken("1nva1idnumber").parseNumber(
+      0,
+      0,
+      "1nva1idnum"
+    ) should matchPattern { case Left(_) => }
+    SpecialToken("123/invalid").parseNumber(
+      10,
+      1,
+      "123/1ab"
+    ) should matchPattern { case Left(_) => }
   }
 }

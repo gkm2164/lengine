@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.builtin.Builtin
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -11,7 +10,7 @@ class MainTest extends FlatSpec with Matchers {
     val outputWriter = new ByteArrayOutputStream()
     Console.withIn(inputStream) {
       Console.withOut(outputWriter) {
-        Main.replLoop(Builtin.symbols)
+        Main.main(Array.empty)
       }
     }
 
@@ -73,5 +72,15 @@ class MainTest extends FlatSpec with Matchers {
     runCommand("""(fn add (a b) (+ a b)) (add 3 5)""") should include(
       "8: Integer"
     )
+  }
+
+  "file" should "be opened" in {
+    val outputWriter = new ByteArrayOutputStream()
+
+    Console.withOut(outputWriter) {
+      Main.main(Array("examples/class-test"))
+    }
+
+    outputWriter.toString() should include("2345")
   }
 }

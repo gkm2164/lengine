@@ -1,0 +1,20 @@
+package co.gyeongmin.lisp.lexer.values.functions
+
+import co.gyeongmin.lisp.errors
+import co.gyeongmin.lisp.execution.LispEnvironment
+import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import org.scalatest.{FlatSpec, Matchers}
+
+class BuiltinLispFuncTest extends FlatSpec with Matchers {
+  val builtinLispFunc =
+    new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {
+      override def execute(
+        env: LispEnvironment
+      ): Either[errors.EvalError, LispValue] = ???
+    }
+
+  it should "pass" in {
+    builtinLispFunc.printable() should be(Right("(fn a (b) #native)"))
+  }
+}

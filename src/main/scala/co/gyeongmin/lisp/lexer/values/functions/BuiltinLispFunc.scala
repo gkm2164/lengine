@@ -12,7 +12,7 @@ abstract class BuiltinLispFunc(
   override def printable(): Either[EvalError, String] =
     Right(s"""(fn ${symbol.name} (${placeHolders
       .map(_.name)
-      .mkString(" ")}) #native) """)
+      .mkString(" ")}) #native)""")
 
   def execute(env: LispEnvironment): Either[EvalError, LispValue]
 }
