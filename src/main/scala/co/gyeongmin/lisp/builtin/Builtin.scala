@@ -1,10 +1,12 @@
 package co.gyeongmin.lisp.builtin
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
-
-import java.io._
-import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.execution._
+import co.gyeongmin.lisp.errors.{
+  EvalError,
+  UnimplementedOperationError,
+  UnknownSymbolNameError
+}
+import co.gyeongmin.lisp.execution.{LispEnvironment, LispExecutionSyntax}
 import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.{
@@ -19,6 +21,8 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   LispSymbol,
   ListSymbol
 }
+
+import java.io.{BufferedReader, InputStreamReader}
 
 object Builtin {
   def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(

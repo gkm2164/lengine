@@ -3,6 +3,7 @@ package co.gyeongmin.lisp
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.security.Permission
 
 class MainTest extends FlatSpec with Matchers {
   def runCommand(commandLine: String): String = {
@@ -82,5 +83,37 @@ class MainTest extends FlatSpec with Matchers {
     }
 
     outputWriter.toString() should include("2345")
+  }
+
+  sealed case class ExitException(status: Int)
+      extends SecurityException("System.exit() is not allowed") {}
+
+  sealed class NoExitSecurityManager extends SecurityManager {
+    override def checkPermission(perm: Permission): Unit = {}
+
+    override def checkPermission(perm: Permission, context: Object): Unit = {}
+
+    override def checkExit(status: Int): Unit = {
+      super.checkExit(status)
+      throw ExitException(status)
+    }
+  }
+
+  "exit" should "be called" in {
+    System.setSecurityManager(new NoExitSecurityManager)
+    try {
+      runCommand("(exit 10)")
+    } catch {
+      case e: ExitException =>
+        e.status should be(10)
+    }
+
+    try {
+      runCommand("(quit)")
+    } catch {
+      case e: ExitException =>
+        e.status should be(0)
+    }
+    System.setSecurityManager(null)
   }
 }

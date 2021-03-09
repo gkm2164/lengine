@@ -1,7 +1,21 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
-import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.errors.{
+  EmptyBodyClauseError,
+  EmptyTokenListError,
+  EvalError,
+  EvalParseError,
+  EvalTokenizeError,
+  FunctionApplyError,
+  InvalidSymbolNameError,
+  LispError,
+  NotAnExecutableError,
+  SymbolNotOverridableError,
+  UnableToFindFunction,
+  UnimplementedOperationError,
+  UnknownSymbolNameError
+}
 import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.lexer.statements.{
   LispDoStmt,

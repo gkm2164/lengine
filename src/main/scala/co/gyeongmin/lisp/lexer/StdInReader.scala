@@ -4,7 +4,7 @@ import java.io.EOFException
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.io.StdIn
-import scala.util._
+import scala.util.{Failure, Success, Try}
 
 class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] {
   override def hasNext: Boolean = ensureQueueFill().isRight

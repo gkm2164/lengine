@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.errors.{EOFError, TokenizeError, WrongEscapeError}
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 
 class Tokenizer() {

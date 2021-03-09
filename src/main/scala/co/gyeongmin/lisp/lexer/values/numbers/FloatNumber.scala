@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
 import scala.annotation.tailrec
 

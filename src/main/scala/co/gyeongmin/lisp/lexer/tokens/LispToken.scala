@@ -1,6 +1,10 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.errors.{
+  RatioUnderZeroNotAllowedError,
+  TokenizeError,
+  UnknownTokenError
+}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{
   FloatNumber,
