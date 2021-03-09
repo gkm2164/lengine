@@ -1,6 +1,9 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.errors.UnknownTokenError
+import co.gyeongmin.lisp.errors.{
+  RatioUnderZeroNotAllowedError,
+  UnknownTokenError
+}
 import co.gyeongmin.lisp.lexer.Tokenizer.tokenize
 import co.gyeongmin.lisp.lexer.tokens.{
   LeftPar,
@@ -18,6 +21,7 @@ import co.gyeongmin.lisp.lexer.values.seq.LispString
 import co.gyeongmin.lisp.lexer.values.symbol.{
   EagerSymbol,
   LazySymbol,
+  ListSymbol,
   ObjectReferSymbol
 }
 import org.scalatest.{FlatSpec, Matchers}
@@ -53,6 +57,10 @@ class TokenizerTest extends FlatSpec with Matchers {
     LispToken("#Xbc/ad") should be(Right(SpecialToken("Xbc/ad")))
     LispToken("#xFADED/FACADE") should be(Right(SpecialToken("xFADED/FACADE")))
 
+    LispToken("3/0") should matchPattern {
+      case Left(RatioUnderZeroNotAllowedError) =>
+    }
+
     LispToken("0.0") should be(
       Right(FloatNumber(0.0))
     ) //                       ;Floating-point zero in default format
@@ -87,6 +95,10 @@ class TokenizerTest extends FlatSpec with Matchers {
 
   "ns" should "be parsed" in {
     LispToken("ns") should be(Right(LispNs))
+  }
+
+  "symbol" should "be parsed" in {
+    LispToken("xs*") should be(Right(ListSymbol("xs*")))
   }
 
   "tokenizer" should "parse statement" in {

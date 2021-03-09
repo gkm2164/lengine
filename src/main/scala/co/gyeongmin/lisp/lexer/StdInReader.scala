@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer
 
 import java.io.EOFException
-
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.io.StdIn
 import scala.util._
@@ -19,7 +19,7 @@ class StdInReader(prompt: => Either[_, String]) extends Iterator[Char] {
   private val queue: mutable.Queue[Char] = new mutable.Queue()
   private val EOFChar: Char = 0xffff
 
-  @scala.annotation.tailrec
+  @tailrec
   private def ensureQueueFill(): Either[Throwable, Unit] = {
     if (queue.nonEmpty) Right(())
     else

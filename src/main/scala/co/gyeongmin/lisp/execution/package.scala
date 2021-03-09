@@ -1,6 +1,8 @@
 package co.gyeongmin.lisp
 
+import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors._
+import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.lexer.statements.{
   LispDoStmt,
   LispForStmt,
@@ -11,7 +13,7 @@ import co.gyeongmin.lisp.lexer.statements.{
   LispNamespace,
   LispValueDef
 }
-import co.gyeongmin.lisp.lexer.tokens.SpecialToken
+import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
 import co.gyeongmin.lisp.lexer.values.{
   LispChar,
   LispClause,
@@ -34,13 +36,18 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   LispSymbol,
   ListSymbol
 }
+import co.gyeongmin.lisp.parser.parseValue
 
+import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
+import scala.io.Source
 
 package object execution {
   type LispEnvironment = Map[LispSymbol, LispValue]
 
   implicit class LispEnvironmentSyntax(env: LispEnvironment) {
+    val HistorySymbol: EagerSymbol = EagerSymbol("$$HISTORY$$")
+
     def addFn(
       symbol: LispSymbol,
       f: LispFunc
@@ -49,6 +56,23 @@ package object execution {
         Right(env.updated(symbol, OverridableFunc(functions :+ f)))
       case Some(v) => Left(SymbolNotOverridableError(v))
       case None    => Right(env.updated(symbol, OverridableFunc(Vector(f))))
+    }
+
+    def updateHistory(
+      stmt: LispValue,
+      inc: AtomicLong,
+      res: LispValue
+    ): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {
+      case Some(LispList(items)) =>
+        val num = inc.getAndIncrement()
+        val varName = s"res$num"
+        (
+          Some(varName),
+          env
+            .updated(HistorySymbol, LispList(stmt :: items))
+            .updated(EagerSymbol(varName), res)
+        )
+      case _ => (None, env)
     }
   }
 
@@ -64,7 +88,7 @@ package object execution {
       case l: LispDoStmt   => l.runBody(env)
       case l: LispLoopStmt => l.runBody(env).map((_, env))
       case LispImportDef(LispString(path)) =>
-        Right(LispUnit, Main.runFile(path, env))
+        Right(LispUnit, runFile(path, env))
       case l: LazySymbol =>
         env.get(l).toRight(UnknownSymbolNameError(l)).flatMap(_.eval(env))
       case e: LispSymbol =>
@@ -300,5 +324,70 @@ package object execution {
           case v => Left(NotAnExecutableError(v))
         }
       }
+  }
+
+  val PROMPT: LispString = LispString("lengine")
+
+  import cats.syntax.either._
+
+  private val inc = new AtomicLong()
+
+  def evalLoop(tokens: Stream[LispToken], env: LispEnvironment)(implicit
+    debugger: Option[Debugger]
+  ): Either[(EvalError, LispEnvironment), (LispValue, LispEnvironment)] = for {
+    parseResult <- parseValue(tokens).leftMap(x => (EvalParseError(x), env))
+    (stmt, remains) = parseResult
+    res <- stmt.eval(env).leftMap((_, env))
+    (r, nextEnv) = res
+    (varName, historyEnv) = nextEnv.updateHistory(stmt, inc, r)
+    _ = debugger.foreach(_.print(varName, r))
+    nextRes <- evalLoop(remains, historyEnv)
+  } yield nextRes
+
+  def printPrompt(env: LispEnvironment): Either[EvalError, String] = for {
+    prompt <- env
+      .get(EagerSymbol("$$PROMPT$$"))
+      .toRight(UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
+    ret <- prompt.printable()
+  } yield ret
+
+  def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit
+    debugger: Option[Debugger]
+  ): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] =
+    for {
+      tokens <- Tokenizer
+        .tokenize(tokenizer)
+        .leftMap(x => (EvalTokenizeError(x), env))
+      res <- evalLoop(tokens, env)
+    } yield res
+
+  @tailrec
+  def executeEngine(iterator: Iterator[Char])(env: LispEnvironment): Unit = {
+    val tokenizer = new Tokenizer(iterator)
+    implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger)
+    runLoop(tokenizer, env) match {
+      case Right(_)                                       => ()
+      case Left((EvalParseError(EmptyTokenListError), _)) =>
+      case Left((e, env)) =>
+        println(s"[ERROR] ${e.message}\n")
+        executeEngine(iterator)(env)
+    }
+  }
+
+  def replLoop(env: LispEnvironment): Unit =
+    executeEngine(new StdInReader(printPrompt(env)))(env)
+
+  def runFile(path: String, env: LispEnvironment): LispEnvironment = {
+    val refinedPath = if (path.endsWith(".lisp")) path else path + ".lisp"
+    val file = Source.fromFile(refinedPath)
+    val tokenizer = new Tokenizer(file.mkString(""))
+    implicit val debugger: Option[Debugger] = None
+    runLoop(tokenizer, env) match {
+      case Right((_, env))                                  => env
+      case Left((EvalParseError(EmptyTokenListError), env)) => env
+      case Left((e, env)) =>
+        println(e.message)
+        env
+    }
   }
 }

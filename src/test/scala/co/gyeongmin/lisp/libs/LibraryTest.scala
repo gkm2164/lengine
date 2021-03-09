@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.libs
 
-import co.gyeongmin.lisp.Main
 import co.gyeongmin.lisp.builtin.Builtin
+import co.gyeongmin.lisp.execution.replLoop
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -16,7 +16,7 @@ class LibraryTest extends FlatSpec with Matchers {
     val outputWriter = new ByteArrayOutputStream()
     Console.withIn(inputStream) {
       Console.withOut(outputWriter) {
-        Main.replLoop(Builtin.symbols)
+        replLoop(Builtin.symbols)
       }
     }
 
