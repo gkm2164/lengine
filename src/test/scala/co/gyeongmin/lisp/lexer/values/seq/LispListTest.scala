@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.seq
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
-import co.gyeongmin.lisp.errors.UnimplementedOperationError
+import co.gyeongmin.lisp.errors.eval.UnimplementedOperationError
 import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispTrue
 import co.gyeongmin.lisp.utils.RepeatExt

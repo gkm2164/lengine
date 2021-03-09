@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.functions
 
-import co.gyeongmin.lisp.errors.EvalError
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol

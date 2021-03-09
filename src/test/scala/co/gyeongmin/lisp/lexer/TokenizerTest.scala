@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.tokenizer.{
   RatioUnderZeroNotAllowedError,
   UnknownTokenError
 }

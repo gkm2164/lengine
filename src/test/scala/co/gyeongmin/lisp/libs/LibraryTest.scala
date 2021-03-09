@@ -35,4 +35,13 @@ class LibraryTest extends FlatSpec with Matchers {
     runCommand("libs/math", "(abs 1)") should include("1: Integer")
     runCommand("libs/math", "(abs -1)") should include("1: Integer")
   }
+
+  "sequence.lisp" should "run functions correctly" in {
+    runCommand(
+      "libs/sequence",
+      """(concat "1234" "5678" "9012")"""
+    ) should include(
+      "\"123456789012\": String"
+    )
+  }
 }

@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.UnimplementedOperationError
+import co.gyeongmin.lisp.errors.eval.UnimplementedOperationError
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}

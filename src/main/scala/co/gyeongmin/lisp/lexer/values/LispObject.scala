@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values
 
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   KeyIsNotReferSymbolError,
   ObjectKeyNotExistError

@@ -1,21 +1,21 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.eval.{
   EmptyBodyClauseError,
-  EmptyTokenListError,
   EvalError,
   EvalParseError,
   EvalTokenizeError,
   FunctionApplyError,
   InvalidSymbolNameError,
-  LispError,
   NotAnExecutableError,
   SymbolNotOverridableError,
   UnableToFindFunction,
   UnimplementedOperationError,
   UnknownSymbolNameError
 }
+import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
+import co.gyeongmin.lisp.errors.{LispError, eval}
 import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.lexer.statements.{
   LispDoStmt,
@@ -115,7 +115,9 @@ package object execution {
         Right((v, env))
       case f: GeneralLispFunc => Right((f, env))
       case value =>
-        Left(UnimplementedOperationError("value is not handlable yet", value))
+        Left(
+          UnimplementedOperationError("value is not handlable yet", value)
+        )
     }
   }
 
@@ -318,7 +320,10 @@ package object execution {
       (c.body match {
         case Nil => Left(EmptyBodyClauseError)
         case (symbol: LispSymbol) :: args =>
-          env.get(symbol).toRight(UnknownSymbolNameError(symbol)).map((_, args))
+          env
+            .get(symbol)
+            .toRight(eval.UnknownSymbolNameError(symbol))
+            .map((_, args))
         case value :: args =>
           value.eval(env).map { case (v, _) => (v, args) }
       }) flatMap { case (firstStmtValue, args) =>
@@ -335,7 +340,7 @@ package object execution {
               symbolEnv <- fn.applyEnv(env, args)
               evalResult <- fn.runFn(symbolEnv)
             } yield evalResult
-          case v => Left(NotAnExecutableError(v))
+          case v => Left(eval.NotAnExecutableError(v))
         }
       }
   }
@@ -361,7 +366,7 @@ package object execution {
   def printPrompt(env: LispEnvironment): Either[EvalError, String] = for {
     prompt <- env
       .get(EagerSymbol("$$PROMPT$$"))
-      .toRight(UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
+      .toRight(eval.UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
     ret <- prompt.printable()
   } yield ret
 

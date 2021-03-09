@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer.values
 
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   InvalidTypeError,
   NotANumberTypeError,
@@ -15,27 +16,27 @@ import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
   def not: Either[EvalError, LispBoolean] = Left(
-    UnimplementedOperationError("!", this)
+    eval.UnimplementedOperationError("!", this)
   )
 
   def neg: Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("neg", this)
+    eval.UnimplementedOperationError("neg", this)
   )
 
   def toBoolean: Either[EvalError, Boolean] = Left(
-    UnimplementedOperationError("?", this)
+    eval.UnimplementedOperationError("?", this)
   )
 
   def or(other: LispValue): Either[EvalError, LispBoolean] = Left(
-    UnimplementedOperationError("||", this)
+    eval.UnimplementedOperationError("||", this)
   )
 
   def and(other: LispValue): Either[EvalError, LispBoolean] = Left(
-    UnimplementedOperationError("&&", this)
+    eval.UnimplementedOperationError("&&", this)
   )
 
   def eq(other: LispValue): Either[EvalError, LispBoolean] = Left(
-    UnimplementedOperationError("=", this)
+    eval.UnimplementedOperationError("=", this)
   )
 
   def neq(other: LispValue): Either[EvalError, LispBoolean] = for {
@@ -44,7 +45,7 @@ trait LispValue extends LispToken {
   } yield x
 
   def printable(): Either[EvalError, String] = Left(
-    UnimplementedOperationError("printable", this)
+    eval.UnimplementedOperationError("printable", this)
   )
 
   def as[T <: LispValue](implicit t: ClassTag[T]): Either[EvalError, T] =

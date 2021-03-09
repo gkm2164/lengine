@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
+import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
@@ -36,7 +37,7 @@ case class FloatNumber(value: Double) extends LispNumber {
       case r: RatioNumber   => r.toFloat.flatMap(this + _)
       case FloatNumber(v)   => Right(FloatNumber(value + v))
       case c: ComplexNumber => this.toComplexNumber.flatMap(_ + c)
-      case _                => Left(UnimplementedOperationError("+: LispNumber", other))
+      case _                => Left(eval.UnimplementedOperationError("+: LispNumber", other))
     }
 
   override def -(other: LispValue): Either[EvalError, LispNumber] =
@@ -45,7 +46,7 @@ case class FloatNumber(value: Double) extends LispNumber {
       case r: RatioNumber   => r.toFloat.flatMap(this - _)
       case FloatNumber(v)   => Right(FloatNumber(value - v))
       case c: ComplexNumber => this.toComplexNumber.flatMap(_ - c)
-      case _                => Left(UnimplementedOperationError("-: LispNumber", other))
+      case _                => Left(eval.UnimplementedOperationError("-: LispNumber", other))
     }
 
   override def *(other: LispValue): Either[EvalError, LispNumber] =
@@ -54,7 +55,7 @@ case class FloatNumber(value: Double) extends LispNumber {
       case r: RatioNumber   => r.toFloat.flatMap(this * _)
       case FloatNumber(v)   => Right(FloatNumber(value * v))
       case c: ComplexNumber => this.toComplexNumber.flatMap(_ * c)
-      case _                => Left(UnimplementedOperationError("*: FloatNumber", other))
+      case _                => Left(eval.UnimplementedOperationError("*: FloatNumber", other))
     }
 
   override def /(other: LispValue): Either[EvalError, LispNumber] =
@@ -63,7 +64,7 @@ case class FloatNumber(value: Double) extends LispNumber {
       case r: RatioNumber   => r.toFloat.flatMap(this / _)
       case FloatNumber(v)   => Right(FloatNumber(value / v))
       case c: ComplexNumber => this.toComplexNumber.flatMap(_ / c)
-      case _                => Left(UnimplementedOperationError("/: FloatNumber", other))
+      case _                => Left(eval.UnimplementedOperationError("/: FloatNumber", other))
     }
 
   override def eq(other: LispValue): Either[EvalError, LispBoolean] =
@@ -72,7 +73,7 @@ case class FloatNumber(value: Double) extends LispNumber {
       case r: RatioNumber     => r.toFloat.flatMap(this eq _)
       case FloatNumber(num)   => Right(LispBoolean(value == num))
       case c: ComplexNumber   => this.toComplexNumber.flatMap(_ eq c)
-      case x                  => Left(UnimplementedOperationError(s"=", x))
+      case x                  => Left(eval.UnimplementedOperationError(s"=", x))
     }
 
   override def gt(other: LispValue): Either[EvalError, LispBoolean] =
@@ -80,6 +81,6 @@ case class FloatNumber(value: Double) extends LispNumber {
       case IntegerNumber(num) => Right(LispBoolean(value > num))
       case r: RatioNumber     => r.toFloat.flatMap(this gt _)
       case FloatNumber(num)   => Right(LispBoolean(value > num))
-      case x                  => Left(UnimplementedOperationError(">", x))
+      case x                  => Left(eval.UnimplementedOperationError(">", x))
     }
 }

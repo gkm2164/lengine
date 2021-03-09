@@ -2,53 +2,18 @@ package co.gyeongmin.lisp
 
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import co.gyeongmin.lisp.errors._
-import co.gyeongmin.lisp.lexer.statements.{
-  LispDoStmt,
-  LispForStmt,
-  LispFuncDef,
-  LispImportDef,
-  LispLetDef,
-  LispLoopStmt,
-  LispNamespace,
-  LispValueDef
+import co.gyeongmin.lisp.errors.parser.{
+  EmptyTokenListError,
+  ParseTokenizeError,
+  UnexpectedTokenError
 }
-import co.gyeongmin.lisp.lexer.tokens.{
-  CmplxNPar,
-  LeftBrace,
-  LeftBracket,
-  LeftPar,
-  LispDef,
-  LispDo,
-  LispFn,
-  LispFor,
-  LispImport,
-  LispIn,
-  LispLambda,
-  LispLet,
-  LispLoop,
-  LispNil,
-  LispNop,
-  LispNs,
-  LispReturn,
-  LispToken,
-  ListStartPar,
-  RightBrace,
-  RightBracket,
-  RightPar,
-  SpecialToken
-}
+import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.{
-  LispClause,
-  LispObject,
-  LispUnit,
-  LispValue,
-  numbers
-}
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values._
 import co.gyeongmin.lisp.monad._
 
 import scala.reflect.ClassTag

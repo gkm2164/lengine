@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.seq
 
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   InvalidTypeError,
   StringIsEmptyError,
@@ -14,7 +15,7 @@ case class LispString(value: String) extends LispSeq {
   override def ++(other: LispValue): Either[EvalError, LispValue] =
     other match {
       case LispString(rvalue) => Right(LispString(value + rvalue))
-      case v                  => Left(UnimplementedOperationError("++: String", v))
+      case v                  => Left(eval.UnimplementedOperationError("++: String", v))
     }
 
   override def head: Either[EvalError, LispValue] =

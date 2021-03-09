@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.debug
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
 import co.gyeongmin.lisp.errors
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.statements.{
   LispDoStmt,
@@ -72,7 +73,7 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
       new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {
         override def execute(
           env: LispEnvironment
-        ): Either[errors.EvalError, LispValue] = {
+        ): Either[EvalError, LispValue] = {
           Right(EagerSymbol("c"))
         }
       },

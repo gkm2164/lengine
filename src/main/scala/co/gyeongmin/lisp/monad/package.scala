@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp
 
 import cats.Monad
-import co.gyeongmin.lisp.errors.ParseError
+import co.gyeongmin.lisp.errors.parser.ParseError
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 
 package object monad {

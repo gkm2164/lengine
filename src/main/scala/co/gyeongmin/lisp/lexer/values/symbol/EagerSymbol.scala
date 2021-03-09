@@ -1,7 +1,8 @@
 package co.gyeongmin.lisp.lexer.values.symbol
 import co.gyeongmin.lisp.errors
+import co.gyeongmin.lisp.errors.eval.EvalError
 
 case class EagerSymbol(name: String) extends LispSymbol {
-  override def printable(): Either[errors.EvalError, String] =
+  override def printable(): Either[EvalError, String] =
     Right(name)
 }

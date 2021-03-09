@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
+import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
@@ -38,27 +39,27 @@ trait LispNumber extends LispValue {
   }
 
   def +(other: LispValue): Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("+", this)
+    eval.UnimplementedOperationError("+", this)
   )
 
   def -(other: LispValue): Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("-", this)
+    eval.UnimplementedOperationError("-", this)
   )
 
   def *(other: LispValue): Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("*", this)
+    eval.UnimplementedOperationError("*", this)
   )
 
   def /(other: LispValue): Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("/", this)
+    eval.UnimplementedOperationError("/", this)
   )
 
   def %(other: LispValue): Either[EvalError, LispNumber] = Left(
-    UnimplementedOperationError("%", this)
+    eval.UnimplementedOperationError("%", this)
   )
 
   def gt(other: LispValue): Either[EvalError, LispBoolean] = Left(
-    UnimplementedOperationError(">", this)
+    eval.UnimplementedOperationError(">", this)
   )
 
   final def gte(other: LispValue): Either[EvalError, LispBoolean] = for {

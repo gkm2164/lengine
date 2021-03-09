@@ -1,7 +1,8 @@
 package co.gyeongmin.lisp.builtin
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   UnimplementedOperationError,
   UnknownSymbolNameError
@@ -202,6 +203,6 @@ object Builtin {
 
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {
     def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] =
-      x.get(symbol).toRight(UnknownSymbolNameError(symbol))
+      x.get(symbol).toRight(eval.UnknownSymbolNameError(symbol))
   }
 }

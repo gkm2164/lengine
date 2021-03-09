@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors.{
+import co.gyeongmin.lisp.errors.tokenizer.{
   InvalidNumberTokenTypeError,
   TokenizeError,
   UnknownMacroError

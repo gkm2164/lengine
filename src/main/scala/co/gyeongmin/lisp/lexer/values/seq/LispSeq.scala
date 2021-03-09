@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.seq
 
-import co.gyeongmin.lisp.errors.EvalError
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.values.LispValue
 
 abstract class LispSeq extends LispValue {
