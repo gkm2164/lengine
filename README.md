@@ -1,4 +1,6 @@
-[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/gkm2164/lengine) 
+[![Gitpod Ready-to-Code](https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod)](https://gitpod.io/#https://github.com/gkm2164/lengine)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/beff30b329dc447fa0bcf9e36b936e7d)](https://www.codacy.com/gh/gkm2164/lengine/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=gkm2164/lengine&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/beff30b329dc447fa0bcf9e36b936e7d)](https://www.codacy.com/gh/gkm2164/lengine/dashboard?utm_source=github.com&utm_medium=referral&utm_content=gkm2164/lengine&utm_campaign=Badge_Coverage)
 
 # Lengine, another Lisp Engine
 
