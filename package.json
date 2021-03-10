@@ -1,0 +1,16 @@
+{
+  "name": "lengine",
+  "version": "1.0.0",
+  "dependencies": {
+    "vfile-reporter": "^6.0.2",
+    "remark": "^13.0.0"
+  },
+
+  "scripts": {
+    "lint-md": "remark ."
+  },
+
+  "remarkConfig": {
+    "plugins": ["remark-preset-lint-recommended"]
+  }
+}

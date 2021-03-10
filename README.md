@@ -4,17 +4,16 @@
 
 ## Table of contents
 
-- [Environment](#environment)
-- [How to run](#how-to-run)
-- [Features](#features)
-- [To be implemented](#to-be-implemented)
-
+-   [Environment](#environment)
+-   [How to run](#how-to-run)
+-   [Features](#features)
+-   [To be implemented](#to-be-implemented)
 
 <a name="environment" />
 
 ## Environment
-- Compiled at Scala 2.12.10
-- [SBT](https://www.scala-sbt.org/) should be installed
+-   Compiled at Scala 2.12.10
+-   [SBT](https://www.scala-sbt.org/) should be installed
 
 <a name="how-to-run" />
 
@@ -43,7 +42,7 @@ lengine > (println (+ 3 5))
 res0 => ()
 ```
 
-- To quit REPL,
+-   To quit REPL,
 
 ```bash
 lengine > (quit)
@@ -61,7 +60,7 @@ res1 => ()
 ```
 
 ## Sample Code
-- refer to ```examples``` folder
+-   refer to ```examples``` folder
 ```lisp
 ;;; map list with 2 adder
 (import "libs/sequence")
@@ -74,7 +73,7 @@ res1 => ()
 
 ## Features
 
-- Data types
+-   Data types
 ```lisp
 ;;; integer
 0
@@ -118,7 +117,7 @@ res1 => ()
 }
 ```
 
-- Function definition
+-   Function definition
 
 ```lisp
 ;;; Define function
@@ -137,7 +136,7 @@ res1 => ()
 (println (fact 5)) ;;; 120
 ```
 
-- Define value
+-   Define value
 
 ```lisp
 ;;; Define variable
@@ -153,7 +152,7 @@ x
 'x
 ```
 
-- Lambda
+-   Lambda
 
 ```lisp
 ;;; Lambda as value
@@ -166,7 +165,7 @@ x
 ;;; == (fn add (+ a b))
 ```
 
-- do statement
+-   do statement
 
 ```lisp
 ;;; Do stmt
@@ -178,7 +177,7 @@ x
 ;;; print 3 4 5 line by line and return 0
 ```
 
-- loop statement
+-   loop statement
 
 ```lisp
 ;;; Loop stmt with for comprehension
@@ -197,7 +196,7 @@ x
       (+ x y))
 ```
 
-- Introduce local variable
+-   Introduce local variable
 
 ```lisp
 ;;; introduct local variable
@@ -209,7 +208,7 @@ x
   (println (concat "Hello, " name "!")))
 ```
 
-- List
+-   List
 
 ```lisp
 ;;; use list as value
@@ -221,7 +220,7 @@ x
 ;;; List type of List(1, 2, 3, 4, 5)
 ```
 
-- operators
+-   operators
 
 ```lisp
 ;;; boolean operators
@@ -235,14 +234,14 @@ x
 (and true 3) ;;; ???
 ```
 
-- Object refer
+-   Object refer
 ```lisp
 ;;;
 ({:hello 1} :hello) ;;; == 1
 
 ```
 
-- Import library
+-   Import library
 ```lisp
 ;;; Import library
 ;;; (import [path])
@@ -253,7 +252,7 @@ x
 
 ```
 
-- REPL history
+-   REPL history
 
 ```lisp
 ;;; See history or use the history
@@ -274,12 +273,12 @@ res3 => 8
 ### To be implemented
 
 #### Feature
-- Char Type
-- Namespace
-- Stream
-- Binary generation
-- Loop with only condition
-- Macro implementation
+-   Char Type
+-   Namespace
+-   Stream
+-   Binary generation
+-   Loop with only condition
+-   Macro implementation
 
 ### Friend Projects
-- [KAND](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
+-   [KAND](https://github.com/eunmin/kand): Compilable LISP, type system enhanced, and could be run on Java Virtual Machine
