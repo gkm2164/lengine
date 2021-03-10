@@ -23,10 +23,10 @@ package object monad {
       )(f: A => LispTokenState[Either[A, B]]): LispTokenState[B] = tokens =>
         f(a)(tokens) match {
           case Left(e) => Left(e)
-          case Right(v) =>
+          case Right((v, tail)) =>
             v match {
-              case (Left(a), tail)  => tailRecM(a)(f)(tail)
-              case (Right(b), tail) => pure(b)(tail)
+              case Left(a)  => tailRecM(a)(f)(tail)
+              case Right(b) => pure(b)(tail)
             }
         }
 
