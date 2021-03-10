@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.functions
 
-import co.gyeongmin.lisp.errors
+import co.gyeongmin.lisp.errors.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
@@ -11,7 +11,7 @@ class BuiltinLispFuncTest extends FlatSpec with Matchers {
     new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {
       override def execute(
         env: LispEnvironment
-      ): Either[errors.EvalError, LispValue] = ???
+      ): Either[EvalError, LispValue] = Left(UnimplementedOperationError("execute", this))
     }
 
   it should "pass" in {
