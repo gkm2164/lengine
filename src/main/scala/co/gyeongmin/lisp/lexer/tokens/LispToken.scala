@@ -34,8 +34,8 @@ object LispToken {
   private val ListSymbolRegex: Regex =
     """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
   private val SpecialValueRegex: Regex = """#(.+)""".r
-  private val NumberRegex: Regex = """([+\-])?([\d]+)""".r
-  private val RatioRegex: Regex = """([+\-])?([\d]+)/([+\-]?)([\d]+)""".r
+  private val NumberRegex: Regex = """([+\-])?(\d+)""".r
+  private val RatioRegex: Regex = """([+\-])?(\d+)/([+\-]?)(\d+)""".r
   private val FloatingPointRegex: Regex =
     """([+\-])?(\d*)?\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
   private val FloatingPointRegex2: Regex =
