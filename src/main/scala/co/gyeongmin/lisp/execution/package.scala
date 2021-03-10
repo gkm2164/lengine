@@ -1,32 +1,11 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
-import co.gyeongmin.lisp.errors.eval.{
-  EmptyBodyClauseError,
-  EvalError,
-  EvalParseError,
-  EvalTokenizeError,
-  FunctionApplyError,
-  InvalidSymbolNameError,
-  NotAnExecutableError,
-  SymbolNotOverridableError,
-  UnableToFindFunction,
-  UnimplementedOperationError,
-  UnknownSymbolNameError
-}
+import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
 import co.gyeongmin.lisp.errors.{LispError, eval}
 import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
-import co.gyeongmin.lisp.lexer.statements.{
-  LispDoStmt,
-  LispForStmt,
-  LispFuncDef,
-  LispImportDef,
-  LispLetDef,
-  LispLoopStmt,
-  LispNamespace,
-  LispValueDef
-}
+import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
 import co.gyeongmin.lisp.lexer.values.{
   LispChar,
@@ -52,6 +31,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
 }
 import co.gyeongmin.lisp.parser.parseValue
 
+import cats.syntax.either._
 import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
 import scala.io.Source
@@ -145,7 +125,8 @@ package object execution {
         stmts: List[LispForStmt],
         env: LispEnvironment
       ): Either[EvalError, LispList] = stmts match {
-        case Nil => body.eval(env).map(x => LispList(List(x._1)))
+        case Nil =>
+          body.eval(env).map { case (value, _) => LispList(List(value)) }
         case LispForStmt(symbol, v) :: tail =>
           v.eval(env).flatMap { case (value, _) =>
             value.toSeq.flatMap(_.toList).flatMap { case LispList(items) =>
@@ -264,7 +245,8 @@ package object execution {
       case GeneralLispFunc(_, body) =>
         for {
           evalResult <- body.eval(env)
-        } yield evalResult._1
+          (result, _) = evalResult
+        } yield result
       case v => Left(NotAnExecutableError(v))
     }
   }
@@ -276,7 +258,8 @@ package object execution {
         valueEvalRes <- value.eval(env)
         (v, _) = valueEvalRes
         bodyRes <- body.eval(env.updated(name, v))
-      } yield bodyRes._1
+        (result, _) = bodyRes
+      } yield result
     }
   }
 
@@ -346,8 +329,6 @@ package object execution {
   }
 
   val PROMPT: LispString = LispString("lengine")
-
-  import cats.syntax.either._
 
   private val inc = new AtomicLong()
 
