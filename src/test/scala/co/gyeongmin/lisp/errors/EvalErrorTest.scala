@@ -1,5 +1,6 @@
-package co.gyeongmin.lisp.errors.eval
+package co.gyeongmin.lisp.errors
 
+import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.ParseError
 import co.gyeongmin.lisp.errors.tokenizer.TokenizeError
 import co.gyeongmin.lisp.lexer.values.LispUnit
