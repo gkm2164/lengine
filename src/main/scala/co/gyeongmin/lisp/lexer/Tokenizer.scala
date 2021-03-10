@@ -9,6 +9,7 @@ import co.gyeongmin.lisp.lexer.tokens.LispToken
 
 class Tokenizer() {
   var codeIterator: Iterator[Char] = _
+  var closing: Option[String] = None
 
   def this(codes: String) {
     this()
@@ -19,8 +20,6 @@ class Tokenizer() {
     this()
     this.codeIterator = it
   }
-
-  var closing: Option[String] = None
 
   def next(): Either[TokenizeError, LispToken] = closing match {
     case Some(ch) =>

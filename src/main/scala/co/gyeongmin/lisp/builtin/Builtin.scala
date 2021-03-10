@@ -96,8 +96,9 @@ object Builtin {
         historyRun <- argList.items.headOption match {
           case Some(IntegerNumber(v)) =>
             historyList.items.reverse.drop(v.toInt).headOption match {
-              case None        => Right(LispUnit)
-              case Some(value) => value.eval(env).map(_._1)
+              case None => Right(LispUnit)
+              case Some(value) =>
+                value.eval(env).map { case (value, _) => value }
             }
           case Some(tk) => Left(UnimplementedOperationError("history", tk))
           case None =>
@@ -157,7 +158,8 @@ object Builtin {
           } else {
             fClause.eval(env)
           }
-      } yield execResult._1
+        (execValue, _) = execResult
+      } yield execValue
     },
     E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
       for {

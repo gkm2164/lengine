@@ -1,7 +1,5 @@
 package co.gyeongmin.lisp
 
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import co.gyeongmin.lisp.errors.parser.{
   EmptyTokenListError,
   ParseTokenizeError,
@@ -16,6 +14,10 @@ import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values._
 import co.gyeongmin.lisp.monad._
 
+import cats.syntax.either._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
+
 import scala.reflect.ClassTag
 
 package object parser {
@@ -24,8 +26,6 @@ package object parser {
     imagine <- takeToken[LispNumber]
     _ <- takeToken[RightPar.type]
   } yield numbers.ComplexNumber(real, imagine)
-
-  import cats.syntax.either._
 
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty             => Left(EmptyTokenListError)

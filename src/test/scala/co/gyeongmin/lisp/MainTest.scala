@@ -4,6 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.security.Permission
+import scala.util.{Failure, Success, Try}
 
 class MainTest extends FlatSpec with Matchers {
   def runCommand(commandLine: String): String = {
@@ -101,19 +102,17 @@ class MainTest extends FlatSpec with Matchers {
 
   "exit" should "be called" in {
     System.setSecurityManager(new NoExitSecurityManager)
-    try {
-      runCommand("(exit 10)")
-    } catch {
-      case e: ExitException =>
-        e.status should be(10)
+
+    Try(runCommand("(exit 10)")) match {
+      case Failure(e: ExitException) => e.status should be(10)
+      case _                         => fail()
     }
 
-    try {
-      runCommand("(quit)")
-    } catch {
-      case e: ExitException =>
-        e.status should be(0)
+    Try(runCommand("(quit)")) match {
+      case Failure(e: ExitException) => e.status should be(0)
+      case _                         => fail()
     }
+
     System.setSecurityManager(null)
   }
 }

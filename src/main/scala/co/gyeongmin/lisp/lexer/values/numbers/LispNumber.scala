@@ -32,10 +32,10 @@ trait LispNumber extends LispValue {
   protected final def abs(a: Long): Long = if (a >= 0) a else -a
 
   @scala.annotation.tailrec
-  protected final def gcd(a: Long, b: Long): Long = {
-    if (b == 0) a
-    else if (a < b) gcd(b, a)
-    else gcd(a - b, b)
+  protected final def gcd(a: Long, b: Long): Long = b match {
+    case 0          => a
+    case b if a < b => gcd(b, a)
+    case _          => gcd(a - b, b)
   }
 
   def +(other: LispValue): Either[EvalError, LispNumber] = Left(

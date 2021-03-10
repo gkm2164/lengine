@@ -20,9 +20,8 @@ class LispListTest extends FlatSpec with Matchers {
 
     (lispList eq lispList) should be(Right(LispTrue))
     lispList.recoverStmt should be("""(list () ())""")
-    (mockValue :: lispList).right.get
-      .asInstanceOf[LispList]
-      .printable should be(
+    (mockValue :: lispList)
+      .flatMap(_.asInstanceOf[LispList].printable()) should be(
       Right("""[#Unprintable () ()]""")
     )
   }

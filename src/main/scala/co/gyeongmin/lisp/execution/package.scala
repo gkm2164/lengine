@@ -189,7 +189,7 @@ package object execution {
       env: LispEnvironment,
       applyingArgs: List[LispValue]
     ): Either[EvalError, LispEnvironment] = {
-      def applyLoop(
+      def loop(
         accEnv: LispEnvironment,
         symbols: List[LispValue],
         args: List[LispValue]
@@ -199,19 +199,17 @@ package object execution {
           case ((e: EagerSymbol) :: symbolTail, arg :: argTail) =>
             for {
               evalRes <- arg.eval(env)
-              appliedEnv <- applyLoop(
-                accEnv.updated(e, evalRes._1),
-                symbolTail,
-                argTail
-              )
+              (evalValue, _) = evalRes
+              appliedEnv <-
+                loop(accEnv.updated(e, evalValue), symbolTail, argTail)
             } yield appliedEnv
           case ((l: LazySymbol) :: symbolTail, arg :: argTail) =>
-            applyLoop(accEnv.updated(l, arg), symbolTail, argTail)
+            loop(accEnv.updated(l, arg), symbolTail, argTail)
           case ((l: ListSymbol) :: Nil, Nil) =>
             Right(accEnv.updated(l, LispList(Nil)))
           case ((l: ListSymbol) :: Nil, args) =>
             val argList: Either[EvalError, List[LispValue]] = transform(
-              args.map(_.eval(env).map(_._1))
+              args.map(_.eval(env).map { case (value, _) => value })
             )
             argList.map(x => accEnv.updated(l, LispList(x)))
           case (v :: symbolTail, arg :: argTail) =>
@@ -221,23 +219,21 @@ package object execution {
               vRes <- v eq argEvalResult
               vResBool <- vRes.toBoolean
               envRes <-
-                if (vResBool) applyLoop(accEnv, symbolTail, argTail)
-                else
-                  Left(
-                    FunctionApplyError(
-                      "is not applicable for the values are different"
-                    )
-                  )
+                if (vResBool) {
+                  loop(accEnv, symbolTail, argTail)
+                } else {
+                  FunctionApplyError(
+                    "is not applicable for the values are different"
+                  ).asLeft[LispEnvironment]
+                }
             } yield envRes
           case _ =>
-            Left(
-              FunctionApplyError(
-                s"there is an error: ${symbols.length} parameters required but ${applyingArgs.length}"
-              )
-            )
+            FunctionApplyError(
+              s"there is an error: ${symbols.length} parameters required but ${applyingArgs.length}"
+            ).asLeft[LispEnvironment]
         }
 
-      applyLoop(env, f.placeHolders, applyingArgs)
+      loop(env, f.placeHolders, applyingArgs)
     }
 
     def runFn(env: LispEnvironment): Either[EvalError, LispValue] = f match {
