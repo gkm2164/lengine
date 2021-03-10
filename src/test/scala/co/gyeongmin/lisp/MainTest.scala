@@ -87,7 +87,7 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   sealed case class ExitException(status: Int)
-      extends SecurityException("System.exit() is not allowed") {}
+      extends SecurityException("System.exit() is not allowed")
 
   sealed class NoExitSecurityManager extends SecurityManager {
     override def checkPermission(perm: Permission): Unit = {}
