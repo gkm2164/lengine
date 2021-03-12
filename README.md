@@ -19,7 +19,7 @@
 
 <a name="how-to-run" />
 
-## How to run?
+## How to run
 
 ### Execute Code
 ```bash

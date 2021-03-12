@@ -1,15 +1,6 @@
 package co.gyeongmin.lisp.debug
 
-import co.gyeongmin.lisp.lexer.statements.{
-  LispDoStmt,
-  LispForStmt,
-  LispFuncDef,
-  LispImportDef,
-  LispLetDef,
-  LispLoopStmt,
-  LispNamespace,
-  LispValueDef
-}
+import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values.functions.{
   BuiltinLispFunc,

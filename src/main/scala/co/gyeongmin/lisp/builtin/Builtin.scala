@@ -84,37 +84,39 @@ object Builtin {
 
   def Z(name: String) = LazySymbol(name)
 
+  def historyFn = defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
+    for {
+      history <- env refer E("$$HISTORY$$")
+      arg <- env refer L("_1")
+      argList <- arg.toSeq.flatMap(_.toList)
+      historyList <- history.toSeq.flatMap(_.toList)
+      historyRun <- argList.items.headOption match {
+        case Some(IntegerNumber(v)) =>
+          historyList.items.reverse.drop(v.toInt).headOption match {
+            case None => Right(LispUnit)
+            case Some(value) =>
+              value.eval(env).map { case (value, _) => value }
+          }
+        case Some(tk) => Left(UnimplementedOperationError("history", tk))
+        case None =>
+          println(
+            historyList.items.reverse
+              .map(_.recoverStmt)
+              .zipWithIndex
+              .map { case (stmt, idx) =>
+                s"$idx: $stmt"
+              }
+              .mkString("\n")
+          )
+          Right(LispUnit)
+      }
+    } yield historyRun
+  }
+
   def symbols: LispEnvironment = Map[LispSymbol, LispValue](
     E("$$PROMPT$$") -> LispString("lengine"),
     E("$$HISTORY$$") -> LispList(Nil),
-    E("history") -> defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
-      for {
-        history <- env refer E("$$HISTORY$$")
-        arg <- env refer L("_1")
-        argList <- arg.toSeq.flatMap(_.toList)
-        historyList <- history.toSeq.flatMap(_.toList)
-        historyRun <- argList.items.headOption match {
-          case Some(IntegerNumber(v)) =>
-            historyList.items.reverse.drop(v.toInt).headOption match {
-              case None => Right(LispUnit)
-              case Some(value) =>
-                value.eval(env).map { case (value, _) => value }
-            }
-          case Some(tk) => Left(UnimplementedOperationError("history", tk))
-          case None =>
-            println(
-              historyList.items.reverse
-                .map(_.recoverStmt)
-                .zipWithIndex
-                .map { case (stmt, idx) =>
-                  s"$idx: $stmt"
-                }
-                .mkString("\n")
-            )
-            Right(LispUnit)
-        }
-      } yield historyRun
-    },
+    E("history") -> historyFn,
     E("+") ->@ (_ + _),
     E("-") ->@ (_ - _),
     E("*") ->@ (_ * _),
