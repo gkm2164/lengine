@@ -102,7 +102,7 @@ class TokenizerTest extends FlatSpec with Matchers {
   }
 
   "tokenizer" should "parse statement" in {
-    tokenize(new Tokenizer("(a b c)")) should be(
+    tokenize(Tokenizer("(a b c)")) should be(
       Right(
         Stream(
           LeftPar,
@@ -114,7 +114,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    tokenize(new Tokenizer("('a)")) should be(
+    tokenize(Tokenizer("('a)")) should be(
       Right(
         Stream(
           LeftPar,
@@ -124,7 +124,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    tokenize(new Tokenizer("(:a)")) should be(
+    tokenize(Tokenizer("(:a)")) should be(
       Right(
         Stream(
           LeftPar,

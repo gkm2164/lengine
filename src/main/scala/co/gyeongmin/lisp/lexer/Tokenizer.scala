@@ -7,26 +7,15 @@ import co.gyeongmin.lisp.errors.tokenizer.{
 }
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 
-class Tokenizer() {
-  var codeIterator: Iterator[Char] = _
+class Tokenizer(val codeIterator: Iterator[Char]) {
   var closing: Option[String] = None
-
-  def this(codes: String) {
-    this()
-    this.codeIterator = codes.iterator
-  }
-
-  def this(it: Iterator[Char]) {
-    this()
-    this.codeIterator = it
-  }
 
   def next(): Either[TokenizeError, LispToken] = closing match {
     case Some(ch) =>
       closing = None
       LispToken(ch)
     case None =>
-      codeIterator = codeIterator.dropWhile(ch => " \t\n".contains(ch))
+      codeIterator.dropWhile(ch => " \t\n".contains(ch))
 
       @scala.annotation.tailrec
       def takeString(
@@ -87,6 +76,11 @@ class Tokenizer() {
 }
 
 object Tokenizer {
+  def apply(code: String): Tokenizer =
+    new Tokenizer(code.iterator)
+  def apply(codeIterator: Iterator[Char]): Tokenizer =
+    new Tokenizer(codeIterator)
+
   def tokenize(code: Tokenizer): Either[TokenizeError, Stream[LispToken]] = {
     Right(code.streamLoop)
   }
