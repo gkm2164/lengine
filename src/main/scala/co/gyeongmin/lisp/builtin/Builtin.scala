@@ -113,10 +113,7 @@ object Builtin {
     } yield historyRun
   }
 
-  def symbols: LispEnvironment = Map[LispSymbol, LispValue](
-    E("$$PROMPT$$") -> LispString("lengine"),
-    E("$$HISTORY$$") -> LispList(Nil),
-    E("history") -> historyFn,
+  private def binarySymbols: LispEnvironment = Map(
     E("+") ->@ (_ + _),
     E("-") ->@ (_ - _),
     E("*") ->@ (_ * _),
@@ -126,8 +123,14 @@ object Builtin {
     E("<") ->@ (_ lt _),
     E(">=") ->@ (_ gte _),
     E("<=") ->@ (_ lte _),
+    E("=") ->@ (_ eq _),
+    E("/=") ->@ (_ neq _),
     E("and") -># (_ and _),
     E("or") -># (_ or _),
+    E("++") ->% (_ ++ _)
+  )
+
+  private def seqOpSymbols: LispEnvironment = Map(
     E("head") ->! (_.toSeq.flatMap(_.head)),
     E("tail") ->! (_.toSeq.flatMap(_.tail)),
     E("cons") -> defBuiltinFn(E("cons"), E("_1"), E("_2")) { env =>
@@ -138,12 +141,15 @@ object Builtin {
         res <- x :: yList
       } yield res
     },
-    E("=") ->@ (_ eq _),
-    E("/=") ->@ (_ neq _),
+    E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length)))
+  )
+
+  def symbols: LispEnvironment = binarySymbols ++ seqOpSymbols ++ Map(
+    E("$$PROMPT$$") -> LispString("lengine"),
+    E("$$HISTORY$$") -> LispList(Nil),
+    E("history") -> historyFn,
     E("not") ->! (_.not),
     E("neg") ->! (_.toNumber.flatMap(_.neg)),
-    E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length))),
-    E("++") ->% (_ ++ _),
     E("now") -> defBuiltinFn(E("now")) { _ =>
       Right(IntegerNumber(System.currentTimeMillis()))
     },

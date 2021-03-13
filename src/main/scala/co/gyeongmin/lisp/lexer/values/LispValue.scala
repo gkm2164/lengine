@@ -4,8 +4,7 @@ import co.gyeongmin.lisp.errors.eval
 import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   InvalidTypeError,
-  NotANumberTypeError,
-  UnimplementedOperationError
+  NotANumberTypeError
 }
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
