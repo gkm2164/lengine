@@ -7,8 +7,6 @@ import co.gyeongmin.lisp.errors.tokenizer.{
 }
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 
-import scala.annotation.tailrec
-
 class Tokenizer(val codeIterator: Iterator[Char]) {
   var closing: Option[String] = None
 
@@ -33,39 +31,39 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
       }
     }
 
+  def loop(acc: StringBuilder): Either[TokenizeError, String] =
+    if (!codeIterator.hasNext) {
+      Left(EOFError)
+    } else {
+      codeIterator.next() match {
+        case ' ' | '\t' | '\n'      => Right(acc.mkString(""))
+        case ch @ ('(' | '[' | '{') => Right(acc.append(ch).mkString(""))
+        case ch @ (']' | ')' | '}') if acc.nonEmpty =>
+          closing = Some(ch.toString)
+          Right(acc.mkString(""))
+        case ch @ (']' | ')' | '}') => Right(ch.toString)
+        case '"'                    => takeString(acc.append('"'), '"', escape = false)
+        case ';' if acc.isEmpty =>
+          takeString(new StringBuilder(), '\n', escape = false)
+          Right("")
+        case ';' =>
+          takeString(new StringBuilder(), '\n', escape = false)
+          closing = Some("")
+          Right(acc.mkString(""))
+        case ch if ch == -1.toChar && acc.isEmpty => Right("")
+        case ch if ch == -1.toChar =>
+          closing = Some("")
+          Right(acc.mkString(""))
+        case ch => loop(acc.append(ch))
+      }
+    }
+
   def next(): Either[TokenizeError, LispToken] = closing match {
     case Some(ch) =>
       closing = None
       LispToken(ch)
     case None =>
       codeIterator.dropWhile(ch => " \t\n".contains(ch))
-
-      @tailrec
-      def loop(acc: StringBuilder): Either[TokenizeError, String] =
-        if (!codeIterator.hasNext) Left(EOFError)
-        else
-          codeIterator.next() match {
-            case ' ' | '\t' | '\n'      => Right(acc.mkString(""))
-            case ch @ ('(' | '[' | '{') => Right(acc.append(ch).mkString(""))
-            case ch @ (']' | ')' | '}') if acc.nonEmpty =>
-              closing = Some(ch.toString)
-              Right(acc.mkString(""))
-            case ch @ (']' | ')' | '}') => Right(ch.toString)
-            case '"'                    => takeString(acc.append('"'), '"', escape = false)
-            case ';' if acc.isEmpty =>
-              takeString(new StringBuilder(), '\n', escape = false)
-              Right("")
-            case ';' =>
-              takeString(new StringBuilder(), '\n', escape = false)
-              closing = Some("")
-              Right(acc.mkString(""))
-            case ch if ch == -1.toChar && acc.isEmpty => Right("")
-            case ch if ch == -1.toChar =>
-              closing = Some("")
-              Right(acc.mkString(""))
-            case ch => loop(acc.append(ch))
-          }
-
       loop(new StringBuilder()).flatMap(x => LispToken(x))
   }
 
