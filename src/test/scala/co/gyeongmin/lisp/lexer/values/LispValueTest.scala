@@ -20,7 +20,7 @@ class LispValueTest extends FlatSpec with Matchers {
     someValue.toInt should matchPattern({ case Left(_) => })
     someValue.toRatio should matchPattern({ case Left(_) => })
     someValue.toFloat should matchPattern({ case Left(_) => })
-    someValue.toComplexNumber should matchPattern({ case Left(_) => })
+    someValue.toComplex should matchPattern({ case Left(_) => })
     someValue.printable should matchPattern({ case Left(_) => })
     someValue.toNumber should matchPattern({ case Left(_) => })
   }

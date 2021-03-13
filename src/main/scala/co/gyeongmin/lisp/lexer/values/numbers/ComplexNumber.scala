@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.eval
-import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
@@ -17,7 +17,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
     boolVal <- isImagineZero.toBoolean
   } yield if (boolVal) real else this).getOrElse(this)
 
-  override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(this)
+  override def toComplex: Either[EvalError, ComplexNumber] = Right(this)
 
   override def +(other: LispValue): Either[EvalError, LispNumber] =
     other match {
@@ -26,7 +26,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
           newR <- real + r
           newI <- imagine + i
         } yield ComplexNumber(newR, newI).normalize
-      case _: LispNumber => other.toComplexNumber.flatMap(this + _)
+      case _: LispNumber => other.toComplex.flatMap(this + _)
       case _ =>
         Left(eval.UnimplementedOperationError("+: ComplexNumber", other))
     }
@@ -38,7 +38,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
           newR <- real - r
           newI <- imagine - i
         } yield ComplexNumber(newR, newI).normalize
-      case _: LispNumber => other.toComplexNumber.flatMap(this - _)
+      case _: LispNumber => other.toComplex.flatMap(this - _)
       case _ =>
         Left(eval.UnimplementedOperationError("+: ComplexNumber", other))
     }
@@ -58,7 +58,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
           newReal <- c0 - c3
           newImagine <- c1 + c2
         } yield ComplexNumber(newReal, newImagine).normalize
-      case _: LispNumber => other.toComplexNumber.flatMap(this * _)
+      case _: LispNumber => other.toComplex.flatMap(this * _)
       case _ =>
         Left(eval.UnimplementedOperationError("*: ComplexNumber", other))
     }
@@ -71,11 +71,11 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
           underOther = ComplexNumber(r, iNeg)
           under <- c * underOther
           newOver <- this * underOther
-          newOverCmplx <- newOver.toComplexNumber
+          newOverCmplx <- newOver.toComplex
           newReal <- newOverCmplx.real / under
           newImagine <- newOverCmplx.imagine / under
         } yield ComplexNumber(newReal, newImagine).normalize
-      case _: LispNumber => other.toComplexNumber.flatMap(this / _)
+      case _: LispNumber => other.toComplex.flatMap(this / _)
       case _ =>
         Left(eval.UnimplementedOperationError("/: ComplexNumber", other))
     }
@@ -88,7 +88,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
           iResult <- imagine eq i
           result <- rResult and iResult
         } yield result
-      case _: LispNumber => other.toComplexNumber.flatMap(this eq _)
+      case _: LispNumber => other.toComplex.flatMap(this eq _)
       case _ =>
         Left(eval.UnimplementedOperationError("=: ComplexNumber", other))
     }

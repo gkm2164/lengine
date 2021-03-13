@@ -9,7 +9,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
 case class IntegerNumber(value: Long) extends LispNumber {
   override def neg: Either[EvalError, LispNumber] = Right(IntegerNumber(-value))
 
-  override def toComplexNumber: Either[EvalError, ComplexNumber] = Right(
+  override def toComplex: Either[EvalError, ComplexNumber] = Right(
     ComplexNumber(this, IntegerNumber(0))
   )
 
@@ -26,7 +26,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case IntegerNumber(num) => Right(IntegerNumber(value + num))
       case r: RatioNumber     => this.toRatio.flatMap(_ + r)
       case f: FloatNumber     => this.toFloat.flatMap(_ + f)
-      case c: ComplexNumber   => this.toComplexNumber.flatMap(_ + c)
+      case c: ComplexNumber   => this.toComplex.flatMap(_ + c)
       case _                  => Left(eval.UnimplementedOperationError(s"+", other))
     }
 
@@ -35,7 +35,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case IntegerNumber(num) => Right(IntegerNumber(value - num))
       case r: RatioNumber     => this.toRatio.flatMap(_ - r)
       case f: FloatNumber     => this.toFloat.flatMap(_ - f)
-      case cn: ComplexNumber  => this.toComplexNumber.flatMap(_ - cn)
+      case cn: ComplexNumber  => this.toComplex.flatMap(_ - cn)
       case _                  => Left(eval.UnimplementedOperationError(s"-", other))
     }
 
@@ -44,7 +44,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case IntegerNumber(num) => Right(IntegerNumber(value * num))
       case r: RatioNumber     => this.toRatio.flatMap(_ * r)
       case f: FloatNumber     => this.toFloat.flatMap(_ * f)
-      case cn: ComplexNumber  => this.toComplexNumber.flatMap(_ * cn)
+      case cn: ComplexNumber  => this.toComplex.flatMap(_ * cn)
       case _                  => Left(eval.UnimplementedOperationError(s"*", other))
     }
 
@@ -53,7 +53,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case IntegerNumber(num) => Right(IntegerNumber(value / num))
       case r: RatioNumber     => this.toRatio.flatMap(_ / r)
       case f: FloatNumber     => this.toFloat.flatMap(_ / f)
-      case cn: ComplexNumber  => this.toComplexNumber.flatMap(_ / cn)
+      case cn: ComplexNumber  => this.toComplex.flatMap(_ / cn)
       case _                  => Left(eval.UnimplementedOperationError(s"/", other))
     }
 

@@ -69,7 +69,7 @@ class IntegerNumberTest extends FlatSpec with Matchers {
   }
 
   "converting data type" should "work" in {
-    number1.toComplexNumber should be(
+    number1.toComplex should be(
       Right(ComplexNumber(IntegerNumber(3), IntegerNumber(0)))
     )
     number1.toRatio should be(Right(RatioNumber(3, 1)))

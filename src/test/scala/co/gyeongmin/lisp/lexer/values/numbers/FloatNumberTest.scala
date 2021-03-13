@@ -63,7 +63,7 @@ class FloatNumberTest extends FlatSpec with Matchers {
 
   "converting data type" should "work" in {
     number1.toInt should be(Right(IntegerNumber(10)))
-    number1.toComplexNumber should be(
+    number1.toComplex should be(
       Right(ComplexNumber(FloatNumber(10.0), FloatNumber(0)))
     )
     number1.toFloat should be(Right(FloatNumber(10.0)))

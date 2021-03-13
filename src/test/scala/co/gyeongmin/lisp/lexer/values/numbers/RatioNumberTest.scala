@@ -16,7 +16,7 @@ class RatioNumberTest extends FlatSpec with Matchers {
     RatioNumber(1, 1).neg should be(Right(RatioNumber(-1, 1)))
     RatioNumber(1, 1).toInt should be(Right(IntegerNumber(1)))
     RatioNumber(1, 1).toFloat should be(Right(FloatNumber(1.0)))
-    RatioNumber(1, 1).toComplexNumber should be(
+    RatioNumber(1, 1).toComplex should be(
       Right(
         ComplexNumber(
           RatioNumber(1, 1),
