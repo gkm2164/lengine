@@ -37,7 +37,7 @@ package object parser {
     case CmplxNPar #:: tail       => parseComplexNumber(tail)
     case LeftPar #:: afterLeftPar => parseClause(afterLeftPar)
     case (m: SpecialToken) #:: tail =>
-      m.realize.leftMap(e => ParseTokenizeError(e)).map(x => (x, tail))
+      m.realize.leftMap(ParseTokenizeError).map((_, tail))
     case (tk: LispValue) #:: tail => LispTokenState(tk)(tail)
     case tk #:: _                 => Left(UnexpectedTokenError(tk))
   }
@@ -110,23 +110,41 @@ package object parser {
     value <- parseValue
   } yield LispForStmt(symbol, value)
 
+  def parseLetClause: LispTokenState[LispLetDef] = for {
+    _ <- takeToken[LeftPar.type]
+    name <- takeToken[LispSymbol]
+    value <- parseValue
+    _ <- takeToken[RightPar.type]
+    body <- parseValue
+    _ <- takeToken[RightPar.type]
+  } yield LispLetDef(name, value, body)
+
+  def parseDoClause: LispTokenState[LispDoStmt] = for {
+    stmts <- many(parseValue)
+    _ <- takeToken[LispReturn.type]
+    retStmt <- parseValue
+    _ <- takeToken[RightPar.type]
+  } yield LispDoStmt(stmts :+ retStmt)
+
+  def parseImportStmt: LispTokenState[LispImportDef] = for {
+    d <- parseValue
+    _ <- takeToken[RightPar.type]
+  } yield LispImportDef(d)
+
+  def parseLoopStmt: LispTokenState[LispLoopStmt] = for {
+    forStmts <- many(parseFor)
+    body <- parseValue
+    _ <- takeToken[RightPar.type]
+  } yield LispLoopStmt(forStmts, body)
+
+  def parseNamespace: LispTokenState[LispNamespace] = for {
+    namespace <- takeToken[LispString]
+    _ <- takeToken[RightPar.type]
+  } yield LispNamespace(namespace)
+
   def parseClause: LispTokenState[LispValue] = {
-    case LispLet #:: tail =>
-      (for {
-        _ <- takeToken[LeftPar.type]
-        name <- takeToken[LispSymbol]
-        value <- parseValue
-        _ <- takeToken[RightPar.type]
-        body <- parseValue
-        _ <- takeToken[RightPar.type]
-      } yield LispLetDef(name, value, body))(tail)
-    case LispDo #:: tail =>
-      (for {
-        stmts <- many(parseValue)
-        _ <- takeToken[LispReturn.type]
-        retStmt <- parseValue
-        _ <- takeToken[RightPar.type]
-      } yield LispDoStmt(stmts :+ retStmt))(tail)
+    case LispLet #:: tail => parseLetClause(tail)
+    case LispDo #:: tail  => parseDoClause(tail)
     case LispLambda #:: tail =>
       (for {
         lambda <- parseLambda
@@ -142,23 +160,10 @@ package object parser {
         d <- parseDef
         _ <- takeToken[RightPar.type]
       } yield d)(tail)
-    case LispImport #:: tail =>
-      (for {
-        d <- parseValue
-        _ <- takeToken[RightPar.type]
-      } yield LispImportDef(d))(tail)
-    case LispLoop #:: tail =>
-      (for {
-        forStmts <- many(parseFor)
-        body <- parseValue
-        _ <- takeToken[RightPar.type]
-      } yield LispLoopStmt(forStmts, body))(tail)
-    case LispNs #:: tail =>
-      (for {
-        namespace <- takeToken[LispString]
-        _ <- takeToken[RightPar.type]
-      } yield LispNamespace(namespace))(tail)
-    case RightPar #:: tail => LispTokenState(LispUnit)(tail)
+    case LispImport #:: tail => parseImportStmt(tail)
+    case LispLoop #:: tail   => parseLoopStmt(tail)
+    case LispNs #:: tail     => parseNamespace(tail)
+    case RightPar #:: tail   => LispTokenState(LispUnit)(tail)
     case last =>
       (for {
         res <- many(parseValue)
