@@ -7,8 +7,31 @@ import co.gyeongmin.lisp.errors.tokenizer.{
 }
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 
+import scala.annotation.tailrec
+
 class Tokenizer(val codeIterator: Iterator[Char]) {
   var closing: Option[String] = None
+
+  def takeString(
+    builder: StringBuilder,
+    wrap: Char,
+    escape: Boolean
+  ): Either[TokenizeError, String] =
+    if (!codeIterator.hasNext) {
+      Left(EOFError)
+    } else {
+      codeIterator.next() match {
+        case '\\' if escape =>
+          takeString(builder.append("\\"), wrap, escape = false)
+        case '\\' =>
+          takeString(builder, wrap, escape = true)
+        case ch if ch == wrap && escape =>
+          takeString(builder.append(wrap), wrap, escape = false)
+        case ch if ch == wrap => Right(builder.append(wrap).mkString(""))
+        case _ if escape      => Left(WrongEscapeError)
+        case ch               => takeString(builder.append(ch), wrap, escape)
+      }
+    }
 
   def next(): Either[TokenizeError, LispToken] = closing match {
     case Some(ch) =>
@@ -17,27 +40,7 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
     case None =>
       codeIterator.dropWhile(ch => " \t\n".contains(ch))
 
-      @scala.annotation.tailrec
-      def takeString(
-        builder: StringBuilder,
-        wrap: Char,
-        escape: Boolean
-      ): Either[TokenizeError, String] = {
-        if (!codeIterator.hasNext) Left(EOFError)
-        else
-          codeIterator.next() match {
-            case '\\' if escape =>
-              takeString(builder.append("\\"), wrap, escape = false)
-            case '\\' => takeString(builder, wrap, escape = true)
-            case ch if ch == wrap && escape =>
-              takeString(builder.append(wrap), wrap, escape = false)
-            case ch if ch == wrap => Right(builder.append(wrap).mkString(""))
-            case _ if escape      => Left(WrongEscapeError)
-            case ch               => takeString(builder.append(ch), wrap, escape)
-          }
-      }
-
-      @scala.annotation.tailrec
+      @tailrec
       def loop(acc: StringBuilder): Either[TokenizeError, String] =
         if (!codeIterator.hasNext) Left(EOFError)
         else
