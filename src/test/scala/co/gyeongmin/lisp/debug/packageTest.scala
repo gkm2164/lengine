@@ -1,6 +1,11 @@
 package co.gyeongmin.lisp.debug
 
-import co.gyeongmin.lisp.lexer.statements.LispForStmt
+import co.gyeongmin.lisp.lexer.statements.{
+  LispDoStmt,
+  LispForStmt,
+  LispLetDef,
+  LispLoopStmt
+}
 import co.gyeongmin.lisp.lexer.values.{LispObject, LispUnit}
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.seq.LispList
@@ -19,5 +24,10 @@ class packageTest extends FlatSpec with Matchers {
       .debug() should be(
       "for statement with x: eager evaluation symbol in [() () ()]: List"
     )
+    LispDoStmt(Nil).debug() should be("do statement")
+    LispLetDef(EagerSymbol("x"), LispUnit, LispUnit).debug() should be(
+      "let statement define x: eager evaluation symbol"
+    )
+    LispLoopStmt(Nil, LispUnit).debug() should be("loop statement")
   }
 }
