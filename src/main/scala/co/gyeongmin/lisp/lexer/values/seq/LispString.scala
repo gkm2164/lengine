@@ -4,8 +4,7 @@ import co.gyeongmin.lisp.errors.eval
 import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   InvalidTypeError,
-  StringIsEmptyError,
-  UnimplementedOperationError
+  StringIsEmptyError
 }
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispValue}
 

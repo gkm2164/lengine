@@ -1,5 +1,8 @@
 package co.gyeongmin.lisp
 
+import cats.syntax.either._
+import cats.syntax.flatMap._
+import cats.syntax.functor._
 import co.gyeongmin.lisp.errors.parser.{
   EmptyTokenListError,
   ParseTokenizeError,
@@ -7,16 +10,12 @@ import co.gyeongmin.lisp.errors.parser.{
 }
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens._
+import co.gyeongmin.lisp.lexer.values._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values._
 import co.gyeongmin.lisp.monad._
-
-import cats.syntax.either._
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 
 import scala.reflect.ClassTag
 

@@ -1,20 +1,12 @@
 package co.gyeongmin.lisp
 
+import cats.syntax.either._
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
 import co.gyeongmin.lisp.errors.{LispError, eval}
-import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
-import co.gyeongmin.lisp.lexer.values.{
-  LispChar,
-  LispClause,
-  LispObject,
-  LispUnit,
-  LispValue
-}
-import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.{
   BuiltinLispFunc,
@@ -22,6 +14,7 @@ import co.gyeongmin.lisp.lexer.values.functions.{
   LispFunc,
   OverridableFunc
 }
+import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{
   EagerSymbol,
@@ -29,9 +22,10 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   LispSymbol,
   ListSymbol
 }
+import co.gyeongmin.lisp.lexer.values._
+import co.gyeongmin.lisp.lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
 
-import cats.syntax.either._
 import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
 import scala.io.Source

@@ -70,7 +70,7 @@ trait LispValue extends LispToken {
 
   def traverse[T](
     seq: Seq[Either[EvalError, T]]
-  ): Either[EvalError, Seq[T]] = {
+  ): Either[EvalError, Seq[T]] =
     seq.foldLeft[Either[EvalError, Seq[T]]](Right(Seq.empty[T])) {
       (acc, elem) =>
         acc match {
@@ -82,5 +82,4 @@ trait LispValue extends LispToken {
           case l @ Left(_) => l
         }
     }
-  }
 }

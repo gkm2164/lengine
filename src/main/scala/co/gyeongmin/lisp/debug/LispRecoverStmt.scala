@@ -21,13 +21,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   ListSymbol,
   ObjectReferSymbol
 }
-import co.gyeongmin.lisp.lexer.values.{
-  LispChar,
-  LispClause,
-  LispObject,
-  LispUnit,
-  LispValue
-}
+import co.gyeongmin.lisp.lexer.values._
 
 object LispRecoverStmt {
   def recoverStmtWith(value: LispValue): String = value match {

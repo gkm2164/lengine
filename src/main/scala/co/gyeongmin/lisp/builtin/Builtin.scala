@@ -8,7 +8,6 @@ import co.gyeongmin.lisp.errors.eval.{
   UnknownSymbolNameError
 }
 import co.gyeongmin.lisp.execution.{LispEnvironment, LispExecutionSyntax}
-import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.{
   BuiltinLispFunc,
@@ -22,6 +21,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   LispSymbol,
   ListSymbol
 }
+import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 
 import java.io.{BufferedReader, InputStreamReader}
 

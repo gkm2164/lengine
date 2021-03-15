@@ -3,20 +3,6 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
-import co.gyeongmin.lisp.lexer.values.{
-  LispChar,
-  LispClause,
-  LispObject,
-  LispUnit,
-  LispValue
-}
-import co.gyeongmin.lisp.lexer.values.numbers.{
-  ComplexNumber,
-  FloatNumber,
-  IntegerNumber,
-  LispNumber,
-  RatioNumber
-}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.{
   BuiltinLispFunc,
@@ -24,14 +10,10 @@ import co.gyeongmin.lisp.lexer.values.functions.{
   LispFunc,
   OverridableFunc
 }
+import co.gyeongmin.lisp.lexer.values.numbers._
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
-  LazySymbol,
-  LispSymbol,
-  ListSymbol,
-  ObjectReferSymbol
-}
+import co.gyeongmin.lisp.lexer.values.symbol._
+import co.gyeongmin.lisp.lexer.values._
 
 package object debug {
   trait Debugger {

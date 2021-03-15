@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer.values.seq
 
 import co.gyeongmin.lisp.errors.eval
-import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
