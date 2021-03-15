@@ -1,6 +1,12 @@
 package co.gyeongmin.lisp.debug
 
-import co.gyeongmin.lisp.errors.eval.{EmptyBodyClauseError, EvalError}
+import co.gyeongmin.lisp.builtin.Builtin
+import co.gyeongmin.lisp.errors.eval.{
+  EmptyBodyClauseError,
+  EvalError,
+  UnimplementedOperationError
+}
+import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.statements.{
   LispDoStmt,
   LispForStmt,
@@ -8,7 +14,8 @@ import co.gyeongmin.lisp.lexer.statements.{
   LispLoopStmt
 }
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
-import co.gyeongmin.lisp.lexer.values.{LispObject, LispUnit}
+import co.gyeongmin.lisp.lexer.values.functions.BuiltinLispFunc
+import co.gyeongmin.lisp.lexer.values.{LispObject, LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
@@ -37,5 +44,19 @@ class packageTest extends FlatSpec with Matchers {
       override def printable(): Either[EvalError, String] =
         Left(EmptyBodyClauseError)
     }.debug() should be(s"#unprintable(${EmptyBodyClauseError.message})")
+    new BuiltinLispFunc(EagerSymbol("x"), Nil) {
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
+        Left(UnimplementedOperationError("something", LispUnit))
+    }.debug() should be(
+      "(fn x () #native): Built in function"
+    )
+    new BuiltinLispFunc(EagerSymbol("x"), Nil) {
+      override def printable(): Either[EvalError, String] =
+        Left(UnimplementedOperationError("something", LispUnit))
+      override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
+        Left(UnimplementedOperationError("something", LispUnit))
+    }.debug() should be(
+      "#unable to print: Built in function"
+    )
   }
 }
