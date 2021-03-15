@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.lexer.tokens
 
 import cats.implicits.catsSyntaxEitherId
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.errors.tokenizer.{
   InvalidNumberTokenTypeError,
   TokenizeError,
@@ -42,6 +43,9 @@ case class SpecialToken(body: String) extends LispValue {
       (_, s.tail)
     }
   }
+
+  override def printable(): Either[EvalError, String] =
+    Right(s"#$body")
 
   // need error handling
   def parseNumber(

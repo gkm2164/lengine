@@ -93,14 +93,18 @@ package object debug {
         s"function definition to ${symbol.debug()} -> ${fn.debug()}"
       case LispValueDef(symbol, value) =>
         s"variable definition to ${symbol.debug()} -> ${value.debug()}"
-      case func: LispFunc       => funcDebug(func)
-      case obj: LispObject      => s"${obj.recoverStmt}: Object"
-      case LispChar(chs)        => s"$chs: Char"
-      case LispString(value)    => s""""$value": String"""
-      case symbol: LispSymbol   => symbolDebug(symbol)
-      case _: LispClause        => s"_: Lisp clause"
-      case list: LispList       => listDebug(list)
-      case _: SpecialToken      => s"_: Macro"
+      case func: LispFunc     => funcDebug(func)
+      case obj: LispObject    => s"${obj.recoverStmt}: Object"
+      case LispChar(chs)      => s"$chs: Char"
+      case LispString(value)  => s""""$value": String"""
+      case symbol: LispSymbol => symbolDebug(symbol)
+      case _: LispClause      => s"_: Lisp clause"
+      case list: LispList     => listDebug(list)
+      case st: SpecialToken =>
+        st.printable() match {
+          case Left(value)  => s"#unprintable(${value.message})"
+          case Right(value) => s"$value"
+        }
       case LispUnit             => s"(): Unit"
       case boolean: LispBoolean => booleanDebug(boolean)
       case LispDoStmt(_)        => s"do statement"
