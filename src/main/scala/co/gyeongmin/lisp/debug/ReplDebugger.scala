@@ -16,5 +16,5 @@ class ReplDebugger() extends Debugger {
   override def print(varName: Option[String], lispValue: LispValue): Unit =
     println(s"${varName.getOrElse("res_")} => ${lispValue.debug()}\n")
 
-  override def printError(e: LispError): Unit = println(e)
+  override def printError(e: LispError): Unit = println(e.message)
 }
