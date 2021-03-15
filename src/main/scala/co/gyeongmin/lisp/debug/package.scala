@@ -33,10 +33,8 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   ObjectReferSymbol
 }
 
-import java.util.concurrent.atomic.AtomicInteger
-
 package object debug {
-  sealed trait Debugger {
+  trait Debugger {
     def printError(e: errors.LispError): Unit
 
     def print(varName: Option[String], lispValue: LispValue): Unit
@@ -113,19 +111,5 @@ package object debug {
       case OverridableFunc(functions) =>
         s"${functions.length} amount of functions are defined"
     }
-  }
-
-  class ReplDebugger() extends Debugger {
-    def incAndGet: () => Int = {
-      val id = new AtomicInteger
-      () => id.incrementAndGet()
-    }
-
-    val idIssue: () => Int = incAndGet
-
-    override def print(varName: Option[String], lispValue: LispValue): Unit =
-      println(s"${varName.getOrElse("res_")} => ${lispValue.debug()}\n")
-
-    override def printError(e: errors.LispError): Unit = println(e)
   }
 }
