@@ -103,19 +103,15 @@ package object execution {
 
   def traverse(
     list: List[Either[EvalError, LispList]]
-  ): Either[EvalError, LispList] = {
-    @tailrec
-    def loop(
-      acc: Vector[LispValue],
-      remains: List[Either[EvalError, LispList]]
-    ): Either[EvalError, LispList] = remains match {
-      case Nil                            => Right(LispList(acc.toList))
-      case Left(e) :: _                   => Left(e)
-      case Right(LispList(items)) :: tail => loop(acc ++ items, tail)
+  ): Either[EvalError, LispList] =
+    list.foldLeft[Either[EvalError, LispList]](Right(LispList(Nil))) {
+      case (Right(LispList(acc)), elem) =>
+        elem match {
+          case Left(e)                => Left(e)
+          case Right(LispList(items)) => Right(LispList(acc ++ items))
+        }
+      case (Left(e), _) => Left(e)
     }
-
-    loop(Vector.empty, list)
-  }
 
   implicit class LispLoopStmtSyntax(f: LispLoopStmt) {
     def runBody(env: LispEnvironment): Either[EvalError, LispValue] = {
