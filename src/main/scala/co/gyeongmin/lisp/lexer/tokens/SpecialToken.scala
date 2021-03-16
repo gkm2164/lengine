@@ -69,7 +69,7 @@ case class SpecialToken(body: String) extends LispValue {
           }
         case _ =>
           val h = charNumMap(remains.head)
-          if (h > base) {
+          if (h >= base) {
             InvalidNumberTokenTypeError(
               s"given character(${remains.head}) exceeds given base($base)"
             ).asLeft[LispNumber]

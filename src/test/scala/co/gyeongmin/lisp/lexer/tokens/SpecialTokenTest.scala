@@ -34,6 +34,12 @@ class SpecialTokenTest extends FlatSpec with Matchers {
     specialTokenVerifier("\\c", LispChar('c'))
   }
 
+  "invalid number type with exceeding base" should "fail to parse" in {
+    SpecialToken("b12").realize should matchPattern { case Left(_) => }
+    SpecialToken("o78").realize should matchPattern { case Left(_) => }
+    SpecialToken("xfg").realize should matchPattern { case Left(_) => }
+  }
+
   it should "fail" in {
     SpecialToken("anything").realize should matchPattern { case Left(_) => }
     SpecialToken("1nva1idnumber").parseNumber(
