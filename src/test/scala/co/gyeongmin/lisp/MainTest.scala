@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp
 
+import net.sf.cglib.proxy.NoOp
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
@@ -101,6 +102,7 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "exit" should "be called" in {
+    val oldSecurityManager = System.getSecurityManager
     System.setSecurityManager(new NoExitSecurityManager)
 
     Try(runCommand("(exit 10)")) match {
@@ -113,6 +115,6 @@ class MainTest extends FlatSpec with Matchers {
       case _                         => fail()
     }
 
-    System.setSecurityManager(null)
+    System.setSecurityManager(oldSecurityManager)
   }
 }
