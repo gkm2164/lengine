@@ -144,38 +144,21 @@ object Builtin {
     E("len") ->! (_.toSeq.flatMap(_.toList.flatMap(_.length)))
   )
 
-  def symbols: LispEnvironment = binarySymbols ++ seqOpSymbols ++ Map(
-    E("$$PROMPT$$") -> LispString("lengine"),
-    E("$$HISTORY$$") -> LispList(Nil),
-    E("history") -> historyFn,
-    E("not") ->! (_.not),
-    E("neg") ->! (_.toNumber.flatMap(_.neg)),
-    E("now") -> defBuiltinFn(E("now")) { _ =>
-      Right(IntegerNumber(System.currentTimeMillis()))
-    },
-    // If statements should receive second and third parameters as Lazy evaluation
-    E("if") -> defBuiltinFn(E("if"), E("_1"), Z("_2"), Z("_3")) { env =>
+  private def quitSymbols: LispEnvironment = Map(
+    E("exit") -> defBuiltinFn(E("exit"), E("_1")) { env =>
       for {
-        cond <- env refer E("_1")
-        tClause <- env refer Z("_2")
-        fClause <- env refer Z("_3")
-        condEvalRes <- cond.toBoolean
-        execResult <-
-          if (condEvalRes) {
-            tClause.eval(env)
-          } else {
-            fClause.eval(env)
-          }
-        (execValue, _) = execResult
-      } yield execValue
+        exitCode <- env refer E("_1")
+        exitCodeInt <- exitCode.toInt
+        _ = System.exit(exitCodeInt.value.toInt)
+      } yield LispUnit
     },
-    E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
-      for {
-        list <- env refer L("_1")
-        x <- list.toSeq.flatMap(_.toList)
-      } yield x
-    },
-    E("float") ->! (_.toFloat),
+    E("quit") -> defBuiltinFn(E("quit")) { _ =>
+      System.exit(0)
+      Right(LispUnit)
+    }
+  )
+
+  private def ioSymbols: LispEnvironment = Map(
     E("print") -> defBuiltinFn(E("print"), E("_1")) { env =>
       for {
         x <- env refer E("_1")
@@ -197,19 +180,43 @@ object Builtin {
         _ = print(prompt)
         str = new BufferedReader(new InputStreamReader(System.in))
       } yield LispString(str.readLine())
-    },
-    E("exit") -> defBuiltinFn(E("exit"), E("_1")) { env =>
-      for {
-        exitCode <- env refer E("_1")
-        exitCodeInt <- exitCode.toInt
-        _ = System.exit(exitCodeInt.value.toInt)
-      } yield LispUnit
-    },
-    E("quit") -> defBuiltinFn(E("quit")) { _ =>
-      System.exit(0)
-      Right(LispUnit)
     }
   )
+
+  def symbols: LispEnvironment =
+    binarySymbols ++ seqOpSymbols ++ quitSymbols ++ ioSymbols ++ Map(
+      E("$$PROMPT$$") -> LispString("lengine"),
+      E("$$HISTORY$$") -> LispList(Nil),
+      E("history") -> historyFn,
+      E("not") ->! (_.not),
+      E("neg") ->! (_.toNumber.flatMap(_.neg)),
+      E("now") -> defBuiltinFn(E("now")) { _ =>
+        Right(IntegerNumber(System.currentTimeMillis()))
+      },
+      // If statements should receive second and third parameters as Lazy evaluation
+      E("if") -> defBuiltinFn(E("if"), E("_1"), Z("_2"), Z("_3")) { env =>
+        for {
+          cond <- env refer E("_1")
+          tClause <- env refer Z("_2")
+          fClause <- env refer Z("_3")
+          condEvalRes <- cond.toBoolean
+          execResult <-
+            if (condEvalRes) {
+              tClause.eval(env)
+            } else {
+              fClause.eval(env)
+            }
+          (execValue, _) = execResult
+        } yield execValue
+      },
+      E("list") -> defBuiltinFn(E("list"), L("_1")) { env =>
+        for {
+          list <- env refer L("_1")
+          x <- list.toSeq.flatMap(_.toList)
+        } yield x
+      },
+      E("float") ->! (_.toFloat)
+    )
 
   implicit class LispEnvironmentSyntax(x: LispEnvironment) {
     def refer(symbol: LispSymbol): Either[UnknownSymbolNameError, LispValue] =
