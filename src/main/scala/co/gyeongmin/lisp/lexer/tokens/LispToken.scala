@@ -37,9 +37,7 @@ object LispToken {
   private val NumberRegex: Regex = """([+\-])?(\d+)""".r
   private val RatioRegex: Regex = """([+\-]?)(\d+)/(\d+)""".r
   private val FloatingPointRegex: Regex =
-    """([+\-])?(\d*)\.(\d*)([esfdlESFDL]([+\-]?\d+))?""".r
-  private val FloatingPointRegex2: Regex =
-    """([+\-])?(\d*)(\.\d*)?([esfdlESFDL]([+\-]?\d+))""".r
+    """([+\-])?(\d+)(\.\d*)?([esfdlESFDL]([+\-]?\d+))?""".r
   private val StringRegex: Regex = """^"(.*)""".r
 
   def apply(code: String): Either[TokenizeError, LispToken] = code match {
@@ -67,11 +65,9 @@ object LispToken {
     case "return"                => Right(LispReturn)
     case "nil"                   => Right(LispNil)
     case SpecialValueRegex(body) => Right(SpecialToken(body))
+    case NumberRegex(sign, num)  => Right(IntegerNumber(parseInteger(sign, num)))
     case v @ FloatingPointRegex(_, _, _, _, _) =>
       Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
-    case v @ FloatingPointRegex2(_, _, _, _, _) =>
-      Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
-    case NumberRegex(sign, num) => Right(IntegerNumber(parseInteger(sign, num)))
     case RatioRegex(overSign, over, under) =>
       val o = parseInteger(overSign, over)
       val u = parseInteger("", under)

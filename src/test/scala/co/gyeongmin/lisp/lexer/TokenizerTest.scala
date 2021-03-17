@@ -67,9 +67,6 @@ class TokenizerTest extends FlatSpec with Matchers {
     LispToken("0E0") should be(
       Right(FloatNumber(0e0))
     ) //                      ;Also floating-point zero in default format
-    LispToken("-.0") should be(
-      Right(FloatNumber(0))
-    ) //                         ;This may be a zero or a minus zero,
     LispToken("0.0s0") should be(
       Right(FloatNumber(0.0e0))
     ) //                       ;A floating-point zero in short format
