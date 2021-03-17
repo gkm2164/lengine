@@ -29,7 +29,7 @@ case class SpecialToken(body: String) extends LispValue {
     * #x..
     */
   val NumberRegex: Regex =
-    """([0-9]+r|b|o|x)([+\-]?)(([0-9a-zA-Z]+)(/([0-9a-zA-Z]+))?)""".r
+    """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+(/([0-9a-zA-Z]+))?)""".r
   val CharRegex: Regex =
     """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.?)""".r
 
@@ -82,7 +82,7 @@ case class SpecialToken(body: String) extends LispValue {
   }
 
   def realize: Either[TokenizeError, LispValue] = body match {
-    case NumberRegex(base, sign, number, _, _, _) =>
+    case NumberRegex(base, sign, number, _, _) =>
       val b = base match {
         case "b" => 2
         case "o" => 8
