@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.values
 
-import co.gyeongmin.lisp.errors.eval
+import co.gyeongmin.lisp.errors.{LispError, eval}
 import co.gyeongmin.lisp.errors.eval.{
   EvalError,
   InvalidTypeError,
@@ -68,18 +68,17 @@ trait LispValue extends LispToken {
 
   def toComplex: Either[EvalError, ComplexNumber] = as[ComplexNumber]
 
-  def traverse[T](
-    seq: Seq[Either[EvalError, T]]
-  ): Either[EvalError, Seq[T]] =
-    seq.foldLeft[Either[EvalError, Seq[T]]](Right(Seq.empty[T])) {
-      (acc, elem) =>
-        acc match {
-          case Right(res) =>
-            elem match {
-              case Right(value) => Right(res :+ value)
-              case Left(e)      => Left(e)
-            }
-          case l @ Left(_) => l
-        }
+  def traverse[E <: LispError, T](
+    seq: Seq[Either[E, T]]
+  ): Either[E, Seq[T]] =
+    seq.foldLeft[Either[E, Seq[T]]](Right(Seq.empty[T])) { (acc, elem) =>
+      acc match {
+        case Right(res) =>
+          elem match {
+            case Right(value) => Right(res :+ value)
+            case Left(e)      => Left(e)
+          }
+        case l @ Left(_) => l
+      }
     }
 }
