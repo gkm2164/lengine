@@ -3,7 +3,6 @@ package co.gyeongmin.lisp.lexer
 import co.gyeongmin.lisp.errors.tokenizer.{
   EOFError,
   TokenizeError,
-  UnknownTokenError,
   WrongEscapeError
 }
 import co.gyeongmin.lisp.lexer.tokens.LispToken
@@ -11,10 +10,11 @@ import co.gyeongmin.lisp.lexer.tokens.LispToken
 import scala.collection.mutable
 
 class Tokenizer(
-    val codeIterator: Iterator[Char],
-    val closingWrapper: mutable.ListBuffer[Option[String]] =
-      mutable.ListBuffer(None)
+    val codeIterator: Iterator[Char]
 ) {
+  val closingWrapper: mutable.ListBuffer[Option[String]] =
+    mutable.ListBuffer(None)
+
   def takeString(
     builder: StringBuilder,
     wrap: Char,
@@ -63,16 +63,14 @@ class Tokenizer(
       }
     }
 
-  def next(): Either[TokenizeError, LispToken] = closingWrapper.headOption
-    .map {
-      case Some(ch) =>
-        closingWrapper(0) = None
-        LispToken(ch)
-      case None =>
-        codeIterator.dropWhile(ch => " \t\n".contains(ch))
-        loop(new StringBuilder()).flatMap(x => LispToken(x))
-    }
-    .getOrElse(Left(UnknownTokenError("tokenizer failed to check")))
+  def next(): Either[TokenizeError, LispToken] = closingWrapper.head match {
+    case Some(ch) =>
+      closingWrapper(0) = None
+      LispToken(ch)
+    case None =>
+      codeIterator.dropWhile(ch => " \t\n".contains(ch))
+      loop(new StringBuilder()).flatMap(x => LispToken(x))
+  }
 
   def streamLoop: Stream[LispToken] = next() match {
     case Right(v)       => v #:: streamLoop
@@ -81,6 +79,8 @@ class Tokenizer(
       println(s"Error on $e")
       streamLoop
   }
+
+  def tokenize: Either[TokenizeError, Stream[LispToken]] = Right(streamLoop)
 }
 
 object Tokenizer {
@@ -88,8 +88,4 @@ object Tokenizer {
     new Tokenizer(code.iterator)
   def apply(codeIterator: Iterator[Char]): Tokenizer =
     new Tokenizer(codeIterator)
-
-  def tokenize(code: Tokenizer): Either[TokenizeError, Stream[LispToken]] = {
-    Right(code.streamLoop)
-  }
 }

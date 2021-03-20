@@ -4,7 +4,6 @@ import co.gyeongmin.lisp.errors.tokenizer.{
   RatioUnderZeroNotAllowedError,
   UnknownTokenError
 }
-import co.gyeongmin.lisp.lexer.Tokenizer.tokenize
 import co.gyeongmin.lisp.lexer.tokens.{
   LeftPar,
   LispNs,
@@ -99,7 +98,7 @@ class TokenizerTest extends FlatSpec with Matchers {
   }
 
   "tokenizer" should "parse statement" in {
-    tokenize(Tokenizer("(a b c)")) should be(
+    Tokenizer("(a b c)").tokenize should be(
       Right(
         Stream(
           LeftPar,
@@ -111,7 +110,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    tokenize(Tokenizer("('a)")) should be(
+    Tokenizer("('a)").tokenize should be(
       Right(
         Stream(
           LeftPar,
@@ -121,7 +120,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    tokenize(Tokenizer("(:a)")) should be(
+    Tokenizer("(:a)").tokenize should be(
       Right(
         Stream(
           LeftPar,

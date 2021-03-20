@@ -341,8 +341,7 @@ package object execution {
     debugger: Option[Debugger]
   ): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {
-      tokens <- Tokenizer
-        .tokenize(tokenizer)
+      tokens <- tokenizer.tokenize
         .leftMap(x => (EvalTokenizeError(x), env))
       res <- evalLoop(tokens, env)
     } yield res
