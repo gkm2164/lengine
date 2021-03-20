@@ -6,6 +6,7 @@ import co.gyeongmin.lisp.errors.tokenizer.{
 }
 import co.gyeongmin.lisp.lexer.tokens.{
   LeftPar,
+  LispNop,
   LispNs,
   LispToken,
   RightPar,
@@ -98,7 +99,7 @@ class TokenizerTest extends FlatSpec with Matchers {
   }
 
   "tokenizer" should "parse statement" in {
-    Tokenizer("(a b c)").tokenize should be(
+    Tokenizer("(a b c)").tokenize.map(_.filterNot(_ == LispNop)) should be(
       Right(
         Stream(
           LeftPar,
@@ -110,7 +111,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    Tokenizer("('a)").tokenize should be(
+    Tokenizer("('a)").tokenize.map(_.filterNot(_ == LispNop)) should be(
       Right(
         Stream(
           LeftPar,
@@ -120,7 +121,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    Tokenizer("(:a)").tokenize should be(
+    Tokenizer("(:a)").tokenize.map(_.filterNot(_ == LispNop)) should be(
       Right(
         Stream(
           LeftPar,

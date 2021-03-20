@@ -20,12 +20,6 @@ import co.gyeongmin.lisp.monad._
 import scala.reflect.ClassTag
 
 package object parser {
-  def parseComplexNumber: LispTokenState[ComplexNumber] = for {
-    real <- takeToken[LispNumber]
-    imagine <- takeToken[LispNumber]
-    _ <- takeToken[RightPar.type]
-  } yield numbers.ComplexNumber(real, imagine)
-
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty             => Left(EmptyTokenListError)
     case LispNop #:: tail         => parseValue(tail)
@@ -48,6 +42,12 @@ package object parser {
     } yield key -> value)
     _ <- takeToken[RightBrace.type]
   } yield LispObject(keyValuePairs.toMap)
+
+  def parseComplexNumber: LispTokenState[ComplexNumber] = for {
+    real <- takeToken[LispNumber]
+    imagine <- takeToken[LispNumber]
+    _ <- takeToken[RightPar.type]
+  } yield numbers.ComplexNumber(real, imagine)
 
   def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty     => Left(EmptyTokenListError)
@@ -142,6 +142,7 @@ package object parser {
   } yield LispNamespace(namespace)
 
   def parseClause: LispTokenState[LispValue] = {
+    case LispNop #:: tail => parseClause(tail)
     case LispLet #:: tail => parseLetClause(tail)
     case LispDo #:: tail  => parseDoClause(tail)
     case LispLambda #:: tail =>
