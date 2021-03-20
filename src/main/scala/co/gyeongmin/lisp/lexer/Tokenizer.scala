@@ -3,18 +3,19 @@ package co.gyeongmin.lisp.lexer
 import co.gyeongmin.lisp.errors.tokenizer.{
   EOFError,
   TokenizeError,
+  UnknownTokenError,
   WrongEscapeError
 }
-import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
-import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
+import co.gyeongmin.lisp.lexer.tokens.LispToken
 
-import scala.annotation.tailrec
+import scala.collection.mutable
 
 class Tokenizer(
-    val codeIterator: Iterator[Char]
+    val codeIterator: Iterator[Char],
+    val closingWrapper: mutable.ListBuffer[Option[String]] =
+      mutable.ListBuffer(None)
 ) {
-  @tailrec
-  private def parseString(
+  def takeString(
     builder: StringBuilder,
     wrap: Char,
     escape: Boolean
@@ -24,54 +25,61 @@ class Tokenizer(
     } else {
       codeIterator.next() match {
         case '\\' if escape =>
-          parseString(builder.append("\\"), wrap, escape = false)
+          takeString(builder.append("\\"), wrap, escape = false)
         case '\\' =>
-          parseString(builder, wrap, escape = true)
+          takeString(builder, wrap, escape = true)
         case ch if ch == wrap && escape =>
-          parseString(builder.append(wrap), wrap, escape = false)
+          takeString(builder.append(wrap), wrap, escape = false)
         case ch if ch == wrap => Right(builder.append(wrap).mkString(""))
         case _ if escape      => Left(WrongEscapeError)
-        case ch               => parseString(builder.append(ch), wrap, escape)
+        case ch               => takeString(builder.append(ch), wrap, escape)
       }
     }
 
-  @tailrec
-  private def loop(acc: StringBuilder): Either[TokenizeError, Seq[String]] =
+  def loop(acc: StringBuilder): Either[TokenizeError, String] =
     if (!codeIterator.hasNext) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case ' ' | '\t' | '\n'      => Right(Seq(acc.mkString("")))
-        case ch @ ('(' | '[' | '{') => Right(Seq(acc.append(ch).mkString("")))
+        case ' ' | '\t' | '\n'      => Right(acc.mkString(""))
+        case ch @ ('(' | '[' | '{') => Right(acc.append(ch).mkString(""))
         case ch @ (']' | ')' | '}') if acc.nonEmpty =>
-          Right(Seq(acc.mkString(""), ch.toString))
-        case ch @ (']' | ')' | '}') => Right(Seq(ch.toString))
-        case '"' =>
-          parseString(acc.append('"'), '"', escape = false).map(Seq(_))
+          closingWrapper(0) = Some(ch.toString)
+          Right(acc.mkString(""))
+        case ch @ (']' | ')' | '}') => Right(ch.toString)
+        case '"'                    => takeString(acc.append('"'), '"', escape = false)
         case ';' if acc.isEmpty =>
-          parseString(new StringBuilder(), '\n', escape = false)
-          Right(Seq(""))
+          takeString(new StringBuilder(), '\n', escape = false)
+          Right("")
         case ';' =>
-          parseString(new StringBuilder(), '\n', escape = false)
-          Right(Seq(acc.mkString(""), ""))
-        case ch if ch == -1.toChar && acc.isEmpty => Right(Seq(""))
+          takeString(new StringBuilder(), '\n', escape = false)
+          closingWrapper(0) = Some("")
+          Right(acc.mkString(""))
+        case ch if ch == -1.toChar && acc.isEmpty => Right("")
         case ch if ch == -1.toChar =>
-          Right(Seq(acc.mkString(""), ""))
+          closingWrapper(0) = Some("")
+          Right(acc.mkString(""))
         case ch => loop(acc.append(ch))
       }
     }
 
-  private def next(): Either[TokenizeError, Seq[LispToken]] = {
-    codeIterator.dropWhile(ch => " \t\n".contains(ch))
-    loop(new StringBuilder()).flatMap(xs => traverse(xs.map(x => LispToken(x))))
-  }
+  def next(): Either[TokenizeError, LispToken] = closingWrapper.headOption
+    .map {
+      case Some(ch) =>
+        closingWrapper(0) = None
+        LispToken(ch)
+      case None =>
+        codeIterator.dropWhile(ch => " \t\n".contains(ch))
+        loop(new StringBuilder()).flatMap(x => LispToken(x))
+    }
+    .getOrElse(Left(UnknownTokenError("tokenizer failed to check")))
 
-  private def streamLoop: Stream[LispToken] = next() match {
-    case Right(xs)      => xs.toStream ++ streamLoop
+  def streamLoop: Stream[LispToken] = next() match {
+    case Right(v)       => v #:: streamLoop
     case Left(EOFError) => Stream.empty
     case Left(e) =>
       println(s"Error on $e")
-      LispNop #:: streamLoop
+      streamLoop
   }
 
   def tokenize: Either[TokenizeError, Stream[LispToken]] = Right(streamLoop)
