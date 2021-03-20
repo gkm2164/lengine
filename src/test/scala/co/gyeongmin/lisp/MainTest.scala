@@ -1,11 +1,10 @@
 package co.gyeongmin.lisp
 
-import net.sf.cglib.proxy.NoOp
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.security.Permission
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 class MainTest extends FlatSpec with Matchers {
   def runCommand(commandLine: String): String = {
