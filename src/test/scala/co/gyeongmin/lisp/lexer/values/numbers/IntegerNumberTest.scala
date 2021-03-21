@@ -34,9 +34,6 @@ class IntegerNumberTest extends FlatSpec with Matchers {
     (number1 eq floatNumber) should be(Right(LispFalse))
     (number1 gt floatNumber) should be(Right(LispTrue))
 
-    (number1 eq LispUnit) should matchPattern { case Left(_) => }
-    (number1 gt LispUnit) should matchPattern { case Left(_) => }
-
     number1.neg should be(Right(IntegerNumber(-3)))
 
     (number1 + ratioNumber) should be(Right(RatioNumber(7, 2)))
@@ -61,18 +58,24 @@ class IntegerNumberTest extends FlatSpec with Matchers {
     (number1 / complexNumber) should be(
       Right(IntegerNumber(0))
     )
+  }
 
+  "converting data type" should "work" in {
+    number1.toInt should be(Right(IntegerNumber(3)))
+    number1.toRatio should be(Right(RatioNumber(3, 1)))
+    number1.toFloat should be(Right(FloatNumber(3)))
+    number1.toComplex should be(
+      Right(ComplexNumber(IntegerNumber(3), IntegerNumber(0)))
+    )
+  }
+
+  it should "fail" in {
     (number1 + LispUnit) should matchPattern { case Left(_) => }
     (number1 - LispUnit) should matchPattern { case Left(_) => }
     (number1 * LispUnit) should matchPattern { case Left(_) => }
     (number1 / LispUnit) should matchPattern { case Left(_) => }
-  }
 
-  "converting data type" should "work" in {
-    number1.toComplex should be(
-      Right(ComplexNumber(IntegerNumber(3), IntegerNumber(0)))
-    )
-    number1.toRatio should be(Right(RatioNumber(3, 1)))
-    number1.toFloat should be(Right(FloatNumber(3)))
+    (number1 eq LispUnit) should matchPattern { case Left(_) => }
+    (number1 gt LispUnit) should matchPattern { case Left(_) => }
   }
 }

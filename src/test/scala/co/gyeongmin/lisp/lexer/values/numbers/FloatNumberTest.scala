@@ -47,8 +47,6 @@ class FloatNumberTest extends FlatSpec with Matchers {
       Right(ComplexNumber(FloatNumber(3.0), FloatNumber(-1.0)))
     )
 
-    number1.toRatio should be(Right(RatioNumber(10, 1)))
-
     number1.neg should be(Right(FloatNumber(-10.0)))
 
     (number1 eq intNumber) should be(Right(LispFalse))
@@ -63,12 +61,10 @@ class FloatNumberTest extends FlatSpec with Matchers {
 
   "converting data type" should "work" in {
     number1.toInt should be(Right(IntegerNumber(10)))
+    number1.toRatio should be(Right(RatioNumber(10, 1)))
+    number1.toFloat should be(Right(FloatNumber(10.0)))
     number1.toComplex should be(
       Right(ComplexNumber(FloatNumber(10.0), FloatNumber(0)))
-    )
-    number1.toFloat should be(Right(FloatNumber(10.0)))
-    FloatNumber(10.5).toRatio should be(
-      Right(RatioNumber(21, 2))
     )
   }
 
