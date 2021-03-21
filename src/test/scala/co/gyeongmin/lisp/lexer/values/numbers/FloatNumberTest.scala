@@ -76,5 +76,7 @@ class FloatNumberTest extends FlatSpec with Matchers {
 
     (number1 eq LispUnit) should matchPattern { case Left(_) => }
     (number1 gt LispUnit) should matchPattern { case Left(_) => }
+
+    (number1 gt complexNumber) should matchPattern { case Left(_) => }
   }
 }

@@ -58,6 +58,10 @@ class IntegerNumberTest extends FlatSpec with Matchers {
     (number1 / complexNumber) should be(
       Right(IntegerNumber(0))
     )
+
+    (number1 eq complexNumber) should be(
+      Right(LispFalse)
+    )
   }
 
   "converting data type" should "work" in {
