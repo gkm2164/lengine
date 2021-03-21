@@ -106,6 +106,15 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
+    Tokenizer("(\t\n )").tokenize.map(_.filterNot(_ == LispNop)) should be(
+      Right(
+        Stream(
+          LeftPar,
+          RightPar
+        )
+      )
+    )
+
     Tokenizer("('a)").tokenize.map(_.filterNot(_ == LispNop)) should be(
       Right(
         Stream(
@@ -121,6 +130,16 @@ class TokenizerTest extends FlatSpec with Matchers {
         Stream(
           LeftPar,
           ObjectReferSymbol("a"),
+          RightPar
+        )
+      )
+    )
+    Tokenizer(";comment-test\n()").tokenize.map(
+      _.filterNot(_ == LispNop)
+    ) should be(
+      Right(
+        Stream(
+          LeftPar,
           RightPar
         )
       )
