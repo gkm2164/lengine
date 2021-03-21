@@ -2,9 +2,9 @@ package co.gyeongmin.lisp
 
 import cats.syntax.either._
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
-import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
-import co.gyeongmin.lisp.errors.{LispError, eval}
+import co.gyeongmin.lisp.errors.LispError
+import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
@@ -291,7 +291,7 @@ package object execution {
         case (symbol: LispSymbol) :: args =>
           env
             .get(symbol)
-            .toRight(eval.UnknownSymbolNameError(symbol))
+            .toRight(UnknownSymbolNameError(symbol))
             .map((_, args))
         case value :: args =>
           value.eval(env).map { case (v, _) => (v, args) }
@@ -309,7 +309,7 @@ package object execution {
               symbolEnv <- fn.applyEnv(env, args)
               evalResult <- fn.runFn(symbolEnv)
             } yield evalResult
-          case v => Left(eval.NotAnExecutableError(v))
+          case v => Left(NotAnExecutableError(v))
         }
       }
   }
@@ -333,7 +333,7 @@ package object execution {
   def printPrompt(env: LispEnvironment): Either[EvalError, String] = for {
     prompt <- env
       .get(EagerSymbol("$$PROMPT$$"))
-      .toRight(eval.UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
+      .toRight(UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
     ret <- prompt.printable()
   } yield ret
 
