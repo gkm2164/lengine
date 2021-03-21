@@ -1,13 +1,17 @@
 package co.gyeongmin.lisp.execution
 
+import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
-import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.functions.{
   GeneralLispFunc,
   OverridableFunc
 }
+import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol}
+import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import org.scalatest.{FlatSpec, Matchers}
+
+import java.util.concurrent.atomic.AtomicLong
 
 class packageTest extends FlatSpec with Matchers {
   "addFn" should "pass" in {
@@ -25,6 +29,21 @@ class packageTest extends FlatSpec with Matchers {
     val next = x.addFn(EagerSymbol("invalidEnv"), fn)
 
     next should matchPattern { case Left(_) => }
+  }
+
+  "updateHistory" should "fail" in {
+    val env: LispEnvironment = Map()
+    env.updateHistory(LispUnit, new AtomicLong(), LispUnit)
+  }
+
+  "traverse" should "return left" in {
+    val list1 = LispList(List(LispUnit))
+    val simpleError = new EvalError {
+      override def message: String = ""
+    }
+    traverse(List(Right(list1), Left(simpleError), Right(list1))) should be(
+      Left(simpleError)
+    )
   }
 
   "eval" should "pass" in {
