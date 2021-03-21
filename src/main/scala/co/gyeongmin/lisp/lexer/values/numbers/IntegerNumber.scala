@@ -1,9 +1,8 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.eval
-import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
 // Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
 case class IntegerNumber(value: Long) extends LispNumber {
@@ -27,7 +26,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case r: RatioNumber     => this.toRatio.flatMap(_ + r)
       case f: FloatNumber     => this.toFloat.flatMap(_ + f)
       case c: ComplexNumber   => this.toComplex.flatMap(_ + c)
-      case _                  => Left(eval.UnimplementedOperationError(s"+", other))
+      case _                  => Left(UnimplementedOperationError(s"+", other))
     }
 
   override def -(other: LispValue): Either[EvalError, LispNumber] =
@@ -36,7 +35,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case r: RatioNumber     => this.toRatio.flatMap(_ - r)
       case f: FloatNumber     => this.toFloat.flatMap(_ - f)
       case cn: ComplexNumber  => this.toComplex.flatMap(_ - cn)
-      case _                  => Left(eval.UnimplementedOperationError(s"-", other))
+      case _                  => Left(UnimplementedOperationError(s"-", other))
     }
 
   override def *(other: LispValue): Either[EvalError, LispNumber] =
@@ -45,7 +44,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case r: RatioNumber     => this.toRatio.flatMap(_ * r)
       case f: FloatNumber     => this.toFloat.flatMap(_ * f)
       case cn: ComplexNumber  => this.toComplex.flatMap(_ * cn)
-      case _                  => Left(eval.UnimplementedOperationError(s"*", other))
+      case _                  => Left(UnimplementedOperationError(s"*", other))
     }
 
   override def /(other: LispValue): Either[EvalError, LispNumber] =
@@ -54,29 +53,30 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case r: RatioNumber     => this.toRatio.flatMap(_ / r)
       case f: FloatNumber     => this.toFloat.flatMap(_ / f)
       case cn: ComplexNumber  => this.toComplex.flatMap(_ / cn)
-      case _                  => Left(eval.UnimplementedOperationError(s"/", other))
+      case _                  => Left(UnimplementedOperationError(s"/", other))
     }
 
   override def %(other: LispValue): Either[EvalError, LispNumber] =
     other match {
       case IntegerNumber(num) => Right(IntegerNumber(value % num))
-      case x                  => Left(eval.UnimplementedOperationError(s"%", x))
+      case x                  => Left(UnimplementedOperationError(s"%", x))
     }
 
   override def eq(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
       case IntegerNumber(num) => Right(LispBoolean(value == num))
-      case r: RatioNumber     => this.toRatio.flatMap(_.eq(r))
-      case f: FloatNumber     => this.toFloat.flatMap(_.eq(f))
-      case x                  => Left(eval.UnimplementedOperationError(s"=", x))
+      case r: RatioNumber     => this.toRatio.flatMap(_ eq r)
+      case f: FloatNumber     => this.toFloat.flatMap(_ eq f)
+      case c: ComplexNumber   => this.toComplex.flatMap(_ eq c)
+      case x                  => Left(UnimplementedOperationError(s"=", x))
     }
 
   override def gt(other: LispValue): Either[EvalError, LispBoolean] =
     other match {
-      case IntegerNumber(num) => Right(if (value > num) LispTrue else LispFalse)
-      case r: RatioNumber     => this.toRatio.flatMap(_.gt(r))
-      case f: FloatNumber     => this.toFloat.flatMap(_.gt(f))
-      case x                  => Left(eval.UnimplementedOperationError(">", x))
+      case IntegerNumber(num) => Right(LispBoolean(value > num))
+      case r: RatioNumber     => this.toRatio.flatMap(_ gt r)
+      case f: FloatNumber     => this.toFloat.flatMap(_ gt f)
+      case x                  => Left(UnimplementedOperationError(">", x))
     }
 
   override def printable(): Either[EvalError, String] = Right(value.toString)

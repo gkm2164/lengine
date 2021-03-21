@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.eval
-import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
+
+import scala.annotation.tailrec
 
 trait LispNumber extends LispValue {
   def isZero: Either[EvalError, LispBoolean] = this match {
@@ -31,7 +32,7 @@ trait LispNumber extends LispValue {
 
   protected final def abs(a: Long): Long = if (a >= 0) a else -a
 
-  @scala.annotation.tailrec
+  @tailrec
   protected final def gcd(a: Long, b: Long): Long = b match {
     case 0          => a
     case b if a < b => gcd(b, a)
@@ -39,27 +40,27 @@ trait LispNumber extends LispValue {
   }
 
   def +(other: LispValue): Either[EvalError, LispNumber] = Left(
-    eval.UnimplementedOperationError("+", this)
+    UnimplementedOperationError("+", this)
   )
 
   def -(other: LispValue): Either[EvalError, LispNumber] = Left(
-    eval.UnimplementedOperationError("-", this)
+    UnimplementedOperationError("-", this)
   )
 
   def *(other: LispValue): Either[EvalError, LispNumber] = Left(
-    eval.UnimplementedOperationError("*", this)
+    UnimplementedOperationError("*", this)
   )
 
   def /(other: LispValue): Either[EvalError, LispNumber] = Left(
-    eval.UnimplementedOperationError("/", this)
+    UnimplementedOperationError("/", this)
   )
 
   def %(other: LispValue): Either[EvalError, LispNumber] = Left(
-    eval.UnimplementedOperationError("%", this)
+    UnimplementedOperationError("%", this)
   )
 
   def gt(other: LispValue): Either[EvalError, LispBoolean] = Left(
-    eval.UnimplementedOperationError(">", this)
+    UnimplementedOperationError(">", this)
   )
 
   final def gte(other: LispValue): Either[EvalError, LispBoolean] = for {

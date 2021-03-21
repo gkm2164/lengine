@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
-import co.gyeongmin.lisp.errors.eval
-import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 
@@ -28,7 +27,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield ComplexNumber(newR, newI).normalize
       case _: LispNumber => other.toComplex.flatMap(this + _)
       case _ =>
-        Left(eval.UnimplementedOperationError("+: ComplexNumber", other))
+        Left(UnimplementedOperationError("+: ComplexNumber", other))
     }
 
   override def -(other: LispValue): Either[EvalError, LispNumber] =
@@ -40,7 +39,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield ComplexNumber(newR, newI).normalize
       case _: LispNumber => other.toComplex.flatMap(this - _)
       case _ =>
-        Left(eval.UnimplementedOperationError("+: ComplexNumber", other))
+        Left(UnimplementedOperationError("+: ComplexNumber", other))
     }
 
   override def *(other: LispValue): Either[EvalError, LispNumber] =
@@ -60,7 +59,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield ComplexNumber(newReal, newImagine).normalize
       case _: LispNumber => other.toComplex.flatMap(this * _)
       case _ =>
-        Left(eval.UnimplementedOperationError("*: ComplexNumber", other))
+        Left(UnimplementedOperationError("*: ComplexNumber", other))
     }
 
   override def /(other: LispValue): Either[EvalError, LispNumber] =
@@ -77,7 +76,7 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield ComplexNumber(newReal, newImagine).normalize
       case _: LispNumber => other.toComplex.flatMap(this / _)
       case _ =>
-        Left(eval.UnimplementedOperationError("/: ComplexNumber", other))
+        Left(UnimplementedOperationError("/: ComplexNumber", other))
     }
 
   override def eq(other: LispValue): Either[EvalError, LispBoolean] =
@@ -90,6 +89,6 @@ case class ComplexNumber(real: LispNumber, imagine: LispNumber)
         } yield result
       case _: LispNumber => other.toComplex.flatMap(this eq _)
       case _ =>
-        Left(eval.UnimplementedOperationError("=: ComplexNumber", other))
+        Left(UnimplementedOperationError("=: ComplexNumber", other))
     }
 }

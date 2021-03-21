@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp.debug
 
-import co.gyeongmin.lisp.builtin.Builtin
 import co.gyeongmin.lisp.errors.eval.{
   EmptyBodyClauseError,
   EvalError,
