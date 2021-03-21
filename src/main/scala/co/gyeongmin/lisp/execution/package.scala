@@ -7,6 +7,7 @@ import co.gyeongmin.lisp.errors.LispError
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
+import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.{
   BuiltinLispFunc,
@@ -95,7 +96,7 @@ package object execution {
     }
   }
 
-  def traverse(
+  def traverseToLispList(
     list: List[Either[EvalError, LispList]]
   ): Either[EvalError, LispList] =
     list.foldLeft[Either[EvalError, LispList]](Right(LispList(Nil))) {
@@ -120,7 +121,7 @@ package object execution {
         case LispForStmt(symbol, v) :: tail =>
           v.eval(env).flatMap { case (value, _) =>
             value.toSeq.flatMap(_.toList).flatMap { case LispList(items) =>
-              traverse(for {
+              traverseToLispList(for {
                 item <- items
                 nextEnv = env.updated(symbol, item)
               } yield envApplyLoop(tail, nextEnv))
@@ -159,22 +160,6 @@ package object execution {
   }
 
   implicit class LispFuncExecutionSyntax(f: LispFunc) {
-    private def transform(
-      list: List[Either[EvalError, LispValue]]
-    ): Either[EvalError, List[LispValue]] = {
-      @scala.annotation.tailrec
-      def loop(
-        acc: Vector[LispValue],
-        remains: List[Either[EvalError, LispValue]]
-      ): Either[EvalError, List[LispValue]] = remains match {
-        case Nil              => Right(acc.toList)
-        case Right(v) :: tail => loop(acc :+ v, tail)
-        case Left(e) :: _     => Left(e)
-      }
-
-      loop(Vector.empty, list)
-    }
-
     def applyEnv(
       env: LispEnvironment,
       applyingArgs: List[LispValue]
@@ -198,10 +183,11 @@ package object execution {
           case ((l: ListSymbol) :: Nil, Nil) =>
             Right(accEnv.updated(l, LispList(Nil)))
           case ((l: ListSymbol) :: Nil, args) =>
-            val argList: Either[EvalError, List[LispValue]] = transform(
-              args.map(_.eval(env).map { case (value, _) => value })
-            )
-            argList.map(x => accEnv.updated(l, LispList(x)))
+            val argList: Either[EvalError, Seq[LispValue]] =
+              traverse(
+                args.map(_.eval(env).map { case (value, _) => value })
+              )
+            argList.map(x => accEnv.updated(l, LispList(x.toList)))
           case (v :: symbolTail, arg :: argTail) =>
             for {
               argEvalRes <- arg.eval(env)

@@ -41,9 +41,18 @@ class packageTest extends FlatSpec with Matchers {
     val simpleError = new EvalError {
       override def message: String = ""
     }
-    traverse(List(Right(list1), Left(simpleError), Right(list1))) should be(
+    traverseToLispList(
+      List(Right(list1), Left(simpleError), Right(list1))
+    ) should be(
       Left(simpleError)
     )
+  }
+
+  "override func test" should "fail" in {
+    val mockEnv: LispEnvironment = Map()
+    val mockArgs: List[LispValue] = List()
+    OverridableFunc(Vector())
+      .findApplyFunc(mockEnv, mockArgs) should matchPattern { case Left(_) => }
   }
 
   "eval" should "pass" in {
