@@ -60,7 +60,7 @@ package object debug {
     def booleanDebug(boolean: LispBoolean): String = boolean match {
       case LispFalse => s"false: Boolean"
       case LispTrue  => s"true: Boolean"
-      case x         => s"$x(unknown): Boolean"
+      case x         => s"${x.toString}(unknown): Boolean"
     }
 
     def listDebug(list: LispList): String = list.printable() match {
@@ -80,7 +80,7 @@ package object debug {
       case LispChar(chs)      => s"$chs: Char"
       case LispString(value)  => s""""$value": String"""
       case symbol: LispSymbol => symbolDebug(symbol)
-      case _: LispClause      => s"_: Lisp clause"
+      case _: LispClause      => "_: Lisp clause"
       case list: LispList     => listDebug(list)
       case st: SpecialToken =>
         st.printable() match {

@@ -4,14 +4,7 @@ import co.gyeongmin.lisp.errors.tokenizer.{
   RatioUnderZeroNotAllowedError,
   UnknownTokenError
 }
-import co.gyeongmin.lisp.lexer.tokens.{
-  LeftPar,
-  LispNop,
-  LispNs,
-  LispToken,
-  RightPar,
-  SpecialToken
-}
+import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.numbers.{
   FloatNumber,
   IntegerNumber,
@@ -25,6 +18,8 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   ObjectReferSymbol
 }
 import org.scalatest.{FlatSpec, Matchers}
+
+import java.io.ByteArrayOutputStream
 
 class TokenizerTest extends FlatSpec with Matchers {
   "number regex" should "match given numbers(represented in common lisp" in {
@@ -130,5 +125,14 @@ class TokenizerTest extends FlatSpec with Matchers {
         )
       )
     )
+  }
+
+  "tokenizer" should "error" in {
+    val outputStream = new ByteArrayOutputStream()
+    Console.withOut(outputStream) {
+      Tokenizer("123qwer (+ 3 5)").tokenize.map(_.toList)
+    }
+
+    outputStream.toString() should include("Lexing error")
   }
 }

@@ -14,8 +14,14 @@ import co.gyeongmin.lisp.lexer.statements.{
   LispLoopStmt
 }
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
-import co.gyeongmin.lisp.lexer.values.functions.BuiltinLispFunc
-import co.gyeongmin.lisp.lexer.values.{LispObject, LispUnit, LispValue}
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
+import co.gyeongmin.lisp.lexer.values.functions.{BuiltinLispFunc, LispFunc}
+import co.gyeongmin.lisp.lexer.values.{
+  LispClause,
+  LispObject,
+  LispUnit,
+  LispValue
+}
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
@@ -58,5 +64,23 @@ class packageTest extends FlatSpec with Matchers {
     }.debug() should be(
       "#unable to print: Built in function"
     )
+  }
+
+  it should "fail" in {
+    new LispFunc {
+      override def placeHolders: List[LispValue] = Nil
+    }.debug() should be("#unknown symbol")
+
+    new LispBoolean {
+      override def toString: String = "testing"
+    }.debug() should be("testing(unknown): Boolean")
+
+    new LispList(Nil) {
+      override def printable(): Either[EvalError, String] = Left(new EvalError {
+        override def message: String = "unprintable error"
+      })
+    }.debug() should be("#unable to print: List")
+
+    LispClause(Nil).debug() should be("_: Lisp clause")
   }
 }
