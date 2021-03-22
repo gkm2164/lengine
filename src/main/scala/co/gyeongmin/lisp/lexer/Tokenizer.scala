@@ -39,7 +39,7 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case ' ' | '\t' | '\n'      => Right(Seq(acc.toString()))
+        case ' ' | '\t' | '\n'      => Right(Seq(acc.toString))
         case ch @ ('(' | '[' | '{') => Right(Seq(acc.append(ch).toString()))
         case ch @ (']' | ')' | '}') if acc.nonEmpty =>
           Right(Seq(acc.toString(), ch.toString))
@@ -51,19 +51,18 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
         case ';' if acc.isEmpty =>
           for {
             _ <- parseString(new StringBuilder(), '\n')
-          } yield Seq("")
+          } yield Seq()
         case ';' =>
           for {
             _ <- parseString(new StringBuilder(), '\n')
-          } yield Seq(acc.toString, "")
-        case ch if ch == -1.toChar && acc.isEmpty => Right(Seq(""))
-        case ch if ch == -1.toChar                => Right(Seq(acc.toString(), ""))
+          } yield Seq(acc.toString)
+        case ch if ch == -1.toChar && acc.isEmpty => Right(Seq())
+        case ch if ch == -1.toChar                => Right(Seq(acc.toString()))
         case ch                                   => loop(acc.append(ch))
       }
     }
 
   private def next(): Either[TokenizeError, Seq[LispToken]] = {
-    codeIterator.dropWhile(ch => " \t\n".contains(ch))
     loop(new StringBuilder()).flatMap(xs => traverse(xs.map(x => LispToken(x))))
   }
 

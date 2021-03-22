@@ -43,5 +43,19 @@ class LibraryTest extends FlatSpec with Matchers {
     ) should include(
       "\"123456789012\": String"
     )
+
+    runCommand(
+      "libs/sequence",
+      """(n-th 1 [1 2 3 4 5])"""
+    ) should include(
+      "2: Integer"
+    )
+
+    runCommand(
+      "libs/sequence",
+      """(range 1 100)"""
+    ) should include(
+      (1 to 100).mkString(" ")
+    )
   }
 }
