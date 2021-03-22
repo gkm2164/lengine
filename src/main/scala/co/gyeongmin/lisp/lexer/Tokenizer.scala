@@ -48,17 +48,12 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
           for {
             str <- parseString(acc.append('"'), '"')
           } yield Seq(str)
-        case ';' if acc.isEmpty =>
-          for {
-            _ <- parseString(new StringBuilder(), '\n')
-          } yield Seq()
         case ';' =>
           for {
             _ <- parseString(new StringBuilder(), '\n')
           } yield Seq(acc.toString)
-        case ch if ch == -1.toChar && acc.isEmpty => Right(Seq())
-        case ch if ch == -1.toChar                => Right(Seq(acc.toString()))
-        case ch                                   => loop(acc.append(ch))
+        case ch if ch == -1.toChar => Right(Seq(acc.toString()))
+        case ch                    => loop(acc.append(ch))
       }
     }
 
@@ -75,7 +70,9 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
       LispNop #:: streamLoop
   }
 
-  def tokenize: Either[TokenizeError, Stream[LispToken]] = Right(streamLoop)
+  def getTokenStream: Either[TokenizeError, Stream[LispToken]] = Right(
+    streamLoop
+  )
 }
 
 object Tokenizer {

@@ -94,7 +94,9 @@ class TokenizerTest extends FlatSpec with Matchers {
   }
 
   "tokenizer" should "parse statement" in {
-    Tokenizer("(a b c)").tokenize.map(_.filterNot(_ == LispNop)) should be(
+    Tokenizer("(a b c)").getTokenStream.map(
+      _.filterNot(_ == LispNop)
+    ) should be(
       Right(
         Stream(
           LeftPar,
@@ -106,45 +108,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    Tokenizer("(\t\n )").tokenize.map(_.filterNot(_ == LispNop)) should be(
-      Right(
-        Stream(
-          LeftPar,
-          RightPar
-        )
-      )
-    )
-
-    Tokenizer(" \t\n()").tokenize.map(_.filterNot(_ == LispNop)) should be(
-      Right(
-        Stream(
-          LeftPar,
-          RightPar
-        )
-      )
-    )
-
-    Tokenizer("('a)").tokenize.map(_.filterNot(_ == LispNop)) should be(
-      Right(
-        Stream(
-          LeftPar,
-          LazySymbol("'a"),
-          RightPar
-        )
-      )
-    )
-
-    Tokenizer("(:a)").tokenize.map(_.filterNot(_ == LispNop)) should be(
-      Right(
-        Stream(
-          LeftPar,
-          ObjectReferSymbol("a"),
-          RightPar
-        )
-      )
-    )
-
-    Tokenizer(";comment-test\n()").tokenize.map(
+    Tokenizer("(\t\n )").getTokenStream.map(
       _.filterNot(_ == LispNop)
     ) should be(
       Right(
@@ -155,7 +119,49 @@ class TokenizerTest extends FlatSpec with Matchers {
       )
     )
 
-    Tokenizer("(something;comment-test\n").tokenize.map(
+    Tokenizer(" \t\n()").getTokenStream.map(
+      _.filterNot(_ == LispNop)
+    ) should be(
+      Right(
+        Stream(
+          LeftPar,
+          RightPar
+        )
+      )
+    )
+
+    Tokenizer("('a)").getTokenStream.map(_.filterNot(_ == LispNop)) should be(
+      Right(
+        Stream(
+          LeftPar,
+          LazySymbol("'a"),
+          RightPar
+        )
+      )
+    )
+
+    Tokenizer("(:a)").getTokenStream.map(_.filterNot(_ == LispNop)) should be(
+      Right(
+        Stream(
+          LeftPar,
+          ObjectReferSymbol("a"),
+          RightPar
+        )
+      )
+    )
+
+    Tokenizer(";comment-test\n()").getTokenStream.map(
+      _.filterNot(_ == LispNop)
+    ) should be(
+      Right(
+        Stream(
+          LeftPar,
+          RightPar
+        )
+      )
+    )
+
+    Tokenizer("(something;comment-test\n").getTokenStream.map(
       _.filterNot(_ == LispNop)
     ) should be(
       Right(
@@ -170,7 +176,7 @@ class TokenizerTest extends FlatSpec with Matchers {
   "tokenizer" should "error" in {
     val outputStream = new ByteArrayOutputStream()
     Console.withOut(outputStream) {
-      Tokenizer("123qwer (+ 3 5)").tokenize.map(_.toList)
+      Tokenizer("123qwer (+ 3 5)").getTokenStream.map(_.toList)
     }
 
     outputStream.toString() should include("Lexing error")
