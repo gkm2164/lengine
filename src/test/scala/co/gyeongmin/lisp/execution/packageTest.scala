@@ -6,13 +6,18 @@ import co.gyeongmin.lisp.errors.eval.{
   NotAnExecutableError,
   UnknownSymbolNameError
 }
+import co.gyeongmin.lisp.lexer.statements.LispValueDef
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values.functions.{
   GeneralLispFunc,
   OverridableFunc
 }
 import co.gyeongmin.lisp.lexer.values.seq.LispList
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{
+  EagerSymbol,
+  LazySymbol,
+  LispSymbol
+}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispUnit, LispValue}
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -70,6 +75,29 @@ class packageTest extends FlatSpec with Matchers {
     LispClause(List(EagerSymbol("x"))).execute(env) should matchPattern {
       case Left(_: NotAnExecutableError) =>
     }
+  }
+
+  "def executor" should "work" in {
+    val env: LispEnvironment = Map()
+
+    LispValueDef(EagerSymbol("x"), LispUnit)
+      .registerSymbol(env)
+      .map(_._2)
+      .getOrElse(Map())
+      .contains(EagerSymbol("x")) should be(true)
+
+    LispValueDef(LazySymbol("x"), LispUnit)
+      .registerSymbol(env)
+      .map(_._2)
+      .getOrElse(Map())
+      .contains(LazySymbol("x")) should be(true)
+
+    LispValueDef(
+      new LispSymbol {
+        override def name: String = "xx"
+      },
+      LispUnit
+    ).registerSymbol(env) should matchPattern { case Left(_) => }
   }
 
   "eval" should "pass" in {
