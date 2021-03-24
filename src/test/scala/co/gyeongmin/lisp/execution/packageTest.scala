@@ -1,6 +1,11 @@
 package co.gyeongmin.lisp.execution
 
-import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.errors.eval.{
+  EmptyBodyClauseError,
+  EvalError,
+  NotAnExecutableError,
+  UnknownSymbolNameError
+}
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values.functions.{
   GeneralLispFunc,
@@ -8,7 +13,7 @@ import co.gyeongmin.lisp.lexer.values.functions.{
 }
 import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol}
-import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispUnit, LispValue}
 import org.scalatest.{FlatSpec, Matchers}
 
 import java.util.concurrent.atomic.AtomicLong
@@ -53,6 +58,18 @@ class packageTest extends FlatSpec with Matchers {
     val mockArgs: List[LispValue] = List()
     OverridableFunc(Vector())
       .findApplyFunc(mockEnv, mockArgs) should matchPattern { case Left(_) => }
+  }
+
+  "clause executor" should "work" in {
+    val env: LispEnvironment = Map(EagerSymbol("x") -> LispUnit)
+
+    LispClause(Nil).execute(env) should be(Left(EmptyBodyClauseError))
+    LispClause(List(EagerSymbol("unknown"))).execute(env) should matchPattern {
+      case Left(_: UnknownSymbolNameError) =>
+    }
+    LispClause(List(EagerSymbol("x"))).execute(env) should matchPattern {
+      case Left(_: NotAnExecutableError) =>
+    }
   }
 
   "eval" should "pass" in {
