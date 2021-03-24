@@ -82,13 +82,13 @@ class packageTest extends FlatSpec with Matchers {
 
     LispValueDef(EagerSymbol("x"), LispUnit)
       .registerSymbol(env)
-      .map(_._2)
+      .map { case (_, nextEnv) => nextEnv }
       .getOrElse(Map())
       .contains(EagerSymbol("x")) should be(true)
 
     LispValueDef(LazySymbol("x"), LispUnit)
       .registerSymbol(env)
-      .map(_._2)
+      .map { case (_, nextEnv) => nextEnv }
       .getOrElse(Map())
       .contains(LazySymbol("x")) should be(true)
 
