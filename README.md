@@ -270,6 +270,19 @@ x
 res3 => 8
 ```
 
+- Having fun with Sequence!
+```
+lengine > (import "libs/sequence")  ;;; will import bunch of sequence related functions
+lengine > (range 1 5)
+res1 => [1 2 3 4 5]: List
+lengine > (map res1 inc)
+res2 => [2 3 4 5 6]: List
+lengine > (take 3 res2)
+res3 => [2 3 4]: List
+lengine > (drop 2 res3)
+res4 => [4]: List
+```
+
 <a name="to-be-implemented" />
 
 ### To be implemented

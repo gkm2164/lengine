@@ -31,3 +31,11 @@
     (if (< from to)
         (cons from (range (inc from) to))
         (cons from nil)))
+
+(fn take (n seq)
+  (if (or (empty? seq) (= n 0)) nil
+   (cons (head seq) (take (dec n) (tail seq)))))
+
+(fn drop (n seq)
+  (if (or (empty? seq) (= n 0)) seq
+   (drop (- n 1) (tail seq))))

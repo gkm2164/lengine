@@ -77,13 +77,13 @@ object Builtin {
     ): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, _.toSeq, f)
   }
 
-  def E(name: String) = EagerSymbol(name)
+  def E(name: String): EagerSymbol = EagerSymbol(name)
 
-  def L(name: String) = ListSymbol(name)
+  def L(name: String): ListSymbol = ListSymbol(name)
 
-  def Z(name: String) = LazySymbol(name)
+  def Z(name: String): LazySymbol = LazySymbol(name)
 
-  def historyFn = defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
+  def historyFn: OverridableFunc = defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
     for {
       history <- env refer E("$$HISTORY$$")
       arg <- env refer L("_1")
