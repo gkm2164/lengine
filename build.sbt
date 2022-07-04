@@ -1,22 +1,23 @@
-name := "lengine"
+ThisBuild / organization := "co.gyeongmin.lengine"
+ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / scalaVersion := "2.12.10"
 
-version := "0.1"
+lazy val lengine = (project in file("."))
+  .aggregate(
+    `lengine-core`,
+    `lengine-runtime`,
+    `lengine-repl`,
+    `lengine-compiler`
+  )
 
-scalaVersion := "2.12.10"
+lazy val `lengine-core` = project in file("lengine-core")
 
-scalacOptions ++= Seq(
-  "-Ypartial-unification"
-)
+lazy val `lengine-runtime` =
+  (project in file("lengine-runtime")).dependsOn(`lengine-core`)
 
-mainClass := Some("co.gyeongmin.lisp.Main")
+lazy val `lengine-repl` =
+  (project in file("lengine-repl")).dependsOn(`lengine-core`, `lengine-runtime`)
 
-assemblyJarName in assembly := "lengine.jar"
-
-libraryDependencies += "org.typelevel" %% "cats-core" % "2.0.0"
-libraryDependencies += "org.typelevel" %% "cats-effect" % "2.0.0"
-libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.8"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
-libraryDependencies += "org.scalatestplus" %% "easymock-3-2" % "3.2.5.0" % "test"
-
-// https://mvnrepository.com/artifact/org.ow2.asm/asm
-libraryDependencies += "org.ow2.asm" % "asm" % "7.2"
+lazy val `lengine-compiler` =
+  (project in file("lengine-compiler"))
+    .dependsOn(`lengine-core`, `lengine-runtime`)
