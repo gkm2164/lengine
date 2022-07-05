@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.builtin.Builtin
-import co.gyeongmin.lisp.execution.{compileFile, replLoop, runFile}
+import co.gyeongmin.lisp.execution.{replLoop, runFile}
 
 import scala.annotation.tailrec
 

@@ -2,7 +2,6 @@ package co.gyeongmin.lisp
 
 import cats.syntax.either._
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.compile.createClass
 import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
@@ -372,17 +371,5 @@ package object execution {
         println(e.message)
         env
     }
-  }
-
-  def compileFile(path: String, env: LispEnvironment): LispEnvironment = {
-    val tokenizer = readFile(path)
-    println("You came for compile for file: ", path, tokenizer)
-    val classBytes = createClass()
-    val pw = new BufferedOutputStream(
-      new FileOutputStream("LengineObjectMain.class")
-    )
-    pw.write(classBytes)
-    pw.close()
-    env
   }
 }
