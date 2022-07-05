@@ -26,8 +26,6 @@ import lexer.values._
 import lexer.{StdInReader, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
 import errors.LispError
-
-import java.io.{BufferedOutputStream, FileOutputStream}
 import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
 import scala.io.Source
