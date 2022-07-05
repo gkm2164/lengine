@@ -7,17 +7,13 @@ import scala.annotation.tailrec
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val LengineOptions(compile, verbose, openFilename) = parseArgs(args)
+    val LengineOptions(verbose, openFilename) = parseArgs(args)
     val env = Builtin.symbols(verbose)
 
-    if (!compile) {
-      if (openFilename.nonEmpty) {
-        runFile(openFilename.get, env)
-      } else {
-        replLoop(env)
-      }
+    if (openFilename.nonEmpty) {
+      runFile(openFilename.get, env)
     } else {
-      compileFile(openFilename.get, env)
+      replLoop(env)
     }
   }
 
@@ -30,8 +26,6 @@ object Main {
       case Nil => lengineOptions
       case ("-v" | "--verbose") :: tail =>
         loop(tail, lengineOptions.copy(verbose = true))
-      case ("-c" | "--compile") :: tail =>
-        loop(tail, lengineOptions.copy(compile = true))
       case filename :: tail =>
         loop(tail, lengineOptions.copy(openFilename = Some(filename)))
       case _ =>
