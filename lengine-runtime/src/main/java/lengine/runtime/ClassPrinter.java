@@ -41,14 +41,14 @@ public class ClassPrinter extends ClassVisitor {
     public FieldVisitor visitField(int access, String name, String desc,
                                    String signature, Object value) {
         FieldVisitor ret = super.visitField(access, name, desc, signature, value);
-        System.out.println(access + " " + name + " " + desc + " " + signature + " " + Optional.ofNullable(value));
+        System.out.println("[FIELD] " + access + " " + name + " " + desc + " " + signature + " " + Optional.ofNullable(value));
         return ret;
     }
 
     public MethodVisitor visitMethod(int access, String name,
                                      String desc, String signature, String[] exceptions) {
         MethodVisitor ret = super.visitMethod(access, name, desc, signature, exceptions);
-        System.out.println(access + " " + name + " " + desc + " " + signature + " " + Optional.ofNullable(exceptions));
+        System.out.println("[METHOD] " + access + " " + name + " " + desc + " " + signature + " " + Optional.ofNullable(exceptions));
         return ret;
     }
 
