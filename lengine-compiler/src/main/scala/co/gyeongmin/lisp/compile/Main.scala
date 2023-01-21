@@ -26,7 +26,7 @@ object Main {
       """
         |(println (+ 2 3))
         |(println "Hello World!")
-        |(println (+ 3 5))
+        |(println (+ 2 5))
         |""".stripMargin)
 
     tokenizer.getTokenStream

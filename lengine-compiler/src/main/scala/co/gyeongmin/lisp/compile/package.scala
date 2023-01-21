@@ -2,7 +2,7 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.LispValueAsmWriter
 import co.gyeongmin.lisp.lexer.values.LispValue
-import org.objectweb.asm.{ ClassWriter, Opcodes }
+import org.objectweb.asm.{ClassWriter, Opcodes, Type}
 import org.objectweb.asm.Opcodes._
 
 package object compile {
@@ -15,11 +15,15 @@ package object compile {
   }
 
   private def writeMain(cw: ClassWriter, statements: List[LispValue]): Unit = {
-    val mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
+    val mv = cw.visitMethod(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, "main",
+      Type.getMethodDescriptor(
+        Type.getType(java.lang.Void.TYPE),
+        Type.getType(classOf[Array[String]])
+      ), null, null)
     mv.visitCode()
     statements.foreach(stmt => new LispValueAsmWriter(mv, stmt).writeValue())
     mv.visitInsn(RETURN)
-    mv.visitMaxs(8, 2)
+    mv.visitMaxs(8, 8)
     mv.visitEnd()
 
   }
