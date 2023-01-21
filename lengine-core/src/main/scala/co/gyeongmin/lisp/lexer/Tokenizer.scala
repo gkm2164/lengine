@@ -1,11 +1,7 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.errors.tokenizer.{
-  EOFError,
-  TokenizeError,
-  WrongEscapeError
-}
-import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
+import co.gyeongmin.lisp.errors.tokenizer.{ EOFError, TokenizeError, WrongEscapeError }
+import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 
 import scala.annotation.tailrec
@@ -13,9 +9,9 @@ import scala.annotation.tailrec
 class Tokenizer(val codeIterator: Iterator[Char]) {
   @tailrec
   private def parseString(
-    builder: String,
-    wrap: Char,
-    escape: Boolean = false
+      builder: String,
+      wrap: Char,
+      escape: Boolean = false
   ): Either[TokenizeError, String] =
     if (!codeIterator.hasNext) {
       Left(EOFError)
@@ -35,7 +31,7 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
 
   @tailrec
   private def loop(
-    acc: String
+      acc: String
   ): Either[TokenizeError, Seq[String]] =
     if (!codeIterator.hasNext) {
       Left(EOFError)
@@ -59,9 +55,8 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
       }
     }
 
-  private def next(): Either[TokenizeError, Seq[LispToken]] = {
+  private def next(): Either[TokenizeError, Seq[LispToken]] =
     loop("").flatMap(xs => traverse(xs.map(x => LispToken(x))))
-  }
 
   private def streamLoop: Stream[LispToken] = next() match {
     case Right(xs) =>
@@ -78,8 +73,6 @@ class Tokenizer(val codeIterator: Iterator[Char]) {
 }
 
 object Tokenizer {
-  def apply(code: String): Tokenizer =
-    new Tokenizer(code.iterator)
-  def apply(codeIterator: Iterator[Char]): Tokenizer =
-    new Tokenizer(codeIterator)
+  def apply(code: String): Tokenizer                 = new Tokenizer(code.iterator)
+  def apply(codeIterator: Iterator[Char]): Tokenizer = new Tokenizer(codeIterator)
 }

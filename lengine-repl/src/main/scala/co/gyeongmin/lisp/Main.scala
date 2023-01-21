@@ -17,7 +17,7 @@ object Main {
     }
   }
 
-  def parseArgs(args: Array[String]): LengineOptions = {
+  private def parseArgs(args: Array[String]): LengineOptions = {
     @tailrec
     def loop(
       remains: List[String],
