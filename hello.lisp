@@ -1,5 +1,5 @@
 (println "1234")
 (println (+ 2 3))
 (println "Hello World!")
-(println (+ 2 5))
-(println (* 2 (/ (- 3 2) 5)))
+(println (+ 2 5.2))
+(println (* 2 (/ (- 3 2) 5.3)))

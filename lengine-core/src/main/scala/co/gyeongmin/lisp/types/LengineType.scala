@@ -37,7 +37,7 @@ case object LengineChar extends LengineNumber {
   def opWithoutString(other: LengineType): Either[EvalError, LengineType] = other match {
     case LengineChar    => Right(LengineChar)
     case LengineInteger => Right(LengineInteger)
-    case LengineFloat   => Right(LengineFloat)
+    case LengineDouble   => Right(LengineDouble)
     case LengineString  => Left(UnsupportedOperationOnTypeError("this operation is not supported on the type", this))
   }
   override def -(other: LengineType): Either[EvalError, LengineType] = opWithoutString(other)
@@ -53,14 +53,14 @@ case object LengineInteger extends LengineNumber {
   override def +(other: LengineType): Either[EvalError, LengineType] = other match {
     case LengineChar    => Right(LengineInteger)
     case LengineInteger => Right(LengineInteger)
-    case LengineFloat   => Right(LengineFloat)
+    case LengineDouble   => Right(LengineDouble)
     case LengineString  => Right(LengineString)
   }
 
   def opWithoutString(other: LengineType): Either[EvalError, LengineType] = other match {
     case LengineChar    => Right(LengineInteger)
     case LengineInteger => Right(LengineInteger)
-    case LengineFloat   => Right(LengineFloat)
+    case LengineDouble   => Right(LengineDouble)
     case LengineString  => Left(UnsupportedOperationOnTypeError("this operation is not supported on the type", this))
   }
 
@@ -75,16 +75,16 @@ case object LengineInteger extends LengineNumber {
   override def getBoxedType: Class[java.lang.Long] = classOf[java.lang.Long]
 }
 
-case object LengineFloat extends LengineNumber {
+case object LengineDouble extends LengineNumber {
   override def +(v: LengineType): Either[EvalError, LengineType] = v match {
-    case LengineChar | LengineInteger | LengineFloat => Right(LengineFloat)
+    case LengineChar | LengineInteger | LengineDouble => Right(LengineDouble)
     case LengineString                               => Right(LengineString)
   }
 
   def opWithoutString(other: LengineType): Either[EvalError, LengineType] = other match {
-    case LengineChar    => Right(LengineFloat)
-    case LengineInteger => Right(LengineFloat)
-    case LengineFloat   => Right(LengineFloat)
+    case LengineChar    => Right(LengineDouble)
+    case LengineInteger => Right(LengineDouble)
+    case LengineDouble   => Right(LengineDouble)
     case LengineString  => Left(UnsupportedOperationOnTypeError("this operation is not supported on the type", this))
   }
 
@@ -94,9 +94,9 @@ case object LengineFloat extends LengineNumber {
 
   override def /(other: LengineType): Either[EvalError, LengineType] = opWithoutString(other)
 
-  override def getJvmNativeType: Class[java.lang.Float] = java.lang.Float.TYPE
+  override def getJvmNativeType: Class[java.lang.Double] = java.lang.Double.TYPE
 
-  override def getBoxedType: Class[java.lang.Float] = classOf[java.lang.Float]
+  override def getBoxedType: Class[java.lang.Double] = classOf[java.lang.Double]
 }
 
 case object LengineString extends LengineType {

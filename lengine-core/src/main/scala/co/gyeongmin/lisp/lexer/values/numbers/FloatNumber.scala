@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.lexer.values.numbers
 import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
-import co.gyeongmin.lisp.types.{LengineFloat, LengineType}
+import co.gyeongmin.lisp.types.{LengineDouble, LengineType}
 
 import scala.annotation.tailrec
 
@@ -87,5 +87,5 @@ case class FloatNumber(value: Double) extends LispNumber {
       case x => Left(UnimplementedOperationError(">", x))
     }
 
-  override def resolveType: Either[EvalError, LengineType] = Right(LengineFloat)
+  override def resolveType: Either[EvalError, LengineType] = Right(LengineDouble)
 }

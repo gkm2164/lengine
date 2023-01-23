@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.types.{LengineString, LengineType}
+import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
+import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineNumber, LengineString, LengineType}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
@@ -15,41 +16,22 @@ object LengineTypeSystem {
         return
       }
 
-      if (toType == LengineString) {
-        mv.visitMethodInsn(
-          Opcodes.INVOKESTATIC,
-          castingType.getInternalName,
-          "valueOf",
-          Type.getMethodDescriptor(
-            castingType,
-            originType
-          ),
-          false
-        )
-      } else {
-        val boxedType = Type.getType(lengineType.getBoxedType)
-        mv.visitMethodInsn(
-          Opcodes.INVOKESTATIC,
-          boxedType.getInternalName,
-          "valueOf",
-          Type.getMethodDescriptor(
-            boxedType,
-            originType
-          ),
-          false
-        )
-
-        if (toType == LengineString) {
+      toType match {
+        case LengineString =>
           mv.visitMethodInsn(
-            Opcodes.INVOKEVIRTUAL,
-            boxedType.getInternalName,
-            "toString",
+            Opcodes.INVOKESTATIC,
+            castingType.getInternalName,
+            "valueOf",
             Type.getMethodDescriptor(
-              Type.getType(toType.getJvmNativeType),
-              boxedType
+              castingType,
+              originType
             ),
             false
           )
+        case LengineDouble => lengineType match {
+          case LengineChar => mv.visitInsn(Opcodes.I2D)
+          case LengineInteger => mv.visitInsn(Opcodes.L2D)
+          case _ => throw new IllegalArgumentException("Unsupported casting")
         }
       }
     }

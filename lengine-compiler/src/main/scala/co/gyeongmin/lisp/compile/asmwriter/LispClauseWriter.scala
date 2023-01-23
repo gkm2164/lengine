@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.lexer.values.LispClause
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.types.{LengineString, LengineType}
+import co.gyeongmin.lisp.types.{LengineDouble, LengineInteger, LengineString, LengineType}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{MethodVisitor, Type}
 
@@ -24,16 +24,19 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
           new LispValueAsmWriter(mv, v).writeValue(None)
           v.resolveType match {
             case Left(value) => throw new RuntimeException("Unable to cast type!")
+            case Right(resolvedType) if finalResolvedType != resolvedType => resolvedType.cast(finalResolvedType)
             case Right(resolvedType) if finalResolvedType == resolvedType =>
-              println("Happy that no need to cast!")
-              resolvedType.cast(finalResolvedType)
           }
         })
         mv.visitInsn(op match {
-          case "+" => LADD
-          case "-" =>LSUB
-          case "*" =>LMUL
-          case "/" =>LDIV
+          case "+" if finalResolvedType == LengineInteger => LADD
+          case "-" if finalResolvedType == LengineInteger => LSUB
+          case "*" if finalResolvedType == LengineInteger => LMUL
+          case "/" if finalResolvedType == LengineInteger => LDIV
+          case "+" if finalResolvedType == LengineDouble => DADD
+          case "-" if finalResolvedType == LengineDouble => DSUB
+          case "*" if finalResolvedType == LengineDouble => DMUL
+          case "/" if finalResolvedType == LengineDouble => DDIV
         })
         finalCast.foreach(finalResolvedType.cast)
       case EagerSymbol("println") =>
