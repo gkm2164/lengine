@@ -35,8 +35,8 @@ object Main {
       } else {
         throw new IllegalArgumentException(s"Class name is already given: ${ret.className}")
       }
-    case something :: tail if something.startsWith("-") =>
-      throw new IllegalArgumentException(s"unknown option: ${something}")
+    case something :: _ if something.startsWith("-") =>
+      throw new IllegalArgumentException(s"unknown option: $something")
     case filename :: tail => parseArgs(tail, ret.copy(sourceFileOpt = Some(filename)))
   }
 
