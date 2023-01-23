@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
-import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineNumber, LengineString, LengineType}
+import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
@@ -18,6 +17,7 @@ object LengineTypeSystem {
 
       toType match {
         case LengineString =>
+          println(lengineType, toType)
           mv.visitMethodInsn(
             Opcodes.INVOKESTATIC,
             castingType.getInternalName,
