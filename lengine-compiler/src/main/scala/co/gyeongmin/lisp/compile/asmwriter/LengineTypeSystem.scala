@@ -1,10 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.LengineEnv
+import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
-
   implicit class TypeCastor(lengineType: LengineType) {
 
     def cast(toType: LengineType)(implicit mv: MethodVisitor): Unit = {
@@ -35,4 +36,6 @@ object LengineTypeSystem {
       }
     }
   }
+
+  implicit val resolveHelper: ResolveHelper = name => LengineEnv.getVarInfo(name).map(_.storedType)
 }

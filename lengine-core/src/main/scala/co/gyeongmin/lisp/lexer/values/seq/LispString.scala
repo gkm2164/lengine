@@ -29,5 +29,5 @@ case class LispString(value: String) extends LispSeq {
     case v             => Left(InvalidTypeError(v, "Char"))
   }
 
-  override def resolveType: Either[EvalError, LengineType] = Right(LengineString)
+  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = Right(LengineString)
 }

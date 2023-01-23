@@ -87,5 +87,5 @@ case class FloatNumber(value: Double) extends LispNumber {
       case x => Left(UnimplementedOperationError(">", x))
     }
 
-  override def resolveType: Either[EvalError, LengineType] = Right(LengineDouble)
+  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = Right(LengineDouble)
 }

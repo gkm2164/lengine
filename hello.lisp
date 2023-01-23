@@ -1,4 +1,5 @@
 (def v 3)
+(def str "Something Wonderful!")
 
 (println v)
 (println "1234")
@@ -7,3 +8,5 @@
 (println #\n)
 (println (+ 2 5.2))
 (println (* 2 (/ (- 3 2) 5.3)))
+(println (+ v 10))
+(println str)

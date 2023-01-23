@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.compile
 
-import org.objectweb.asm.{Label, MethodVisitor}
+import co.gyeongmin.lisp.types.LengineType
+import org.objectweb.asm.Label
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
@@ -9,7 +10,8 @@ object LengineEnv {
   type Binder = (Label, Label, Int) => Unit
   case class Variable(name: String,
                       index: Int,
-                      binder: (Label, Label, Int) => Unit)
+                      storedType: LengineType,
+                      binder: Binder)
 
   def declareVars(): Unit = {
     varStack.values.foreach(x => x.binder(startLabel, endLabel, x.index))
@@ -23,11 +25,11 @@ object LengineEnv {
   val index = new AtomicInteger(2)
   private def nextInt = index.getAndIncrement
 
-  def callLastWithLabel(name: String, binder: Binder): Int = {
+  def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder): Int = {
     val varIdx = nextInt
-    varStack += (name -> Variable(name, varIdx, binder))
+    varStack += (name -> Variable(name, varIdx, resolvedType, binder))
     varIdx
   }
 
-  def getVarIndex(name: String): Option[Int] = varStack.get(name).map(_.index)
+  def getVarInfo(name: String): Option[Variable] = varStack.get(name)
 }

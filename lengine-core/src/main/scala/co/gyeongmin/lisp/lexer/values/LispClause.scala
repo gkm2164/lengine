@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.LengineType
 
 case class LispClause(body: List[LispValue]) extends LispValue {
-  def resolveTypeWithOperands(operator: LispValue, operands: Seq[LengineType]): Either[EvalError, LengineType] =
+  private def resolveTypeWithOperands(operator: LispValue, operands: Seq[LengineType]): Either[EvalError, LengineType] =
     operator match {
       case EagerSymbol("+") =>
         operands.foldLeft[Either[EvalError, LengineType]](Right(LengineType.Zero))(
@@ -40,7 +40,7 @@ case class LispClause(body: List[LispValue]) extends LispValue {
           }
         )
     }
-  override def resolveType: Either[EvalError, LengineType] = body match {
+  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = body match {
     case operation :: operands =>
       for {
         operandsTypes <- traverse(operands.map(_.resolveType))

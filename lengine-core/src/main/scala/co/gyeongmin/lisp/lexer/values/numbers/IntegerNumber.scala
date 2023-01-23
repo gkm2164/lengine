@@ -80,7 +80,7 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case x                  => Left(UnimplementedOperationError(">", x))
     }
 
-  override def resolveType: Either[EvalError, LengineType] = Right(LengineInteger)
+  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = Right(LengineInteger)
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
 }

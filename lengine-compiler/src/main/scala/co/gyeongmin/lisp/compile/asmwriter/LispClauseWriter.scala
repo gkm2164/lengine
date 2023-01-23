@@ -17,13 +17,13 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
     operation match {
       case EagerSymbol(op) if "+-*/".contains(op) =>
         if (clause.resolveType.isLeft) {
-          throw new RuntimeException("Unable to decide the type of clause")
+          throw new RuntimeException(s"Unable to decide the type of clause: ${clause.resolveType}")
         }
         val finalResolvedType = clause.resolveType.right.get
         operands.foreach(v => {
           new LispValueAsmWriter(mv, v).writeValue(None)
           v.resolveType match {
-            case Left(value) => throw new RuntimeException("Unable to cast type!")
+            case Left(err) => throw new RuntimeException(s"Unable to cast type!: ${err}")
             case Right(resolvedType) if finalResolvedType != resolvedType => resolvedType.cast(finalResolvedType)
             case Right(resolvedType) if finalResolvedType == resolvedType =>
           }

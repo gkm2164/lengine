@@ -11,6 +11,8 @@ import co.gyeongmin.lisp.types.LengineType
 import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
+  type ResolveHelper = String => Option[LengineType]
+
   def not: Either[EvalError, LispBoolean] = Left(
     UnimplementedOperationError("!", this)
   )
@@ -64,7 +66,7 @@ trait LispValue extends LispToken {
   def toFloat: Either[EvalError, FloatNumber] = as[FloatNumber]
 
   def toComplex: Either[EvalError, ComplexNumber] = as[ComplexNumber]
-  def resolveType: Either[EvalError, LengineType] =
+  def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] =
     Left(UnimplementedOperationError("unsupported type for compiler", this))
 
   def traverse[E <: LispError, T](
