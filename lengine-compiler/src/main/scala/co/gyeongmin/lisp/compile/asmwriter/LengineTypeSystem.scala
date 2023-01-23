@@ -17,7 +17,6 @@ object LengineTypeSystem {
 
       toType match {
         case LengineString =>
-          println(lengineType, toType)
           mv.visitMethodInsn(
             Opcodes.INVOKESTATIC,
             castingType.getInternalName,

@@ -1,3 +1,6 @@
+(def v 3)
+
+(println v)
 (println "1234")
 (println (+ 2 3))
 (println "Hello World!")
