@@ -1,12 +1,8 @@
 package co.gyeongmin.lisp.lexer.values.seq
 
-import co.gyeongmin.lisp.errors.eval.{
-  EvalError,
-  InvalidTypeError,
-  StringIsEmptyError,
-  UnimplementedOperationError
-}
+import co.gyeongmin.lisp.errors.eval.{EvalError, InvalidTypeError, StringIsEmptyError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispValue}
+import co.gyeongmin.lisp.types.{LengineString, LengineType}
 
 case class LispString(value: String) extends LispSeq {
   override def printable(): Either[EvalError, String] = Right(value)
@@ -32,4 +28,6 @@ case class LispString(value: String) extends LispSeq {
     case LispChar(chs) => Right(LispString(chs + value))
     case v             => Left(InvalidTypeError(v, "Char"))
   }
+
+  override def resolveType: Either[EvalError, LengineType] = Right(LengineString)
 }
