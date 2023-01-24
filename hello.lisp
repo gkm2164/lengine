@@ -1,5 +1,6 @@
 (def v 3)
 (def str "Something Wonderful!")
+(def name "YoonJung")
 
 (println v)
 (println "1234")
@@ -10,3 +11,6 @@
 (println (* 2 (/ (- 3 2) 5.3)))
 (println (+ v 10))
 (println str)
+(println (+ "a" "b"))
+
+(println (+ (+ "Hello, " name) "!"))

@@ -29,7 +29,6 @@ package object compile {
     mv.visitInsn(RETURN)
     mv.visitMaxs(8, getLastNumber)
     mv.visitEnd()
-
   }
 
   private def writeInitMethod(cw: ClassWriter): Unit = {

@@ -8,6 +8,7 @@ import scala.collection.mutable
 
 object LengineEnv {
   type Binder = (Label, Label, Int) => Unit
+
   case class Variable(name: String,
                       index: Int,
                       storedType: LengineType,
@@ -24,8 +25,10 @@ object LengineEnv {
 
   val index = new AtomicInteger(2)
   private def nextInt = index.getAndAdd(2)
+  def allocateVariable: Int = index.getAndIncrement()
 
-  def getLastNumber = index.get()
+  def getLastNumber: Int = index.get()
+
 
   def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder): Int = {
     val varIdx = nextInt
