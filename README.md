@@ -61,6 +61,14 @@ res1 => ()
 ...
 ```
 
+### Compiler
+- Checkout for [lengine-compiler/README.md](./lengine-compiler/README.md)!
+
+```bash
+$ ./install.sh
+$ ./lenginec hello.lisp --className Hello
+```
+
 ## Sample Code
 -   refer to ```examples``` folder
 ```lisp
@@ -285,13 +293,15 @@ res4 => [4]: List
 
 <a name="to-be-implemented" />
 
+
+
 ### To be implemented
 
 #### Feature
 -   Char Type
 -   Namespace
 -   Stream
--   Binary generation
+-   ByteCode generation
 -   Loop with only condition
 -   Macro implementation
 
