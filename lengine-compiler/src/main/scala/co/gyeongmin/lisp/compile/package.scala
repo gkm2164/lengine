@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp
 
+import co.gyeongmin.lisp.compile.LengineEnv.getLastNumber
 import co.gyeongmin.lisp.compile.asmwriter.LispValueAsmWriter
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.{ClassWriter, Type}
@@ -26,7 +27,7 @@ package object compile {
     mv.visitLabel(LengineEnv.endLabel)
     LengineEnv.declareVars()
     mv.visitInsn(RETURN)
-    mv.visitMaxs(8, 4)
+    mv.visitMaxs(8, getLastNumber)
     mv.visitEnd()
 
   }

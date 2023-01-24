@@ -23,7 +23,9 @@ object LengineEnv {
   private val varStack: mutable.Map[String, Variable] = mutable.Map()
 
   val index = new AtomicInteger(2)
-  private def nextInt = index.getAndIncrement
+  private def nextInt = index.getAndAdd(2)
+
+  def getLastNumber = index.get()
 
   def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder): Int = {
     val varIdx = nextInt

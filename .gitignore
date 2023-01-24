@@ -2,4 +2,4 @@
 **/target/
 lengine.jar
 .DS_Store
-node_modules/
+node_modules/!/Hello.class

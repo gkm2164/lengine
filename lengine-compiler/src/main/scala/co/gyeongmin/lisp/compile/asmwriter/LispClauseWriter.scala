@@ -23,7 +23,7 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
         operands.foreach(v => {
           new LispValueAsmWriter(mv, v).writeValue(None)
           v.resolveType match {
-            case Left(err) => throw new RuntimeException(s"Unable to cast type!: ${err}")
+            case Left(err) => throw new RuntimeException(s"Unable to cast type!: $err")
             case Right(resolvedType) if finalResolvedType != resolvedType => resolvedType.cast(finalResolvedType)
             case Right(resolvedType) if finalResolvedType == resolvedType =>
           }

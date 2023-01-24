@@ -327,7 +327,7 @@ package object execution {
     } yield res
 
   @tailrec
-  def executeEngine(iterator: Iterator[Char])(env: LispEnvironment): Unit = {
+  private def executeEngine(iterator: Iterator[Char])(env: LispEnvironment): Unit = {
     val tokenizer                               = Tokenizer(iterator)
     implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger)
     runLoop(tokenizer, env) match {
