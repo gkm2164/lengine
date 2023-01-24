@@ -37,15 +37,9 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
             val thisVar = allocateVariable
 
             new LispValueAsmWriter(mv, value).writeValue()
-            val (store, load) = value.resolveType match {
+            val (store, load) = value.resolveType.map(_.getCommands) match {
               case Left(err) => throw new RuntimeException(s"unable to process: $err")
-              case Right(value) => value match {
-                case LengineChar => (ISTORE, ILOAD)
-                case LengineInteger => (LSTORE, LLOAD)
-                case LengineDouble => (DSTORE, DLOAD)
-                case LengineString => (ASTORE, ALOAD)
-                case _ => (ASTORE, ALOAD)
-              }
+              case Right(value) => value
             }
 
             mv.visitIntInsn(store, thisVar)
@@ -61,16 +55,17 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
               ),
               false
             )
-            mv.visitMethodInsn(
-              INVOKEVIRTUAL,
-              "java/lang/StringBuilder",
-              "toString",
-              Type.getMethodDescriptor(
-                Type.getType(classOf[java.lang.String])
-              ),
-              false
-            )
           })
+          mv.visitIntInsn(ALOAD, sbIdx)
+          mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            "java/lang/StringBuilder",
+            "toString",
+            Type.getMethodDescriptor(
+              Type.getType(classOf[java.lang.String])
+            ),
+            false
+          )
         } else {
           operands.foreach(v => {
             new LispValueAsmWriter(mv, v).writeValue(None)
@@ -82,14 +77,10 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
           })
 
           mv.visitInsn(op match {
-            case "+" if finalResolvedType == LengineInteger => LADD
-            case "-" if finalResolvedType == LengineInteger => LSUB
-            case "*" if finalResolvedType == LengineInteger => LMUL
-            case "/" if finalResolvedType == LengineInteger => LDIV
-            case "+" if finalResolvedType == LengineDouble => DADD
-            case "-" if finalResolvedType == LengineDouble => DSUB
-            case "*" if finalResolvedType == LengineDouble => DMUL
-            case "/" if finalResolvedType == LengineDouble => DDIV
+            case "+" => finalResolvedType.ADD
+            case "-" => finalResolvedType.SUB
+            case "*" => finalResolvedType.MUL
+            case "/" => finalResolvedType.DIV
           })
 
           finalCast.foreach(finalResolvedType.cast)

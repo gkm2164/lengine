@@ -37,5 +37,39 @@ object LengineTypeSystem {
     }
   }
 
+  implicit class VarCommand(types: LengineType) {
+    def getCommands: (Int, Int) = types match {
+        case LengineChar => (Opcodes.ISTORE, Opcodes.ILOAD)
+        case LengineInteger => (Opcodes.LSTORE, Opcodes.LLOAD)
+        case LengineDouble => (Opcodes.DSTORE, Opcodes.DLOAD)
+        case LengineString => (Opcodes.ASTORE, Opcodes.ALOAD)
+        case _ => (Opcodes.ASTORE, Opcodes.ALOAD)
+    }
+
+    def ADD = types match {
+      case LengineChar => Opcodes.IADD
+      case LengineInteger => Opcodes.LADD
+      case LengineDouble => Opcodes.DADD
+    }
+
+    def SUB = types match {
+      case LengineChar => Opcodes.ISUB
+      case LengineInteger => Opcodes.LSUB
+      case LengineDouble => Opcodes.DSUB
+    }
+
+    def MUL = types match {
+      case LengineChar => Opcodes.IMUL
+      case LengineInteger => Opcodes.LMUL
+      case LengineDouble => Opcodes.DMUL
+    }
+
+    def DIV = types match {
+      case LengineChar => Opcodes.IDIV
+      case LengineInteger => Opcodes.LDIV
+      case LengineDouble => Opcodes.DDIV
+    }
+  }
+
   implicit val resolveHelper: ResolveHelper = name => LengineEnv.getVarInfo(name).map(_.storedType)
 }

@@ -13,4 +13,4 @@
 (println str)
 (println (+ "a" "b"))
 
-(println (+ (+ "Hello, " name) "!"))
+(println (+ "Hello, " name "!"))
