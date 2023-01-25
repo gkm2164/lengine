@@ -14,7 +14,12 @@
 
 (println (+ "Hello, " name "!"))
 
-(def seq [1 2 3 4 5])
+(println (+ name " is beautiful woman!"))
+
+(def seq [1 2 3 4 5 6 7 8 9 10])
 (def seq2 [1 2 3 4 5 [1 2 3 4 5]])
+(def seq3 [1 2 3 name])
 
 (println seq)
+(println seq2)
+(println seq3)
