@@ -12,7 +12,7 @@ Refer `./test/scala/co/gyeongmin/lisp/compile/MainTest.scala` to see how to run.
 
 For now, thinking about this interface.
 
-`$ lenginec hello.lisp --className Hello`
+`$ ./lenginec hello.lisp --className Hello`
 
 ## How it works?
 
@@ -21,7 +21,7 @@ For now, thinking about this interface.
 With given class name, it will create main which is static method. At the command line, you can execute your binary with
 following;
 
-`$ java Hello`
+`$ CLASSPATH=$CLASSPATH:./lengine-runtime.jar java Hello`
 
 ### 2. Dynamic Type System
 
@@ -58,3 +58,7 @@ Char + Integer => (Integer)Char + Integer
 Integer + Double => (Double)Integer + Double
 Double + String => Double.toString() + String // At this point, actually it's not arithmatic calculation.
 ```
+
+### 3. Runtime library
+
+TODO - need some description for how LengineRuntime is working, including Prelude.
