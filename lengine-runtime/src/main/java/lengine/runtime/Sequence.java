@@ -36,6 +36,10 @@ public class Sequence {
     list.add(item);
   }
 
+  public void append(Sequence toBeAppended) {
+    list.addAll(toBeAppended.list);
+  }
+
   public Object head() {
     return list.getFirst();
   }
