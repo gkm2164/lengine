@@ -10,14 +10,14 @@ lazy val lengine = (project in file("."))
     `lengine-compiler`
   )
 
-lazy val `lengine-core` = project in file("lengine-core")
 
-lazy val `lengine-runtime` =
-  (project in file("lengine-runtime")).dependsOn(`lengine-core`)
+lazy val `lengine-runtime` = project in file("lengine-runtime")
+
+lazy val `lengine-core` =
+  (project in file("lengine-core")).dependsOn(`lengine-runtime`)
 
 lazy val `lengine-repl` =
   (project in file("lengine-repl")).dependsOn(`lengine-core`, `lengine-runtime`)
 
 lazy val `lengine-compiler` =
-  (project in file("lengine-compiler"))
-    .dependsOn(`lengine-core`, `lengine-runtime`)
+  (project in file("lengine-compiler")).dependsOn(`lengine-core`, `lengine-runtime`)

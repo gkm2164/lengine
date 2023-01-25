@@ -11,6 +11,10 @@
 (println (* 2 (/ (- 3 2) 5.3)))
 (println (+ v 10))
 (println str)
-(println (+ "a" "b"))
 
 (println (+ "Hello, " name "!"))
+
+(def seq [1 2 3 4 5])
+(def seq2 [1 2 3 4 5 [1 2 3 4 5]])
+
+(println seq)

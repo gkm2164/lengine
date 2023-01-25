@@ -25,7 +25,7 @@ object LengineEnv {
 
   val index = new AtomicInteger(2)
   private def nextInt = index.getAndAdd(2)
-  def allocateVariable: Int = index.getAndIncrement()
+  def allocateVariable: Int = index.getAndAdd(2)
 
   def getLastNumber: Int = index.get()
 

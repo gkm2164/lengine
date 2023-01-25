@@ -1,12 +1,13 @@
 package co.gyeongmin.lisp.types
 
 import co.gyeongmin.lisp.errors.eval.EvalError
+import lengine.runtime.Sequence
 
 object LengineType {
   case object Zero extends LengineType {
-    override def getBoxedType: Class[_ <: Object] = ???
+    override def getBoxedType: Class[_ <: Object] = classOf[java.lang.Object]
 
-    override def getJvmNativeType: Class[_ <: Object] = ???
+    override def getJvmNativeType: Class[_ <: Object] = classOf[java.lang.Object]
 
     override def +(other: LengineType): Either[EvalError, LengineType] = Right(other)
 
@@ -116,4 +117,17 @@ case object LengineString extends LengineType {
   override def getJvmNativeType: Class[String] = classOf[java.lang.String]
 
   override def getBoxedType: Class[String] = classOf[java.lang.String]
+}
+
+case object LengineList extends LengineType {
+  override def getBoxedType: Class[_ <: Object] = classOf[Sequence]
+  override def getJvmNativeType: Class[_ <: Object] = classOf[Sequence]
+
+  override def +(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def -(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def *(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def /(other: LengineType): Either[EvalError, LengineType] = ???
 }
