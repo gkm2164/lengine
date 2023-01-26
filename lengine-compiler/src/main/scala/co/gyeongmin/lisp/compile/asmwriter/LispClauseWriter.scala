@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.LengineEnv.allocateVariable
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
@@ -7,7 +8,7 @@ import co.gyeongmin.lisp.types.{LengineString, LengineType}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{MethodVisitor, Type}
 
-class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
+class LispClauseWriter(mv: MethodVisitor, clause: LispClause){
 
   import LengineTypeSystem._
 
@@ -30,6 +31,10 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause) {
           finalCast.foreach(finalResolvedType.cast)
         }
       case EagerSymbol("println") => definePrintln(operands)
+      case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
+        LengineEnv.getFn(operation).foreach(fn => {
+          mv.visitJumpInsn(JSR, fn.atLabel)
+        })
     }
   }
 

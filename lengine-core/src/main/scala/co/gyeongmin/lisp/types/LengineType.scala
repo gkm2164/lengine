@@ -17,6 +17,20 @@ object LengineType {
 
     override def /(other: LengineType): Either[EvalError, LengineType] = Right(other)
   }
+
+  object Unknown extends LengineType {
+    override def getBoxedType: Class[_ <: Object] = classOf[java.lang.Object]
+
+    override def getJvmNativeType: Class[_ <: Object] = classOf[java.lang.Object]
+
+    override def +(other: LengineType): Either[EvalError, LengineType] = Left(UnsupportedOperationOnTypeError("", this))
+
+    override def -(other: LengineType): Either[EvalError, LengineType] = Left(UnsupportedOperationOnTypeError("", this))
+
+    override def *(other: LengineType): Either[EvalError, LengineType] = Left(UnsupportedOperationOnTypeError("", this))
+
+    override def /(other: LengineType): Either[EvalError, LengineType] = Left(UnsupportedOperationOnTypeError("", this))
+  }
 }
 
 trait LengineType {

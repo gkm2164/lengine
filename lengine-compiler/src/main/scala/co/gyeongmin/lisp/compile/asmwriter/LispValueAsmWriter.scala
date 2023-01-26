@@ -2,13 +2,13 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.LengineEnv.{Variable, allocateVariable}
-import co.gyeongmin.lisp.lexer.statements.LispValueDef
+import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineList, LengineType}
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
 
 class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
   import LengineTypeSystem._
@@ -28,38 +28,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
       mv.visitLdcInsn(str)
       finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case LispList(body) =>
-      mv.visitTypeInsn(Opcodes.NEW, "lengine/runtime/Sequence")
-      mv.visitInsn(Opcodes.DUP)
-      mv.visitMethodInsn(
-        Opcodes.INVOKESPECIAL,
-        "lengine/runtime/Sequence",
-        "<init>",
-        Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
-        false
-      )
-      val seqIdx = allocateVariable
-      mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
-      body.foreach(value => {
-        new LispValueAsmWriter(mv, value).writeValue()
-        value.resolveType.map(_.getCommands).map { case (store, load) =>
-          val idx = allocateVariable
-          mv.visitIntInsn(store, idx)
-          mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
-          mv.visitIntInsn(load, idx)
-          mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-            "lengine/runtime/Sequence",
-            "add",
-            Type.getMethodDescriptor(
-              Type.getType(java.lang.Void.TYPE),
-              Type.getType(value.resolveType
-                .map(_.getJvmNativeType)
-                .getOrElse(classOf[java.lang.Object]))
-            ),
-            false
-          )
-        }
-      })
-      mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
+      declareSequence(body)
       finalCast.foreach(LengineList.cast)
     case EagerSymbol(varName) =>
       LengineEnv.getVarInfo(varName).foreach {
@@ -85,5 +54,48 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
           case _ => mv.visitIntInsn(Opcodes.ASTORE, varIdx)
         }
       })
+    case f: LispFuncDef =>
+      val afterRun = new Label
+      mv.visitJumpInsn(Opcodes.GOTO, afterRun)
+      new LispFnAsmWriter(mv, f).writeValue()
+      mv.visitLabel(afterRun)
+      mv.visitInsn(Opcodes.NOP)
   }
+
+
+  private def declareSequence(body: List[LispValue]): Unit = {
+    mv.visitTypeInsn(Opcodes.NEW, "lengine/runtime/Sequence")
+    mv.visitInsn(Opcodes.DUP)
+    mv.visitMethodInsn(
+      Opcodes.INVOKESPECIAL,
+      "lengine/runtime/Sequence",
+      "<init>",
+      Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
+      false
+    )
+    val seqIdx = allocateVariable
+    mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
+    body.foreach(value => {
+      new LispValueAsmWriter(mv, value).writeValue()
+      value.resolveType.map(_.getCommands).map { case (store, load) =>
+        val idx = allocateVariable
+        mv.visitIntInsn(store, idx)
+        mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
+        mv.visitIntInsn(load, idx)
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+          "lengine/runtime/Sequence",
+          "add",
+          Type.getMethodDescriptor(
+            Type.getType(java.lang.Void.TYPE),
+            Type.getType(value.resolveType
+              .map(_.getJvmNativeType)
+              .getOrElse(classOf[java.lang.Object]))
+          ),
+          false
+        )
+      }
+    })
+    mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
+  }
+
 }

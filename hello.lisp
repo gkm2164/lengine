@@ -23,3 +23,8 @@
 (println seq)
 (println seq2)
 (println seq3)
+
+(fn printStr (a)
+  (println a))
+
+(printStr "Something")
