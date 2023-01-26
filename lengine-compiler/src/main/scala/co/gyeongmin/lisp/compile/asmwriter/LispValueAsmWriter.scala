@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.compile.LengineEnv.{Variable, allocateVariable}
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineList, LengineType}
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
@@ -59,7 +59,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
       mv.visitJumpInsn(Opcodes.GOTO, afterRun)
       new LispFnAsmWriter(mv, f).writeValue()
       mv.visitLabel(afterRun)
-      mv.visitInsn(Opcodes.NOP)
+      mv.visitInsn(Opcodes.F_SAME)
   }
 
 
