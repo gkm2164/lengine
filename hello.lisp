@@ -31,11 +31,13 @@
 (fn other-seq (x)
   (println x))
 
+(fn concat (x y) [x y])
+
 (print-seq "Hello" "World")
 
 (println "Hello World!")
 
 (print-seq "something" "World")
-(other-seq "something2")
-(print-seq "something" "World")
-(other-seq "something3")
+; (other-seq "something2")
+; (print-seq "something" "World")
+; (other-seq "something3")

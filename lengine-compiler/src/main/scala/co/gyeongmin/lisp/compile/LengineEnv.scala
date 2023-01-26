@@ -1,7 +1,5 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import co.gyeongmin.lisp.types.LengineType
 import org.objectweb.asm.Label
 
@@ -13,8 +11,10 @@ object LengineEnv {
 
   def getFn(operation: String): Option[LengineFunction] = fnStack.get(operation)
 
+  case class ReturnVariableAddress(addr: Int) extends AnyVal
+
   type Binder = (Label, Label, Int) => Unit
-  type FnBinder = (List[Int]) => Unit
+  type FnBinder = (Int, List[Int]) => Unit
 
   case class Variable(name: String,
                       index: Int,
@@ -29,7 +29,7 @@ object LengineEnv {
 
   def declareVarsAndFns(): Unit = {
     varStack.values.foreach(x => x.binder(startLabel, endLabel, x.index))
-    fnStack.values.foreach(f => f.binder(f.args))
+    fnStack.values.foreach(f => f.binder(f.retAddr, f.args))
   }
 
   val startLabel: Label = new Label()
@@ -52,7 +52,10 @@ object LengineEnv {
   }
 
   def defineFn(name: String, label: Label, args: Integer, fnBinder: FnBinder): LengineFunction = {
-    val fn = LengineFunction(name, label, allocateVariable, (1 to args).map(_ => allocateVariable).toList, fnBinder)
+    val fn = LengineFunction(
+      name, label,
+      allocateVariable,
+      (1 to args).map(_ => allocateVariable).toList, fnBinder)
     println(fn)
     fnStack += (name -> fn)
     fn
@@ -60,4 +63,6 @@ object LengineEnv {
 
 
   def getVarInfo(name: String): Option[Variable] = varStack.get(name)
+
+  lazy val printlnRetLoc: Int = allocateVariable
 }
