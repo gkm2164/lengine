@@ -77,7 +77,8 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
       new LispValueAsmWriter(mv, value).writeValue()
-      value.resolveType.map(_.getCommands).map { case (store, load) =>
+      value.resolveType.map(_.getCommands)
+        .getOrElse((Opcodes.ASTORE, Opcodes.ALOAD)) match { case (store, load) =>
         val idx = allocateVariable
         mv.visitIntInsn(store, idx)
         mv.visitIntInsn(Opcodes.ALOAD, seqIdx)

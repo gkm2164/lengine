@@ -32,6 +32,8 @@ public class Sequence {
     list.add(item);
   }
 
+  public void add(Object item) { list.add(item); }
+
   public void add(Sequence item) {
     list.add(item);
   }
