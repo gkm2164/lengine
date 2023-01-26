@@ -55,11 +55,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
         }
       })
     case f: LispFuncDef =>
-      val afterRun = new Label
-      mv.visitJumpInsn(Opcodes.GOTO, afterRun)
       new LispFnAsmWriter(mv, f).writeValue()
-      mv.visitLabel(afterRun)
-      mv.visitInsn(Opcodes.F_SAME)
   }
 
 

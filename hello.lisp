@@ -24,11 +24,17 @@
 (println seq2)
 (println seq3)
 
-(fn printStr (a)
-  (println a))
+(fn print-seq ()
+  (println seq3))
 
-(printStr "Something")
+(fn other-thing ()
+  (println name))
+
+(print-seq)
 
 (println "Hello World!")
 
-(printStr "Something")
+(print-seq)
+(other-thing)
+(print-seq)
+(other-thing)

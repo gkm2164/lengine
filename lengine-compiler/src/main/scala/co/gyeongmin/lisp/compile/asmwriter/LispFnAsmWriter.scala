@@ -7,13 +7,13 @@ import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
 class LispFnAsmWriter(mv: MethodVisitor, f: LispFuncDef) {
   def writeValue(): Unit = {
     val fnLabel = new Label
-    mv.visitCode()
-    mv.visitLabel(fnLabel)
-    mv.visitFrame(Opcodes.F_APPEND, 1, Array(Opcodes.INTEGER), 1, Array(Opcodes.LONG))
-    val retAddr = LengineEnv.allocateVariable
-    mv.visitIntInsn(Opcodes.ASTORE, retAddr)
-    mv.visitInsn(Opcodes.NOP)
-    mv.visitIntInsn(Opcodes.RET, retAddr)
-    LengineEnv.defineFn(f.symbol.name, fnLabel, Nil, f.fn.body)
+    LengineEnv.defineFn(f.symbol.name, fnLabel, () => {
+      mv.visitCode()
+      mv.visitLabel(fnLabel)
+      val retAddr = LengineEnv.allocateVariable
+      mv.visitIntInsn(Opcodes.ASTORE, retAddr)
+      new LispValueAsmWriter(mv, f.fn.body).writeValue()
+      mv.visitIntInsn(Opcodes.RET, retAddr)
+    })
   }
 }

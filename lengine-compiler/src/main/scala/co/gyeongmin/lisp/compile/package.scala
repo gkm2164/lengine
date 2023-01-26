@@ -25,8 +25,8 @@ package object compile {
     mv.visitLabel(LengineEnv.startLabel)
     statements.foreach(stmt => new LispValueAsmWriter(mv, stmt).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
-    LengineEnv.declareVars()
     mv.visitInsn(RETURN)
+    LengineEnv.declareVarsAndFns()
     mv.visitMaxs(8, getLastNumber)
     mv.visitEnd()
   }
