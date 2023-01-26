@@ -14,7 +14,7 @@ object LengineEnv {
   def getFn(operation: String): Option[LengineFunction] = fnStack.get(operation)
 
   type Binder = (Label, Label, Int) => Unit
-  type FnBinder = () => Unit
+  type FnBinder = (List[Int]) => Unit
 
   case class Variable(name: String,
                       index: Int,
@@ -24,11 +24,12 @@ object LengineEnv {
   case class LengineFunction(name: String,
                              atLabel: Label,
                              retAddr: Int,
+                             args: List[Int],
                              binder: FnBinder)
 
   def declareVarsAndFns(): Unit = {
     varStack.values.foreach(x => x.binder(startLabel, endLabel, x.index))
-    fnStack.values.foreach(f => f.binder())
+    fnStack.values.foreach(f => f.binder(f.args))
   }
 
   val startLabel: Label = new Label()
@@ -50,8 +51,9 @@ object LengineEnv {
     varIdx
   }
 
-  def defineFn(name: String, label: Label, fnBinder: FnBinder): LengineFunction = {
-    val fn = LengineFunction(name, label, allocateVariable, fnBinder)
+  def defineFn(name: String, label: Label, args: Integer, fnBinder: FnBinder): LengineFunction = {
+    val fn = LengineFunction(name, label, allocateVariable, (1 to args).map(_ => allocateVariable).toList, fnBinder)
+    println(fn)
     fnStack += (name -> fn)
     fn
   }

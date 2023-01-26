@@ -8,7 +8,7 @@ import co.gyeongmin.lisp.types.{LengineString, LengineType}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{MethodVisitor, Type}
 
-class LispClauseWriter(mv: MethodVisitor, clause: LispClause){
+class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int]){
 
   import LengineTypeSystem._
 
@@ -33,6 +33,10 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause){
       case EagerSymbol("println") => definePrintln(operands)
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
+          fn.args.zip(operands).foreach { case (argLoc, value) =>
+            new LispValueAsmWriter(mv, value).writeValue()
+            mv.visitIntInsn(ASTORE, argLoc)
+          }
           mv.visitJumpInsn(JSR, fn.atLabel)
         })
     }

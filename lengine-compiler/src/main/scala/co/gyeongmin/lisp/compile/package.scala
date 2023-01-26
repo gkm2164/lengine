@@ -23,7 +23,7 @@ package object compile {
       ), null, null)
     mv.visitCode()
     mv.visitLabel(LengineEnv.startLabel)
-    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt).writeValue())
+    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map()).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     LengineEnv.declareVarsAndFns()

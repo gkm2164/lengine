@@ -7,10 +7,10 @@ import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
-import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineList, LengineType}
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
+import co.gyeongmin.lisp.types._
+import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
-class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
+class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int]) {
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
@@ -31,16 +31,20 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue) {
       declareSequence(body)
       finalCast.foreach(LengineList.cast)
     case EagerSymbol(varName) =>
-      LengineEnv.getVarInfo(varName).foreach {
-        case Variable(_, varIdx, storedType, _) =>
-          storedType match {
-            case LengineChar => mv.visitIntInsn(Opcodes.ILOAD, varIdx)
-            case LengineInteger => mv.visitIntInsn(Opcodes.LLOAD, varIdx)
-            case LengineDouble => mv.visitIntInsn(Opcodes.DLOAD, varIdx)
-            case _ => mv.visitIntInsn(Opcodes.ALOAD, varIdx)
-          }
+      if (args.contains(varName)) {
+        args.get(varName).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
+      } else {
+        LengineEnv.getVarInfo(varName).foreach {
+          case Variable(_, varIdx, storedType, _) =>
+            storedType match {
+              case LengineChar => mv.visitIntInsn(Opcodes.ILOAD, varIdx)
+              case LengineInteger => mv.visitIntInsn(Opcodes.LLOAD, varIdx)
+              case LengineDouble => mv.visitIntInsn(Opcodes.DLOAD, varIdx)
+              case _ => mv.visitIntInsn(Opcodes.ALOAD, varIdx)
+            }
 
-          finalCast.foreach(storedType.cast(_))
+            finalCast.foreach(storedType.cast(_))
+        }
       }
     case l@LispClause(_) => new LispClauseWriter(mv, l).writeValue(finalCast)
     case LispValueDef(symbol, value) =>

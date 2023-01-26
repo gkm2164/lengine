@@ -3,10 +3,9 @@
 (def name "YoonJung")
 
 (println v)
-(println "1234")
-(println (+ 2 3))
-(println "Hello World!")
 (println #\n)
+(println "Hello World")
+(println (+ 2 3))
 (println (+ 2 5.2))
 (println (* 2 (/ (- 3 2) 5.3)))
 (println (+ v 10))
@@ -24,17 +23,17 @@
 (println seq2)
 (println seq3)
 
-(fn print-seq ()
-  (println seq3))
+(fn print-seq (x y)
+  (println x))
 
-(fn other-thing ()
-  (println name))
+(fn other-seq (x)
+  (println x))
 
-(print-seq)
+(print-seq "Hello" "World")
 
 (println "Hello World!")
 
-(print-seq)
-(other-thing)
-(print-seq)
-(other-thing)
+(print-seq "something" "World")
+(other-seq "something2")
+(print-seq "something" "World")
+(other-seq "something3")
