@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.LengineString
 import lengine.runtime.{LengineRuntime, Sequence}
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{ClassWriter, MethodVisitor, Opcodes, Type}
 import org.objectweb.asm.Opcodes.{ALOAD, ASTORE, GETSTATIC, INVOKESTATIC, INVOKEVIRTUAL}
 
 object RuntimeMethodVisitor {
@@ -21,7 +21,7 @@ object RuntimeMethodVisitor {
   def supportOperation(operation: String): Boolean =
     supportedOps.contains(operation)
 
-  private def visitTypeCast(mv: MethodVisitor, op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitTypeCast(mv: MethodVisitor, op: String, operands: List[LispValue])(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operand :: _ = operands
 
     new LispValueAsmWriter(mv, operand).writeValue()
@@ -38,7 +38,7 @@ object RuntimeMethodVisitor {
     )
   }
 
-  def handle(body: List[LispValue])(implicit mv: MethodVisitor, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  def handle(body: List[LispValue])(implicit mv: MethodVisitor, cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
 
     operation match {
@@ -55,7 +55,7 @@ object RuntimeMethodVisitor {
 
     }
   }
-  private def visitSeqOp(mv: MethodVisitor, operationName: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitSeqOp(mv: MethodVisitor, operationName: String, operands: List[LispValue])(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val number :: seq :: _ = operands
     new LispValueAsmWriter(mv, number).writeValue()
     new LispValueAsmWriter(mv, seq).writeValue()
@@ -72,7 +72,7 @@ object RuntimeMethodVisitor {
       false
     )
   }
-  private def visitFlatten(mv: MethodVisitor, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitFlatten(mv: MethodVisitor, operands: List[LispValue])(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
     new LispValueAsmWriter(mv, seq).writeValue()
     mv.visitMethodInsn(
@@ -88,7 +88,7 @@ object RuntimeMethodVisitor {
   }
 
 
-  private def visitCalc(mv: MethodVisitor, operation: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitCalc(mv: MethodVisitor, operation: String, operands: List[LispValue])(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     operands.foreach(v => new LispValueAsmWriter(mv, v).writeValue(None))
     mv.visitMethodInsn(
       Opcodes.INVOKESTATIC,
@@ -99,7 +99,7 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitPrintln(mv: MethodVisitor, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitPrintln(mv: MethodVisitor, operands: List[LispValue])(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     operands.foreach(v => new LispValueAsmWriter(mv, v).writeValue(Some(LengineString)))
     val temporalVarIdx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(ASTORE, temporalVarIdx)

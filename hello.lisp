@@ -44,6 +44,8 @@
 
 (fn concat (x y) [x y])
 
+(fn concat-second (x y) [x y v])
+
 (print-seq "Hello" "World")
 (println "Hello World!")
 (print-seq "something" "World")

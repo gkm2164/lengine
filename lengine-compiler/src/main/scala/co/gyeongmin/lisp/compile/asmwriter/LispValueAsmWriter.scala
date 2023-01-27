@@ -5,17 +5,22 @@ import co.gyeongmin.lisp.compile.LengineEnv.Variable
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{ClassWriter, MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable
 
-class LengineRuntimeEnvironment(private val args: Map[String, Int], val className: String, numberOfArgs: Int) {
-  def getVar(varName: String): Option[Int] = args.get(varName)
+class LengineRuntimeEnvironment(private val args: mutable.Map[LispSymbol, Int], val className: String, numberOfArgs: Int) {
+  def registerVariable(value: LispSymbol, varIdx: Int): Unit = {
+    args += (value -> varIdx)
+  }
 
-  def hasVar(varName: String): Boolean = args.contains(varName)
+  def getVar(varName: LispSymbol): Option[Int] = args.get(varName)
+
+  def hasVar(varName: LispSymbol): Boolean = args.contains(varName)
 
   private val varIdx = new AtomicInteger(numberOfArgs)
 
@@ -24,7 +29,8 @@ class LengineRuntimeEnvironment(private val args: Map[String, Int], val classNam
   def getLastVarIdx: Int = varIdx.get()
 }
 
-class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
+class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit cw: ClassWriter,
+                                                              runtimeEnv: LengineRuntimeEnvironment) {
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
@@ -55,23 +61,22 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit runtimeEn
       mv.visitLdcInsn(str)
     case LispList(body) =>
       declareSequence(body)
-      finalCast.foreach(LengineList.cast)
-    case EagerSymbol(varName) =>
-      if (runtimeEnv.hasVar(varName)) {
-        runtimeEnv.getVar(varName).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
+    case ref@EagerSymbol(varName) =>
+      if (runtimeEnv.hasVar(ref)) {
+        runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
       } else {
         LengineEnv.getVarInfo(varName).foreach {
-          case Variable(_, varIdx, storedType, _) =>
+          case Variable(_, varIdx, _, _) =>
             mv.visitIntInsn(Opcodes.ALOAD, varIdx)
-            finalCast.foreach(storedType.cast(_))
         }
       }
-    case l@LispClause(_) => new LispClauseWriter(mv, l)(runtimeEnv).writeValue()
+    case l@LispClause(_) => new LispClauseWriter(mv, l).writeValue()
     case LispValueDef(symbol, value) =>
       new LispValueAsmWriter(mv, value).writeValue(None)
       value.resolveType.map(varType => {
         val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)(runtimeEnv)
         mv.visitIntInsn(Opcodes.ASTORE, varIdx)
+        runtimeEnv.registerVariable(symbol, varIdx)
       })
     case f: LispFuncDef =>
       new LispFnAsmWriter(f).writeValue()

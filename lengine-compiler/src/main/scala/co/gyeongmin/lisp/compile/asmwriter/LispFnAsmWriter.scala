@@ -1,32 +1,42 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.statements.LispFuncDef
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.Label
+import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
-class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
+import scala.collection.mutable
+
+class LispFnAsmWriter(f: LispFuncDef)(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {
     val fnLabel = new Label
-    LengineEnv.defineFn(f.symbol.name, fnLabel, f.fn.placeHolders.size, (mv, args) => {
-      mv.visitCode()
-      mv.visitLabel(fnLabel)
+    val mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+      f.symbol.name,
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        f.fn.placeHolders.map(_ => Type.getType(classOf[Object])): _*
+      ),
+      null,
+      null
+    )
 
-      val argmap = traverse(f.fn.placeHolders
-        .map(holder => holder.as[LispSymbol]))
-        .map(_.map(_.name).zip(args)) match {
-        case Left(err) => throw new RuntimeException(s"unexpected error: $err")
-        case Right(value) => value.toMap
-      }
+    mv.visitCode()
+    mv.visitLabel(fnLabel)
+    val argmap = traverse(f.fn.placeHolders
+      .map(holder => holder.as[LispSymbol]))
+      .map(_.zip(f.fn.placeHolders.zipWithIndex.map(_._2))) match {
+      case Left(err) => throw new RuntimeException(s"unexpected error: $err")
+      case Right(value) => value.toMap
+    }
 
-      val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
-        argmap,
-        runtimeEnvironment.className,
-        f.fn.placeHolders.size
-      )
-      new LispValueAsmWriter(mv, f.fn.body)(newRuntimeEnvironment).writeValue(None)
-      newRuntimeEnvironment.getLastVarIdx
-    })
+    val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
+      argmap.foldLeft(mutable.Map[LispSymbol, Int]())((acc, pair) => acc += pair),
+      runtimeEnvironment.className,
+      f.fn.placeHolders.size
+    )
+    new LispValueAsmWriter(mv, f.fn.body)(cw, newRuntimeEnvironment).writeValue(None)
+
+    mv.visitInsn(Opcodes.ARETURN)
+    mv.visitMaxs(8, newRuntimeEnvironment.getLastVarIdx)
   }
 }
