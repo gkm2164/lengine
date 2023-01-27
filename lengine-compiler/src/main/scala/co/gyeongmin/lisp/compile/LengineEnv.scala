@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile
 
 import co.gyeongmin.lisp.types.LengineType
-import org.objectweb.asm.Label
+import org.objectweb.asm.{ClassWriter, Label, MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
@@ -14,7 +14,7 @@ object LengineEnv {
   case class ReturnVariableAddress(addr: Int) extends AnyVal
 
   type Binder = (Label, Label, Int) => Unit
-  type FnBinder = (Int, List[Int]) => Unit
+  type FnBinder = (MethodVisitor, List[Int], AtomicInteger) => Unit
 
   case class Variable(name: String,
                       index: Int,
@@ -23,13 +23,29 @@ object LengineEnv {
 
   case class LengineFunction(name: String,
                              atLabel: Label,
-                             retAddr: Int,
                              args: List[Int],
                              binder: FnBinder)
 
-  def declareVarsAndFns(): Unit = {
+  def declareVars(): Unit = {
     varStack.values.foreach(x => x.binder(startLabel, endLabel, x.index))
-    fnStack.values.foreach(f => f.binder(f.retAddr, f.args))
+  }
+
+  def declareFns(cw: ClassWriter): Unit = {
+    fnStack.values.foreach(f => {
+      val varNumTracer = new AtomicInteger(f.args.length)
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+        f.name,
+        Type.getMethodDescriptor(
+          Type.getType(classOf[Object]),
+          f.args.map(_ => Type.getType(classOf[Object])):_*
+        ),
+        null,
+        null
+      )
+      f.binder(mv, f.args, varNumTracer)
+      mv.visitInsn(Opcodes.ARETURN)
+      mv.visitMaxs(8, varNumTracer.get())
+    })
   }
 
   val startLabel: Label = new Label()
@@ -40,7 +56,7 @@ object LengineEnv {
 
   val index = new AtomicInteger(2)
   private def nextInt = index.getAndAdd(2)
-  def allocateVariable: Int = index.getAndAdd(2)
+  private def allocateVariable: Int = index.getAndAdd(2)
 
   def getLastNumber: Int = index.get()
 
@@ -54,8 +70,7 @@ object LengineEnv {
   def defineFn(name: String, label: Label, args: Integer, fnBinder: FnBinder): LengineFunction = {
     val fn = LengineFunction(
       name, label,
-      allocateVariable,
-      (1 to args).map(_ => allocateVariable).toList, fnBinder)
+      (0 until args).toList, fnBinder)
     println(fn)
     fnStack += (name -> fn)
     fn

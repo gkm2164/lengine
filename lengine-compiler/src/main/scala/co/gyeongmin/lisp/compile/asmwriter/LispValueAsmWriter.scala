@@ -10,7 +10,9 @@ import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
-class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int]) {
+import java.util.concurrent.atomic.AtomicInteger
+
+class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int], varIdx: AtomicInteger) {
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
@@ -64,7 +66,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
         mv.visitIntInsn(Opcodes.ASTORE, varIdx)
       })
     case f: LispFuncDef =>
-      new LispFnAsmWriter(mv, f).writeValue()
+      new LispFnAsmWriter(f).writeValue()
   }
 
 
@@ -78,12 +80,12 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
       Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
       false
     )
-    val seqIdx = allocateVariable
+    val seqIdx = varIdx.getAndAdd(2)
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
       new LispValueAsmWriter(mv, value).writeValue()
 
-      val idx = allocateVariable
+      val idx = varIdx.getAndAdd(2)
       mv.visitIntInsn(Opcodes.ASTORE, idx)
       mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
       mv.visitIntInsn(Opcodes.ALOAD, idx)

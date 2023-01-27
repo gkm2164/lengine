@@ -9,7 +9,9 @@ import lengine.runtime.LengineRuntime
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
-class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int]){
+import java.util.concurrent.atomic.AtomicInteger
+
+class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int], varIdx: AtomicInteger){
 
   import LengineTypeSystem._
 
@@ -34,11 +36,9 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
       case EagerSymbol("println") => definePrintln(operands)
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
-          fn.args.zip(operands).foreach { case (argLoc, value) =>
+          fn.args.zip(operands).foreach { case (_, value) =>
             new LispValueAsmWriter(mv, value).writeValue()
-            mv.visitIntInsn(ASTORE, argLoc)
           }
-          mv.visitJumpInsn(JSR, fn.atLabel)
         })
       case _ =>
     }
@@ -54,10 +54,10 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
       Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
       false
     )
-    val sbIdx = allocateVariable
+    val sbIdx = varIdx.getAndAdd(2)
     mv.visitIntInsn(ASTORE, sbIdx)
     operands.foreach(value => {
-      val thisVar = allocateVariable
+      val thisVar = varIdx.getAndAdd(2)
 
       new LispValueAsmWriter(mv, value).writeValue()
       mv.visitIntInsn(ASTORE, thisVar)
@@ -108,7 +108,7 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
 
   private def definePrintln(operands: List[LispValue]): Unit = {
     operands.foreach(v => new LispValueAsmWriter(mv, v).writeValue(Some(LengineString)))
-    val temporalVarIdx = allocateVariable
+    val temporalVarIdx = varIdx.getAndAdd(2)
     mv.visitIntInsn(ASTORE, temporalVarIdx)
     mv.visitFieldInsn(GETSTATIC,
       "java/lang/System",

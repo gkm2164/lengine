@@ -27,8 +27,8 @@
 (println seq-nested)
 (println seq-multi-types)
 
-; (fn print-seq (x y)
-;  (println [x y]))
+(fn print-seq (x y)
+  (println [x y]))
 
 ; (fn other-seq (x)
 ;  (println x))

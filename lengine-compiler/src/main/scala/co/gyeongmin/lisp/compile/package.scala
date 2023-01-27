@@ -6,6 +6,8 @@ import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.{ClassWriter, Type}
 import org.objectweb.asm.Opcodes._
 
+import java.util.concurrent.atomic.AtomicInteger
+
 package object compile {
   def writeClass(name: String, statements: List[LispValue]): Array[Byte] = {
     val cw = new ClassWriter(0)
@@ -23,12 +25,14 @@ package object compile {
       ), null, null)
     mv.visitCode()
     mv.visitLabel(LengineEnv.startLabel)
-    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map()).writeValue())
+    val varIdxTracer = new AtomicInteger()
+    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map(), varIdxTracer).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
-    LengineEnv.declareVarsAndFns()
-    mv.visitMaxs(getLastNumber, getLastNumber)
+    LengineEnv.declareVars()
+    mv.visitMaxs(getLastNumber, varIdxTracer.get())
     mv.visitEnd()
+    LengineEnv.declareFns(cw)
   }
 
   private def writeInitMethod(cw: ClassWriter): Unit = {
