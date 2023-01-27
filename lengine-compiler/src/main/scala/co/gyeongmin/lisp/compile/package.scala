@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.LispValueAsmWriter
+import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.{ClassWriter, Type}
 import org.objectweb.asm.Opcodes._
@@ -25,11 +25,17 @@ package object compile {
     mv.visitCode()
     mv.visitLabel(LengineEnv.startLabel)
     val varIdxTracer = new AtomicInteger()
-    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map(), varIdxTracer, className).writeValue())
+    implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
+      new LengineRuntimeEnvironment(
+        Map(),
+        className,
+        0
+      )
+    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     LengineEnv.declareVars()
-    mv.visitMaxs(varIdxTracer.get(), varIdxTracer.get())
+    mv.visitMaxs(mainRuntimeEnv.getLastVarIdx, mainRuntimeEnv.getLastVarIdx)
     mv.visitEnd()
     LengineEnv.declareFns(cw)
   }

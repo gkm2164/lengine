@@ -1,5 +1,7 @@
 package lengine.runtime;
 
+import scala.Char;
+
 public class LengineRuntime {
 
     public static Object cast(Object from, Class to) {
@@ -11,9 +13,33 @@ public class LengineRuntime {
             return castDouble(from);
         } else if (to.equals(String.class)) {
             return castString(from);
+        } else if (to.equals(Sequence.class)) {
+            return castSequence(from);
         }
 
         throw new RuntimeException("unable to cast");
+    }
+
+    public static Object cast_str(Object from) {
+        return cast(from, String.class);
+    }
+    public static Object cast_int(Object from) {
+        return cast(from, Long.class);
+    }
+    public static Object cast_double(Object from) {
+        return cast(from, Double.class);
+    }
+    public static Object cast_char(Object from) {
+        return cast(from, Character.class);
+    }
+
+    private static Sequence castSequence(Object from) {
+        if (from instanceof Sequence) {
+            return (Sequence) from;
+        }
+        Sequence newSeq = new Sequence();
+        newSeq.add(from);
+        return newSeq;
     }
 
     private static Character castChar(Object from) {
@@ -69,6 +95,11 @@ public class LengineRuntime {
             return (Double) x + (Double) y;
         } else if (x instanceof String) {
             return x + (String) y;
+        } else if (x instanceof Sequence) {
+            Sequence newSeq = new Sequence();
+            newSeq.append((Sequence) x);
+            newSeq.append((Sequence) y);
+            return newSeq;
         }
 
         throw new RuntimeException("Can't add");
@@ -135,8 +166,22 @@ public class LengineRuntime {
             return 2;
         } else if (a.equals(String.class)) {
             return 3;
+        } else if (a.equals(Sequence.class)) {
+            return 4;
         }
 
         throw new RuntimeException("Unable to decide rank for type: " + a.getName());
+    }
+
+    public static Object take(Long n, Sequence seq) {
+        return seq.take(n.intValue());
+    }
+
+    public static Object drop(Long n, Sequence seq) {
+        return seq.drop(n.intValue());
+    }
+
+    public static Object flatten(Sequence seq) {
+        return seq.flatten();
     }
 }

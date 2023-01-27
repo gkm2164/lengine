@@ -12,7 +12,19 @@ import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int], varIdxTracer: AtomicInteger, className: String) {
+class LengineRuntimeEnvironment(private val args: Map[String, Int], val className: String, numberOfArgs: Int) {
+  def getVar(varName: String): Option[Int] = args.get(varName)
+
+  def hasVar(varName: String): Boolean = args.contains(varName)
+
+  private val varIdx = new AtomicInteger(numberOfArgs)
+
+  def allocateNextVar: Int = varIdx.getAndAdd(2)
+
+  def getLastVarIdx: Int = varIdx.get()
+}
+
+class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
@@ -33,24 +45,20 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
       boxing(mv, classOf[Character], Character.TYPE)
-      finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case IntegerNumber(n) =>
       mv.visitLdcInsn(n)
       boxing(mv, classOf[java.lang.Long], java.lang.Long.TYPE)
-      finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case FloatNumber(n) =>
       mv.visitLdcInsn(n)
       boxing(mv, classOf[java.lang.Double], java.lang.Double.TYPE)
-      finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case LispString(str) =>
       mv.visitLdcInsn(str)
-      finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case LispList(body) =>
       declareSequence(body)
       finalCast.foreach(LengineList.cast)
     case EagerSymbol(varName) =>
-      if (args.contains(varName)) {
-        args.get(varName).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
+      if (runtimeEnv.hasVar(varName)) {
+        runtimeEnv.getVar(varName).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
       } else {
         LengineEnv.getVarInfo(varName).foreach {
           case Variable(_, varIdx, storedType, _) =>
@@ -58,11 +66,11 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
             finalCast.foreach(storedType.cast(_))
         }
       }
-    case l@LispClause(_) => new LispClauseWriter(mv, l).writeValue(finalCast)
+    case l@LispClause(_) => new LispClauseWriter(mv, l)(runtimeEnv).writeValue()
     case LispValueDef(symbol, value) =>
       new LispValueAsmWriter(mv, value).writeValue(None)
       value.resolveType.map(varType => {
-        val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)(varIdxTracer)
+        val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)(runtimeEnv)
         mv.visitIntInsn(Opcodes.ASTORE, varIdx)
       })
     case f: LispFuncDef =>
@@ -80,12 +88,12 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
       Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
       false
     )
-    val seqIdx = varIdxTracer.getAndAdd(2)
+    val seqIdx = runtimeEnv.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
       new LispValueAsmWriter(mv, value).writeValue()
 
-      val idx = varIdxTracer.getAndAdd(2)
+      val idx = runtimeEnv.allocateNextVar
       mv.visitIntInsn(Opcodes.ASTORE, idx)
       mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
       mv.visitIntInsn(Opcodes.ALOAD, idx)

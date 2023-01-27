@@ -1,27 +1,36 @@
+(println "=== Declare variables ===")
 (def v 3)
 (def str "Something Wonderful!")
 (def name "YoonJung")
 
+(println "=== Testing variable reference ===")
 (println v)
-(println #\n)
-(println "Hello World")
-(println (+ 2 3))
-(println (+ 2 5.2))
-(println (* 2 (/ (- 3 2) 5.3)))
-(println (+ v 10))
 (println str)
+(println name)
+(println "=== Print char ===")
+(println #\n)
+(println "=== Print String ===")
+(println "Hello World")
+(println "=== Add 2 values ===")
+(println (+ 2 3))
+(println "=== Add 2 values, Int, Double ===")
+(println (+ 2 5.2))
+(println "=== 2 * (3 - 2) / 5.3 == Should be double ===")
+(println (* 2 (/ (- 3 2) 5.3)))
+(println "=== Add number to variable ===")
+(println (+ v 10))
 
-(println (+ "Hello, " name "!"))
-
+(println "=== Do some string concatenation ===")
+(println (+ (+ "Hello, " name) "!"))
 (println (+ name " is beautiful woman!"))
-
 (println (+ name 123))
 
+(println "=== Sequence Test! ===")
 (def single-element [1])
 (def seq [1 2 3 4 5 6 7 8 9 10])
-(def seq-nested [1 2 3 4 5 [1 2 3 4 5]])
 (def seq-multi-types [1 2 3 name])
 
+(println "=== Single element ===")
 (println single-element)
 (println seq)
 (println seq-nested)
@@ -42,3 +51,21 @@
 (other-seq "something2")
 (print-seq "something" "World")
 (other-seq "something3")
+
+(println (take 3 [1 2 3 4 5]))
+(println (drop 3 [1 2 3 4 5]))
+
+(println (+ [] 3))
+(println (+ [] "ABCDEF"))
+
+(def seq-nested [1 2 3 4 5 [1 2 3 4 5]])
+(println (flatten seq-nested))
+
+(println "Test Unit type")
+(println (println "this would be printed first"))
+
+(println "Doing some Type casting")
+(println (char (int #\c)))
+(println (int 1.3))
+(println (double 1))
+(println (str 1234))

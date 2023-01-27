@@ -1,6 +1,9 @@
 package co.gyeongmin.lisp.compile
 
+import co.gyeongmin.lisp.compile.asmwriter.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.types.LengineType
+import lengine.runtime.LengineUnit
+import org.objectweb.asm.Opcodes.{DUP, INVOKESPECIAL, NEW}
 import org.objectweb.asm.{ClassWriter, Label, MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -11,10 +14,8 @@ object LengineEnv {
 
   def getFn(operation: String): Option[LengineFunction] = fnStack.get(operation)
 
-  case class ReturnVariableAddress(addr: Int) extends AnyVal
-
   type Binder = (Label, Label, Int) => Unit
-  type FnBinder = (MethodVisitor, List[Int], AtomicInteger) => Unit
+  type FnBinder = (MethodVisitor, List[Int]) => Int
 
   case class Variable(name: String,
                       index: Int,
@@ -32,7 +33,6 @@ object LengineEnv {
 
   def declareFns(cw: ClassWriter): Unit = {
     fnStack.values.foreach(f => {
-      val varNumTracer = new AtomicInteger(f.args.length)
       val mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
         f.name,
         Type.getMethodDescriptor(
@@ -42,9 +42,9 @@ object LengineEnv {
         null,
         null
       )
-      f.binder(mv, f.args, varNumTracer)
+      val usedVars = f.binder(mv, f.args)
       mv.visitInsn(Opcodes.ARETURN)
-      mv.visitMaxs(8, varNumTracer.get())
+      mv.visitMaxs(8, usedVars)
     })
   }
 
@@ -56,8 +56,8 @@ object LengineEnv {
 
   val index = new AtomicInteger(2)
 
-  def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder)(implicit varIdxTracer: AtomicInteger): Int = {
-    val varIdx = varIdxTracer.getAndAdd(2)
+  def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Int = {
+    val varIdx = runtimeEnvironment.allocateNextVar
     varStack += (name -> Variable(name, varIdx, resolvedType, binder))
     varIdx
   }

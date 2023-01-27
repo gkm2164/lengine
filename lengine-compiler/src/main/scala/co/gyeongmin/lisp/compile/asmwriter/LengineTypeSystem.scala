@@ -57,15 +57,5 @@ object LengineTypeSystem {
     }
   }
 
-  implicit class VarCommand(types: LengineType) {
-    def getCommands: (Int, Int) = types match {
-        case LengineChar => (Opcodes.ISTORE, Opcodes.ILOAD)
-        case LengineInteger => (Opcodes.LSTORE, Opcodes.LLOAD)
-        case LengineDouble => (Opcodes.DSTORE, Opcodes.DLOAD)
-        case LengineString => (Opcodes.ASTORE, Opcodes.ALOAD)
-        case _ => (Opcodes.ASTORE, Opcodes.ALOAD)
-    }
-  }
-
   implicit val resolveHelper: ResolveHelper = name => LengineEnv.getVarInfo(name).map(_.storedType)
 }

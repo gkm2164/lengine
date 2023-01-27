@@ -1,5 +1,7 @@
 package lengine.runtime;
 
+import scala.collection.Seq;
+
 import static java.util.stream.Collectors.joining;
 
 import java.util.Iterator;
@@ -69,5 +71,18 @@ public class Sequence {
     return "[" + list.stream()
         .map(Object::toString)
         .collect(joining(" ")) + "]";
+  }
+
+  public Sequence flatten() {
+    Sequence retSeq = new Sequence();
+    for (Object item : list) {
+      if (item instanceof Sequence) {
+        retSeq.append(((Sequence) item).flatten());
+      } else {
+        retSeq.add(item);
+      }
+    }
+
+    return retSeq;
   }
 }
