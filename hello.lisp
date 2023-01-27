@@ -30,17 +30,15 @@
 (fn print-seq (x y)
   (println [x y]))
 
-; (fn other-seq (x)
-;  (println x))
+(fn other-seq (x)
+  (println x))
 
-; (fn concat (x y) [x y])
+(fn concat (x y) [x y])
 
-; (print-seq "Hello" "World")
-;
-; (println "Hello World!")
-;
-; (print-seq "something" "World")
-; (concat 3 5)
-; (other-seq "something2")
-; (print-seq "something" "World")
-; (other-seq "something3")
+(print-seq "Hello" "World")
+(println "Hello World!")
+(print-seq "something" "World")
+(println (concat 3 5))
+(other-seq "something2")
+(print-seq "something" "World")
+(other-seq "something3")

@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.LengineEnv.allocateVariable
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.{LengineString, LengineType}
@@ -11,7 +10,7 @@ import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int], varIdx: AtomicInteger){
+class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int], varIdx: AtomicInteger, thisClassName: String){
 
   import LengineTypeSystem._
 
@@ -33,13 +32,25 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
           defineNumberCalc(op, operands)
           finalCast.foreach(finalResolvedType.cast)
         }
-      case EagerSymbol("println") => definePrintln(operands)
+      case EagerSymbol("println") =>
+        definePrintln(operands)
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
           fn.args.zip(operands).foreach { case (_, value) =>
             new LispValueAsmWriter(mv, value).writeValue()
           }
+          mv.visitMethodInsn(
+            INVOKESTATIC,
+            thisClassName,
+            operation,
+            Type.getMethodDescriptor(
+              Type.getType(classOf[Object]),
+              fn.args.map(_ => Type.getType(classOf[Object])): _*
+            ),
+            false
+          )
         })
+
       case _ =>
     }
   }

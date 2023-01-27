@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.LengineEnv.{Variable, allocateVariable}
+import co.gyeongmin.lisp.compile.LengineEnv.Variable
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
@@ -12,7 +12,7 @@ import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int], varIdx: AtomicInteger) {
+class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map[String, Int], varIdxTracer: AtomicInteger, className: String) {
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
@@ -62,7 +62,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
     case LispValueDef(symbol, value) =>
       new LispValueAsmWriter(mv, value).writeValue(None)
       value.resolveType.map(varType => {
-        val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)
+        val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)(varIdxTracer)
         mv.visitIntInsn(Opcodes.ASTORE, varIdx)
       })
     case f: LispFuncDef =>
@@ -80,12 +80,12 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
       Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
       false
     )
-    val seqIdx = varIdx.getAndAdd(2)
+    val seqIdx = varIdxTracer.getAndAdd(2)
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
       new LispValueAsmWriter(mv, value).writeValue()
 
-      val idx = varIdx.getAndAdd(2)
+      val idx = varIdxTracer.getAndAdd(2)
       mv.visitIntInsn(Opcodes.ASTORE, idx)
       mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
       mv.visitIntInsn(Opcodes.ALOAD, idx)

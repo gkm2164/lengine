@@ -8,7 +8,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import lengine.runtime.LengineUnit
 import org.objectweb.asm.{Label, Opcodes, Type}
 
-class LispFnAsmWriter(f: LispFuncDef) {
+class LispFnAsmWriter(f: LispFuncDef)(implicit className: String) {
   def writeValue(): Unit = {
     val fnLabel = new Label
     LengineEnv.defineFn(f.symbol.name, fnLabel, f.fn.placeHolders.size, (mv, args, varNumTracer) => {
@@ -20,7 +20,7 @@ class LispFnAsmWriter(f: LispFuncDef) {
         case Left(err) => throw new RuntimeException(s"unexpected error: $err")
         case Right(value) => value.toMap
       }
-      new LispValueAsmWriter(mv, f.fn.body)(argmap, varNumTracer).writeValue(None)
+      new LispValueAsmWriter(mv, f.fn.body)(argmap, varNumTracer, className).writeValue(None)
       f.fn.body match {
         case LispClause(EagerSymbol("println") :: _) =>
           mv.visitTypeInsn(Opcodes.NEW, Type.getType(classOf[LengineUnit]).getInternalName)

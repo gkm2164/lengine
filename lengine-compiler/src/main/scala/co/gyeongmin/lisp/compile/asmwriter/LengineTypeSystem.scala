@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
-import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineList, LengineString, LengineType}
+import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
 import lengine.runtime.LengineRuntime
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 

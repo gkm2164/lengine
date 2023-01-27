@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.LengineEnv.getLastNumber
 import co.gyeongmin.lisp.compile.asmwriter.LispValueAsmWriter
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.{ClassWriter, Type}
@@ -13,11 +12,11 @@ package object compile {
     val cw = new ClassWriter(0)
     cw.visit(V1_8, ACC_PUBLIC, name, null, "java/lang/Object", null)
     writeInitMethod(cw)
-    writeMain(cw, statements)
+    writeMain(cw, statements, name)
     cw.toByteArray
   }
 
-  private def writeMain(cw: ClassWriter, statements: List[LispValue]): Unit = {
+  private def writeMain(cw: ClassWriter, statements: List[LispValue], className: String): Unit = {
     val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "main",
       Type.getMethodDescriptor(
         Type.getType(java.lang.Void.TYPE),
@@ -26,11 +25,11 @@ package object compile {
     mv.visitCode()
     mv.visitLabel(LengineEnv.startLabel)
     val varIdxTracer = new AtomicInteger()
-    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map(), varIdxTracer).writeValue())
+    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt)(Map(), varIdxTracer, className).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     LengineEnv.declareVars()
-    mv.visitMaxs(getLastNumber, varIdxTracer.get())
+    mv.visitMaxs(varIdxTracer.get(), varIdxTracer.get())
     mv.visitEnd()
     LengineEnv.declareFns(cw)
   }

@@ -55,14 +55,9 @@ object LengineEnv {
   private val fnStack: mutable.Map[String, LengineFunction] = mutable.Map()
 
   val index = new AtomicInteger(2)
-  private def nextInt = index.getAndAdd(2)
-  private def allocateVariable: Int = index.getAndAdd(2)
 
-  def getLastNumber: Int = index.get()
-
-
-  def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder): Int = {
-    val varIdx = nextInt
+  def callLastWithLabel(name: String, resolvedType: LengineType, binder: Binder)(implicit varIdxTracer: AtomicInteger): Int = {
+    val varIdx = varIdxTracer.getAndAdd(2)
     varStack += (name -> Variable(name, varIdx, resolvedType, binder))
     varIdx
   }
@@ -78,6 +73,4 @@ object LengineEnv {
 
 
   def getVarInfo(name: String): Option[Variable] = varStack.get(name)
-
-  lazy val printlnRetLoc: Int = allocateVariable
 }
