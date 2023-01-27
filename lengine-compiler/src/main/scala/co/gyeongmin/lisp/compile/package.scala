@@ -27,7 +27,7 @@ package object compile {
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     LengineEnv.declareVarsAndFns()
-    mv.visitMaxs(8, getLastNumber)
+    mv.visitMaxs(getLastNumber, getLastNumber)
     mv.visitEnd()
   }
 

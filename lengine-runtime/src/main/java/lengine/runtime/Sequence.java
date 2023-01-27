@@ -16,15 +16,15 @@ public class Sequence {
     this.list = new LinkedList<>();
   }
 
-  public void add(int item) {
+  public void add(Character item) {
     list.add(item);
   }
 
-  public void add(long item) {
+  public void add(Long item) {
     list.add(item);
   }
 
-  public void add(double item) {
+  public void add(Double item) {
     list.add(item);
   }
 

@@ -10,7 +10,7 @@ class LispValueDefWriter(mv: MethodVisitor, symbol: LispSymbol, value: LispValue
   def writeValue(startLabel: Label, endLabel: Label, index: Int): Unit = {
     value.resolveType.foreach(resolvedType => {
       mv.visitLocalVariable(symbol.name,
-        Type.getType(resolvedType.getJvmNativeType).getDescriptor,
+        Type.getType(resolvedType.getJvmType).getDescriptor,
         null,
         startLabel,
         endLabel,

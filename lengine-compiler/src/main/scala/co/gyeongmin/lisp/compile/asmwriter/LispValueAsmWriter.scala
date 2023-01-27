@@ -14,15 +14,31 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
-  def writeValue(finalCast: Option[LengineType] = None, needBoxing: Boolean = false): Unit = value match {
+  private def boxing(mv: MethodVisitor, boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit = {
+    mv.visitMethodInsn(
+      Opcodes.INVOKESTATIC,
+      Type.getType(boxedType).getInternalName,
+      "valueOf",
+      Type.getMethodDescriptor(
+        Type.getType(boxedType),
+        Type.getType(primitiveType)
+      ),
+      false
+    )
+  }
+
+  def writeValue(finalCast: Option[LengineType] = None): Unit = value match {
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
+      boxing(mv, classOf[Character], Character.TYPE)
       finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case IntegerNumber(n) =>
       mv.visitLdcInsn(n)
+      boxing(mv, classOf[java.lang.Long], java.lang.Long.TYPE)
       finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case FloatNumber(n) =>
       mv.visitLdcInsn(n)
+      boxing(mv, classOf[java.lang.Double], java.lang.Double.TYPE)
       finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))
     case LispString(str) =>
       mv.visitLdcInsn(str)
@@ -36,13 +52,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
       } else {
         LengineEnv.getVarInfo(varName).foreach {
           case Variable(_, varIdx, storedType, _) =>
-            storedType match {
-              case LengineChar => mv.visitIntInsn(Opcodes.ILOAD, varIdx)
-              case LengineInteger => mv.visitIntInsn(Opcodes.LLOAD, varIdx)
-              case LengineDouble => mv.visitIntInsn(Opcodes.DLOAD, varIdx)
-              case _ => mv.visitIntInsn(Opcodes.ALOAD, varIdx)
-            }
-
+            mv.visitIntInsn(Opcodes.ALOAD, varIdx)
             finalCast.foreach(storedType.cast(_))
         }
       }
@@ -51,12 +61,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
       new LispValueAsmWriter(mv, value).writeValue(None)
       value.resolveType.map(varType => {
         val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(mv, symbol, value).writeValue)
-        varType match {
-          case LengineChar => mv.visitIntInsn(Opcodes.ISTORE, varIdx)
-          case LengineInteger => mv.visitIntInsn(Opcodes.LSTORE, varIdx)
-          case LengineDouble => mv.visitIntInsn(Opcodes.DSTORE, varIdx)
-          case _ => mv.visitIntInsn(Opcodes.ASTORE, varIdx)
-        }
+        mv.visitIntInsn(Opcodes.ASTORE, varIdx)
       })
     case f: LispFuncDef =>
       new LispFnAsmWriter(mv, f).writeValue()
@@ -77,24 +82,22 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
       new LispValueAsmWriter(mv, value).writeValue()
-      value.resolveType.map(_.getCommands)
-        .getOrElse((Opcodes.ASTORE, Opcodes.ALOAD)) match { case (store, load) =>
-        val idx = allocateVariable
-        mv.visitIntInsn(store, idx)
-        mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
-        mv.visitIntInsn(load, idx)
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-          "lengine/runtime/Sequence",
-          "add",
-          Type.getMethodDescriptor(
-            Type.getType(java.lang.Void.TYPE),
-            Type.getType(value.resolveType
-              .map(_.getJvmNativeType)
-              .getOrElse(classOf[java.lang.Object]))
-          ),
-          false
-        )
-      }
+
+      val idx = allocateVariable
+      mv.visitIntInsn(Opcodes.ASTORE, idx)
+      mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
+      mv.visitIntInsn(Opcodes.ALOAD, idx)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+        "lengine/runtime/Sequence",
+        "add",
+        Type.getMethodDescriptor(
+          Type.getType(java.lang.Void.TYPE),
+          Type.getType(value.resolveType
+            .map(_.getJvmType)
+            .getOrElse(classOf[java.lang.Object]))
+        ),
+        false
+      )
     })
     mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
   }

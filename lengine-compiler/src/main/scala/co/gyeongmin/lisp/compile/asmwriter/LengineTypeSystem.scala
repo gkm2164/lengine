@@ -3,6 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineList, LengineString, LengineType}
+import lengine.runtime.LengineRuntime
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
@@ -28,35 +29,31 @@ object LengineTypeSystem {
     }
 
     def cast(toType: LengineType)(implicit mv: MethodVisitor): Unit = {
-      val originType  = Type.getType(lengineType.getJvmNativeType)
-      val castingType = Type.getType(toType.getJvmNativeType)
-
       if (lengineType == toType) {
         return
       }
-
-      toType match {
-        case LengineString =>
-          mv.visitMethodInsn(
-            Opcodes.INVOKESTATIC,
-            castingType.getInternalName,
-            "valueOf",
-            Type.getMethodDescriptor(
-              castingType,
-              if (lengineType != LengineList) {
-                originType
-              } else {
-                Type.getType(classOf[java.lang.Object])
-              }
-            ),
-            false
-          )
-        case LengineDouble => lengineType match {
-          case LengineChar => mv.visitInsn(Opcodes.I2D)
-          case LengineInteger => mv.visitInsn(Opcodes.L2D)
-          case _ => throw new IllegalArgumentException("Unsupported casting")
-        }
-      }
+      mv.visitLdcInsn(toType.getJvmType.getName)
+      mv.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        Type.getType(classOf[Class[_]]).getInternalName,
+        "forName",
+        Type.getMethodDescriptor(
+          Type.getType(classOf[Class[_]]),
+          Type.getType(classOf[String])
+        ),
+        false
+      )
+      mv.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        Type.getType(classOf[LengineRuntime]).getInternalName,
+        "cast",
+        Type.getMethodDescriptor(
+          Type.getType(classOf[Object]),
+          Type.getType(classOf[Object]),
+          Type.getType(classOf[Class[_]])
+        ),
+        false
+      )
     }
   }
 
@@ -67,30 +64,6 @@ object LengineTypeSystem {
         case LengineDouble => (Opcodes.DSTORE, Opcodes.DLOAD)
         case LengineString => (Opcodes.ASTORE, Opcodes.ALOAD)
         case _ => (Opcodes.ASTORE, Opcodes.ALOAD)
-    }
-
-    def ADD = types match {
-      case LengineChar => Opcodes.IADD
-      case LengineInteger => Opcodes.LADD
-      case LengineDouble => Opcodes.DADD
-    }
-
-    def SUB = types match {
-      case LengineChar => Opcodes.ISUB
-      case LengineInteger => Opcodes.LSUB
-      case LengineDouble => Opcodes.DSUB
-    }
-
-    def MUL = types match {
-      case LengineChar => Opcodes.IMUL
-      case LengineInteger => Opcodes.LMUL
-      case LengineDouble => Opcodes.DMUL
-    }
-
-    def DIV = types match {
-      case LengineChar => Opcodes.IDIV
-      case LengineInteger => Opcodes.LDIV
-      case LengineDouble => Opcodes.DDIV
     }
   }
 

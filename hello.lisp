@@ -15,6 +15,8 @@
 
 (println (+ name " is beautiful woman!"))
 
+(println (+ name 123))
+
 (def single-element [1])
 (def seq [1 2 3 4 5 6 7 8 9 10])
 (def seq-nested [1 2 3 4 5 [1 2 3 4 5]])
@@ -25,19 +27,19 @@
 (println seq-nested)
 (println seq-multi-types)
 
-(fn print-seq (x y)
-  (println [x y]))
+; (fn print-seq (x y)
+;  (println [x y]))
 
-(fn other-seq (x)
-  (println x))
+; (fn other-seq (x)
+;  (println x))
 
-(fn concat (x y) [x y])
+; (fn concat (x y) [x y])
 
-(print-seq "Hello" "World")
-
-(println "Hello World!")
-
-(print-seq "something" "World")
+; (print-seq "Hello" "World")
+;
+; (println "Hello World!")
+;
+; (print-seq "something" "World")
 ; (concat 3 5)
 ; (other-seq "something2")
 ; (print-seq "something" "World")

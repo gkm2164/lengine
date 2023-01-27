@@ -5,8 +5,9 @@ import co.gyeongmin.lisp.compile.LengineEnv.allocateVariable
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.{LengineString, LengineType}
+import lengine.runtime.LengineRuntime
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{MethodVisitor, Type}
+import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map[String, Int]){
 
@@ -27,18 +28,19 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
         if (op == "+" && finalResolvedType == LengineString) {
           defineStringBuild(operands)
         } else {
-          defineNumberCalc(op, finalResolvedType, operands)
+          defineNumberCalc(op, operands)
           finalCast.foreach(finalResolvedType.cast)
         }
       case EagerSymbol("println") => definePrintln(operands)
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
           fn.args.zip(operands).foreach { case (argLoc, value) =>
-            new LispValueAsmWriter(mv, value).writeValue(needBoxing = true)
+            new LispValueAsmWriter(mv, value).writeValue()
             mv.visitIntInsn(ASTORE, argLoc)
           }
           mv.visitJumpInsn(JSR, fn.atLabel)
         })
+      case _ =>
     }
   }
 
@@ -58,21 +60,16 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
       val thisVar = allocateVariable
 
       new LispValueAsmWriter(mv, value).writeValue()
-      val (store, load) = value.resolveType.map(_.getCommands) match {
-        case Left(err) => throw new RuntimeException(s"unable to process: $err")
-        case Right(value) => value
-      }
-
-      mv.visitIntInsn(store, thisVar)
+      mv.visitIntInsn(ASTORE, thisVar)
       mv.visitIntInsn(ALOAD, sbIdx)
-      mv.visitIntInsn(load, thisVar)
+      mv.visitIntInsn(ALOAD, thisVar)
       mv.visitMethodInsn(
         INVOKEVIRTUAL,
         "java/lang/StringBuilder",
         "append",
         Type.getMethodDescriptor(
           Type.getType(classOf[java.lang.StringBuilder]),
-          Type.getType(value.resolveType.right.get.getJvmNativeType)
+          Type.getType(classOf[Object])
         ),
         false
       )
@@ -89,22 +86,24 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
     )
   }
 
-  private def defineNumberCalc(op: String, finalResolvedType: LengineType, operands: List[LispValue]): Unit = {
-    operands.foreach(v => {
-      new LispValueAsmWriter(mv, v).writeValue(None)
-      v.resolveType match {
-        case Left(err) => throw new RuntimeException(s"Unable to cast type!: $err")
-        case Right(resolvedType) if finalResolvedType != resolvedType => resolvedType.cast(finalResolvedType)
-        case Right(resolvedType) if finalResolvedType == resolvedType =>
-      }
-    })
-
-    mv.visitInsn(op match {
-      case "+" => finalResolvedType.ADD
-      case "-" => finalResolvedType.SUB
-      case "*" => finalResolvedType.MUL
-      case "/" => finalResolvedType.DIV
-    })
+  private def defineNumberCalc(op: String, operands: List[LispValue]): Unit = {
+    operands.foreach(v => new LispValueAsmWriter(mv, v).writeValue(None))
+    mv.visitMethodInsn(
+      Opcodes.INVOKESTATIC,
+      Type.getType(classOf[LengineRuntime]).getInternalName,
+      op match {
+        case "+" => "add"
+        case "-" => "sub"
+        case "*" => "mult"
+        case "/" => "div"
+      },
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object]),
+      ),
+      false
+    )
   }
 
   private def definePrintln(operands: List[LispValue]): Unit = {
@@ -121,7 +120,7 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
       "println",
       Type.getMethodDescriptor(
         Type.getType(Void.TYPE),
-        Type.getType(classOf[String])
+        Type.getType(classOf[Object])
       ),
       false)
   }

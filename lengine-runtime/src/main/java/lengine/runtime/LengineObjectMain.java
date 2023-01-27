@@ -6,8 +6,6 @@ public class LengineObjectMain {
     public static void main(String[] args) {
         LengineValue a = new LengineValue(10);
         LengineValue b = new LengineValue(10);
-        LengineValue lengineValue = runtime.add(a, b);
 
-        System.out.println(lengineValue);
     }
 }
