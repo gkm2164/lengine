@@ -14,7 +14,7 @@ class LispValueAsmWriter(mv: MethodVisitor, value: LispValue)(implicit args: Map
   import LengineTypeSystem._
   implicit val mv$: MethodVisitor = mv
 
-  def writeValue(finalCast: Option[LengineType] = None): Unit = value match {
+  def writeValue(finalCast: Option[LengineType] = None, needBoxing: Boolean = false): Unit = value match {
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
       finalCast.foreach(toType => value.resolveType.foreach(_.cast(toType)))

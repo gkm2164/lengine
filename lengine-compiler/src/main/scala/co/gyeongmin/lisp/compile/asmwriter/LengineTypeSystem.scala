@@ -7,6 +7,25 @@ import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
+    def boxing(implicit mv: MethodVisitor): Unit = {
+      val (boxed, primitive) = lengineType match {
+        case LengineChar => (classOf[java.lang.Character], java.lang.Character.TYPE)
+        case LengineInteger => (classOf[java.lang.Long], java.lang.Long.TYPE)
+        case LengineDouble => (classOf[java.lang.Double], java.lang.Double.TYPE)
+        case LengineString => return
+      }
+
+      mv.visitMethodInsn(
+        Opcodes.INVOKESTATIC,
+        Type.getInternalName(boxed),
+        "valueOf",
+        Type.getMethodDescriptor(
+          Type.getType(boxed),
+          Type.getType(primitive)
+        ),
+        false
+      )
+    }
 
     def cast(toType: LengineType)(implicit mv: MethodVisitor): Unit = {
       val originType  = Type.getType(lengineType.getJvmNativeType)

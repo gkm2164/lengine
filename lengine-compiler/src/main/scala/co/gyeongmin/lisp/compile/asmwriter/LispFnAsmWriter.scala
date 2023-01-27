@@ -5,6 +5,7 @@ import co.gyeongmin.lisp.lexer.statements.LispFuncDef
 import co.gyeongmin.lisp.lexer.values.LispClause
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import lengine.runtime.LengineUnit
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
 
 class LispFnAsmWriter(mv: MethodVisitor, f: LispFuncDef) {
@@ -22,10 +23,23 @@ class LispFnAsmWriter(mv: MethodVisitor, f: LispFuncDef) {
         case Right(value) => value.toMap
       }
       new LispValueAsmWriter(mv, f.fn.body)(argmap).writeValue(None)
-//      f.fn.body match {
-//        case LispClause(EagerSymbol("println") :: _) =>
-//        case _ => // mv.visitIntInsn(Opcodes.ASTORE, returnVariableAddress)
-//      }
+      f.fn.body match {
+        case LispClause(EagerSymbol("println") :: _) =>
+          mv.visitTypeInsn(Opcodes.NEW, Type.getType(classOf[LengineUnit]).getInternalName)
+          mv.visitInsn(Opcodes.DUP)
+          mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            Type.getType(classOf[LengineUnit]).getInternalName,
+            "<init>",
+            Type.getMethodDescriptor(
+              Type.getType(java.lang.Void.TYPE)
+            ),
+            false
+          )
+        case _ =>
+
+      }
+      mv.visitIntInsn(Opcodes.ASTORE, returnVariableAddress)
       mv.visitIntInsn(Opcodes.RET, retAddr)
     })
   }

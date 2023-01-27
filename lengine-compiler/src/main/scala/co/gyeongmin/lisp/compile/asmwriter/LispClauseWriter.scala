@@ -34,7 +34,7 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit args: Map
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
           fn.args.zip(operands).foreach { case (argLoc, value) =>
-            new LispValueAsmWriter(mv, value).writeValue()
+            new LispValueAsmWriter(mv, value).writeValue(needBoxing = true)
             mv.visitIntInsn(ASTORE, argLoc)
           }
           mv.visitJumpInsn(JSR, fn.atLabel)

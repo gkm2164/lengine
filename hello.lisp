@@ -38,6 +38,7 @@
 (println "Hello World!")
 
 (print-seq "something" "World")
+; (concat 3 5)
 ; (other-seq "something2")
 ; (print-seq "something" "World")
 ; (other-seq "something3")
