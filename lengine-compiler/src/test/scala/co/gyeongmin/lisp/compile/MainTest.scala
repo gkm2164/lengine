@@ -17,4 +17,12 @@ class MainTest extends FlatSpec with Matchers {
       "BoolTest"
     ))
   }
+
+  "map type object with compile map.lisp" should "run and return" in {
+    Main.main(Array(
+      "map.lisp",
+      "--className",
+      "MapTest"
+    ))
+  }
 }

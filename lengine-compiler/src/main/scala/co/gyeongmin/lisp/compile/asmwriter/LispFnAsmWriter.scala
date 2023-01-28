@@ -10,8 +10,6 @@ import scala.collection.mutable
 
 class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {
-
-
     val traversedPlaceHolders = traverse(f.fn.placeHolders
       .map(holder => holder.as[LispSymbol])) match {
       case Left(err) => throw new RuntimeException(s"unexpected error: $err")

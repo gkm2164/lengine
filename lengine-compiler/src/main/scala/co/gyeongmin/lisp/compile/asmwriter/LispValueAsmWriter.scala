@@ -5,10 +5,10 @@ import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispLoopStmt, LispValueD
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import co.gyeongmin.lisp.types._
-import lengine.runtime.Sequence
+import lengine.runtime.{LengineMap, Sequence}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
@@ -26,6 +26,47 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       ),
       false
     )
+  }
+
+  def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
+    mv.visitMethodInsn(
+      Opcodes.INVOKESTATIC,
+      Type.getType(classOf[LengineMap]).getInternalName,
+      "create",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[LengineMap])
+      ),
+      false
+    )
+    val mapIdx = runtimeEnv.allocateNextVar
+    mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
+    map.foreach {
+      case (ObjectReferSymbol(name), value) =>
+        val keyIdx = runtimeEnv.allocateNextVar
+        val valIdx = runtimeEnv.allocateNextVar
+        mv.visitLdcInsn(name)
+        mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
+
+        new LispValueAsmWriter(value).writeValue()
+        mv.visitIntInsn(Opcodes.ASTORE, valIdx)
+
+        mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
+        mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
+        mv.visitIntInsn(Opcodes.ALOAD, valIdx)
+
+        mv.visitMethodInsn(
+          Opcodes.INVOKEVIRTUAL,
+          Type.getType(classOf[LengineMap]).getInternalName,
+          "put",
+          Type.getMethodDescriptor(
+            Type.getType(Void.TYPE),
+            Type.getType(classOf[Object]),
+            Type.getType(classOf[Object]),
+          ),
+          false
+        )
+    }
+    mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
   }
 
   def writeValue(finalCast: Option[LengineType] = None): Unit = value match {
@@ -48,6 +89,9 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       mv.visitLdcInsn(str)
     case LispList(body) =>
       declareSequence(body)
+      finalCast.foreach(LengineList.cast)
+    case LispObject(kv) =>
+      declareMap(kv)
       finalCast.foreach(LengineList.cast)
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body).writeValue()

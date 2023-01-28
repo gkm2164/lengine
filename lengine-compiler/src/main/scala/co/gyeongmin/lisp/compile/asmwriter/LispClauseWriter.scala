@@ -2,8 +2,9 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import org.objectweb.asm.{MethodVisitor, Opcodes}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
+import lengine.runtime.LengineMap
+import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 import org.objectweb.asm.Opcodes._
 
 import scala.collection.mutable
@@ -14,11 +15,31 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
   val mv: MethodVisitor = runtimeEnvironment.methodVisitor
 
+  def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
+    val map :: _ = operands
+    mv.visitLdcInsn(key)
+    val keyIdx = runtimeEnvironment.allocateNextVar
+    mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
+    new LispValueAsmWriter(map).writeValue()
+    mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
+    mv.visitMethodInsn(
+      INVOKEVIRTUAL,
+      Type.getType(classOf[LengineMap]).getInternalName,
+      "get",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object]),
+      ),
+      false
+    )
+  }
+
   def writeValue(): Unit = {
     val operation = clause.body.head
     val operands = clause.body.tail
 
     operation match {
+      case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body)
       case s: EagerSymbol if LengineEnv.hasFn(s) =>
         LengineEnv.getFn(s).foreach(fn => {

@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.types
 
 import co.gyeongmin.lisp.errors.eval.EvalError
-import lengine.runtime.Sequence
+import lengine.runtime.{LengineMap, Sequence}
 
 object LengineType {
   case object Zero extends LengineType {
@@ -139,6 +139,18 @@ case object LengineList extends LengineType {
 
 case object LengineBoolean extends LengineType {
   override def getJvmType: Class[_ <: Object] = classOf[java.lang.Boolean]
+
+  override def +(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def -(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def *(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def /(other: LengineType): Either[EvalError, LengineType] = ???
+}
+
+case object LengineObject extends LengineType {
+  override def getJvmType: Class[_ <: Object] = classOf[LengineMap]
 
   override def +(other: LengineType): Either[EvalError, LengineType] = ???
 
