@@ -12,3 +12,9 @@
 (def curried (f-currying 3))
 
 (println (curried 5))
+
+(fn map (f seq)
+  (loop for x in seq
+    (f x)))
+
+(println (map (lambda (x) (+ x 1)) [1 2 3 4 5]))

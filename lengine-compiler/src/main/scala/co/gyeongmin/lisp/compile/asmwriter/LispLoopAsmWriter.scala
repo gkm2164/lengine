@@ -34,6 +34,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit e
 
     new LispValueAsmWriter(seq).writeValue()
     val mv = env.methodVisitor
+    mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(classOf[Sequence]).getInternalName)
     mv.visitMethodInsn(
       Opcodes.INVOKEVIRTUAL,
       Type.getType(classOf[Sequence]).getInternalName,
@@ -89,6 +90,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit e
         val tmpIdx = env.allocateNextVar
         mv.visitIntInsn(Opcodes.ASTORE, tmpIdx)
         mv.visitIntInsn(Opcodes.ALOAD, dstSeqIdx)
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(classOf[Sequence]).getInternalName)
         mv.visitIntInsn(Opcodes.ALOAD, tmpIdx)
         mv.visitMethodInsn(
           Opcodes.INVOKEVIRTUAL,

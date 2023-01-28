@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispForStmt, LispFuncDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -9,6 +9,8 @@ import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 
 object FunctionVariableCapture {
+
+
   /**
    * This method is to visit AST and identify which variable is not able to find.
    *
@@ -21,6 +23,7 @@ object FunctionVariableCapture {
    */
   def traverseTree(captureVariables: LengineVarCapture, body: LispValue): Unit = {
     body match {
+      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
       case LispList(body) =>
         body.foreach(v => traverseTree(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)
@@ -38,6 +41,25 @@ object FunctionVariableCapture {
         }
         traverseTree(childCapture, body)
         captureVariables.mergeChild(childCapture)
+      case LispForStmt(symbol, seq) =>
+        val childCapture = new LengineVarCapture(captureVariables)
+        childCapture.ignoreCapture(symbol)
+        traverseTree(childCapture, seq)
+        captureVariables.mergeChild(childCapture)
+      case loop: LispLoopStmt =>
+        traverseLoopTree(captureVariables, loop)
     }
   }
+
+  def traverseLoopTree(capture: LengineVarCapture, loop: LispLoopStmt): Unit = loop match {
+    case LispLoopStmt(Nil, body) =>
+      traverseTree(capture, body)
+    case LispLoopStmt(LispForStmt(symbol, seq) :: tail, body) =>
+      traverseTree(capture, seq)
+      val childCapture = new LengineVarCapture(capture)
+      childCapture.ignoreCapture(symbol)
+      traverseLoopTree(childCapture, LispLoopStmt(tail, body))
+      capture.mergeChild(childCapture)
+  }
+
 }
