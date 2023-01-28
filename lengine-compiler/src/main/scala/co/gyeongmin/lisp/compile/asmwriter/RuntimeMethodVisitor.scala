@@ -1,19 +1,19 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
-import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.LengineString
 import lengine.runtime.{LengineRuntime, Sequence}
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{Opcodes, Type}
+import org.objectweb.asm.Type
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
     "str", "int", "double", "char",
     "+", "-", "*", "/",
-    "take", "drop", "println", "flatten",
+    "take", "drop", "flatten",
+    "println", "read-line",
   )
 
   private val LengineRuntimeType: String = Type.getType(classOf[LengineRuntime]).getInternalName
@@ -22,25 +22,6 @@ object RuntimeMethodVisitor {
   def supportOperation(operation: LispValue): Boolean = operation match {
     case EagerSymbol(op) => supportedOps.contains(op)
     case _ => false
-  }
-
-  private def visitTypeCast(op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val operand :: _ = operands
-
-    new LispValueAsmWriter(operand).writeValue()
-
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitMethodInsn(
-      INVOKESTATIC,
-      LengineRuntimeType,
-      s"cast_$op",
-      Type.getMethodDescriptor(
-        ObjectClass,
-        ObjectClass
-      ),
-      false
-    )
   }
 
   def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
@@ -55,6 +36,7 @@ object RuntimeMethodVisitor {
         case "take" | "drop" => visitSeqOp(op, operands)
         case "flatten" => visitFlatten(operands)
         case "println" => visitPrintln(operands)
+        case "read-line" => visitReadLine
         case "str" | "int" | "double" | "char" => visitTypeCast(op, operands)
       }
 
@@ -98,7 +80,7 @@ object RuntimeMethodVisitor {
     operands.foreach(v => new LispValueAsmWriter(v).writeValue(None))
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
-      Opcodes.INVOKESTATIC,
+      INVOKESTATIC,
       Type.getType(classOf[LengineRuntime]).getInternalName,
       operation,
       getFnDescriptor(classOf[Object], 2),
@@ -126,4 +108,37 @@ object RuntimeMethodVisitor {
       false)
     mv.visitUnit()
   }
+
+  private def visitTypeCast(op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val operand :: _ = operands
+
+    new LispValueAsmWriter(operand).writeValue()
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      LengineRuntimeType,
+      s"cast_$op",
+      Type.getMethodDescriptor(
+        ObjectClass,
+        ObjectClass
+      ),
+      false
+    )
+  }
+
+  private def visitReadLine(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitMethodInsn(INVOKESTATIC,
+      LengineRuntimeType,
+      "readLine",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[String])
+      ),
+      false
+    )
+  }
+
 }

@@ -7,6 +7,16 @@ import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 
 object FunctionVariableCapture {
+  /**
+   * This method is to visit AST and identify which variable is not able to find.
+   *
+   * `captureVariables` contains what is identified, and what is unidentified for the methods.
+   * If it is about to define a function, then it should create child capture, as the scope is going to be changed.
+   * This is done in recursive way, as the tree is constructed in recursively.
+   *
+   * @param captureVariables store currently known variable & unknown variable
+   * @param body could be clause
+   */
   def traverseTree(captureVariables: LengineVarCapture, body: LispValue): Unit = {
     body match {
       case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>

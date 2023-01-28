@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.statements.LispFuncDef
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol

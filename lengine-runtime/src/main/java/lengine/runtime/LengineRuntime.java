@@ -1,6 +1,8 @@
 package lengine.runtime;
 
-import scala.Char;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class LengineRuntime {
 
@@ -61,6 +63,8 @@ public class LengineRuntime {
             return (Long) from;
         } else if (from instanceof Double) {
             return ((Double) from).longValue();
+        } else if (from instanceof String) {
+            return Long.parseLong((String) from);
         }
 
         throw new RuntimeException(String.format("unable to cast from %s to Character", from.getClass()));
@@ -73,6 +77,8 @@ public class LengineRuntime {
             return ((Long)from).doubleValue();
         } else if (from instanceof Double) {
             return (Double)from;
+        } else if (from instanceof String) {
+            return Double.parseDouble((String) from);
         }
 
         throw new RuntimeException(String.format("unable to cast from %s to Character", from.getClass()));
@@ -183,5 +189,9 @@ public class LengineRuntime {
 
     public static Object flatten(Sequence seq) {
         return seq.flatten();
+    }
+
+    public static String readLine() throws IOException {
+        return new BufferedReader(new InputStreamReader(System.in)).readLine();
     }
 }

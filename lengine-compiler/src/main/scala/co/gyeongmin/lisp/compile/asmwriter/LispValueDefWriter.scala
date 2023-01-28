@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{Label, Type}

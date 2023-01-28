@@ -1,11 +1,10 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
