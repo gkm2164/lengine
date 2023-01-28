@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
-import lengine.runtime.LengineMap
+import lengine.runtime.{LengineFn, LengineMap}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 import org.objectweb.asm.Opcodes._
 
@@ -35,9 +35,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
   }
 
   def writeValue(): Unit = {
-    val operation = clause.body.head
-    val operands = clause.body.tail
-
+    val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body)
@@ -74,7 +72,37 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
             )
           })
         })
+      case s: EagerSymbol if runtimeEnvironment.hasVar(s) =>
+        runtimeEnvironment.getVar(s).foreach(suspectFn => {
+          val mv = runtimeEnvironment.methodVisitor
+          val argLoc = runtimeEnvironment.allocateNextVar
+          runtimeEnvironment.allocateNewArray(classOf[Object], operands.size, argLoc)
+          val tmpLoc = runtimeEnvironment.allocateNextVar
+          operands.zipWithIndex.foreach {
+            case (value, idx) =>
+              new LispValueAsmWriter(value).writeValue()
+              mv.visitIntInsn(Opcodes.ASTORE, tmpLoc)
+              mv.visitIntInsn(Opcodes.ALOAD, argLoc)
+              mv.visitLdcInsn(idx)
+              mv.visitIntInsn(Opcodes.ALOAD, tmpLoc)
+              mv.visitInsn(AASTORE)
+          }
 
+          mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
+          mv.visitTypeInsn(Opcodes.CHECKCAST,
+            Type.getType(classOf[LengineFn]).getInternalName)
+          mv.visitIntInsn(Opcodes.ALOAD, argLoc)
+          mv.visitMethodInsn(
+            INVOKEVIRTUAL,
+            Type.getType(classOf[LengineFn]).getInternalName,
+            "invoke",
+            Type.getMethodDescriptor(
+              Type.getType(classOf[Object]),
+              Type.getType(classOf[Array[Object]])
+            ),
+            false
+          )
+        })
       case _ =>
     }
   }

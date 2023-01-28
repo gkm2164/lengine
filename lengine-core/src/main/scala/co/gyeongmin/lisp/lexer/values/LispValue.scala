@@ -4,14 +4,12 @@ import co.gyeongmin.lisp.errors.LispError
 import co.gyeongmin.lisp.errors.eval.{EvalError, InvalidTypeError, NotANumberTypeError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
-import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, LispNumber, RatioNumber, _}
+import co.gyeongmin.lisp.lexer.values.numbers._
 import co.gyeongmin.lisp.lexer.values.seq.LispSeq
-import co.gyeongmin.lisp.types.LengineType
 
 import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
-  type ResolveHelper = String => Option[LengineType]
 
   def not: Either[EvalError, LispBoolean] = Left(
     UnimplementedOperationError("!", this)
@@ -66,8 +64,6 @@ trait LispValue extends LispToken {
   def toFloat: Either[EvalError, FloatNumber] = as[FloatNumber]
 
   def toComplex: Either[EvalError, ComplexNumber] = as[ComplexNumber]
-  def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] =
-    Left(UnimplementedOperationError("unsupported type for compiler", this))
 
   def traverse[E <: LispError, T](
     seq: Seq[Either[E, T]]

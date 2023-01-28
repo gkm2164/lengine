@@ -32,7 +32,7 @@ package object compile {
         mv,
         mutable.Map(),
         className,
-        0)
+        2)
 
     statements.foreach(stmt => new LispValueAsmWriter(stmt).writeValue())
     mv.visitLabel(LengineEnv.endLabel)

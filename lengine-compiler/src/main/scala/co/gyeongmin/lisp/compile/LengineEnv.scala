@@ -1,8 +1,7 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineRuntimeEnvironment
+import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LengineType}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import co.gyeongmin.lisp.types.LengineType
 import org.objectweb.asm.Label
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -11,7 +10,7 @@ import scala.collection.mutable
 object LengineEnv {
   def hasFn(operation: LispSymbol): Boolean = fnStack.contains(operation)
 
-  def getFn(operation: LispSymbol): Option[LengineFunction] = fnStack.get(operation)
+  def getFn(operation: LispSymbol): Option[LengineFnDef] = fnStack.get(operation)
 
   type Binder = (Label, Label, Int) => Unit
 
@@ -20,7 +19,7 @@ object LengineEnv {
                       storedType: LengineType,
                       binder: Binder)
 
-  case class LengineFunction(name: LispSymbol, args: Int, fnEnv: LengineRuntimeEnvironment)
+  case class LengineFnDef(name: LispSymbol, args: Int, fnEnv: LengineRuntimeEnvironment)
 
   def declareVars(): Unit = {
     varStack.values.foreach(x => x.binder(startLabel, endLabel, x.index))
@@ -30,7 +29,7 @@ object LengineEnv {
   val endLabel: Label = new Label()
 
   private val varStack: mutable.Map[String, Variable] = mutable.Map()
-  private val fnStack: mutable.Map[LispSymbol, LengineFunction] = mutable.Map()
+  private val fnStack: mutable.Map[LispSymbol, LengineFnDef] = mutable.Map()
 
   val index = new AtomicInteger(2)
 
@@ -40,12 +39,9 @@ object LengineEnv {
     varIdx
   }
 
-  def defineFn(name: LispSymbol, args: Int, lengineRuntimeEnvironment: LengineRuntimeEnvironment): LengineFunction = {
-    val fn = LengineFunction(name, args, lengineRuntimeEnvironment)
+  def defineFn(name: LispSymbol, args: Int, lengineRuntimeEnvironment: LengineRuntimeEnvironment): LengineFnDef = {
+    val fn = LengineFnDef(name, args, lengineRuntimeEnvironment)
     fnStack += (name -> fn)
     fn
   }
-
-
-  def getVarInfo(name: String): Option[Variable] = varStack.get(name)
 }

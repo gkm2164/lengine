@@ -4,7 +4,6 @@ import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
-import co.gyeongmin.lisp.types.{LengineList, LengineType}
 
 case class LispList(items: List[LispValue]) extends LispSeq {
   override def ++(other: LispValue): Either[EvalError, LispValue] =
@@ -39,7 +38,4 @@ case class LispList(items: List[LispValue]) extends LispSeq {
       }
       .mkString("[", " ", "]")
   )
-
-  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] =
-    Right(LengineList)
 }

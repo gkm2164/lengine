@@ -2,12 +2,13 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.tokens.LispLambda
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import co.gyeongmin.lisp.types._
 import lengine.runtime.{LengineMap, Sequence}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
@@ -116,6 +117,8 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispFuncDef(symbol, funcDef) =>
       val fnName = new LispFnAsmWriter(funcDef).writeValue()
       runtimeEnv.mapFnName(symbol, fnName)
+    case genDef: GeneralLispFunc =>
+      new LispFnAsmWriter(genDef).writeValue()
   }
 
 

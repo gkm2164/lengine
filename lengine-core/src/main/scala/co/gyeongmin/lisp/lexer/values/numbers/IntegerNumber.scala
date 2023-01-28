@@ -3,7 +3,6 @@ package co.gyeongmin.lisp.lexer.values.numbers
 import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
-import co.gyeongmin.lisp.types.{LengineInteger, LengineType}
 
 // Numbers => Integer < RatioNumber < FloatNumber < ComplexNumber
 case class IntegerNumber(value: Long) extends LispNumber {
@@ -79,8 +78,6 @@ case class IntegerNumber(value: Long) extends LispNumber {
       case f: FloatNumber     => this.toFloat.flatMap(_ gt f)
       case x                  => Left(UnimplementedOperationError(">", x))
     }
-
-  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = Right(LengineInteger)
 
   override def printable(): Either[EvalError, String] = Right(value.toString)
 }

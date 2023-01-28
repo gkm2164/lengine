@@ -1,8 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
-import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
+import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispSeq, LispString}
 import lengine.Prelude
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
@@ -58,5 +61,17 @@ object LengineTypeSystem {
     }
   }
 
-  implicit val resolveHelper: ResolveHelper = name => LengineEnv.getVarInfo(name).map(_.storedType)
+  implicit class LispValueTypeExtension(lispValue: LispValue) {
+    def resolveType: Either[EvalError, LengineType] = lispValue match {
+      case _: LispChar => Right(LengineChar)
+      case _: IntegerNumber => Right(LengineInteger)
+      case _: FloatNumber => Right(LengineDouble)
+      case _: LispString => Right(LengineString)
+      case _: LispClause => Right(LengineAny)
+      case _: LispSeq => Right(LengineList)
+      case _: LispObject => Right(LengineObject)
+      case _: LispBoolean => Right(LengineBoolean)
+      case _: GeneralLispFunc => Right(LengineFunction)
+    }
+  }
 }

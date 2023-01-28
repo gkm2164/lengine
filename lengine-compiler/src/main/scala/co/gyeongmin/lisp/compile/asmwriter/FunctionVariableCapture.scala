@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
@@ -30,9 +31,12 @@ object FunctionVariableCapture {
       case LispValueDef(symbol, body) =>
         traverseTree(captureVariables, body)
         captureVariables.requestCapture(symbol)
-      case LispFuncDef(symbol, fn) =>
+      case GeneralLispFunc(placeholders, body) =>
         val childCapture = new LengineVarCapture(captureVariables)
-        traverseTree(childCapture, fn.body)
+        placeholders.foreach {
+          case symbol: LispSymbol => childCapture.ignoreCapture(symbol)
+        }
+        traverseTree(childCapture, body)
         captureVariables.mergeChild(childCapture)
     }
   }

@@ -25,4 +25,12 @@ class MainTest extends FlatSpec with Matchers {
       "MapTest"
     ))
   }
+
+  "map type object with compile lambda.lisp" should "run and return" in {
+    Main.main(Array(
+      "lambda.lisp",
+      "--className",
+      "LambdaTest"
+    ))
+  }
 }

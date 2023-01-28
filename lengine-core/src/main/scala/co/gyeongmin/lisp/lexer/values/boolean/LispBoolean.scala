@@ -2,7 +2,6 @@ package co.gyeongmin.lisp.lexer.values.boolean
 
 import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.types.{LengineBoolean, LengineType}
 
 abstract class LispBoolean extends LispValue {
   override def not: Either[EvalError, LispBoolean] = this match {
@@ -24,7 +23,6 @@ abstract class LispBoolean extends LispValue {
       case (_, v)                           => Left(UnimplementedOperationError("or: Boolean", v))
     }
 
-  override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = Right(LengineBoolean)
 }
 
 object LispBoolean {
