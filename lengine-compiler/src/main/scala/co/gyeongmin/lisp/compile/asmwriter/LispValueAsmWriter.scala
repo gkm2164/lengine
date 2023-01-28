@@ -113,11 +113,9 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
           runtimeEnv.registerVariable(symbol, varIdx)
 
       }
-      value.resolveType.map(varType => {
-
-      })
-    case f: LispFuncDef =>
-      new LispFnAsmWriter(f).writeValue()
+    case LispFuncDef(symbol, funcDef) =>
+      val fnName = new LispFnAsmWriter(funcDef).writeValue()
+      runtimeEnv.mapFnName(symbol, fnName)
   }
 
 

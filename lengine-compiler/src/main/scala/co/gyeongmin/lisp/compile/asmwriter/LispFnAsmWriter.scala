@@ -1,36 +1,45 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.lexer.statements.LispFuncDef
+import co.gyeongmin.lisp.compile.LengineEnv.LengineFunction
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
-import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import org.objectweb.asm.{Label, Opcodes, Type}
 
+import java.util.UUID
 import scala.collection.mutable
 
-class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
-  def writeValue(): Unit = {
-    val traversedPlaceHolders = traverse(f.fn.placeHolders
+class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
+
+  private def uuid = UUID.randomUUID().toString
+
+  private def randomGenerate() = s"lambda#$uuid"
+
+  def writeValue(): LengineFunction = {
+    val traversedPlaceHolders = traverse(f.placeHolders
       .map(holder => holder.as[LispSymbol])) match {
       case Left(err) => throw new RuntimeException(s"unexpected error: $err")
       case Right(value) => value
     }
 
+    val fnName = randomGenerate()
+
     val captureVariables = new LengineVarCapture()
-    f.fn.placeHolders.foreach({
+    f.placeHolders.foreach({
       case symbol: LispSymbol =>
         captureVariables.ignoreCapture(symbol)
       case _ =>
     })
 
-    FunctionVariableCapture.traverseTree(captureVariables, f.fn.body)
+    FunctionVariableCapture.traverseTree(captureVariables, f.body)
 
     val argsWithCapturedVars = (traversedPlaceHolders ++ captureVariables.getRequestedCaptures).zipWithIndex.toMap
 
     val argsType = argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
 
     val mv = runtimeEnvironment.classWriter.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-      f.symbol.name,
+      fnName,
       Type.getMethodDescriptor(
         Type.getType(classOf[Object]),
         argsType: _*
@@ -51,7 +60,7 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntim
     )
 
     mv.visitLabel(startLabel)
-    new LispValueAsmWriter(f.fn.body)(newRuntimeEnvironment).writeValue(None)
+    new LispValueAsmWriter(f.body)(newRuntimeEnvironment).writeValue(None)
 
     newRuntimeEnvironment.setRequestedCapture(captureVariables)
 
@@ -67,6 +76,6 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntim
     mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
     mv.visitEnd()
 
-    LengineEnv.defineFn(f.symbol, f.fn.placeHolders.size, newRuntimeEnvironment)
+    LengineEnv.defineFn(EagerSymbol(fnName), f.placeHolders.size, newRuntimeEnvironment)
   }
 }
