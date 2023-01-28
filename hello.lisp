@@ -29,6 +29,8 @@
 (def single-element [1])
 (def seq [1 2 3 4 5 6 7 8 9 10])
 (def seq-multi-types [1 2 3 name])
+(def seq-nested [1 2 3 4 5 [1 2 3 4 5]])
+
 
 (println "=== Single element ===")
 (println single-element)
@@ -44,6 +46,8 @@
 
 (fn concat (x y) [x y])
 
+(fn concat-clojure (x y) [x y v])
+
 (print-seq "Hello" "World")
 (println "Hello World!")
 (print-seq "something" "World")
@@ -52,13 +56,13 @@
 (print-seq "something" "World")
 (other-seq "something3")
 
+(println (concat-clojure (3 5)))
 (println (take 3 [1 2 3 4 5]))
 (println (drop 3 [1 2 3 4 5]))
 
 (println (+ [] 3))
 (println (+ [] "ABCDEF"))
 
-(def seq-nested [1 2 3 4 5 [1 2 3 4 5]])
 (println (flatten seq-nested))
 
 (println "Test Unit type")

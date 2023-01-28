@@ -18,17 +18,31 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
     val operands = clause.body.tail
 
     operation match {
-      case EagerSymbol(op) if RuntimeMethodVisitor.supportOperation(op) => RuntimeMethodVisitor.handle(clause.body)
-      case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
-        LengineEnv.getFn(operation).foreach(fn => {
-          fn.args.zip(operands).foreach { case (_, value) =>
+      case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body)
+      case s: EagerSymbol if LengineEnv.hasFn(s) =>
+        LengineEnv.getFn(s).foreach(fn => {
+          (0 until fn.args).zip(operands).foreach { case (_, value) =>
             new LispValueAsmWriter(value).writeValue()
           }
+
+          fn.fnEnv.captureVariables.foreach(_.getRequestedCaptures.foreach(symbol => {
+            val location = runtimeEnvironment.getVar(symbol)
+            if (location.isEmpty) {
+              throw new RuntimeException(s"Unable to capture variable: $symbol")
+            }
+
+            val Some(locationAddress) = location
+
+            mv.visitIntInsn(ALOAD, locationAddress)
+          }))
+
+          val argCount = fn.args + fn.fnEnv.captureVariables.map(_.getRequestedCaptures.size).getOrElse(0)
+
           mv.visitMethodInsn(
             INVOKESTATIC,
             runtimeEnvironment.className,
-            operation,
-            getFnDescriptor(classOf[Object], fn.args.size),
+            s.name,
+            getFnDescriptor(classOf[Object], argCount),
             false
           )
         })

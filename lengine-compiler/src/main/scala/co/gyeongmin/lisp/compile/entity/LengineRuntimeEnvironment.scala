@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.compile.entity
 
+import co.gyeongmin.lisp.compile.asmwriter.LengineVarCapture
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{ClassWriter, MethodVisitor}
 
@@ -8,7 +9,10 @@ import scala.collection.mutable
 
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitor,
-                                private val args: mutable.Map[LispSymbol, Int], val className: String, numberOfArgs: Int) {
+                                private val args: mutable.Map[LispSymbol, Int],
+                                val className: String, numberOfArgs: Int) {
+  var captureVariables: Option[LengineVarCapture] = None
+  def setRequestedCapture(captureVariables: LengineVarCapture) = this.captureVariables = Some(captureVariables)
 
   def registerVariable(value: LispSymbol, varIdx: Int): Unit = {
     args += (value -> varIdx)
@@ -23,7 +27,6 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
   def allocateNextVar: Int = varIdx.getAndAdd(2)
 
   def getLastVarIdx: Int = varIdx.get()
-
   def copy: LengineRuntimeEnvironment =
     new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone, className, numberOfArgs)
 }

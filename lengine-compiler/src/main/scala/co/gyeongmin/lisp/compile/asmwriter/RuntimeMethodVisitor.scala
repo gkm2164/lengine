@@ -7,7 +7,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.types.LengineString
 import lengine.runtime.{LengineRuntime, Sequence}
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{Opcodes, Type}
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -19,8 +19,10 @@ object RuntimeMethodVisitor {
   private val LengineRuntimeType: String = Type.getType(classOf[LengineRuntime]).getInternalName
   private val ObjectClass: Type = Type.getType(classOf[Object])
 
-  def supportOperation(operation: String): Boolean =
-    supportedOps.contains(operation)
+  def supportOperation(operation: LispValue): Boolean = operation match {
+    case EagerSymbol(op) => supportedOps.contains(op)
+    case _ => false
+  }
 
   private def visitTypeCast(op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operand :: _ = operands

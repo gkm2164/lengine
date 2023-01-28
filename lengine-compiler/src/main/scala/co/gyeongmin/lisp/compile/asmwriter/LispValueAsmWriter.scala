@@ -5,12 +5,31 @@ import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
 import org.objectweb.asm.{Opcodes, Type}
 
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
+  def travelTree(capture: LengineVarCapture): Unit = value match {
+    case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
+    case LispList(body) =>
+      body.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
+    case ref: LispSymbol =>
+      if (!runtimeEnv.hasVar(ref)) {
+        capture.requestCapture(ref)
+      }
+    case LispClause(op :: value) if RuntimeMethodVisitor.supportOperation(op) =>
+      value.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
+    case LispClause(body) =>
+      body.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
+    case LispValueDef(symbol, body) =>
+      new LispValueAsmWriter(body).travelTree(capture)
+      capture.ignoreCapture(symbol)
+    case LispFuncDef(symbol, fn) =>
+
+  }
+
   import LengineTypeSystem._
 
   val mv = runtimeEnv.methodVisitor
@@ -45,6 +64,8 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case ref: EagerSymbol =>
       if (runtimeEnv.hasVar(ref)) {
         runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
+      } else {
+        throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
       }
     case l@LispClause(_) => new LispClauseWriter(l).writeValue()
     case LispValueDef(symbol, value) =>
