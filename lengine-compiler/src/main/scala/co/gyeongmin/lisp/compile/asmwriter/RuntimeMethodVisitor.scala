@@ -51,7 +51,7 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    operands.foreach(v => new LispValueAsmWriter(v).writeValue())
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
     compareOpMap
       .get(op)
       .foreach(
@@ -73,7 +73,7 @@ object RuntimeMethodVisitor {
   private def visitNotOps(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    operands.foreach(v => new LispValueAsmWriter(v).writeValue())
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
     mv.visitMethodInsn(
       INVOKESTATIC,
       PreludeClass.getInternalName,
@@ -103,7 +103,7 @@ object RuntimeMethodVisitor {
     val condition :: ifmatch :: elsematch :: Nil = operands
     val mv                                       = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(condition).writeValue()
+    new LispValueAsmWriter(condition).visitForValue()
     val idx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(ASTORE, idx)
     mv.visitIntInsn(ALOAD, idx)
@@ -115,11 +115,11 @@ object RuntimeMethodVisitor {
 
     mv.visitJumpInsn(IFNE, tLabel)
     mv.visitLabel(fLabel)
-    new LispValueAsmWriter(elsematch).writeValue()
+    new LispValueAsmWriter(elsematch).visitForValue()
     mv.visitJumpInsn(GOTO, next)
 
     mv.visitLabel(tLabel)
-    new LispValueAsmWriter(ifmatch).writeValue()
+    new LispValueAsmWriter(ifmatch).visitForValue()
     mv.visitLabel(next)
   }
 
@@ -152,8 +152,8 @@ object RuntimeMethodVisitor {
   private def visitSeqOp(operationName: String,
                          operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val number :: seq :: _ = operands
-    new LispValueAsmWriter(number).writeValue()
-    new LispValueAsmWriter(seq).writeValue()
+    new LispValueAsmWriter(number).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue()
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -169,7 +169,7 @@ object RuntimeMethodVisitor {
   }
   private def visitFlatten(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
-    new LispValueAsmWriter(seq).writeValue()
+    new LispValueAsmWriter(seq).visitForValue()
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -185,7 +185,7 @@ object RuntimeMethodVisitor {
 
   private def visitCalc(operation: String,
                         operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    operands.foreach(v => new LispValueAsmWriter(v).writeValue(None))
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(None))
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -197,7 +197,7 @@ object RuntimeMethodVisitor {
   }
 
   private def visitPrintln(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    operands.foreach(v => new LispValueAsmWriter(v).writeValue(Some(LengineString)))
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString)))
     val temporalVarIdx = runtimeEnvironment.allocateNextVar
     val mv             = runtimeEnvironment.methodVisitor
     mv.visitIntInsn(ASTORE, temporalVarIdx)
@@ -218,7 +218,7 @@ object RuntimeMethodVisitor {
                             operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operand :: _ = operands
 
-    new LispValueAsmWriter(operand).writeValue()
+    new LispValueAsmWriter(operand).visitForValue()
 
     val mv = runtimeEnvironment.methodVisitor
 

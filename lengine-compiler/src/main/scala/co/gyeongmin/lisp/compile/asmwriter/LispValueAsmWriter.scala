@@ -1,8 +1,8 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispLoopStmt, LispValueDef}
-import co.gyeongmin.lisp.lexer.tokens.LispLambda
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -43,34 +43,26 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
     map.foreach {
       case (ObjectReferSymbol(name), value) =>
-        val keyIdx = runtimeEnv.allocateNextVar
         val valIdx = runtimeEnv.allocateNextVar
-        mv.visitLdcInsn(name)
-        mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
 
-        new LispValueAsmWriter(value).writeValue()
+        new LispValueAsmWriter(value).visitForValue()
         mv.visitIntInsn(Opcodes.ASTORE, valIdx)
 
         mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
-        mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
+        mv.visitLdcInsn(name)
         mv.visitIntInsn(Opcodes.ALOAD, valIdx)
 
-        mv.visitMethodInsn(
-          Opcodes.INVOKEVIRTUAL,
-          Type.getType(classOf[LengineMap]).getInternalName,
+        mv.visitMethodCall(
+          classOf[LengineMap],
           "put",
-          Type.getMethodDescriptor(
-            Type.getType(Void.TYPE),
-            Type.getType(classOf[Object]),
-            Type.getType(classOf[Object]),
-          ),
-          false
+          Void.TYPE,
+          List(classOf[Object], classOf[Object])
         )
     }
     mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
   }
 
-  def writeValue(finalCast: Option[LengineType] = None): Unit = value match {
+  def visitForValue(finalCast: Option[LengineType] = None): Unit = value match {
     case LispTrue =>
       mv.visitLdcInsn(true)
       boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
@@ -102,9 +94,9 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       } else {
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
       }
-    case l@LispClause(_) => new LispClauseWriter(l).writeValue()
+    case l@LispClause(_) => new LispClauseWriter(l).visitForValue()
     case LispValueDef(symbol, value) =>
-      new LispValueAsmWriter(value).writeValue(None)
+      new LispValueAsmWriter(value).visitForValue(None)
       value.resolveType match {
         case Left(err) =>
           new RuntimeException(s"Unable to resolve the type for $symbol: $err")
@@ -115,7 +107,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
       }
     case LispFuncDef(symbol, funcDef) =>
-      new LispValueAsmWriter(LispValueDef(symbol, funcDef)).writeValue()
+      new LispValueAsmWriter(LispValueDef(symbol, funcDef)).visitForValue()
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
   }
@@ -134,19 +126,16 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     val seqIdx = runtimeEnv.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
     body.foreach(value => {
-      new LispValueAsmWriter(value).writeValue()
+      new LispValueAsmWriter(value).visitForValue()
       val idx = runtimeEnv.allocateNextVar
       mv.visitIntInsn(Opcodes.ASTORE, idx)
       mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
       mv.visitIntInsn(Opcodes.ALOAD, idx)
-      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-        Type.getType(classOf[Sequence]).getInternalName,
+      mv.visitMethodCall(
+        classOf[Sequence],
         "add",
-        Type.getMethodDescriptor(
-          Type.getType(java.lang.Void.TYPE),
-          Type.getType(classOf[java.lang.Object])
-        ),
-        false
+        Void.TYPE,
+        List(classOf[Object])
       )
     })
     mv.visitIntInsn(Opcodes.ALOAD, seqIdx)

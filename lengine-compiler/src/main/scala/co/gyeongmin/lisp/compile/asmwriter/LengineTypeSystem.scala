@@ -1,22 +1,23 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispSeq, LispString}
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispSeq, LispString }
 import lengine.Prelude
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{ MethodVisitor, Opcodes, Type }
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
     def boxing(implicit mv: MethodVisitor): Unit = {
       val (boxed, primitive) = lengineType match {
-        case LengineChar => (classOf[java.lang.Character], java.lang.Character.TYPE)
+        case LengineChar    => (classOf[java.lang.Character], java.lang.Character.TYPE)
         case LengineInteger => (classOf[java.lang.Long], java.lang.Long.TYPE)
-        case LengineDouble => (classOf[java.lang.Double], java.lang.Double.TYPE)
-        case LengineString => return
+        case LengineDouble  => (classOf[java.lang.Double], java.lang.Double.TYPE)
+        case LengineString  => return
       }
 
       mv.visitMethodInsn(
@@ -37,40 +38,35 @@ object LengineTypeSystem {
         return
       }
       mv.visitLdcInsn(toType.getJvmType.getName)
-      mv.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        Type.getType(classOf[Class[_]]).getInternalName,
+      mv.visitStaticMethodCall(
+        classOf[Class[_]],
         "forName",
-        Type.getMethodDescriptor(
-          Type.getType(classOf[Class[_]]),
-          Type.getType(classOf[String])
-        ),
-        false
+        classOf[Class[_]],
+        List(classOf[String])
       )
-      mv.visitMethodInsn(
-        Opcodes.INVOKESTATIC,
-        Type.getType(classOf[Prelude]).getInternalName,
+
+      mv.visitStaticMethodCall(
+        classOf[Prelude],
         "cast",
-        Type.getMethodDescriptor(
-          Type.getType(classOf[Object]),
-          Type.getType(classOf[Object]),
-          Type.getType(classOf[Class[_]])
-        ),
-        false
+        classOf[Object],
+        List(
+          classOf[Object],
+          classOf[Class[_]]
+        )
       )
     }
   }
 
   implicit class LispValueTypeExtension(lispValue: LispValue) {
     def resolveType: Either[EvalError, LengineType] = lispValue match {
-      case _: LispChar => Right(LengineChar)
-      case _: IntegerNumber => Right(LengineInteger)
-      case _: FloatNumber => Right(LengineDouble)
-      case _: LispString => Right(LengineString)
-      case _: LispClause => Right(LengineAny)
-      case _: LispSeq => Right(LengineList)
-      case _: LispObject => Right(LengineObject)
-      case _: LispBoolean => Right(LengineBoolean)
+      case _: LispChar        => Right(LengineChar)
+      case _: IntegerNumber   => Right(LengineInteger)
+      case _: FloatNumber     => Right(LengineDouble)
+      case _: LispString      => Right(LengineString)
+      case _: LispClause      => Right(LengineAny)
+      case _: LispSeq         => Right(LengineList)
+      case _: LispObject      => Right(LengineObject)
+      case _: LispBoolean     => Right(LengineBoolean)
       case _: GeneralLispFunc => Right(LengineFunction)
     }
   }

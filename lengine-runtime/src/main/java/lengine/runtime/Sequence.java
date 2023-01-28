@@ -16,6 +16,10 @@ public class Sequence {
     this.list = new LinkedList<>();
   }
 
+  public static Sequence create() {
+    return new Sequence();
+  }
+
   public void add(Character item) {
     list.add(item);
   }

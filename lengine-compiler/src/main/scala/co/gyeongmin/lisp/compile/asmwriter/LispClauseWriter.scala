@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import lengine.runtime.{LengineFn, LengineMap}
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 import org.objectweb.asm.Opcodes._
@@ -20,21 +20,17 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
     mv.visitLdcInsn(key)
     val keyIdx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
-    new LispValueAsmWriter(map).writeValue()
+    new LispValueAsmWriter(map).visitForValue()
     mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
-    mv.visitMethodInsn(
-      INVOKEVIRTUAL,
-      Type.getType(classOf[LengineMap]).getInternalName,
+    mv.visitMethodCall(
+      classOf[LengineMap],
       "get",
-      Type.getMethodDescriptor(
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object]),
-      ),
-      false
+      classOf[Object],
+      List(classOf[Object])
     )
   }
 
-  def writeValue(): Unit = {
+  def visitForValue(): Unit = {
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
@@ -44,7 +40,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
           LengineEnv.getFn(realFn.name).foreach(fn => {
             val popThis = mutable.ListBuffer[Int]()
             (0 until fn.args).zip(operands).foreach { case (_, value) =>
-              new LispValueAsmWriter(value).writeValue()
+              new LispValueAsmWriter(value).visitForValue()
               val loc = runtimeEnvironment.allocateNextVar
               mv.visitIntInsn(Opcodes.ASTORE, loc)
               popThis += loc
@@ -80,7 +76,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
           val tmpLoc = runtimeEnvironment.allocateNextVar
           operands.zipWithIndex.foreach {
             case (value, idx) =>
-              new LispValueAsmWriter(value).writeValue()
+              new LispValueAsmWriter(value).visitForValue()
               mv.visitIntInsn(Opcodes.ASTORE, tmpLoc)
               mv.visitIntInsn(Opcodes.ALOAD, argLoc)
               mv.visitLdcInsn(idx)
@@ -92,15 +88,11 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
           mv.visitTypeInsn(Opcodes.CHECKCAST,
             Type.getType(classOf[LengineFn]).getInternalName)
           mv.visitIntInsn(Opcodes.ALOAD, argLoc)
-          mv.visitMethodInsn(
-            INVOKEVIRTUAL,
-            Type.getType(classOf[LengineFn]).getInternalName,
+          mv.visitMethodCall(
+            classOf[LengineFn],
             "invoke",
-            Type.getMethodDescriptor(
-              Type.getType(classOf[Object]),
-              Type.getType(classOf[Array[Object]])
-            ),
-            false
+            classOf[Object],
+            List(classOf[Array[Object]])
           )
         })
       case _ =>

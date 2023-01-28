@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispForStmt, LispFuncDef, LispLoopStmt, LispValueDef}
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.statements.{LispForStmt, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
