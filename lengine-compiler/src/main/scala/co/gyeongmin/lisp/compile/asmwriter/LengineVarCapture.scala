@@ -5,12 +5,16 @@ import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import scala.collection.mutable
 
 class LengineVarCapture {
-  private var requestedCapture: mutable.ListBuffer[LispSymbol] = mutable.ListBuffer()
-  private var ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
+  def mergeChild(childCapture: LengineVarCapture): Unit = {
+    requestedCapture ++= childCapture.requestedCapture
+  }
+
+  private val requestedCapture: mutable.ListBuffer[LispSymbol] = mutable.ListBuffer()
+  private val ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
 
   def this (parent: LengineVarCapture) = {
     this()
-    ignoreCaptureSet = parent.requestedCapture.foldLeft(mutable.Set[LispSymbol]())((acc, elem) => acc += elem) ++ parent.ignoreCaptureSet
+    parent.requestedCapture.foldLeft(ignoreCaptureSet)((acc, elem) => acc += elem)
   }
   def requestCapture(ref: LispSymbol): Unit = {
     if (!ignoreCaptureSet.contains(ref)) {
@@ -19,8 +23,8 @@ class LengineVarCapture {
   }
 
   def ignoreCapture(ref: LispSymbol): Unit = {
-    ignoreCaptureSet(ref)
+    ignoreCaptureSet += ref
   }
 
-  def getRequestedCaptures: Seq[LispSymbol] = requestedCapture.toList
+  def getRequestedCaptures: Seq[LispSymbol] = requestedCapture.filterNot(ignoreCaptureSet.contains).toList
 }

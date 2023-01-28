@@ -4,8 +4,10 @@ import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispClause
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.{MethodVisitor, Opcodes}
 import org.objectweb.asm.Opcodes._
+
+import scala.collection.mutable
 
 class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
@@ -21,8 +23,12 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
       case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body)
       case s: EagerSymbol if LengineEnv.hasFn(s) =>
         LengineEnv.getFn(s).foreach(fn => {
+          val popThis = mutable.ListBuffer[Int]()
           (0 until fn.args).zip(operands).foreach { case (_, value) =>
             new LispValueAsmWriter(value).writeValue()
+            val loc = runtimeEnvironment.allocateNextVar
+            mv.visitIntInsn(Opcodes.ASTORE, loc)
+            popThis += loc
           }
 
           fn.fnEnv.captureVariables.foreach(_.getRequestedCaptures.foreach(symbol => {
@@ -32,12 +38,12 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
             }
 
             val Some(locationAddress) = location
-
-            mv.visitIntInsn(ALOAD, locationAddress)
+            popThis += locationAddress
           }))
 
           val argCount = fn.args + fn.fnEnv.captureVariables.map(_.getRequestedCaptures.size).getOrElse(0)
 
+          popThis.foreach(mv.visitIntInsn(ALOAD, _))
           mv.visitMethodInsn(
             INVOKESTATIC,
             runtimeEnvironment.className,

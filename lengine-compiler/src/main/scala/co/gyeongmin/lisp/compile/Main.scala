@@ -18,7 +18,6 @@ object Main {
         parseValue(tokenStream) match {
           case Left(err) => throw new RuntimeException(s"Error while parse: $err")
           case Right((lispValue, remain)) =>
-            println(lispValue)
             compileLoop(acc :+ lispValue, remain)
         }
     }

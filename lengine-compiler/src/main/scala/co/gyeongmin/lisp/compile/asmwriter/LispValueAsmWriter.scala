@@ -8,31 +8,13 @@ import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
-import org.objectweb.asm.{Opcodes, Type}
+import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
-  def travelTree(capture: LengineVarCapture): Unit = value match {
-    case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
-    case LispList(body) =>
-      body.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
-    case ref: LispSymbol =>
-      if (!runtimeEnv.hasVar(ref)) {
-        capture.requestCapture(ref)
-      }
-    case LispClause(op :: value) if RuntimeMethodVisitor.supportOperation(op) =>
-      value.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
-    case LispClause(body) =>
-      body.foreach(v => new LispValueAsmWriter(v).travelTree(capture))
-    case LispValueDef(symbol, body) =>
-      new LispValueAsmWriter(body).travelTree(capture)
-      capture.ignoreCapture(symbol)
-    case LispFuncDef(symbol, fn) =>
-
-  }
 
   import LengineTypeSystem._
 
-  val mv = runtimeEnv.methodVisitor
+  val mv: MethodVisitor = runtimeEnv.methodVisitor
   private def boxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit = {
     mv.visitMethodInsn(
       Opcodes.INVOKESTATIC,
@@ -103,9 +85,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         "add",
         Type.getMethodDescriptor(
           Type.getType(java.lang.Void.TYPE),
-          Type.getType(value.resolveType
-            .map(_.getJvmType)
-            .getOrElse(classOf[java.lang.Object]))
+          Type.getType(classOf[java.lang.Object])
         ),
         false
       )
