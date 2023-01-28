@@ -26,5 +26,4 @@ object FunctionVariableCapture {
         captureVariables.mergeChild(childCapture)
     }
   }
-
 }

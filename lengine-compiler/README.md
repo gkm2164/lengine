@@ -10,9 +10,13 @@ So far, all the implements allowed are in `hello.lisp` file.
 Create your own `lisp` file.
 Refer `./test/scala/co/gyeongmin/lisp/compile/MainTest.scala` to see how to run.
 
-For now, thinking about this interface.
+From the project root(`../`), compile the lengine with below commands.
 
+`$ ./install.sh`
 `$ ./lenginec hello.lisp --className Hello`
+`$ ./leng Hello`
+
+This would execute compiled class and would see the result
 
 ## How it works?
 
@@ -21,7 +25,7 @@ For now, thinking about this interface.
 With given class name, it will create main which is static method. At the command line, you can execute your binary with
 following;
 
-`$ CLASSPATH=$CLASSPATH:./lengine-runtime.jar java Hello`
+`$ CLASSPATH=$CLASSPATH:./lengine-runtime.jar java Hello ## or, $ ./leng Hello`
 
 ### 2. Dynamic Type System
 
