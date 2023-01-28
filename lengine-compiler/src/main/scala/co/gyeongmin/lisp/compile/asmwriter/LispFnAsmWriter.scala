@@ -4,12 +4,14 @@ import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.statements.LispFuncDef
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{Opcodes, Type}
+import org.objectweb.asm.{Label, Opcodes, Type}
 
 import scala.collection.mutable
 
 class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {
+
+
     val traversedPlaceHolders = traverse(f.fn.placeHolders
       .map(holder => holder.as[LispSymbol])) match {
       case Left(err) => throw new RuntimeException(s"unexpected error: $err")
@@ -39,6 +41,9 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntim
       null
     )
 
+    val startLabel = new Label()
+    val endLabel = new Label()
+
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
       runtimeEnvironment.classWriter,
       mv,
@@ -47,11 +52,20 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntim
       argsWithCapturedVars.size
     )
 
+    mv.visitLabel(startLabel)
     new LispValueAsmWriter(f.fn.body)(newRuntimeEnvironment).writeValue(None)
 
     newRuntimeEnvironment.setRequestedCapture(captureVariables)
 
+    mv.visitLabel(endLabel)
     mv.visitInsn(Opcodes.ARETURN)
+    mv.visitLocalVariable("__PADDING__",
+      Type.getType(classOf[java.lang.Long]).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      newRuntimeEnvironment.getLastVarIdx
+    )
     mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
     mv.visitEnd()
 

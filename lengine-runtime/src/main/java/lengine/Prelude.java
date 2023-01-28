@@ -1,4 +1,4 @@
-package lengine.runtime;
+package lengine;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,7 +6,9 @@ import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.function.BiPredicate;
 
-public class LengineRuntime {
+import lengine.runtime.Sequence;
+
+public class Prelude {
 
   public static Object cast(Object from, Class to) {
     if (to.equals(Character.class)) {

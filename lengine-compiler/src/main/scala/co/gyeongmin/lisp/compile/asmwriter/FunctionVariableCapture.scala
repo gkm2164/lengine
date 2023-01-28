@@ -20,7 +20,6 @@ object FunctionVariableCapture {
    */
   def traverseTree(captureVariables: LengineVarCapture, body: LispValue): Unit = {
     body match {
-      case LispTrue | LispFalse | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
       case LispList(body) =>
         body.foreach(v => traverseTree(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)

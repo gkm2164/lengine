@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
-import lengine.runtime.LengineRuntime
+import lengine.Prelude
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 object LengineTypeSystem {
@@ -46,7 +46,7 @@ object LengineTypeSystem {
       )
       mv.visitMethodInsn(
         Opcodes.INVOKESTATIC,
-        Type.getType(classOf[LengineRuntime]).getInternalName,
+        Type.getType(classOf[Prelude]).getInternalName,
         "cast",
         Type.getMethodDescriptor(
           Type.getType(classOf[Object]),
