@@ -1,15 +1,17 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter}
+import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import org.objectweb.asm.{ClassWriter, Type}
+import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
+import org.objectweb.asm.{ClassWriter, Type}
 
 import scala.collection.mutable
 
 package object compile {
   def writeClass(name: String, statements: List[LispValue]): Array[Byte] = {
-    val cw = new ClassWriter(0)
+    val cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
     cw.visit(V1_8, ACC_PUBLIC, name, null, "java/lang/Object", null)
     writeInitMethod(cw)
     writeMain(cw, statements, name)
@@ -35,6 +37,8 @@ package object compile {
     statements.foreach(stmt => new LispValueAsmWriter(stmt).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
+    new LispValueDefWriter(EagerSymbol("__PADDING__"), IntegerNumber(0))
+      .writeValue(LengineEnv.startLabel, LengineEnv.endLabel, mainRuntimeEnv.getLastVarIdx)
     LengineEnv.declareVars()
     mv.visitMaxs(mainRuntimeEnv.getLastVarIdx, mainRuntimeEnv.getLastVarIdx)
     mv.visitEnd()

@@ -2,15 +2,16 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
 import co.gyeongmin.lisp.types._
+import lengine.runtime.Sequence
 import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
-
   import LengineTypeSystem._
 
   val mv: MethodVisitor = runtimeEnv.methodVisitor
@@ -28,6 +29,12 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
   }
 
   def writeValue(finalCast: Option[LengineType] = None): Unit = value match {
+    case LispTrue =>
+      mv.visitLdcInsn(true)
+      boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
+    case LispFalse =>
+      mv.visitLdcInsn(false)
+      boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
       boxing(classOf[Character], Character.TYPE)
@@ -80,7 +87,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
       mv.visitIntInsn(Opcodes.ALOAD, idx)
       mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-        "lengine/runtime/Sequence",
+        Type.getType(classOf[Sequence]).getInternalName,
         "add",
         Type.getMethodDescriptor(
           Type.getType(java.lang.Void.TYPE),

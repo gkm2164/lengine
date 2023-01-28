@@ -9,4 +9,12 @@ class MainTest extends FlatSpec with Matchers {
       "Hello"
     ))
   }
+
+  "builtin function with compile boolean.lisp" should "run and return" in {
+    Main.main(Array(
+      "boolean.lisp",
+      "--className",
+      "BoolTest"
+    ))
+  }
 }

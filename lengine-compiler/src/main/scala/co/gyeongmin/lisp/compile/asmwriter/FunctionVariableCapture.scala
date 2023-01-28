@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
@@ -19,7 +20,7 @@ object FunctionVariableCapture {
    */
   def traverseTree(captureVariables: LengineVarCapture, body: LispValue): Unit = {
     body match {
-      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
+      case LispTrue | LispFalse | IntegerNumber(_) | FloatNumber(_) | LispString(_) =>
       case LispList(body) =>
         body.foreach(v => traverseTree(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)

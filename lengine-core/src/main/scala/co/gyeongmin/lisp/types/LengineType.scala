@@ -136,3 +136,15 @@ case object LengineList extends LengineType {
 
   override def /(other: LengineType): Either[EvalError, LengineType] = ???
 }
+
+case object LengineBoolean extends LengineType {
+  override def getJvmType: Class[_ <: Object] = classOf[java.lang.Boolean]
+
+  override def +(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def -(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def *(other: LengineType): Either[EvalError, LengineType] = ???
+
+  override def /(other: LengineType): Either[EvalError, LengineType] = ???
+}

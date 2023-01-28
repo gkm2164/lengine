@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.lexer.values
 
 import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
+import co.gyeongmin.lisp.types.{LengineBoolean, LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
 
 case class LispClause(body: List[LispValue]) extends LispValue {
   private def resolveTypeWithOperands(operator: LispValue, operands: Seq[LengineType]): Either[EvalError, LengineType] =
@@ -45,6 +45,7 @@ case class LispClause(body: List[LispValue]) extends LispValue {
       case EagerSymbol("char") => Right(LengineChar)
       case EagerSymbol("str") => Right(LengineString)
       case EagerSymbol("double") => Right(LengineDouble)
+      case EagerSymbol("<" | ">" | "<=" | ">=" | "not" | "=" | "/=" | "and" | "or") => Right(LengineBoolean)
     }
   override def resolveType(implicit resolveHelper: ResolveHelper): Either[EvalError, LengineType] = body match {
     case operation :: operands =>

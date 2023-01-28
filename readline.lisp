@@ -1,6 +1,6 @@
-(def v (read-line))
+(def s (read-line))
 
-(println (+ "You typed: " v))
+(println (+ "You typed: " s))
 
 (def v (int (read-line)))
 

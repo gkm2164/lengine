@@ -52,7 +52,7 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntim
     newRuntimeEnvironment.setRequestedCapture(captureVariables)
 
     mv.visitInsn(Opcodes.ARETURN)
-    mv.visitMaxs(8, newRuntimeEnvironment.getLastVarIdx)
+    mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
     mv.visitEnd()
 
     LengineEnv.defineFn(f.symbol, f.fn.placeHolders.size, newRuntimeEnvironment)
