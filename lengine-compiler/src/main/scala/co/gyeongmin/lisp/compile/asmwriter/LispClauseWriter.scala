@@ -15,7 +15,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
   val mv: MethodVisitor = runtimeEnvironment.methodVisitor
 
-  def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
+  private def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
     val map :: _ = operands
     mv.visitLdcInsn(key)
     val keyIdx = runtimeEnvironment.allocateNextVar

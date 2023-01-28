@@ -35,4 +35,9 @@ public class RatioNumber extends Number {
   public double doubleValue() {
     return (double)above / under;
   }
+
+  public RatioNumber add(RatioNumber other) {
+
+    return new RatioNumber(above * other.under + under * other.above, other.under * under);
+  }
 }

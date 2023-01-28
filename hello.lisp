@@ -78,3 +78,15 @@
 (println (int 1.3))
 (println (double 1))
 (println (str 1234))
+
+(def object {
+  :id 12345
+  :name "Complex Object!"
+  :value "Yeah, you are looking at it"
+})
+
+(println "==== Object Test ====")
+(println object)
+(println (+ "ID: " (:id object)))
+(println (+ "Name: " (:name object)))
+(println (+ "Value: " (:value object)))

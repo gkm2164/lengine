@@ -104,10 +104,17 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case l@LispClause(_) => new LispClauseWriter(l).writeValue()
     case LispValueDef(symbol, value) =>
       new LispValueAsmWriter(value).writeValue(None)
+      value.resolveType match {
+        case Left(err) =>
+          new RuntimeException(s"Unable to resolve the type for $symbol: $err")
+        case Right(varType) =>
+          val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(symbol, value).writeValue)(runtimeEnv)
+          mv.visitIntInsn(Opcodes.ASTORE, varIdx)
+          runtimeEnv.registerVariable(symbol, varIdx)
+
+      }
       value.resolveType.map(varType => {
-        val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(symbol, value).writeValue)(runtimeEnv)
-        mv.visitIntInsn(Opcodes.ASTORE, varIdx)
-        runtimeEnv.registerVariable(symbol, varIdx)
+
       })
     case f: LispFuncDef =>
       new LispFnAsmWriter(f).writeValue()
