@@ -29,3 +29,8 @@
 (if (> n1 n2)
   (println "n1 is bigger than n2")
   (println "n2 is bigger than n1"))
+
+(println (flatten
+    (loop for x in [1 2 3 4 5]
+          for y in [1 2 3 4 5]
+          (+ x y))))

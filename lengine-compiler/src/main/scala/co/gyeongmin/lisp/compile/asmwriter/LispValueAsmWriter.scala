@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
@@ -49,6 +49,8 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispList(body) =>
       declareSequence(body)
       finalCast.foreach(LengineList.cast)
+    case LispLoopStmt(forStmts, body) =>
+      new LispLoopAsmWriter(forStmts, body).writeValue()
     case ref: EagerSymbol =>
       if (runtimeEnv.hasVar(ref)) {
         runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))

@@ -1,7 +1,5 @@
 package lengine.runtime;
 
-import scala.collection.Seq;
-
 import static java.util.stream.Collectors.joining;
 
 import java.util.Iterator;
@@ -84,5 +82,9 @@ public class Sequence {
     }
 
     return retSeq;
+  }
+
+  public SequenceIterator iterator() {
+    return new SequenceIterator(list);
   }
 }

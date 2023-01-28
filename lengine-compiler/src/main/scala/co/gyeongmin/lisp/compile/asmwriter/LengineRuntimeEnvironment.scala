@@ -19,6 +19,10 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
     args += (value -> varIdx)
   }
 
+  def deregisterVariable(value: LispSymbol) = {
+    args -= value
+  }
+
   def getVar(varName: LispSymbol): Option[Int] = args.get(varName)
 
   def hasVar(varName: LispSymbol): Boolean = args.contains(varName)

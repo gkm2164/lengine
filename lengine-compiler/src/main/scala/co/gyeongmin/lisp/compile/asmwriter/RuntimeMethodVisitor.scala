@@ -124,6 +124,10 @@ object RuntimeMethodVisitor {
     mv.visitLabel(next)
   }
 
+  def visitLoopStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    println(operands)
+  }
+
   def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
 
@@ -135,6 +139,7 @@ object RuntimeMethodVisitor {
           case "*"                               => visitCalc("mult", operands)
           case "/"                               => visitCalc("div", operands)
           case "if"                              => visitIfStmt(operands)
+          case "loop"                            => visitLoopStmt(operands)
           case _ if compareOpMap.contains(op)    => visitCompareOps(op, operands)
           case "not"                             => visitNotOps(operands)
           case "take" | "drop"                   => visitSeqOp(op, operands)
