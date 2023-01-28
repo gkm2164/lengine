@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter}
+import co.gyeongmin.lisp.compile.asmwriter.LispValueAsmWriter
+import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.{ClassWriter, Type}
 import org.objectweb.asm.Opcodes._
@@ -26,13 +27,13 @@ package object compile {
     mv.visitLabel(LengineEnv.startLabel)
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(
+        cw,
+        mv,
         mutable.Map(),
         className,
         0)
 
-    implicit val cw$: ClassWriter = cw
-
-    statements.foreach(stmt => new LispValueAsmWriter(mv, stmt).writeValue())
+    statements.foreach(stmt => new LispValueAsmWriter(stmt).writeValue())
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     LengineEnv.declareVars()

@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
+import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispUnit.ResolveHelper
 import co.gyeongmin.lisp.types.{LengineChar, LengineDouble, LengineInteger, LengineString, LengineType}
 import lengine.runtime.LengineRuntime
@@ -28,7 +29,8 @@ object LengineTypeSystem {
       )
     }
 
-    def cast(toType: LengineType)(implicit mv: MethodVisitor): Unit = {
+    def cast(toType: LengineType)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+      val mv = runtimeEnvironment.methodVisitor
       if (lengineType == toType) {
         return
       }

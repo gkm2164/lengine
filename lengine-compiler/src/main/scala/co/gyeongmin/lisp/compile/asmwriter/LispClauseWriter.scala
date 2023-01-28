@@ -1,16 +1,17 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
+import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.values.LispClause
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import org.objectweb.asm.{ClassWriter, MethodVisitor}
+import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes._
 
-class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment) {
+class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
   import AsmHelper._
 
-  implicit val mv$: MethodVisitor = mv
+  val mv: MethodVisitor = runtimeEnvironment.methodVisitor
 
   def writeValue(): Unit = {
     val operation = clause.body.head
@@ -21,7 +22,7 @@ class LispClauseWriter(mv: MethodVisitor, clause: LispClause)(implicit cw: Class
       case EagerSymbol(operation) if LengineEnv.hasFn(operation) =>
         LengineEnv.getFn(operation).foreach(fn => {
           fn.args.zip(operands).foreach { case (_, value) =>
-            new LispValueAsmWriter(mv, value).writeValue()
+            new LispValueAsmWriter(value).writeValue()
           }
           mv.visitMethodInsn(
             INVOKESTATIC,

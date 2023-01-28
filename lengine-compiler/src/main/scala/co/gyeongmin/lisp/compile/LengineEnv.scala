@@ -1,9 +1,7 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineRuntimeEnvironment
+import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.types.LengineType
-import lengine.runtime.LengineUnit
-import org.objectweb.asm.Opcodes.{DUP, INVOKESPECIAL, NEW}
 import org.objectweb.asm.{ClassWriter, Label, MethodVisitor, Opcodes, Type}
 
 import java.util.concurrent.atomic.AtomicInteger

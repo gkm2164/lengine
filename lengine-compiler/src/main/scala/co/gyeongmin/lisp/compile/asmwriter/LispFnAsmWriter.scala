@@ -1,16 +1,17 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.entity.LengineRuntimeEnvironment
 import co.gyeongmin.lisp.lexer.statements.LispFuncDef
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
+import org.objectweb.asm.{Label, Opcodes, Type}
 
 import scala.collection.mutable
 
-class LispFnAsmWriter(f: LispFuncDef)(implicit cw: ClassWriter, runtimeEnvironment: LengineRuntimeEnvironment) {
+class LispFnAsmWriter(f: LispFuncDef)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {
     val fnLabel = new Label
-    val mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+    val mv = runtimeEnvironment.classWriter.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
       f.symbol.name,
       Type.getMethodDescriptor(
         Type.getType(classOf[Object]),
@@ -30,13 +31,17 @@ class LispFnAsmWriter(f: LispFuncDef)(implicit cw: ClassWriter, runtimeEnvironme
     }
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
+      runtimeEnvironment.classWriter,
+      mv,
       argmap.foldLeft(mutable.Map[LispSymbol, Int]())((acc, pair) => acc += pair),
       runtimeEnvironment.className,
       f.fn.placeHolders.size
     )
-    new LispValueAsmWriter(mv, f.fn.body)(cw, newRuntimeEnvironment).writeValue(None)
+
+    new LispValueAsmWriter(f.fn.body)(newRuntimeEnvironment).writeValue(None)
 
     mv.visitInsn(Opcodes.ARETURN)
     mv.visitMaxs(8, newRuntimeEnvironment.getLastVarIdx)
+    mv.visitEnd()
   }
 }
