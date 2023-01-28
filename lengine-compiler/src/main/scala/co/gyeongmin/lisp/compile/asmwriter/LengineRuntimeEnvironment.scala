@@ -57,17 +57,12 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
 
   def visitArrayAssign(values: Seq[String], arrLoc: Int): Unit = {
     val mv = this.methodVisitor
-    val tmpIdx = this.allocateNextVar
-    val nameIdx = this.allocateNextVar
     values.zipWithIndex.foreach {
       case (name, idx) =>
-        mv.visitLdcInsn(idx)
-        mv.visitIntInsn(Opcodes.ISTORE, tmpIdx)
-        mv.visitLdcInsn(name)
-        mv.visitIntInsn(Opcodes.ASTORE, nameIdx)
+
         mv.visitIntInsn(Opcodes.ALOAD, arrLoc)
-        mv.visitIntInsn(Opcodes.ILOAD, tmpIdx)
-        mv.visitIntInsn(Opcodes.ALOAD, nameIdx)
+        mv.visitLdcInsn(idx)
+        mv.visitLdcInsn(name)
         mv.visitInsn(Opcodes.AASTORE)
     }
   }
@@ -83,7 +78,6 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
         mv.visitIntInsn(Opcodes.ALOAD, arrLoc)
         mv.visitIntInsn(Opcodes.ILOAD, idxLoc)
         mv.visitIntInsn(Opcodes.ALOAD, address)
-
         mv.visitInsn(Opcodes.AASTORE)
     }
   }

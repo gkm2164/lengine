@@ -13,9 +13,9 @@ import scala.collection.mutable
 
 class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
-  private def uuid = UUID.randomUUID().toString
+  private def uuid: String = UUID.randomUUID().toString.split("-").head
 
-  private def randomGenerate() = s"lambda#$uuid"
+  private def randomGenerate() = s"lambda$$$uuid"
   def writeValue(): LengineFnDef = {
     val traversedPlaceHolders = traverse(f.placeHolders
       .map(holder => holder.as[LispSymbol])) match {

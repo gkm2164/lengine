@@ -115,8 +115,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
       }
     case LispFuncDef(symbol, funcDef) =>
-      val fnName = new LispFnAsmWriter(funcDef).writeValue()
-      runtimeEnv.mapFnName(symbol, fnName)
+      new LispValueAsmWriter(LispValueDef(symbol, funcDef)).writeValue()
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
   }
