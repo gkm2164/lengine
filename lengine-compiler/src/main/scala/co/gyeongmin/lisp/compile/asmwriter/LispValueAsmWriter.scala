@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispImportDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -73,6 +73,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispObject(kv) =>
       declareMap(kv)
       finalCast.foreach(LengineList.cast)
+    case LispImportDef(path) =>
+      new LispValueAsmWriter(
+        LispClause(EagerSymbol("import") :: path :: Nil)
+      ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body).writeValue()
     case ref: EagerSymbol =>

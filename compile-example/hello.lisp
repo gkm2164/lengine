@@ -1,3 +1,5 @@
+(module Hello)
+
 (println "=== Declare variables ===")
 (def v 3)
 (def str "Something Wonderful!")

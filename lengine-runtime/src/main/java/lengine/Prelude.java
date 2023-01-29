@@ -3,12 +3,19 @@ package lengine;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiPredicate;
 
 import lengine.runtime.Sequence;
 
 public class Prelude {
+  private static final Set<String> alreadyLoadedClass = new HashSet<>();
 
   public static Object cast(Object from, Class to) {
     if (to.equals(Character.class)) {
@@ -274,6 +281,26 @@ public class Prelude {
   public static void assertTrue(String message, Boolean value) {
     if (!value) {
       throw new RuntimeException("Failed to assert: " + message);
+    }
+  }
+
+  public static void loadClass(String clsName) {
+    try {
+      if (!alreadyLoadedClass.contains(clsName)) {
+        Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(clsName);
+        Optional<Method> foundMethod = Arrays.stream(cls.getMethods())
+            .filter(x -> x.getName().equals("main")).findFirst();
+        if (!foundMethod.isPresent()) {
+          throw new RuntimeException("Unable to find method main!");
+        } else {
+          Method mainMethod = foundMethod.get();
+          mainMethod.invoke(null, new Object[]{ new String[]{} });
+        }
+        alreadyLoadedClass.add(clsName);
+      }
+
+    } catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException e) {
+      throw new RuntimeException(e);
     }
   }
 }

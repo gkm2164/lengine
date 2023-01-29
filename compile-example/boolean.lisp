@@ -1,3 +1,5 @@
+(module Boolean)
+
 (def T true)
 (def F false)
 (def bool-list [T F])

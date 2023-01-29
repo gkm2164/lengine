@@ -1,8 +1,9 @@
 package co.gyeongmin.lisp.compile
 
 import co.gyeongmin.lisp.lexer.Tokenizer
-import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
-import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.parser.parseValue
 
 import java.io.FileOutputStream
@@ -49,8 +50,9 @@ object Main {
     tokenizer.getTokenStream
       .map(tokenStream => compileLoop(Vector(), tokenStream))
       .foreach(lispValues => {
-        val ret = writeClass(compileOps.className, lispValues)
-        val fos = new FileOutputStream(s"${compileOps.className}.class")
+        val LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) = lispValues.head
+        val ret = writeClass(clsName, lispValues.tail)
+        val fos = new FileOutputStream(s"$clsName.class")
         fos.write(ret)
         fos.close()
       })

@@ -1,7 +1,12 @@
 package lengine.runtime;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class JvmTest {
+  public static Map hashMap = new HashMap<>();
   static {
+    hashMap.put("Something", "Something");
     Boolean x = true;
     Boolean y;
     if (x) {

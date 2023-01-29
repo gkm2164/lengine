@@ -1,3 +1,5 @@
+(module Lambda)
+
 (def f (lambda (x y) (+ x y)))
 
 (def f-currying (lambda (x)
@@ -36,3 +38,6 @@
         1))
 
 (println (fact 5))
+
+(export map map)
+(export fact fact)

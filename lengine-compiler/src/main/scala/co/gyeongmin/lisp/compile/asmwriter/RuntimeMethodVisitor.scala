@@ -1,15 +1,19 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{ getFnDescriptor, MethodVisitorExtension }
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 import lengine.Prelude
 import lengine.runtime._
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{Label, MethodVisitor, Type}
+import org.objectweb.asm.{ Label, MethodVisitor, Type }
+
+import javax.swing.JToolBar.Separator
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
+    "export",
+    "import",
     "str",
     "int",
     "double",
@@ -31,14 +35,14 @@ object RuntimeMethodVisitor {
   )
 
   private val compareOpMap = Map(
-    "<" -> "lt",
-    "<=" -> "le",
-    ">" -> "gt",
-    ">=" -> "ge",
-    "=" -> "eq",
-    "/=" -> "neq",
+    "<"   -> "lt",
+    "<="  -> "le",
+    ">"   -> "gt",
+    ">="  -> "ge",
+    "="   -> "eq",
+    "/="  -> "neq",
     "and" -> "and",
-    "or" -> "or"
+    "or"  -> "or"
   )
 
   private val PreludeClass: Type = Type.getType(classOf[Prelude])
@@ -50,12 +54,8 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-
-
-
   def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
-
     operation match {
       case EagerSymbol(op) =>
         op match {
@@ -74,6 +74,8 @@ object RuntimeMethodVisitor {
           case "assert"                          => visitAssert(operands)
           case "range"                           => visitRange(operands)
           case "fold"                            => visitFold(operands)
+          case "export"                          => visitExport(operands)
+          case "import"                          => visitImport(operands)
         }
 
     }
@@ -175,10 +177,8 @@ object RuntimeMethodVisitor {
                        false)
   }
 
-
-
   private def visitCompareOps(op: String, operands: List[LispValue])(
-    implicit runtimeEnvironment: LengineRuntimeEnvironment
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
@@ -192,7 +192,7 @@ object RuntimeMethodVisitor {
             name,
             classOf[java.lang.Boolean],
             List(classOf[Object], classOf[Object])
-          )
+        )
       )
   }
 
@@ -227,7 +227,7 @@ object RuntimeMethodVisitor {
 
   private def visitIfStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val condition :: ifmatch :: elsematch :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv                                       = runtimeEnvironment.methodVisitor
 
     new LispValueAsmWriter(condition).visitForValue()
     val idx = runtimeEnvironment.allocateNextVar
@@ -237,7 +237,7 @@ object RuntimeMethodVisitor {
 
     val tLabel = new Label()
     val fLabel = new Label()
-    val next = new Label()
+    val next   = new Label()
 
     mv.visitJumpInsn(IFNE, tLabel)
     mv.visitLabel(fLabel)
@@ -253,7 +253,7 @@ object RuntimeMethodVisitor {
     val from :: to :: Nil = operands
 
     val fromIdx = runtimeEnvironment.allocateNextVar
-    val toIdx = runtimeEnvironment.allocateNextVar
+    val toIdx   = runtimeEnvironment.allocateNextVar
 
     val mv = runtimeEnvironment.methodVisitor
 
@@ -273,11 +273,11 @@ object RuntimeMethodVisitor {
   }
 
   private def visitAssert(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
+    val mv                  = runtimeEnvironment.methodVisitor
     val message :: v :: Nil = operands
 
     val messageLoc = mv.visitStoreLispValue(message)
-    val vLoc = mv.visitStoreLispValue(v)
+    val vLoc       = mv.visitStoreLispValue(v)
 
     mv.visitALoad(messageLoc)
     mv.visitCheckCast(classOf[String])
@@ -294,7 +294,7 @@ object RuntimeMethodVisitor {
   // (fold <seq> <init> <lambda>)
   private def visitFold(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val startLoop = new Label()
-    val endLoop = new Label()
+    val endLoop   = new Label()
 
     val seq :: init :: lambda :: Nil = operands
 
@@ -346,8 +346,10 @@ object RuntimeMethodVisitor {
     mv.visitALoad(accLoc)
   }
 
-  private def visitLambdaInvoke(lambdaLoc: Int, accLoc: Int, elemLoc: Int)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
+  private def visitLambdaInvoke(lambdaLoc: Int, accLoc: Int, elemLoc: Int)(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
+    val mv       = runtimeEnvironment.methodVisitor
     val arrayLoc = mv.allocateNewArray(classOf[Object], 2)
     mv.visitArrayAssignFromAddress(Seq(accLoc, elemLoc), arrayLoc)
     mv.visitALoad(lambdaLoc)
@@ -359,5 +361,65 @@ object RuntimeMethodVisitor {
       classOf[Object],
       List(classOf[Array[Object]]),
     )
+  }
+
+  private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val symbol :: value :: Nil = operands
+    val symbolLoc              = runtimeEnvironment.allocateNextVar
+
+    val nameOfSymbol = symbol.asInstanceOf[LispSymbol].name
+    val mv           = runtimeEnvironment.methodVisitor
+
+    new LispValueAsmWriter(value).visitForValue()
+    mv.visitAStore(symbolLoc)
+
+    mv.visitLdcInsn(nameOfSymbol)
+    mv.visitALoad(symbolLoc)
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      runtimeEnvironment.className,
+      "export",
+      Type.getMethodDescriptor(
+        Type.getType(Void.TYPE),
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object]),
+      ),
+      false
+    )
+  }
+
+  private def visitImport(operands: List[LispValue])(implicit runtimeMethodVisitor: LengineRuntimeEnvironment): Unit = {
+
+    val importNameSymbol :: Nil = operands
+    val mv                      = runtimeMethodVisitor.methodVisitor
+    val symbolNameComb          = importNameSymbol.asInstanceOf[LispSymbol]
+    val separated               = symbolNameComb.name.split("\\.").toList
+    val clsName                 = separated.dropRight(1).mkString(".")
+    val importName              = separated.last
+
+    mv.visitLdcInsn(clsName)
+    mv.visitStaticMethodCall(
+      classOf[Prelude],
+      "loadClass",
+      Void.TYPE,
+      List(classOf[String])
+    )
+
+    mv.visitLdcInsn(importName)
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      clsName,
+      "importSymbol",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object])
+      ),
+      false
+    )
+
+    val varLoc = runtimeMethodVisitor.allocateNextVar
+    mv.visitAStore(varLoc)
+
+    runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc)
   }
 }

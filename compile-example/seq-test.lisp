@@ -1,3 +1,4 @@
+(module Seq)
 (def seq [1 2 3 4 5])
 (def fold-result (fold (range 1 10) 0 (lambda (acc elem) (+ acc elem))))
 
@@ -12,3 +13,5 @@
     (+ acc elem))))
 
 (assert "sum should be 55" (= 55 (sum (range 1 11))))
+
+(export sum sum)

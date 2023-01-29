@@ -1,3 +1,5 @@
+(module ReadLine)
+
 (println "Type anything =>")
 (def s (read-line))
 

@@ -1,3 +1,4 @@
+(module MapTest)
 (def obj {
   :id 1
   :name "Gyeongmin Go"
