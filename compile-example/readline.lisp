@@ -1,12 +1,16 @@
-;(def s (read-line))
+(println "Type anything =>")
+(def s (read-line))
 
-;(println (+ "You typed: " s))
+(println (+ "You typed: " s))
 
-;(def v (int (read-line)))
+(println "Type any number =>")
+(def v (int (read-line)))
 
-;(println (+ "<Parsed number> + 3 = " (+ v 3)))
+(println (+ "<Parsed number> + 3 = " (+ v 3)))
 
+(println "Type a number =>")
 (def x (int (read-line)))
+(println "Type a number =>")
 (def y (int (read-line)))
 
 (if (< x y)

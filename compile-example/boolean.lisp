@@ -36,6 +36,7 @@
 (println "Define range 2")
 (def r2 (range 2 7))
 
+(println "Below 2 shows identical result")
 (println
     (loop for x in [1 2 3 4 5]
           for y in [2 3 4 5 6]
