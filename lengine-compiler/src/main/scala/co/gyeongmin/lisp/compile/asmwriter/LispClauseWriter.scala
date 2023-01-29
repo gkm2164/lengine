@@ -72,7 +72,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
         runtimeEnvironment.getVar(s).foreach(suspectFn => {
           val mv = runtimeEnvironment.methodVisitor
           val argLoc = runtimeEnvironment.allocateNextVar
-          runtimeEnvironment.allocateNewArray(classOf[Object], operands.size, argLoc)
+          mv.allocateNewArray(classOf[Object], operands.size, argLoc)
           val tmpLoc = runtimeEnvironment.allocateNextVar
           operands.zipWithIndex.foreach {
             case (value, idx) =>

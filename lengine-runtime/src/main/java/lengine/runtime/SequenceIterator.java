@@ -3,7 +3,7 @@ package lengine.runtime;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class SequenceIterator {
+public class SequenceIterator implements LengineIterator {
 
   private final Iterator<Object> iterator;
 

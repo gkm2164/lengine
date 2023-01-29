@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{ getFnDescriptor, MethodVisitorExtension }
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import lengine.Prelude
-import lengine.runtime.Sequence
+import lengine.runtime.{RangeSequence, Sequence}
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ Label, MethodVisitor, Type }
+import org.objectweb.asm.{Label, MethodVisitor, Type}
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -24,7 +24,8 @@ object RuntimeMethodVisitor {
     "println",
     "read-line",
     "not",
-    "if"
+    "if",
+    "range"
   )
 
   private val PreludeClass: Type = Type.getType(classOf[Prelude])
@@ -123,8 +124,28 @@ object RuntimeMethodVisitor {
     mv.visitLabel(next)
   }
 
-  def visitLoopStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
-    println(operands)
+  private def visitRange(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val from :: to :: Nil = operands
+
+    val fromIdx = runtimeEnvironment.allocateNextVar
+    val toIdx = runtimeEnvironment.allocateNextVar
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    new LispValueAsmWriter(from).visitForValue()
+    mv.visitAStore(fromIdx)
+    new LispValueAsmWriter(to).visitForValue()
+    mv.visitAStore(toIdx)
+
+    mv.visitALoad(fromIdx)
+    mv.visitALoad(toIdx)
+    mv.visitStaticMethodCall(
+      classOf[RangeSequence],
+      "create",
+      classOf[RangeSequence],
+      List(classOf[java.lang.Long], classOf[java.lang.Long])
+    )
+  }
 
   def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
@@ -137,7 +158,6 @@ object RuntimeMethodVisitor {
           case "*"                               => visitCalc("mult", operands)
           case "/"                               => visitCalc("div", operands)
           case "if"                              => visitIfStmt(operands)
-          case "loop"                            => visitLoopStmt(operands)
           case _ if compareOpMap.contains(op)    => visitCompareOps(op, operands)
           case "not"                             => visitNotOps(operands)
           case "take" | "drop"                   => visitSeqOp(op, operands)
@@ -145,6 +165,7 @@ object RuntimeMethodVisitor {
           case "println"                         => visitPrintln(operands)
           case "read-line"                       => visitReadLine
           case "str" | "int" | "double" | "char" => visitTypeCast(op, operands)
+          case "range" => visitRange(operands)
         }
 
     }

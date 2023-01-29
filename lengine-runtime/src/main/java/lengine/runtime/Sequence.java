@@ -5,7 +5,7 @@ import static java.util.stream.Collectors.joining;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class Sequence {
+public class Sequence implements CreateIterator {
   final private LinkedList<Object> list;
 
   private Sequence(LinkedList<Object> objects) {
@@ -88,6 +88,7 @@ public class Sequence {
     return retSeq;
   }
 
+  @Override
   public SequenceIterator iterator() {
     return new SequenceIterator(list);
   }

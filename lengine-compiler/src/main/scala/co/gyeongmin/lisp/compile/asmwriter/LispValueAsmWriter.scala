@@ -17,27 +17,19 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
   val mv: MethodVisitor = runtimeEnv.methodVisitor
   private def boxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit = {
-    mv.visitMethodInsn(
-      Opcodes.INVOKESTATIC,
-      Type.getType(boxedType).getInternalName,
+    mv.visitStaticMethodCall(
+      boxedType,
       "valueOf",
-      Type.getMethodDescriptor(
-        Type.getType(boxedType),
-        Type.getType(primitiveType)
-      ),
-      false
+      boxedType,
+      primitiveType :: Nil
     )
   }
 
-  def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
-    mv.visitMethodInsn(
-      Opcodes.INVOKESTATIC,
-      Type.getType(classOf[LengineMap]).getInternalName,
+  private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
+    mv.visitStaticMethodCall(
+      classOf[LengineMap],
       "create",
-      Type.getMethodDescriptor(
-        Type.getType(classOf[LengineMap])
-      ),
-      false
+      classOf[LengineMap]
     )
     val mapIdx = runtimeEnv.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
@@ -46,12 +38,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         val valIdx = runtimeEnv.allocateNextVar
 
         new LispValueAsmWriter(value).visitForValue()
-        mv.visitIntInsn(Opcodes.ASTORE, valIdx)
-
-        mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
+        mv.visitAStore(valIdx)
+        mv.visitALoad(mapIdx)
         mv.visitLdcInsn(name)
-        mv.visitIntInsn(Opcodes.ALOAD, valIdx)
-
+        mv.visitALoad(valIdx)
         mv.visitMethodCall(
           classOf[LengineMap],
           "put",
@@ -59,7 +49,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
           List(classOf[Object], classOf[Object])
         )
     }
-    mv.visitIntInsn(Opcodes.ALOAD, mapIdx)
+    mv.visitALoad(mapIdx)
   }
 
   def visitForValue(finalCast: Option[LengineType] = None): Unit = value match {
@@ -102,7 +92,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
           new RuntimeException(s"Unable to resolve the type for $symbol: $err")
         case Right(varType) =>
           val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(symbol, value).writeValue)(runtimeEnv)
-          mv.visitIntInsn(Opcodes.ASTORE, varIdx)
+          mv.visitAStore(varIdx)
           runtimeEnv.registerVariable(symbol, varIdx)
 
       }
@@ -114,23 +104,20 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
 
   private def declareSequence(body: List[LispValue]): Unit = {
-    mv.visitTypeInsn(Opcodes.NEW, "lengine/runtime/Sequence")
-    mv.visitInsn(Opcodes.DUP)
-    mv.visitMethodInsn(
-      Opcodes.INVOKESPECIAL,
-      "lengine/runtime/Sequence",
-      "<init>",
-      Type.getMethodDescriptor(Type.getType(java.lang.Void.TYPE)),
-      false
-    )
     val seqIdx = runtimeEnv.allocateNextVar
-    mv.visitIntInsn(Opcodes.ASTORE, seqIdx)
+
+    mv.visitStaticMethodCall(
+      classOf[Sequence],
+      "create",
+      classOf[Sequence]
+    )
+    mv.visitAStore(seqIdx)
+    val idx = runtimeEnv.allocateNextVar
     body.foreach(value => {
       new LispValueAsmWriter(value).visitForValue()
-      val idx = runtimeEnv.allocateNextVar
-      mv.visitIntInsn(Opcodes.ASTORE, idx)
-      mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
-      mv.visitIntInsn(Opcodes.ALOAD, idx)
+      mv.visitAStore(idx)
+      mv.visitALoad(seqIdx)
+      mv.visitALoad(idx)
       mv.visitMethodCall(
         classOf[Sequence],
         "add",
@@ -138,7 +125,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         List(classOf[Object])
       )
     })
-    mv.visitIntInsn(Opcodes.ALOAD, seqIdx)
+    mv.visitALoad(seqIdx)
   }
 
 }

@@ -30,7 +30,12 @@
   (println "n1 is bigger than n2")
   (println "n2 is bigger than n1"))
 
-(println (flatten
-    (loop for x in [1 2 3 4 5]
-          for y in [1 2 3 4 5]
-          (+ x y))))
+(println "Define range 1")
+(def r1 (range 1 5))
+(println "Define range 2")
+(def r2 (range 1 5))
+
+(println
+    (loop for x in r1
+          for y in r2
+          (+ x y)))

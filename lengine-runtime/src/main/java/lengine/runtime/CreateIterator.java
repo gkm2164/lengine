@@ -1,0 +1,5 @@
+package lengine.runtime;
+
+public interface CreateIterator {
+  LengineIterator iterator();
+}
