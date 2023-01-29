@@ -33,4 +33,12 @@ class MainTest extends FlatSpec with Matchers {
       "LambdaTest"
     ))
   }
+
+  "seq type with compile seq-test.lisp" should "run and return" in {
+    Main.main(Array(
+      "seq-test.lisp",
+      "--className",
+      "SeqTest"
+    ))
+  }
 }
