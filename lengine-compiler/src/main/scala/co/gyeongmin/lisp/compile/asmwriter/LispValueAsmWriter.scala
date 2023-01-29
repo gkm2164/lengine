@@ -35,10 +35,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
     map.foreach {
       case (ObjectReferSymbol(name), value) =>
-        val valIdx = runtimeEnv.allocateNextVar
-
-        new LispValueAsmWriter(value).visitForValue()
-        mv.visitAStore(valIdx)
+        val valIdx = mv.visitStoreLispValue(value)
         mv.visitALoad(mapIdx)
         mv.visitLdcInsn(name)
         mv.visitALoad(valIdx)
@@ -97,7 +94,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
       }
     case LispFuncDef(symbol, funcDef) =>
-      new LispValueAsmWriter(LispValueDef(symbol, funcDef)).visitForValue()
+      new LispFnAsmWriter(funcDef).writeValue(Some(symbol))
+      val fnIdx = runtimeEnv.allocateNextVar
+      mv.visitAStore(fnIdx)
+      runtimeEnv.registerVariable(symbol, fnIdx)
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
   }
@@ -114,8 +114,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitAStore(seqIdx)
     val idx = runtimeEnv.allocateNextVar
     body.foreach(value => {
-      new LispValueAsmWriter(value).visitForValue()
-      mv.visitAStore(idx)
+      mv.visitStoreLispValue(value, Some(idx))
       mv.visitALoad(seqIdx)
       mv.visitALoad(idx)
       mv.visitMethodCall(

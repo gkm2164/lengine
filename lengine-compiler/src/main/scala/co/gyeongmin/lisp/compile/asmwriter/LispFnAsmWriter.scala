@@ -17,7 +17,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
   private def uuid: String = UUID.randomUUID().toString.split("-").head
 
   private def randomGenerate() = s"lambda$$$uuid"
-  def writeValue(): LengineFnDef = {
+  def writeValue(itself: Option[LispSymbol] = None): LengineFnDef = {
     val traversedPlaceHolders = traverse(
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
@@ -29,6 +29,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val fnName = randomGenerate()
 
     val captureVariables = new LengineVarCapture()
+
+    itself.foreach(captureVariables.ignoreCapture)
     f.placeHolders.foreach({
       case symbol: LispSymbol =>
         captureVariables.ignoreCapture(symbol)
@@ -39,28 +41,31 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsWithCaptureList = traversedPlaceHolders ++ captureVariables.getRequestedCaptures
 
-    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.toMap
+    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) } .toMap
 
-    val argsType = argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
+    val argsType = Type.getType(classOf[LengineFn]) :: argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
 
-    val mv = runtimeEnvironment.classWriter.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                                                        fnName,
-                                                        Type.getMethodDescriptor(
-                                                          Type.getType(classOf[Object]),
-                                                          argsType: _*
-                                                        ),
-                                                        null,
-                                                        null)
+    val mv = runtimeEnvironment.classWriter
+      .visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
+                   fnName,
+                   Type.getMethodDescriptor(
+                     Type.getType(classOf[Object]),
+                     argsType: _*
+                   ),
+                   null,
+                   null)
 
     val startLabel = new Label()
     val endLabel   = new Label()
 
+    val initialArgMap: mutable.Map[LispSymbol, Int] = itself.map(it => mutable.Map(it -> 0)).getOrElse(mutable.Map())
+
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
       runtimeEnvironment.classWriter,
       mv,
-      argsWithCapturedVars.foldLeft(mutable.Map[LispSymbol, Int]())((acc, pair) => acc += pair),
+      argsWithCapturedVars.foldLeft(initialArgMap)((acc, pair) => acc += pair),
       runtimeEnvironment.className,
-      argsWithCapturedVars.size
+      argsType.size
     )
 
     mv.visitLabel(startLabel)
@@ -92,13 +97,10 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
   }
 
   private def createFnReference(methodName: String, args: Seq[LispSymbol], capturedArgLocs: Seq[Int]): Unit = {
-    val pmv         = runtimeEnvironment.methodVisitor
-    val arrayLoc    = runtimeEnvironment.allocateNextVar
-    val capturesLoc = runtimeEnvironment.allocateNextVar
-
-    pmv.allocateNewArray(classOf[String], args.size, arrayLoc)
+    val pmv = runtimeEnvironment.methodVisitor
+    val arrayLoc = pmv.allocateNewArray(classOf[String], args.size)
     pmv.visitArrayAssign(args.map(_.name), arrayLoc)
-    pmv.allocateNewArray(classOf[Object], capturedArgLocs.size, capturesLoc)
+    val capturesLoc = pmv.allocateNewArray(classOf[Object], capturedArgLocs.size)
     pmv.visitArrayAssignFromAddress(capturedArgLocs, capturesLoc)
 
     pmv.visitLdcInsn(runtimeEnvironment.className)

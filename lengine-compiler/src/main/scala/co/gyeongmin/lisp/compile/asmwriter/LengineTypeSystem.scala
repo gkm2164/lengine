@@ -12,13 +12,14 @@ import org.objectweb.asm.MethodVisitor
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
-    def boxing(implicit mv: MethodVisitor): Unit = {
+    def boxing(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
       val (boxed, primitive) = lengineType match {
         case LengineChar    => (classOf[java.lang.Character], java.lang.Character.TYPE)
         case LengineInteger => (classOf[java.lang.Long], java.lang.Long.TYPE)
         case LengineDouble  => (classOf[java.lang.Double], java.lang.Double.TYPE)
         case LengineString  => return
       }
+      val mv = runtimeEnvironment.methodVisitor
 
       mv.visitStaticMethodCall(
         boxed,

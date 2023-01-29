@@ -6,10 +6,10 @@ import scala.collection.mutable
 
 class LengineVarCapture {
   def mergeChild(childCapture: LengineVarCapture): Unit = {
-    requestedCapture ++= childCapture.requestedCapture
+    requestedCapture ++= childCapture.requestedCapture.diff(ignoreCaptureSet)
   }
 
-  private val requestedCapture: mutable.ListBuffer[LispSymbol] = mutable.ListBuffer()
+  private val requestedCapture: mutable.Set[LispSymbol] = mutable.Set()
   private val ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
 
   def this (parent: LengineVarCapture) = {
@@ -26,5 +26,5 @@ class LengineVarCapture {
     ignoreCaptureSet += ref
   }
 
-  def getRequestedCaptures: Seq[LispSymbol] = requestedCapture.filterNot(ignoreCaptureSet.contains).toList
+  def getRequestedCaptures: Seq[LispSymbol] = requestedCapture.diff(ignoreCaptureSet).toList
 }

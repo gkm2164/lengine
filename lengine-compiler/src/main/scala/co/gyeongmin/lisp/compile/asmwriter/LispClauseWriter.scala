@@ -68,34 +68,27 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
             )
           })
         })
-      case s: EagerSymbol if runtimeEnvironment.hasVar(s) =>
-        runtimeEnvironment.getVar(s).foreach(suspectFn => {
-          val mv = runtimeEnvironment.methodVisitor
-          val argLoc = runtimeEnvironment.allocateNextVar
-          mv.allocateNewArray(classOf[Object], operands.size, argLoc)
-          val tmpLoc = runtimeEnvironment.allocateNextVar
-          operands.zipWithIndex.foreach {
-            case (value, idx) =>
-              new LispValueAsmWriter(value).visitForValue()
-              mv.visitIntInsn(Opcodes.ASTORE, tmpLoc)
-              mv.visitIntInsn(Opcodes.ALOAD, argLoc)
-              mv.visitLdcInsn(idx)
-              mv.visitIntInsn(Opcodes.ALOAD, tmpLoc)
-              mv.visitInsn(AASTORE)
-          }
+      case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
+        throw new RuntimeException(s"unable to find the symbol definition: $s")
 
-          mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
-          mv.visitTypeInsn(Opcodes.CHECKCAST,
-            Type.getType(classOf[LengineFn]).getInternalName)
-          mv.visitIntInsn(Opcodes.ALOAD, argLoc)
-          mv.visitMethodCall(
-            classOf[LengineFn],
-            "invoke",
-            classOf[Object],
-            List(classOf[Array[Object]])
-          )
-        })
-      case _ =>
+      case value@(EagerSymbol(_) | LispClause(_)) =>
+        val suspectFn = runtimeEnvironment.allocateNextVar
+        new LispValueAsmWriter(value).visitForValue()
+        mv.visitAStore(suspectFn)
+
+        val argLoc = mv.allocateNewArray(classOf[Object], operands.size)
+        mv.visitArrayAssignWithLispValues(operands, argLoc)
+
+        mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
+        mv.visitTypeInsn(Opcodes.CHECKCAST,
+          Type.getType(classOf[LengineFn]).getInternalName)
+        mv.visitIntInsn(Opcodes.ALOAD, argLoc)
+        mv.visitMethodCall(
+          classOf[LengineFn],
+          "invoke",
+          classOf[Object],
+          List(classOf[Array[Object]])
+        )
     }
   }
 }

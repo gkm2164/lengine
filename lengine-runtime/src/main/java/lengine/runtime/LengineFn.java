@@ -41,7 +41,7 @@ public class LengineFn {
 
     List<Method> matchedMethods = methodMap.get(name)
           .stream()
-          .filter(x -> x.getParameters().length == clsArr.length)
+          .filter(x -> x.getParameters().length == clsArr.length + 1)
           .collect(Collectors.toList());
 
     if (matchedMethods.isEmpty()) {
@@ -69,14 +69,11 @@ public class LengineFn {
 
   public Object invoke(Object... args) {
     try {
-      Object[] includingCaptures = new Object[args.length + captured.length];
-      for (int i = 0; i < args.length; i++) {
-        includingCaptures[i] = args[i];
-      }
+      Object[] includingCaptures = new Object[1 + args.length + captured.length];
+      includingCaptures[0] = this;
+      System.arraycopy(args, 0, includingCaptures, 1, args.length);
+      System.arraycopy(captured, 0, includingCaptures, 1 + args.length, captured.length);
 
-      for (int i = 0; i < captured.length; i++) {
-        includingCaptures[i + args.length] = captured[i];
-      }
       return method.invoke(null, includingCaptures);
     } catch (IllegalAccessException e) {
       throw new RuntimeException("Illegal approach to access", e);

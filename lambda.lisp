@@ -17,4 +17,22 @@
   (loop for x in seq
     (f x)))
 
-(println (map (lambda (x) (+ x 1)) [1 2 3 4 5]))
+(def m-f (lambda (x) (+ x 1)))
+
+(println (map m-f [1 2 3 4 5]))
+
+(def v 9)
+
+(def f-3depth (lambda (x)
+                (lambda (y)
+                  (lambda (z)
+                    (+ (+ (+ x y) z) v)))))
+
+(println (((f-3depth 1) 2) 3))
+
+(fn fact (n)
+    (if (> n 1)
+        (* n (fact (- n 1)))
+        1))
+
+(println (fact 5))
