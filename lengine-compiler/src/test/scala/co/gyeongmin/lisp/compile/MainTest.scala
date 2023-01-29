@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class MainTest extends FlatSpec with Matchers {
   "builtin function with compile" should "run and return" in {
     Main.main(Array(
-      "hello.lisp",
+      "./compile-example/hello.lisp",
       "--className",
       "Hello"
     ))
@@ -12,7 +12,7 @@ class MainTest extends FlatSpec with Matchers {
 
   "builtin function with compile boolean.lisp" should "run and return" in {
     Main.main(Array(
-      "boolean.lisp",
+      "./compile-example/boolean.lisp",
       "--className",
       "BoolTest"
     ))
@@ -20,7 +20,7 @@ class MainTest extends FlatSpec with Matchers {
 
   "map type object with compile map.lisp" should "run and return" in {
     Main.main(Array(
-      "map.lisp",
+      "./compile-example/map.lisp",
       "--className",
       "MapTest"
     ))
@@ -28,7 +28,7 @@ class MainTest extends FlatSpec with Matchers {
 
   "map type object with compile lambda.lisp" should "run and return" in {
     Main.main(Array(
-      "lambda.lisp",
+      "./compile-example/lambda.lisp",
       "--className",
       "LambdaTest"
     ))
@@ -36,9 +36,17 @@ class MainTest extends FlatSpec with Matchers {
 
   "seq type with compile seq-test.lisp" should "run and return" in {
     Main.main(Array(
-      "seq-test.lisp",
+      "./compile-example/seq-test.lisp",
       "--className",
       "SeqTest"
+    ))
+  }
+
+  "read-line test compile readline.lisp" should "run and return" in {
+    Main.main(Array(
+      "./compile-example/readline.lisp",
+      "--className",
+      "ReadLineTest"
     ))
   }
 }

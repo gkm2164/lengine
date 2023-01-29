@@ -4,6 +4,9 @@
 
 # Lengine, another Lisp Engine
 
+Compiler is now available!!
+Checkout [compiler's README.md](./lengine-compiler/README.md)!!
+
 ## Table of contents
 
 -   [Environment](#environment)
