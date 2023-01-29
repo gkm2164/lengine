@@ -6,3 +6,9 @@
 
 (println "Testing fold function")
 (assert "fold-result should be 45" (= fold-result 45))
+
+(fn sum (seq)
+  (fold seq 0 (lambda (acc elem)
+    (+ acc elem))))
+
+(assert "sum should be 55" (= 55 (sum (range 1 11))))
