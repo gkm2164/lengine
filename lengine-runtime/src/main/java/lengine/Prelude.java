@@ -270,4 +270,10 @@ public class Prelude {
 
     return !((Boolean) a);
   }
+
+  public static void assertTrue(String message, Boolean value) {
+    if (!value) {
+      throw new RuntimeException("Failed to assert: " + message);
+    }
+  }
 }

@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{ getFnDescriptor, MethodVisitorExtension }
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import lengine.Prelude
-import lengine.runtime.{RangeSequence, Sequence}
+import lengine.runtime.{ RangeSequence, Sequence }
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{Label, MethodVisitor, Type}
+import org.objectweb.asm.{ Label, MethodVisitor, Type }
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -25,7 +25,8 @@ object RuntimeMethodVisitor {
     "read-line",
     "not",
     "if",
-    "range"
+    "range",
+    "assert",
   )
 
   private val PreludeClass: Type = Type.getType(classOf[Prelude])
@@ -57,16 +58,11 @@ object RuntimeMethodVisitor {
       .get(op)
       .foreach(
         name =>
-          mv.visitMethodInsn(
-            INVOKESTATIC,
-            PreludeClass.getInternalName,
+          mv.visitStaticMethodCall(
+            classOf[Prelude],
             name,
-            Type.getMethodDescriptor(
-              BooleanClass,
-              ObjectClass,
-              ObjectClass
-            ),
-            false
+            classOf[java.lang.Boolean],
+            List(classOf[Object], classOf[Object])
         )
       )
   }
@@ -80,7 +76,7 @@ object RuntimeMethodVisitor {
       PreludeClass.getInternalName,
       "not",
       Type.getMethodDescriptor(
-        ObjectClass,
+        BooleanClass,
         ObjectClass
       ),
       false
@@ -128,7 +124,7 @@ object RuntimeMethodVisitor {
     val from :: to :: Nil = operands
 
     val fromIdx = runtimeEnvironment.allocateNextVar
-    val toIdx = runtimeEnvironment.allocateNextVar
+    val toIdx   = runtimeEnvironment.allocateNextVar
 
     val mv = runtimeEnvironment.methodVisitor
 
@@ -144,6 +140,31 @@ object RuntimeMethodVisitor {
       "create",
       classOf[RangeSequence],
       List(classOf[java.lang.Long], classOf[java.lang.Long])
+    )
+  }
+
+  private def visitAssert(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mv = runtimeEnvironment.methodVisitor
+    val message :: v :: Nil = operands
+
+    var messageLoc = runtimeEnvironment.allocateNextVar
+    var vLoc = runtimeEnvironment.allocateNextVar
+
+    new LispValueAsmWriter(message).visitForValue()
+    mv.visitAStore(messageLoc)
+
+    new LispValueAsmWriter(v).visitForValue()
+    mv.visitAStore(vLoc)
+
+    mv.visitALoad(messageLoc)
+    mv.visitCheckCast(classOf[String])
+    mv.visitALoad(vLoc)
+    mv.visitCheckCast(classOf[java.lang.Boolean])
+    mv.visitStaticMethodCall(
+      classOf[Prelude],
+      "assertTrue",
+      Void.TYPE,
+      List(classOf[String], classOf[java.lang.Boolean])
     )
   }
 
@@ -165,7 +186,8 @@ object RuntimeMethodVisitor {
           case "println"                         => visitPrintln(operands)
           case "read-line"                       => visitReadLine
           case "str" | "int" | "double" | "char" => visitTypeCast(op, operands)
-          case "range" => visitRange(operands)
+          case "assert"                          => visitAssert(operands)
+          case "range"                           => visitRange(operands)
         }
 
     }

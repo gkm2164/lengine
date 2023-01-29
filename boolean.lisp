@@ -2,6 +2,10 @@
 (def F false)
 (def bool-list [T F])
 
+(assert "T should be true" T)
+(assert "F should be false" (not F))
+(assert "should eq to" (= [T F] bool-list))
+
 (def lt (< 3 5))
 (def gt (> 3 5))
 (def a (and T T))
@@ -9,31 +13,33 @@
 (def e (= T T))
 (def ne (/= T F))
 
-(println T)
-(println F)
-(println bool-list)
-(println lt)
-(println gt)
-(println a)
-(println o)
-(println e)
-(println ne)
+(assert "LT should be True" lt)
+(assert "GT should be false" (not gt))
+(assert "a should be True" a)
+(assert "o should be True" o)
+(assert "e should be True" e)
+(assert "ne should be True" ne)
 
 (def n1 3)
 (def n2 5)
 
 (if (< n1 n2)
- (println "n2 is bigger than n1")
- (println "n1 is bigger than n2"))
+ (assert "n2 is bigger than n1" true)
+ (assert "n1 is bigger than n2" false))
 
 (if (> n1 n2)
   (println "n1 is bigger than n2")
   (println "n2 is bigger than n1"))
 
 (println "Define range 1")
-(def r1 (range 1 5))
+(def r1 (range 1 6))
 (println "Define range 2")
-(def r2 (range 1 5))
+(def r2 (range 2 7))
+
+(println
+    (loop for x in [1 2 3 4 5]
+          for y in [2 3 4 5 6]
+          (+ x y)))
 
 (println
     (loop for x in r1

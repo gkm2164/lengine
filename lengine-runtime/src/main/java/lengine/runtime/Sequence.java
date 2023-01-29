@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Objects;
 
 public class Sequence implements CreateIterator {
   final private LinkedList<Object> list;
@@ -91,5 +92,13 @@ public class Sequence implements CreateIterator {
   @Override
   public SequenceIterator iterator() {
     return new SequenceIterator(list);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Sequence sequence = (Sequence) o;
+    return Objects.equals(list, sequence.list);
   }
 }
