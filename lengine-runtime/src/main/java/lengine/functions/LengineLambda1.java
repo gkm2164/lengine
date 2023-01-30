@@ -1,5 +1,5 @@
 package lengine.functions;
 
-public interface LengineLambda1 {
-    Object invoke(Object v1);
+public interface LengineLambda1<R, T1> {
+    R invoke(T1 v1);
 }

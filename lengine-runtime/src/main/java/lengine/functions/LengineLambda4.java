@@ -1,5 +1,5 @@
 package lengine.functions;
 
-public interface LengineLambda4 {
-    Object invoke(Object v1, Object v2, Object v3, Object v4);
+public interface LengineLambda4<R, T1, T2, T3, T4> {
+    R invoke(T1 v1, T2 v2, T3 v3, T4 v4);
 }

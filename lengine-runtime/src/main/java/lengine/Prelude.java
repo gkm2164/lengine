@@ -22,7 +22,7 @@ import lengine.runtime.Sequence;
 public class Prelude {
   private static final Set<String> alreadyLoadedClass = new HashSet<>();
 
-  public static Object cast(Object from, Class to) {
+  public static Object cast(Object from, Class<?> to) {
     if (to.equals(Character.class)) {
       return castChar(from);
     } else if (to.equals(Long.class)) {
@@ -258,12 +258,12 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence takeWhile(LengineLambda1 test, CreateIterator seq) {
+  public static Sequence takeWhile(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
       Object elem = it.next();
-      if (!(Boolean)test.invoke(elem)) {
+      if (!test.invoke(elem)) {
         return ret;
       }
 
@@ -273,12 +273,12 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence dropWhile(LengineLambda1 test, CreateIterator seq) {
+  public static Sequence dropWhile(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
       Object elem = it.next();
-      if (!(Boolean)test.invoke(elem)) {
+      if (!test.invoke(elem)) {
         break;
       }
     }
@@ -287,12 +287,12 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence filter(LengineLambda1 test, CreateIterator seq) {
+  public static Sequence filter(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
       Object elem = it.next();
-      if ((Boolean)test.invoke(elem)) {
+      if (test.invoke(elem)) {
         ret.add(elem);
       }
     }
@@ -300,14 +300,14 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence splitAt(LengineLambda1 test, CreateIterator seq) {
+  public static Sequence splitAt(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
     Sequence ret = new Sequence();
     Sequence head = new Sequence();
     Sequence tail = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
       Object elem = it.next();
-      if ((Boolean)test.invoke(elem)) {
+      if (test.invoke(elem)) {
         break;
       }
       head.add(elem);

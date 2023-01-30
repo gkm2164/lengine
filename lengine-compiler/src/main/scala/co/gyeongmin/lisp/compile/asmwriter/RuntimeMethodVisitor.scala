@@ -117,7 +117,7 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     new LispValueAsmWriter(fn).visitForValue()
-    mv.visitCheckCast(classOf[LengineLambda1])
+    mv.visitCheckCast(classOf[LengineLambda1[java.lang.Boolean, _]])
     new LispValueAsmWriter(seq).visitForValue()
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitMethodInsn(
@@ -131,7 +131,7 @@ object RuntimeMethodVisitor {
       },
       Type.getMethodDescriptor(
         Type.getType(classOf[Sequence]),
-        Type.getType(classOf[LengineLambda1]),
+        Type.getType(classOf[LengineLambda1[java.lang.Boolean, _]]),
         Type.getType(classOf[CreateIterator])
       ),
       false
@@ -442,11 +442,11 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val mv       = runtimeEnvironment.methodVisitor
     mv.visitALoad(lambdaLoc)
-    mv.visitCheckCast(classOf[LengineLambda2])
+    mv.visitCheckCast(classOf[LengineLambda2[_, _, _]])
     mv.visitALoad(accLoc)
     mv.visitALoad(elemLoc)
     mv.visitInterfaceMethodCall(
-      classOf[LengineLambda2],
+      classOf[LengineLambda2[_, _, _]],
       "invoke",
       classOf[Object],
       List(classOf[Object], classOf[Object])

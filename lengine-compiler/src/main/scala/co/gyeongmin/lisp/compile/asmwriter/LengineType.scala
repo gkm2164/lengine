@@ -5,17 +5,17 @@ import lengine.runtime.{LengineMap, Sequence}
 
 object LengineType {
   val lambdaClass: List[Class[_]] = List(
-    classOf[LengineLambda0],
-    classOf[LengineLambda1],
-    classOf[LengineLambda2],
-    classOf[LengineLambda3],
-    classOf[LengineLambda4],
-    classOf[LengineLambda5],
-    classOf[LengineLambda6],
-    classOf[LengineLambda7],
-    classOf[LengineLambda8],
-    classOf[LengineLambda9],
-    classOf[LengineLambda10],
+    classOf[LengineLambda0[_]],
+    classOf[LengineLambda1[_, _]],
+    classOf[LengineLambda2[_, _, _]],
+    classOf[LengineLambda3[_, _, _, _]],
+    classOf[LengineLambda4[_, _, _, _, _]],
+    classOf[LengineLambda5[_, _, _, _, _, _]],
+    classOf[LengineLambda6[_, _, _, _, _, _, _]],
+    classOf[LengineLambda7[_, _, _, _, _, _, _, _]],
+    classOf[LengineLambda8[_, _, _, _, _, _, _, _, _]],
+    classOf[LengineLambda9[_, _, _, _, _, _, _, _, _, _]],
+    classOf[LengineLambda10[_, _, _, _, _, _, _, _, _, _, _]],
   )
 }
 
