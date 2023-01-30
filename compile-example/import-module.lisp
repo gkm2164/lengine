@@ -15,7 +15,5 @@
 (fn f (x) (+ x "F"))
 (fn g (x) (+ x "G"))
 (fn h (x) (+ x "H"))
-
-(def fg (compose f g))
 (fn . (f g) (compose f g))
 (println ((. (. f g) h) "Text"))
