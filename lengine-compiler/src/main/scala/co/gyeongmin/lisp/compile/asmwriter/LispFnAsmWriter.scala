@@ -44,15 +44,13 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val newRuntimeEnvironment = createLambdaClass(itself, fnName, captureVariables, argsWithCapturedVars)
 
-
-
     val resolvedCaptures = captureVariables.getRequestedCaptures
       .map(
         capture =>
           runtimeEnvironment.getVar(capture).getOrElse(throw new RuntimeException(s"Unable to resolve: $capture"))
       )
 
-    createFnReference(fnName, traversedPlaceHolders, resolvedCaptures)
+    createFnReference(fnName, resolvedCaptures)
 
     LengineEnv.defineFn(EagerSymbol(fnName), f.placeHolders.size, newRuntimeEnvironment)
   }
@@ -210,7 +208,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment
   }
 
-  private def createFnReference(methodName: String, args: Seq[LispSymbol], capturedArgLocs: Seq[Int]): Unit = {
+  private def createFnReference(methodName: String, capturedArgLocs: Seq[Int]): Unit = {
     val pmv = runtimeEnvironment.methodVisitor
 
     val lambdaClsName = s"${runtimeEnvironment.className}$$$methodName"
