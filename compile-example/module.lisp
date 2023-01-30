@@ -6,16 +6,6 @@
 
 (export map map)
 
-(fn fact (n)
-    (if (> n 1)
-        (* n ($ (- n 1)))
-        1))
-
-(export fact (lambda (n)
-                (if (> n 1)
-                    (* n ($ (- n 1)))
-                    1)))
-
 (fn split-real (s delim)
     (if (= 0 (len s))
         []
@@ -36,3 +26,8 @@
 
 (export compose (lambda (f g)
                         (lambda (x) (f (g x)))))
+
+(export fact (lambda (n)
+                (if (> n 1)
+                    (* n ($ (- n 1)))
+                    1)))
