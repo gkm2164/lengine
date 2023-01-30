@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import cats.effect.kernel.Ref
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -69,8 +70,8 @@ object RuntimeMethodVisitor {
     val key :: value :: Nil = operands
     val mv                  = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(key).visitForValue()
-    new LispValueAsmWriter(value).visitForValue()
+    new LispValueAsmWriter(key).visitForValue(needReturn = true)
+    new LispValueAsmWriter(value).visitForValue(needReturn = true)
     mv.visitStaticMethodCall(
       classOf[LengineMapEntry],
       "create",
@@ -79,7 +80,7 @@ object RuntimeMethodVisitor {
     )
   }
 
-  def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  def handle(body: List[LispValue], needReturn: Boolean)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
     operation match {
       case EagerSymbol(op) =>
@@ -95,7 +96,7 @@ object RuntimeMethodVisitor {
           case "filter" | "take-while" | "drop-while" | "split-at" => visitSeqOpFn(op, operands)
           case "head" | "tail"                                     => visitSeqUOps(op, operands)
           case "flatten"                                           => visitFlatten(operands)
-          case "println"                                           => visitPrintln(operands)
+          case "println"                                           => visitPrintln(operands, needReturn)
           case "read-line"                                         => visitReadLine
           case "str" | "int" | "double" | "char" | "seq"           => visitTypeCast(op, operands)
           case "assert"                                            => visitAssert(operands)
@@ -116,9 +117,9 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(fn).visitForValue()
+    new LispValueAsmWriter(fn).visitForValue(needReturn = true)
     mv.visitCheckCast(classOf[LengineLambda1[java.lang.Boolean, _]])
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -140,7 +141,7 @@ object RuntimeMethodVisitor {
 
   private def visitLenOp(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -157,8 +158,8 @@ object RuntimeMethodVisitor {
   private def visitSeqOpN(operationName: String,
                           operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val number :: seq :: _ = operands
-    new LispValueAsmWriter(number).visitForValue()
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(number).visitForValue(needReturn = true)
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     val mv = runtimeEnvironment.methodVisitor
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitMethodInsn(
@@ -176,7 +177,7 @@ object RuntimeMethodVisitor {
   private def visitSeqUOps(op: String,
                            operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     val mv = runtimeEnvironment.methodVisitor
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitMethodInsn(
@@ -193,7 +194,7 @@ object RuntimeMethodVisitor {
 
   private def visitFlatten(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     val mv = runtimeEnvironment.methodVisitor
     mv.visitCheckCast(classOf[Sequence])
     mv.visitMethodInsn(
@@ -210,7 +211,7 @@ object RuntimeMethodVisitor {
 
   private def visitCalc(operation: String,
                         operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(None))
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(None, needReturn = true))
     val mv = runtimeEnvironment.methodVisitor
     mv.visitMethodInsn(
       INVOKESTATIC,
@@ -221,10 +222,10 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitPrintln(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitPrintln(operands: List[LispValue], needReturn: Boolean)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString)))
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString), needReturn = true))
     mv.visitMethodInsn(INVOKEVIRTUAL,
                        "java/io/PrintStream",
                        "println",
@@ -233,14 +234,16 @@ object RuntimeMethodVisitor {
                          Type.getType(classOf[Object])
                        ),
                        false)
-    mv.visitUnit()
+    if (needReturn) {
+      mv.visitUnit()
+    }
   }
 
   private def visitTypeCast(op: String,
                             operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operand :: _ = operands
 
-    new LispValueAsmWriter(operand).visitForValue()
+    new LispValueAsmWriter(operand).visitForValue(needReturn = true)
 
     val mv = runtimeEnvironment.methodVisitor
 
@@ -273,7 +276,7 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(needReturn = true))
     compareOpMap
       .get(op)
       .foreach(
@@ -290,7 +293,7 @@ object RuntimeMethodVisitor {
   private def visitNotOps(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(needReturn = true))
     mv.visitMethodInsn(
       INVOKESTATIC,
       PreludeClass.getInternalName,
@@ -320,7 +323,7 @@ object RuntimeMethodVisitor {
     val condition :: ifmatch :: elsematch :: Nil = operands
     val mv                                       = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(condition).visitForValue()
+    new LispValueAsmWriter(condition).visitForValue(needReturn = true)
     val idx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(ASTORE, idx)
     mv.visitIntInsn(ALOAD, idx)
@@ -332,11 +335,11 @@ object RuntimeMethodVisitor {
 
     mv.visitJumpInsn(IFNE, tLabel)
     mv.visitLabel(fLabel)
-    new LispValueAsmWriter(elsematch).visitForValue()
+    new LispValueAsmWriter(elsematch).visitForValue(needReturn = true)
     mv.visitJumpInsn(GOTO, next)
 
     mv.visitLabel(tLabel)
-    new LispValueAsmWriter(ifmatch).visitForValue()
+    new LispValueAsmWriter(ifmatch).visitForValue(needReturn = true)
     mv.visitLabel(next)
   }
 
@@ -348,9 +351,9 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(from).visitForValue()
+    new LispValueAsmWriter(from).visitForValue(needReturn = true)
     mv.visitAStore(fromIdx)
-    new LispValueAsmWriter(to).visitForValue()
+    new LispValueAsmWriter(to).visitForValue(needReturn = true)
     mv.visitAStore(toIdx)
 
     mv.visitALoad(fromIdx)
@@ -390,16 +393,16 @@ object RuntimeMethodVisitor {
     val seq :: init :: lambda :: Nil = operands
 
     val mv = runtimeEnvironment.methodVisitor
-    new LispValueAsmWriter(lambda).visitForValue()
+    new LispValueAsmWriter(lambda).visitForValue(needReturn = true)
     val fnLoc = runtimeEnvironment.allocateNextVar
     mv.visitAStore(fnLoc)
 
     val accLoc = runtimeEnvironment.allocateNextVar
 
-    new LispValueAsmWriter(init).visitForValue()
+    new LispValueAsmWriter(init).visitForValue(needReturn = true)
     mv.visitAStore(accLoc)
 
-    new LispValueAsmWriter(seq).visitForValue()
+    new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitInterfaceMethodCall(
       classOf[CreateIterator],
@@ -460,7 +463,7 @@ object RuntimeMethodVisitor {
     val nameOfSymbol = symbol.asInstanceOf[LispSymbol].name
     val mv           = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(value).visitForValue()
+    new LispValueAsmWriter(value).visitForValue(needReturn = true)
     mv.visitAStore(symbolLoc)
 
     mv.visitLdcInsn(nameOfSymbol)

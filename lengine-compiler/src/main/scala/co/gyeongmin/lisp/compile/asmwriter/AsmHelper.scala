@@ -94,7 +94,7 @@ object AsmHelper {
 
     def visitStoreLispValue(value: LispValue, location: Option[Int] = None): Int = {
       val idx = location.getOrElse(runtimeEnvironment.allocateNextVar)
-      new LispValueAsmWriter(value).visitForValue()
+      new LispValueAsmWriter(value).visitForValue(needReturn = true)
       visitAStore(idx)
       idx
     }

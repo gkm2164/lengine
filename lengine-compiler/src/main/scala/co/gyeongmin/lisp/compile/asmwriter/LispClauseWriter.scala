@@ -21,7 +21,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
     mv.visitLdcInsn(key)
     val keyIdx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
-    new LispValueAsmWriter(map).visitForValue()
+    new LispValueAsmWriter(map).visitForValue(needReturn = true)
     mv.visitCheckCast(classOf[LengineMap])
     mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
     mv.visitMethodCall(
@@ -32,17 +32,17 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
     )
   }
 
-  def visitForValue(): Unit = {
+  def visitForValue(needReturn: Boolean = false): Unit = {
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
-      case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body)
+      case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body, needReturn)
       case s: EagerSymbol if runtimeEnvironment.hasFn(s) =>
         runtimeEnvironment.getFn(s).foreach(realFn => {
           LengineEnv.getFn(realFn.name).foreach(fn => {
             val popThis = mutable.ListBuffer[Int]()
             (0 until fn.args).zip(operands).foreach { case (_, value) =>
-              new LispValueAsmWriter(value).visitForValue()
+              new LispValueAsmWriter(value).visitForValue(needReturn = true)
               val loc = runtimeEnvironment.allocateNextVar
               mv.visitIntInsn(Opcodes.ASTORE, loc)
               popThis += loc
@@ -75,13 +75,13 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
       case value@(EagerSymbol(_) | LispClause(_)) =>
         val suspectFn = runtimeEnvironment.allocateNextVar
-        new LispValueAsmWriter(value).visitForValue()
+        new LispValueAsmWriter(value).visitForValue(needReturn = needReturn)
         mv.visitAStore(suspectFn)
 
         val lClass = lambdaClass(operands.size)
         mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
         mv.visitCheckCast(lClass)
-        operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
+        operands.foreach(v => new LispValueAsmWriter(v).visitForValue(needReturn = true))
         mv.visitInterfaceMethodCall(
           lClass,
           "invoke",

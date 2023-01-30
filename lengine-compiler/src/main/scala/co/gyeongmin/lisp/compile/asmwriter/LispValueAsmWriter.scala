@@ -49,7 +49,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitALoad(mapIdx)
   }
 
-  def visitForValue(finalCast: Option[LengineType] = None): Unit = value match {
+  def visitForValue(finalCast: Option[LengineType] = None, needReturn: Boolean): Unit = value match {
     case LispTrue =>
       mv.visitLdcInsn(true)
       boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
@@ -77,17 +77,17 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       val newEnv = runtimeEnv.createChild()
       mv.visitLabel(new Label())
       val idx = newEnv.allocateNextVar
-      new LispValueAsmWriter(value)(newEnv).visitForValue()
+      new LispValueAsmWriter(value)(newEnv).visitForValue(needReturn = true)
       mv.visitAStore(idx)
       newEnv.registerVariable(name, idx)
-      new LispValueAsmWriter(body)(newEnv).visitForValue()
+      new LispValueAsmWriter(body)(newEnv).visitForValue(needReturn = true)
       val used = newEnv.getLastVarIdx
       runtimeEnv.overrideUsedVar(used)
       mv.visitLabel(new Label())
     case LispImportDef(path) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil)
-      ).visitForValue()
+      ).visitForValue(needReturn = false)
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body).writeValue()
     case ref: EagerSymbol =>
@@ -96,9 +96,9 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       } else {
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
       }
-    case l@LispClause(_) => new LispClauseWriter(l).visitForValue()
+    case l@LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn)
     case LispValueDef(symbol, value) =>
-      new LispValueAsmWriter(value).visitForValue(None)
+      new LispValueAsmWriter(value).visitForValue(None, needReturn = true)
       value.resolveType match {
         case Left(err) =>
           new RuntimeException(s"Unable to resolve the type for $symbol: $err")

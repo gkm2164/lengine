@@ -188,7 +188,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0)
 
     mv.visitLabel(startLabel)
-    new LispValueAsmWriter(f.body)(newRuntimeEnvironment).visitForValue(None)
+    new LispValueAsmWriter(f.body)(newRuntimeEnvironment).visitForValue(None, needReturn = true)
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 

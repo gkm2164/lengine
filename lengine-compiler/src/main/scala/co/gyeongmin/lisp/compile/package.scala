@@ -39,7 +39,7 @@ package object compile {
         className,
         2)
 
-    statements.foreach(stmt => new LispValueAsmWriter(stmt).visitForValue())
+    statements.foreach(stmt => new LispValueAsmWriter(stmt).visitForValue(needReturn = false))
     mv.visitLabel(LengineEnv.endLabel)
     mv.visitInsn(RETURN)
     new LispValueDefWriter(EagerSymbol("__PADDING__"), IntegerNumber(0))
