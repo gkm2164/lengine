@@ -1,5 +1,7 @@
 .idea/
 **/target/
 lengine.jar
+lengine-runtime.jar
+lenginec.jar
 .DS_Store
 node_modules/!/Hello.class

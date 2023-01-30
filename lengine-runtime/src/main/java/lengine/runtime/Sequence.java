@@ -2,7 +2,6 @@ package lengine.runtime;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 
@@ -39,77 +38,15 @@ public class Sequence implements CreateIterator {
 
   public void add(Object item) { list.add(item); }
 
+  public void addObject(Object item) { list.add(item); }
+
+
   public void add(Sequence item) {
     list.add(item);
   }
 
   public void append(Sequence toBeAppended) {
     list.addAll(toBeAppended.list);
-  }
-
-  public Object head() {
-    return list.getFirst();
-  }
-
-  public Sequence tail() {
-    return drop(1);
-  }
-
-  public Sequence take(int n) {
-    LinkedList<Object> subList = new LinkedList<>(list.subList(0, n));
-    return new Sequence(subList);
-  }
-
-  public Sequence drop(int n) {
-    LinkedList<Object> subList = new LinkedList<>();
-    Iterator<Object> it = list.iterator();
-    for (int i = 0; i < n && it.hasNext(); i++) {
-      it.next();
-    }
-    it.forEachRemaining(subList::add);
-    return new Sequence(subList);
-  }
-
-  public Sequence takeWhile(LengineFn test) {
-    Sequence ret = new Sequence();
-    Iterator<Object> it = list.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (!(Boolean)test.invoke(elem)) {
-        return ret;
-      }
-
-      ret.add(elem);
-    }
-
-    return ret;
-  }
-
-  public Sequence dropWhile(LengineFn test) {
-    Sequence ret = new Sequence();
-    Iterator<Object> it = list.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (!(Boolean)test.invoke(elem)) {
-        ret.add(elem);
-        it.forEachRemaining(ret::add);
-      }
-    }
-
-    return ret;
-  }
-
-  public Sequence filter(LengineFn test) {
-    Sequence ret = new Sequence();
-    Iterator<Object> it = list.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if ((Boolean)test.invoke(elem)) {
-        ret.add(elem);
-      }
-    }
-
-    return ret;
   }
 
   public String toString() {
@@ -131,8 +68,9 @@ public class Sequence implements CreateIterator {
     return retSeq;
   }
 
+  @Override
   public Object len() {
-    return list.size();
+    return (long)list.size();
   }
 
   @Override

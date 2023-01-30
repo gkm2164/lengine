@@ -7,12 +7,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineFn;
+import lengine.runtime.LengineIterator;
 import lengine.runtime.Sequence;
 
 public class Prelude {
@@ -51,9 +55,15 @@ public class Prelude {
     return cast(from, Character.class);
   }
 
+  public static Object cast_seq(Object from) {
+    return cast(from, Sequence.class);
+  }
+
   private static Sequence castSequence(Object from) {
     if (from instanceof Sequence) {
       return (Sequence) from;
+    } else if (from instanceof String) {
+      return toSeq((String) from);
     }
     Sequence newSeq = new Sequence();
     newSeq.add(from);
@@ -196,28 +206,88 @@ public class Prelude {
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
   }
 
-  public static Object len(Sequence seq) {
+  public static Object len(CreateIterator seq) {
     return seq.len();
   }
 
-  public static Object take(Long n, Sequence seq) {
-    return seq.take(n.intValue());
+  private static Sequence toSeq(String str) {
+    Sequence seq = new Sequence();
+    char[] charArr = str.toCharArray();
+    for (char c : charArr) {
+      seq.add(c);
+    }
+    return seq;
   }
 
-  public static Object drop(Long n, Sequence seq) {
-    return seq.drop(n.intValue());
+  public static Object head(CreateIterator seq) {
+    return seq.iterator().next();
   }
 
-  public static Object takeWhile(LengineFn fn, Sequence seq) {
-    return seq.takeWhile(fn);
+  public static Sequence tail(CreateIterator seq) {
+    return drop(1L, seq);
   }
 
-  public static Object dropWhile(LengineFn fn, Sequence seq) {
-    return seq.dropWhile(fn);
+  public static Sequence take(Long n, CreateIterator seq) {
+    int i = 0;
+    Sequence ret = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (i++ < n && it.hasNext()) {
+      ret.add(it.next());
+    }
+    return ret;
   }
 
-  public static Object filter(LengineFn fn, Sequence seq) {
-    return seq.filter(fn);
+  public static Sequence drop(Long n, CreateIterator seq) {
+    int i = 0;
+    Sequence ret = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (i++ < n && it.hasNext()) {
+      it.next();
+    }
+    it.forEachRemaining(ret::addObject);
+    return ret;
+  }
+
+  public static Sequence takeWhile(LengineFn test, CreateIterator seq) {
+    Sequence ret = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if (!(Boolean)test.invoke(elem)) {
+        return ret;
+      }
+
+      ret.add(elem);
+    }
+
+    return ret;
+  }
+
+  public static Sequence dropWhile(LengineFn test, CreateIterator seq) {
+    Sequence ret = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if (!(Boolean)test.invoke(elem)) {
+        ret.add(elem);
+        it.forEachRemaining(ret::add);
+      }
+    }
+
+    return ret;
+  }
+
+  public static Sequence filter(LengineFn test, CreateIterator seq) {
+    Sequence ret = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if ((Boolean)test.invoke(elem)) {
+        ret.add(elem);
+      }
+    }
+
+    return ret;
   }
 
   public static Object flatten(Sequence seq) {

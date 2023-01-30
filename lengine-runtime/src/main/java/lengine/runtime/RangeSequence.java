@@ -23,4 +23,8 @@ public class RangeSequence implements CreateIterator {
     return new RangeSequenceIterator(from, to);
   }
 
+  @Override
+  public Object len() {
+    return (long)Math.abs(to - from);
+  }
 }
