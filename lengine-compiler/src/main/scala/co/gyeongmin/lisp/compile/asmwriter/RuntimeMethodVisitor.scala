@@ -25,6 +25,7 @@ object RuntimeMethodVisitor {
     "drop",
     "take-while",
     "drop-while",
+    "split-at",
     "len",
     "filter",
     "flatten",
@@ -36,6 +37,8 @@ object RuntimeMethodVisitor {
     "assert",
     "fold",
     "seq",
+    "head",
+    "tail"
   )
 
   private val compareOpMap = Map(
@@ -65,25 +68,26 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "+"                                       => visitCalc("add", operands)
-          case "-"                                       => visitCalc("sub", operands)
-          case "*"                                       => visitCalc("mult", operands)
-          case "/"                                       => visitCalc("div", operands)
-          case "if"                                      => visitIfStmt(operands)
-          case _ if compareOpMap.contains(op)            => visitCompareOps(op, operands)
-          case "not"                                     => visitNotOps(operands)
-          case "len"                                     => visitSeqOp(op, operands)
-          case "take" | "drop"                           => visitSeqOpN(op, operands)
-          case "filter" | "take-while" | "drop-while"    => visitSeqOpFn(op, operands)
-          case "flatten"                                 => visitFlatten(operands)
-          case "println"                                 => visitPrintln(operands)
-          case "read-line"                               => visitReadLine
-          case "str" | "int" | "double" | "char" | "seq" => visitTypeCast(op, operands)
-          case "assert"                                  => visitAssert(operands)
-          case "range"                                   => visitRange(operands)
-          case "fold"                                    => visitFold(operands)
-          case "export"                                  => visitExport(operands)
-          case "import"                                  => visitImport(operands)
+          case "+"                                                 => visitCalc("add", operands)
+          case "-"                                                 => visitCalc("sub", operands)
+          case "*"                                                 => visitCalc("mult", operands)
+          case "/"                                                 => visitCalc("div", operands)
+          case "if"                                                => visitIfStmt(operands)
+          case "not"                                               => visitNotOps(operands)
+          case "len"                                               => visitLenOp(operands)
+          case "take" | "drop"                                     => visitSeqOpN(op, operands)
+          case "filter" | "take-while" | "drop-while" | "split-at" => visitSeqOpFn(op, operands)
+          case "head" | "tail"                                     => visitSeqUOps(op, operands)
+          case "flatten"                                           => visitFlatten(operands)
+          case "println"                                           => visitPrintln(operands)
+          case "read-line"                                         => visitReadLine
+          case "str" | "int" | "double" | "char" | "seq"           => visitTypeCast(op, operands)
+          case "assert"                                            => visitAssert(operands)
+          case "range"                                             => visitRange(operands)
+          case "fold"                                              => visitFold(operands)
+          case "export"                                            => visitExport(operands)
+          case "import"                                            => visitImport(operands)
+          case _ if compareOpMap.contains(op)                      => visitCompareOps(op, operands)
         }
 
     }
@@ -106,11 +110,28 @@ object RuntimeMethodVisitor {
         case "filter"     => "filter"
         case "take-while" => "takeWhile"
         case "drop-while" => "dropWhile"
+        case "split-at"   => "splitAt"
       },
       Type.getMethodDescriptor(
         Type.getType(classOf[Sequence]),
         Type.getType(classOf[LengineFn]),
         Type.getType(classOf[CreateIterator])
+      ),
+      false
+    )
+  }
+
+  private def visitLenOp(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val seq :: _ = operands
+    new LispValueAsmWriter(seq).visitForValue()
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      PreludeClass.getInternalName,
+      "len",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Object])
       ),
       false
     )
@@ -153,10 +174,29 @@ object RuntimeMethodVisitor {
       false
     )
   }
+  private def visitSeqUOps(op: String,
+                           operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val seq :: _ = operands
+    new LispValueAsmWriter(seq).visitForValue()
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitCheckCast(classOf[CreateIterator])
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      PreludeClass.getInternalName,
+      op,
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[CreateIterator])
+      ),
+      false
+    )
+  }
+
   private def visitFlatten(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val seq :: _ = operands
     new LispValueAsmWriter(seq).visitForValue()
     val mv = runtimeEnvironment.methodVisitor
+    mv.visitCheckCast(classOf[Sequence])
     mv.visitMethodInsn(
       INVOKESTATIC,
       PreludeClass.getInternalName,

@@ -17,6 +17,16 @@ public class JvmTest {
       y = x;
     }
 
+    {
+      int a = 30;
+      {
+        int b = 20;
+        {
+          System.out.println(a + b);
+        }
+      }
+    }
+
     LengineIterator li = new LengineIterator() {
       @Override
       public boolean hasNext() {

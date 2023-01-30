@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispImportDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispFuncDef, LispImportDef, LispLetDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -10,7 +10,7 @@ import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import lengine.runtime.{LengineMap, Sequence}
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
 
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
   import LengineTypeSystem._
@@ -73,6 +73,17 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispObject(kv) =>
       declareMap(kv)
       finalCast.foreach(LengineList.cast)
+    case LispLetDef(name, value, body) =>
+      val newEnv = runtimeEnv.createChild()
+      mv.visitLabel(new Label())
+      val idx = newEnv.allocateNextVar
+      new LispValueAsmWriter(value)(newEnv).visitForValue()
+      mv.visitAStore(idx)
+      newEnv.registerVariable(name, idx)
+      new LispValueAsmWriter(body)(newEnv).visitForValue()
+      val used = newEnv.getLastVarIdx
+      runtimeEnv.overrideUsedVar(used)
+      mv.visitLabel(new Label())
     case LispImportDef(path) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil)

@@ -1,22 +1,14 @@
 (module ReadLine)
 
-(println "Type anything =>")
-(def s (read-line))
+(import Module.map)
+(import Module.split)
+(import Module.to-string)
 
-(println (+ "You typed: " s))
+(println "Type any numbers with comma => ")
+(def str (read-line))
+(def trimmed (to-string (filter (lambda (ch) (/= ch #\Space)) (seq str))))
+(def splitted (split trimmed #\,))
+(def num-seq (map (lambda (s) (int s)) splitted))
+(def sum (fold num-seq 0 (lambda (acc elem) (+ acc elem))))
 
-(println "Type any number =>")
-(def v (int (read-line)))
-
-(println (+ "<Parsed number> + 3 = " (+ v 3)))
-
-(println "Type a number =>")
-(def x (int (read-line)))
-(println "Type a number =>")
-(def y (int (read-line)))
-
-(if (< x y)
-  (println "y is bigger than x")
-  (if (= x y)
-    (println "x and y are identical")
-    (println "x is bigger than y")))
+(println sum)

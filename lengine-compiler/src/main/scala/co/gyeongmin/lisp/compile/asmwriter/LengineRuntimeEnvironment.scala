@@ -9,8 +9,13 @@ import scala.collection.mutable
 
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitor,
-                                private val args: mutable.Map[LispSymbol, Int],
+                                val args: mutable.Map[LispSymbol, Int],
                                 val className: String, numberOfArgs: Int) {
+  def overrideUsedVar(used: Int) = this.varIdx.set(used)
+
+  def createChild(): LengineRuntimeEnvironment =
+    new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone(), className, getLastVarIdx)
+
   private val fnMapping = mutable.Map[LispSymbol, LengineFnDef]()
   var captureVariables: Option[LengineVarCapture] = None
 

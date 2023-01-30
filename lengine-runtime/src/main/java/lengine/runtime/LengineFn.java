@@ -2,12 +2,14 @@ package lengine.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,24 +34,23 @@ public class LengineFn {
       initMethodCache(clsName);
     }
 
-    Class[] clsArr = new Class[args.length + captured.length];
-    Arrays.fill(clsArr, Object.class);
+    int actualArgLength = args.length + captured.length + 1;
 
     if (!methodMap.containsKey(name)) {
-        throw new RuntimeException("no such method defined!");
-      }
+      throw new RuntimeException("no such method defined!");
+    }
 
     List<Method> matchedMethods = methodMap.get(name)
-          .stream()
-          .filter(x -> x.getParameters().length == clsArr.length + 1)
-          .collect(Collectors.toList());
+        .stream()
+        .filter(x -> x.getParameters().length == actualArgLength)
+        .collect(Collectors.toList());
 
     if (matchedMethods.isEmpty()) {
-        throw new RuntimeException("unable to find method with signature");
-      }
+      throw new RuntimeException("unable to find method with signature");
+    }
     if (matchedMethods.size() > 1) {
-        throw new RuntimeException("more than one method identified for the given");
-      }
+      throw new RuntimeException("more than one method identified for the given");
+    }
 
     Method method = matchedMethods.stream().findFirst().get();
     return new LengineFn(name, args, method, captured);
@@ -68,8 +69,8 @@ public class LengineFn {
   }
 
   public Object invoke(Object... args) {
+    Object[] includingCaptures = new Object[method.getParameterCount()];
     try {
-      Object[] includingCaptures = new Object[1 + args.length + captured.length];
       includingCaptures[0] = this;
       System.arraycopy(args, 0, includingCaptures, 1, args.length);
       System.arraycopy(captured, 0, includingCaptures, 1 + args.length, captured.length);
@@ -78,7 +79,17 @@ public class LengineFn {
     } catch (IllegalAccessException e) {
       throw new RuntimeException("Illegal approach to access", e);
     } catch (InvocationTargetException e) {
-      throw new RuntimeException("Invocation target exception!", e);
+      String params = Arrays.stream(method.getParameters())
+          .map(Parameter::getName)
+          .collect(Collectors.joining(", ", "(", ")"));
+      String argsStr = Arrays.stream(includingCaptures)
+          .filter(Objects::nonNull)
+          .map(Object::toString)
+          .collect(Collectors.joining(", ", "(", ")"));
+
+      String error = "Invocation target exception: " + method.getName() + params + "(" + method.getParameterCount() + ")"
+      + ", but, only got " + argsStr + "(" + includingCaptures.length + ")";
+      throw new RuntimeException("Invocation target exception: " + error, e);
     }
   }
 

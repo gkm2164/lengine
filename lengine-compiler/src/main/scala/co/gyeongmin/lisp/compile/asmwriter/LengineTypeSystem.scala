@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.errors.eval.EvalError
+import co.gyeongmin.lisp.lexer.statements.LispLetDef
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -61,6 +62,7 @@ object LengineTypeSystem {
       case _: FloatNumber     => Right(LengineDouble)
       case _: LispString      => Right(LengineString)
       case _: LispClause      => Right(LengineAny)
+      case _: LispLetDef      => Right(LengineAny)
       case _: LispSeq         => Right(LengineList)
       case _: LispObject      => Right(LengineObject)
       case _: LispBoolean     => Right(LengineBoolean)

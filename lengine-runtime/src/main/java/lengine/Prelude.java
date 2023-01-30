@@ -7,8 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -206,8 +204,14 @@ public class Prelude {
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
   }
 
-  public static Object len(CreateIterator seq) {
-    return seq.len();
+  public static Object len(Object seq) {
+    if (seq instanceof CreateIterator) {
+      return ((CreateIterator) seq).len();
+    } else if (seq instanceof String) {
+      return (long)((String) seq).length();
+    }
+
+    throw new RuntimeException("unable to decide the size for " + seq);
   }
 
   private static Sequence toSeq(String str) {
@@ -223,7 +227,7 @@ public class Prelude {
     return seq.iterator().next();
   }
 
-  public static Sequence tail(CreateIterator seq) {
+  public static Object tail(CreateIterator seq) {
     return drop(1L, seq);
   }
 
@@ -269,10 +273,10 @@ public class Prelude {
     while (it.hasNext()) {
       Object elem = it.next();
       if (!(Boolean)test.invoke(elem)) {
-        ret.add(elem);
-        it.forEachRemaining(ret::add);
+        break;
       }
     }
+    it.forEachRemaining(ret::add);
 
     return ret;
   }
@@ -286,6 +290,27 @@ public class Prelude {
         ret.add(elem);
       }
     }
+
+    return ret;
+  }
+
+  public static Sequence splitAt(LengineFn test, CreateIterator seq) {
+    Sequence ret = new Sequence();
+    Sequence head = new Sequence();
+    Sequence tail = new Sequence();
+    LengineIterator it = seq.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if ((Boolean)test.invoke(elem)) {
+        break;
+      }
+      head.add(elem);
+
+    }
+
+    it.forEachRemaining(tail::add);
+    ret.add(head);
+    ret.add(tail);
 
     return ret;
   }
