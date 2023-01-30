@@ -1,9 +1,22 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import lengine.functions.{LengineLambda0, LengineLambda1, LengineLambda10, LengineLambda2, LengineLambda3, LengineLambda4, LengineLambda5, LengineLambda6, LengineLambda7, LengineLambda8, LengineLambda9}
 import lengine.runtime.{LengineMap, Sequence}
 
 object LengineType {
-
+  val lambdaClass: List[Class[_]] = List(
+    classOf[LengineLambda0],
+    classOf[LengineLambda1],
+    classOf[LengineLambda2],
+    classOf[LengineLambda3],
+    classOf[LengineLambda4],
+    classOf[LengineLambda5],
+    classOf[LengineLambda6],
+    classOf[LengineLambda7],
+    classOf[LengineLambda8],
+    classOf[LengineLambda9],
+    classOf[LengineLambda10],
+  )
 }
 
 trait LengineType {

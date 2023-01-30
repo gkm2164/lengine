@@ -3,8 +3,8 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
-import lengine.runtime.{CreateIterator, LengineIterator, Sequence, SequenceIterator}
-import org.objectweb.asm.{Label, Opcodes, Type}
+import lengine.runtime.{CreateIterator, LengineIterator, Sequence}
+import org.objectweb.asm.{Label, Opcodes}
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit env: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {

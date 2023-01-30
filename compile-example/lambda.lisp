@@ -32,10 +32,7 @@
 
 (println (((f-3depth 1) 2) 3))
 
-(fn fact (n)
-    (if (> n 1)
-        (* n (fact (- n 1)))
-        1))
+(import Math.fact)
 
 (println (fact 5))
 

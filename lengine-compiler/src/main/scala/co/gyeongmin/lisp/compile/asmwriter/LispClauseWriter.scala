@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.lambdaClass
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import lengine.functions._
 import lengine.runtime.LengineMap
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{MethodVisitor, Opcodes}
 
 import scala.collection.mutable
 
@@ -31,20 +31,6 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
       List(classOf[Object])
     )
   }
-
-  val lambdaClass: List[Class[_]] = List(
-    classOf[LengineLambda0],
-    classOf[LengineLambda1],
-    classOf[LengineLambda2],
-    classOf[LengineLambda3],
-    classOf[LengineLambda4],
-    classOf[LengineLambda5],
-    classOf[LengineLambda6],
-    classOf[LengineLambda7],
-    classOf[LengineLambda8],
-    classOf[LengineLambda9],
-    classOf[LengineLambda10],
-  )
 
   def visitForValue(): Unit = {
     val operation :: operands = clause.body

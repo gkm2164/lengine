@@ -10,7 +10,6 @@ import co.gyeongmin.lisp.lexer.values.seq.{ LispSeq, LispString }
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
 import lengine.Prelude
-import org.objectweb.asm.MethodVisitor
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
