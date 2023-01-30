@@ -5,9 +5,10 @@ import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.statements.LispLetDef
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispSeq, LispString}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispSeq, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
 import lengine.Prelude
 import org.objectweb.asm.MethodVisitor
 
@@ -63,6 +64,7 @@ object LengineTypeSystem {
       case _: LispString      => Right(LengineString)
       case _: LispClause      => Right(LengineAny)
       case _: LispLetDef      => Right(LengineAny)
+      case _: LispSymbol      => Right(LengineAny)
       case _: LispSeq         => Right(LengineList)
       case _: LispObject      => Right(LengineObject)
       case _: LispBoolean     => Right(LengineBoolean)

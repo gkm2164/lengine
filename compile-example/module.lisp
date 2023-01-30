@@ -31,3 +31,5 @@
         (map (lambda (x) (to-string x))
              (split-real (seq s) delim))))
 
+(export compose (lambda (f g)
+                        (lambda (x) (f (g x)))))

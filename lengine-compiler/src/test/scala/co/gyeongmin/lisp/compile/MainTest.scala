@@ -44,6 +44,12 @@ class MainTest extends FlatSpec with Matchers {
     ))
   }
 
+  "import-module test compile import-module.lisp" should "run and return" in {
+    Main.main(Array(
+      "./compile-example/import-module.lisp",
+    ))
+  }
+
   "string test compile string.lisp" should "run and return" in {
     Main.main(Array(
       "./compile-example/string.lisp",

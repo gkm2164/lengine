@@ -1,7 +1,9 @@
 (module Seq)
 
 (def seqs [1 2 3 4 5])
-(def fold-result (fold (range 1 10) 0 (lambda (acc elem) (+ acc elem))))
+(def fold-result (fold (range 1 10)
+                       0
+                       (lambda (acc elem) (+ acc elem))))
 
 (println "Testing sequence")
 (assert "sequence is sequence" (= seqs [1 2 3 4 5]))
@@ -31,11 +33,16 @@
 (println (len seqs))
 (assert "should same" (= (len seqs) 5))
 
-(println (filter (lambda (x) (> x 3)) [1 2 3 4 5]))
+(println (filter (lambda (x) (> x 3))
+                 [1 2 3 4 5]))
 
-(assert "should same" (= (filter (lambda (x) (> x 3)) [1 2 3 4 5]) [4 5]))
+(assert "should same" (= (filter (lambda (x) (> x 3))
+                                 [1 2 3 4 5])
+                         [4 5]))
 
 (loop for x in (seq "something")
       (println x))
 
-(println (fold (range 1 5) "" (lambda (x y) (+ x y))))
+(println (fold (range 1 5)
+               ""
+               (lambda (x y) (+ x y))))
