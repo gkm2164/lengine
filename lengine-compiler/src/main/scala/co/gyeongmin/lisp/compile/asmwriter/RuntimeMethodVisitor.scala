@@ -62,9 +62,11 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-  private def visitCreateEntry(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitCreateEntry(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val key :: value :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv                  = runtimeEnvironment.methodVisitor
 
     val keyLoc = runtimeEnvironment.allocateNextVar
     val valLoc = runtimeEnvironment.allocateNextVar
@@ -239,12 +241,9 @@ object RuntimeMethodVisitor {
   }
 
   private def visitPrintln(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString)))
-    val temporalVarIdx = runtimeEnvironment.allocateNextVar
-    val mv             = runtimeEnvironment.methodVisitor
-    mv.visitIntInsn(ASTORE, temporalVarIdx)
+    val mv = runtimeEnvironment.methodVisitor
     mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-    mv.visitIntInsn(ALOAD, temporalVarIdx)
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString)))
     mv.visitMethodInsn(INVOKEVIRTUAL,
                        "java/io/PrintStream",
                        "println",

@@ -40,8 +40,9 @@ public class LengineMap {
     LengineMap map = new LengineMap();
     Sequence sequence = entries();
     sequence.add(entry);
-    SequenceIterator it = sequence.iterator();
-    it.forEachRemaining(e -> map.putEntry((LengineMapEntry)e));
+    sequence.iterator()
+        .forEachRemaining(e ->
+            map.putEntry((LengineMapEntry)e));
     return map;
   }
 
