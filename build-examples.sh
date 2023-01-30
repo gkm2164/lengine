@@ -1,12 +1,12 @@
 #!/bin/sh
 
-./leng compile-example/boolean.lisp
-./leng compile-example/hello.lisp
-./leng compile-example/import-module.lisp
-./leng compile-example/lambda.lisp
-./leng compile-example/map.lisp
-./leng compile-example/math.lisp
-./leng compile-example/module.lisp
-./leng compile-example/readline.lisp
-./leng compile-example/seq-test.lisp
-./leng compile-example/string.lisp
+./lenginec compile-example/boolean.lisp
+./lenginec compile-example/hello.lisp
+./lenginec compile-example/import-module.lisp
+./lenginec compile-example/lambda.lisp
+./lenginec compile-example/map.lisp
+./lenginec compile-example/math.lisp
+./lenginec compile-example/module.lisp
+./lenginec compile-example/readline.lisp
+./lenginec compile-example/seq-test.lisp
+./lenginec compile-example/string.lisp
