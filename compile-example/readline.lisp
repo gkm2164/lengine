@@ -4,7 +4,6 @@
 (import Module.split)
 (import Module.to-string)
 
-(println "Type any numbers with comma => ")
 (def str (read-line))
 (def trimmed (to-string (filter (lambda (ch) (/= ch #\Space)) (seq str))))
 (def splitted (split trimmed #\,))
