@@ -38,7 +38,8 @@ object RuntimeMethodVisitor {
     "fold",
     "seq",
     "head",
-    "tail"
+    "tail",
+    "entry"
   )
 
   private val compareOpMap = Map(
@@ -61,7 +62,21 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-  def visitToSeq(operands: List[LispValue]): Unit = ???
+  private def visitCreateEntry(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val key :: value :: Nil = operands
+    val mv = runtimeEnvironment.methodVisitor
+
+    val keyLoc = runtimeEnvironment.allocateNextVar
+    val valLoc = runtimeEnvironment.allocateNextVar
+    new LispValueAsmWriter(key).visitForValue()
+    new LispValueAsmWriter(value).visitForValue()
+    mv.visitStaticMethodCall(
+      classOf[LengineMapEntry],
+      "create",
+      classOf[LengineMapEntry],
+      List(classOf[Object], classOf[Object])
+    )
+  }
 
   def handle(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
@@ -87,6 +102,7 @@ object RuntimeMethodVisitor {
           case "fold"                                              => visitFold(operands)
           case "export"                                            => visitExport(operands)
           case "import"                                            => visitImport(operands)
+          case "entry"                                             => visitCreateEntry(operands)
           case _ if compareOpMap.contains(op)                      => visitCompareOps(op, operands)
         }
 

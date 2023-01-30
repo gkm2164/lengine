@@ -15,6 +15,8 @@ import java.util.function.BiPredicate;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineFn;
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineMap;
+import lengine.runtime.LengineMapEntry;
 import lengine.runtime.Sequence;
 
 public class Prelude {
@@ -113,6 +115,10 @@ public class Prelude {
   }
 
   public static Object add(Object a, Object b) {
+    if (a instanceof LengineMap && b instanceof LengineMapEntry) {
+      return ((LengineMap) a).add((LengineMapEntry) b);
+    }
+
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);

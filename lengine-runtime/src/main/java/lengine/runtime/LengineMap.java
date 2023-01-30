@@ -4,10 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import scala.collection.Seq;
+
 public class LengineMap {
   private final Map<Object, Object> dictionary;
   private LengineMap() {
     this.dictionary = new HashMap<>();
+  }
+
+  public void putEntry(LengineMapEntry entry) {
+    dictionary.put(entry.getKey(), entry.getValue());
   }
 
   public void put(Object key, Object value) {
@@ -16,6 +22,27 @@ public class LengineMap {
 
   public Object get(Object key) {
     return dictionary.get(key);
+  }
+
+  public Sequence keys() {
+    Sequence ret = new Sequence();
+    dictionary.keySet().forEach(ret::add);
+    return ret;
+  }
+
+  public Sequence entries() {
+    Sequence ret = new Sequence();
+    dictionary.forEach((key, value) -> ret.add(LengineMapEntry.create(key, value)));
+    return ret;
+  }
+
+  public LengineMap add(LengineMapEntry entry) {
+    LengineMap map = new LengineMap();
+    Sequence sequence = entries();
+    sequence.add(entry);
+    SequenceIterator it = sequence.iterator();
+    it.forEachRemaining(e -> map.putEntry((LengineMapEntry)e));
+    return map;
   }
 
   public static LengineMap create() {

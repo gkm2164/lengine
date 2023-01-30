@@ -21,6 +21,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
     val keyIdx = runtimeEnvironment.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
     new LispValueAsmWriter(map).visitForValue()
+    mv.visitCheckCast(classOf[LengineMap])
     mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
     mv.visitMethodCall(
       classOf[LengineMap],
