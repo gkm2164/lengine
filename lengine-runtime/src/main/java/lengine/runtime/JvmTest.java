@@ -41,4 +41,17 @@ public class JvmTest {
 
     li.hasNext();
   }
+
+  int xsss;
+  public JvmTest(int xsss) {
+    this.xsss = xsss;
+  }
+
+  public void something(int xx) {
+    something2(xx, xsss);
+  }
+
+  public void something2(int x, int y) {
+
+  }
 }

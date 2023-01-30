@@ -68,7 +68,7 @@ object LengineTypeSystem {
       case _: LispSeq         => Right(LengineList)
       case _: LispObject      => Right(LengineObject)
       case _: LispBoolean     => Right(LengineBoolean)
-      case _: GeneralLispFunc => Right(LengineFunction)
+      case _: GeneralLispFunc => Right(LengineAny)
     }
   }
 }

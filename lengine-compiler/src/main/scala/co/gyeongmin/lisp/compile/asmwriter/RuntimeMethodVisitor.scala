@@ -1,12 +1,13 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{ getFnDescriptor, MethodVisitorExtension }
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.{MethodVisitorExtension, getFnDescriptor}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import lengine.Prelude
+import lengine.functions.{LengineLambda1, LengineLambda2}
 import lengine.runtime._
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ Label, MethodVisitor, Type }
+import org.objectweb.asm.{Label, MethodVisitor, Type}
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -68,8 +69,6 @@ object RuntimeMethodVisitor {
     val key :: value :: Nil = operands
     val mv                  = runtimeEnvironment.methodVisitor
 
-    val keyLoc = runtimeEnvironment.allocateNextVar
-    val valLoc = runtimeEnvironment.allocateNextVar
     new LispValueAsmWriter(key).visitForValue()
     new LispValueAsmWriter(value).visitForValue()
     mv.visitStaticMethodCall(
@@ -118,7 +117,7 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     new LispValueAsmWriter(fn).visitForValue()
-    mv.visitCheckCast(classOf[LengineFn])
+    mv.visitCheckCast(classOf[LengineLambda1])
     new LispValueAsmWriter(seq).visitForValue()
     mv.visitCheckCast(classOf[CreateIterator])
     mv.visitMethodInsn(
@@ -132,7 +131,7 @@ object RuntimeMethodVisitor {
       },
       Type.getMethodDescriptor(
         Type.getType(classOf[Sequence]),
-        Type.getType(classOf[LengineFn]),
+        Type.getType(classOf[LengineLambda1]),
         Type.getType(classOf[CreateIterator])
       ),
       false
@@ -150,24 +149,6 @@ object RuntimeMethodVisitor {
       Type.getMethodDescriptor(
         Type.getType(classOf[Object]),
         Type.getType(classOf[Object])
-      ),
-      false
-    )
-  }
-
-  private def visitSeqOp(operationName: String,
-                         operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val seq :: _ = operands
-    new LispValueAsmWriter(seq).visitForValue()
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitCheckCast(classOf[CreateIterator])
-    mv.visitMethodInsn(
-      INVOKESTATIC,
-      PreludeClass.getInternalName,
-      operationName,
-      Type.getMethodDescriptor(
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[CreateIterator])
       ),
       false
     )
@@ -460,16 +441,15 @@ object RuntimeMethodVisitor {
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val mv       = runtimeEnvironment.methodVisitor
-    val arrayLoc = mv.allocateNewArray(classOf[Object], 2)
-    mv.visitArrayAssignFromAddress(Seq(accLoc, elemLoc), arrayLoc)
     mv.visitALoad(lambdaLoc)
-    mv.visitCheckCast(classOf[LengineFn])
-    mv.visitALoad(arrayLoc)
-    mv.visitMethodCall(
-      classOf[LengineFn],
+    mv.visitCheckCast(classOf[LengineLambda2])
+    mv.visitALoad(accLoc)
+    mv.visitALoad(elemLoc)
+    mv.visitInterfaceMethodCall(
+      classOf[LengineLambda2],
       "invoke",
       classOf[Object],
-      List(classOf[Array[Object]]),
+      List(classOf[Object], classOf[Object])
     )
   }
 

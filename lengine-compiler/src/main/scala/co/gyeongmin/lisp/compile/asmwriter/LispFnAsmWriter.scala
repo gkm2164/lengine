@@ -5,24 +5,23 @@ import co.gyeongmin.lisp.compile.LengineEnv.LengineFnDef
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import lengine.runtime.LengineFn
-import org.objectweb.asm.{ Label, Opcodes, Type }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import lengine.functions._
+import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
-import java.util.UUID
+import java.io.FileOutputStream
 import scala.collection.mutable
 
 class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
-  private def uuid: String = UUID.randomUUID().toString.split("-").head
+  private def randomGenerate() = s"lambda$$${f.hashCode().toHexString}"
 
-  private def randomGenerate() = s"lambda$$$uuid"
   def writeValue(itself: Option[LispSymbol] = None): LengineFnDef = {
     val traversedPlaceHolders = traverse(
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
     ) match {
-      case Left(err)    => throw new RuntimeException(s"unexpected error: $err")
+      case Left(err) => throw new RuntimeException(s"unexpected error: $err")
       case Right(value) => value
     }
 
@@ -41,22 +40,136 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsWithCaptureList = traversedPlaceHolders ++ captureVariables.getRequestedCaptures
 
-    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) } .toMap
+    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) }.toMap
 
-    val argsType = Type.getType(classOf[LengineFn]) :: argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
+    val lambdaClass: List[Class[_]] = List(
+      classOf[LengineLambda0],
+      classOf[LengineLambda1],
+      classOf[LengineLambda2],
+      classOf[LengineLambda3],
+      classOf[LengineLambda4],
+      classOf[LengineLambda5],
+      classOf[LengineLambda6],
+      classOf[LengineLambda7],
+      classOf[LengineLambda8],
+      classOf[LengineLambda9],
+      classOf[LengineLambda10],
+    )
 
-    val mv = runtimeEnvironment.classWriter
+    val argsType = Type.getType(lambdaClass(f.placeHolders.length)) :: argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
+
+    val lambdaClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
+    val lambdaClassName = s"${runtimeEnvironment.className}$$$fnName"
+
+    lambdaClassWriter.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC,
+      lambdaClassName,
+      null, Type.getType(classOf[Object]).getInternalName,
+      Array(Type.getType(lambdaClass(f.placeHolders.length)).getInternalName))
+
+    captureVariables.getRequestedCaptures.zipWithIndex.foreach {
+      case (_, idx) =>
+      lambdaClassWriter.visitField(
+        Opcodes.ACC_PUBLIC,
+        s"var$idx",
+        Type.getType(classOf[Object]).getDescriptor,
+        null,
+        null
+      )
+    }
+
+    val lambdaConstructMv = lambdaClassWriter.visitMethod(
+      Opcodes.ACC_PUBLIC,
+      "<init>",
+      Type.getMethodDescriptor(
+        Type.getType(Void.TYPE),
+        captureVariables.getRequestedCaptures.map(_ => Type.getType(classOf[Object])): _*
+      ),
+      null,
+      null
+    )
+
+    lambdaConstructMv.visitIntInsn(Opcodes.ALOAD, 0)
+    lambdaConstructMv.visitMethodInsn(
+      Opcodes.INVOKESPECIAL,
+      Type.getType(classOf[Object]).getInternalName,
+      "<init>",
+      Type.getMethodDescriptor(
+        Type.getType(Void.TYPE)
+      ),
+      false
+    )
+
+    captureVariables.getRequestedCaptures.zipWithIndex.foreach {
+      case (_, idx) =>
+        lambdaConstructMv.visitIntInsn(Opcodes.ALOAD, 0)
+        lambdaConstructMv.visitIntInsn(Opcodes.ALOAD, idx + 1)
+        lambdaConstructMv.visitFieldInsn(
+          Opcodes.PUTFIELD,
+          lambdaClassName,
+          s"var$idx",
+          Type.getType(classOf[Object]).getDescriptor
+        )
+    }
+
+    lambdaConstructMv.visitInsn(Opcodes.RETURN)
+    lambdaConstructMv.visitMaxs(1, 1)
+    lambdaConstructMv.visitEnd()
+
+    val lambdaMv = lambdaClassWriter.visitMethod(
+      Opcodes.ACC_PUBLIC,
+      "invoke",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        f.placeHolders.map(_ => Type.getType(classOf[Object])): _*
+      ),
+      null,
+      null
+    )
+
+    lambdaMv.visitIntInsn(Opcodes.ALOAD, 0)
+
+    f.placeHolders.zipWithIndex.foreach {
+      case (_, idx) =>
+        lambdaMv.visitIntInsn(Opcodes.ALOAD, idx + 1)
+    }
+
+    captureVariables.getRequestedCaptures.zipWithIndex.foreach {
+      case (_, idx) =>
+        lambdaMv.visitIntInsn(Opcodes.ALOAD, 0)
+        lambdaMv.visitFieldInsn(Opcodes.GETFIELD,
+          lambdaClassName,
+          s"var$idx",
+          Type.getType(classOf[Object]).getDescriptor
+        )
+    }
+
+    lambdaMv.visitMethodInsn(
+      Opcodes.INVOKESTATIC,
+      lambdaClassName,
+      "invokeActual",
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        argsType:_*
+      ),
+      false
+    )
+
+    lambdaMv.visitInsn(Opcodes.ARETURN)
+    lambdaMv.visitMaxs(1, 1)
+    lambdaMv.visitEnd()
+
+    val mv = lambdaClassWriter
       .visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,
-                   fnName,
-                   Type.getMethodDescriptor(
-                     Type.getType(classOf[Object]),
-                     argsType: _*
-                   ),
-                   null,
-                   null)
+        "invokeActual",
+        Type.getMethodDescriptor(
+          Type.getType(classOf[Object]),
+          argsType: _*
+        ),
+        null,
+        null)
 
     val startLabel = new Label()
-    val endLabel   = new Label()
+    val endLabel = new Label()
 
     val initialArgMap: mutable.Map[LispSymbol, Int] = itself.map(it => mutable.Map(it -> 0)).getOrElse(mutable.Map())
 
@@ -77,13 +190,18 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitInsn(Opcodes.ARETURN)
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
-                          Type.getType(classOf[java.lang.Long]).getDescriptor,
-                          null,
-                          startLabel,
-                          endLabel,
-                          newRuntimeEnvironment.getLastVarIdx)
+      Type.getType(classOf[java.lang.Long]).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      newRuntimeEnvironment.getLastVarIdx)
     mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
     mv.visitEnd()
+
+    lambdaClassWriter.visitEnd()
+    val lambdaFileWriter = new FileOutputStream(s"$lambdaClassName.class")
+    lambdaFileWriter.write(lambdaClassWriter.toByteArray)
+
 
     val resolvedCaptures = captureVariables.getRequestedCaptures
       .map(
@@ -98,18 +216,26 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
   private def createFnReference(methodName: String, args: Seq[LispSymbol], capturedArgLocs: Seq[Int]): Unit = {
     val pmv = runtimeEnvironment.methodVisitor
-    val arrayLoc = pmv.allocateNewArray(classOf[String], args.size)
-    pmv.visitArrayAssign(args.map(_.name), arrayLoc)
-    val capturesLoc = pmv.allocateNewArray(classOf[Object], capturedArgLocs.size)
-    pmv.visitArrayAssignFromAddress(capturedArgLocs, capturesLoc)
 
-    pmv.visitLdcInsn(runtimeEnvironment.className)
-    pmv.visitLdcInsn(methodName)
-    pmv.visitALoad(arrayLoc)
-    pmv.visitALoad(capturesLoc)
-    pmv.visitStaticMethodCall(classOf[LengineFn],
-                              "create",
-                              classOf[LengineFn],
-                              List(classOf[String], classOf[String], classOf[Array[String]], classOf[Array[Object]]))
+    val lambdaClsName = s"${runtimeEnvironment.className}$$$methodName"
+
+    pmv.visitTypeInsn(
+      Opcodes.NEW,
+      s"${runtimeEnvironment.className}$$$methodName"
+    )
+    pmv.visitInsn(Opcodes.DUP)
+    capturedArgLocs.foreach(capturedLoc => {
+      pmv.visitALoad(capturedLoc)
+    })
+    pmv.visitMethodInsn(
+      Opcodes.INVOKESPECIAL,
+      lambdaClsName,
+      "<init>",
+      Type.getMethodDescriptor(
+        Type.getType(Void.TYPE),
+        capturedArgLocs.map(_ => Type.getType(classOf[Object])):_*
+      ),
+      false
+    )
   }
 }

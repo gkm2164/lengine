@@ -1,11 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
-import lengine.runtime.{LengineFn, LengineMap}
-import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import lengine.functions._
+import lengine.runtime.LengineMap
 import org.objectweb.asm.Opcodes._
+import org.objectweb.asm.{MethodVisitor, Opcodes, Type}
 
 import scala.collection.mutable
 
@@ -30,6 +31,20 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
       List(classOf[Object])
     )
   }
+
+  val lambdaClass: List[Class[_]] = List(
+    classOf[LengineLambda0],
+    classOf[LengineLambda1],
+    classOf[LengineLambda2],
+    classOf[LengineLambda3],
+    classOf[LengineLambda4],
+    classOf[LengineLambda5],
+    classOf[LengineLambda6],
+    classOf[LengineLambda7],
+    classOf[LengineLambda8],
+    classOf[LengineLambda9],
+    classOf[LengineLambda10],
+  )
 
   def visitForValue(): Unit = {
     val operation :: operands = clause.body
@@ -77,18 +92,15 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
         new LispValueAsmWriter(value).visitForValue()
         mv.visitAStore(suspectFn)
 
-        val argLoc = mv.allocateNewArray(classOf[Object], operands.size)
-        mv.visitArrayAssignWithLispValues(operands, argLoc)
-
+        val lClass = lambdaClass(operands.size)
         mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
-        mv.visitTypeInsn(Opcodes.CHECKCAST,
-          Type.getType(classOf[LengineFn]).getInternalName)
-        mv.visitIntInsn(Opcodes.ALOAD, argLoc)
-        mv.visitMethodCall(
-          classOf[LengineFn],
+        mv.visitCheckCast(lClass)
+        operands.foreach(v => new LispValueAsmWriter(v).visitForValue())
+        mv.visitInterfaceMethodCall(
+          lClass,
           "invoke",
           classOf[Object],
-          List(classOf[Array[Object]])
+          operands.map(_ => classOf[Object])
         )
     }
   }

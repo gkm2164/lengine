@@ -1,5 +1,7 @@
 package lengine.runtime;
 
+import lengine.functions.LengineLambda1;
+
 public class StringSequence {
   private String str;
 
@@ -23,7 +25,7 @@ public class StringSequence {
     return str.substring(n);
   }
 
-  public String takeWhile(LengineFn fn) {
+  public String takeWhile(LengineLambda1 fn) {
     for (int i = 0; i < str.length(); i++) {
       if (!(Boolean) fn.invoke(str.charAt(i))) {
         return str.substring(0, i);
@@ -32,7 +34,7 @@ public class StringSequence {
     return str;
   }
 
-  public String dropWhile(LengineFn fn) {
+  public String dropWhile(LengineLambda1 fn) {
     for (int i = 0; i < str.length(); i++) {
       if (!(Boolean) fn.invoke(str.charAt(i))) {
         return str.substring(i);

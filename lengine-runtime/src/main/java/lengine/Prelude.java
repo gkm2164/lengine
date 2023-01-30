@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+import lengine.functions.LengineLambda1;
 import lengine.runtime.CreateIterator;
-import lengine.runtime.LengineFn;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
@@ -258,7 +258,7 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence takeWhile(LengineFn test, CreateIterator seq) {
+  public static Sequence takeWhile(LengineLambda1 test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -273,7 +273,7 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence dropWhile(LengineFn test, CreateIterator seq) {
+  public static Sequence dropWhile(LengineLambda1 test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -287,7 +287,7 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence filter(LengineFn test, CreateIterator seq) {
+  public static Sequence filter(LengineLambda1 test, CreateIterator seq) {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -300,7 +300,7 @@ public class Prelude {
     return ret;
   }
 
-  public static Sequence splitAt(LengineFn test, CreateIterator seq) {
+  public static Sequence splitAt(LengineLambda1 test, CreateIterator seq) {
     Sequence ret = new Sequence();
     Sequence head = new Sequence();
     Sequence tail = new Sequence();

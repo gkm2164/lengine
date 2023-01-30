@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import lengine.runtime.{LengineFn, LengineMap, Sequence}
+import lengine.runtime.{LengineMap, Sequence}
 
 object LengineType {
 
@@ -48,6 +48,3 @@ case object LengineObject extends LengineType {
 
 }
 
-case object LengineFunction extends LengineType {
-  override def getJvmType: Class[_ <: Object] = classOf[LengineFn]
-}
