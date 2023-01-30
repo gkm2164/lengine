@@ -2,6 +2,7 @@ package lengine.runtime;
 
 import static java.util.stream.Collectors.joining;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Objects;
 
@@ -18,6 +19,10 @@ public class Sequence implements CreateIterator {
 
   public static Sequence create() {
     return new Sequence();
+  }
+
+  public static Sequence create(Object... vars) {
+    return new Sequence(new LinkedList<>(Arrays.asList(vars)));
   }
 
   public void add(Character item) {

@@ -6,6 +6,7 @@
                        (lambda (acc elem) (+ acc elem))))
 
 (println "Testing sequence")
+(println seqs)
 (assert "sequence is sequence" (= seqs [1 2 3 4 5]))
 
 (println "Testing fold function")
@@ -20,6 +21,11 @@
 (export sum (lambda (seqs)
               (fold seqs 0 (lambda (acc elem)
                 (+ acc elem)))))
+
+(println (take 3 seqs))
+(println (drop 3 seqs))
+(println (take-while (lambda (x) (<= x 3)) seqs))
+(println (drop-while (lambda (x) (<= x 3)) seqs))
 
 (println (take 3 seqs))
 (println (drop 3 seqs))

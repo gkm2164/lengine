@@ -77,24 +77,6 @@ object AsmHelper {
       arrLoc
     }
 
-    def visitArrayAssign(values: Seq[String], arrLoc: Int): Unit =
-      values.zipWithIndex.foreach {
-        case (name, idx) =>
-          mv.visitIntInsn(Opcodes.ALOAD, arrLoc)
-          mv.visitLdcInsn(idx)
-          mv.visitLdcInsn(name)
-          mv.visitInsn(Opcodes.AASTORE)
-      }
-
-    def visitArrayAssignFromAddress(values: Seq[Int], arrLoc: Int): Unit =
-      values.zipWithIndex.foreach {
-        case (address, idx) =>
-          mv.visitIntInsn(Opcodes.ALOAD, arrLoc)
-          mv.visitLdcInsn(idx)
-          mv.visitIntInsn(Opcodes.ALOAD, address)
-          mv.visitInsn(Opcodes.AASTORE)
-      }
-
     def visitArrayAssignWithLispValues(values: Seq[LispValue], arrLoc: Int): Unit = {
       val tmpIdx = runtimeEnvironment.allocateNextVar
       values.zipWithIndex.foreach {

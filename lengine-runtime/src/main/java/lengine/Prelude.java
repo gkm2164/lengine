@@ -279,6 +279,7 @@ public class Prelude {
     while (it.hasNext()) {
       Object elem = it.next();
       if (!test.invoke(elem)) {
+        ret.add(elem);
         break;
       }
     }

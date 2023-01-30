@@ -119,27 +119,15 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
 
 
   private def declareSequence(body: List[LispValue]): Unit = {
-    val seqIdx = runtimeEnv.allocateNextVar
-
+    val arrayLoc = mv.allocateNewArray(classOf[Object], body.length)
+    mv.visitArrayAssignWithLispValues(body, arrayLoc)
+    mv.visitALoad(arrayLoc)
     mv.visitStaticMethodCall(
       classOf[Sequence],
       "create",
-      classOf[Sequence]
+      classOf[Sequence],
+      List(classOf[Array[Object]])
     )
-    mv.visitAStore(seqIdx)
-    val idx = runtimeEnv.allocateNextVar
-    body.foreach(value => {
-      mv.visitStoreLispValue(value, Some(idx))
-      mv.visitALoad(seqIdx)
-      mv.visitALoad(idx)
-      mv.visitMethodCall(
-        classOf[Sequence],
-        "add",
-        Void.TYPE,
-        List(classOf[Object])
-      )
-    })
-    mv.visitALoad(seqIdx)
   }
 
 }
