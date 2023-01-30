@@ -9,5 +9,7 @@
 (def splitted (split trimmed #\,))
 (def num-seq (map (lambda (s) (int s)) splitted))
 (def sum (fold num-seq 0 (lambda (acc elem) (+ acc elem))))
+(def avg (/ (double sum) (len num-seq)))
 
 (println sum)
+(println avg)
