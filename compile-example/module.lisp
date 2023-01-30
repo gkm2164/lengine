@@ -8,10 +8,13 @@
 
 (fn fact (n)
     (if (> n 1)
-        (* n (fact (- n 1)))
+        (* n ($ (- n 1)))
         1))
 
-(export fact fact)
+(export fact (lambda (n)
+                (if (> n 1)
+                    (* n ($ (- n 1)))
+                    1)))
 
 (fn split-real (s delim)
     (if (= 0 (len s))

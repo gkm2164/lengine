@@ -30,6 +30,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val captureVariables = new LengineVarCapture()
 
     itself.foreach(captureVariables.ignoreCapture)
+    captureVariables.ignoreCapture(EagerSymbol("$"))
     f.placeHolders.foreach({
       case symbol: LispSymbol =>
         captureVariables.ignoreCapture(symbol)
@@ -184,6 +185,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       argsType.size + 1
     )
 
+    newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0)
+
     mv.visitLabel(startLabel)
     new LispValueAsmWriter(f.body)(newRuntimeEnvironment).visitForValue(None)
 
@@ -227,7 +230,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       "<init>",
       Type.getMethodDescriptor(
         Type.getType(Void.TYPE),
-        capturedArgLocs.map(_ => Type.getType(classOf[Object])):_*
+        capturedArgLocs.map(_ => Type.getType(classOf[Object])): _*
       ),
       false
     )

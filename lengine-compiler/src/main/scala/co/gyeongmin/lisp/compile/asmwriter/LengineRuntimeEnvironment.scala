@@ -11,7 +11,7 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitor,
                                 val args: mutable.Map[LispSymbol, Int],
                                 val className: String, numberOfArgs: Int) {
-  def overrideUsedVar(used: Int) = this.varIdx.set(used)
+  def overrideUsedVar(used: Int): Unit = this.varIdx.set(used)
 
   def createChild(): LengineRuntimeEnvironment =
     new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone(), className, getLastVarIdx)
