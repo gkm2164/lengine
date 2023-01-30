@@ -8,8 +8,6 @@ import lengine.runtime._
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ Label, MethodVisitor, Type }
 
-import javax.swing.JToolBar.Separator
-
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
     "export",
@@ -18,12 +16,17 @@ object RuntimeMethodVisitor {
     "int",
     "double",
     "char",
+    "len",
     "+",
     "-",
     "*",
     "/",
     "take",
     "drop",
+    "take-while",
+    "drop-while",
+    "len",
+    "filter",
     "flatten",
     "println",
     "read-line",
@@ -59,29 +62,77 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "+"                               => visitCalc("add", operands)
-          case "-"                               => visitCalc("sub", operands)
-          case "*"                               => visitCalc("mult", operands)
-          case "/"                               => visitCalc("div", operands)
-          case "if"                              => visitIfStmt(operands)
-          case _ if compareOpMap.contains(op)    => visitCompareOps(op, operands)
-          case "not"                             => visitNotOps(operands)
-          case "take" | "drop"                   => visitSeqOp(op, operands)
-          case "flatten"                         => visitFlatten(operands)
-          case "println"                         => visitPrintln(operands)
-          case "read-line"                       => visitReadLine
-          case "str" | "int" | "double" | "char" => visitTypeCast(op, operands)
-          case "assert"                          => visitAssert(operands)
-          case "range"                           => visitRange(operands)
-          case "fold"                            => visitFold(operands)
-          case "export"                          => visitExport(operands)
-          case "import"                          => visitImport(operands)
+          case "+"                                    => visitCalc("add", operands)
+          case "-"                                    => visitCalc("sub", operands)
+          case "*"                                    => visitCalc("mult", operands)
+          case "/"                                    => visitCalc("div", operands)
+          case "if"                                   => visitIfStmt(operands)
+          case _ if compareOpMap.contains(op)         => visitCompareOps(op, operands)
+          case "not"                                  => visitNotOps(operands)
+          case "len"                                  => visitSeqOp(op, operands)
+          case "take" | "drop"                        => visitSeqOpN(op, operands)
+          case "filter" | "take-while" | "drop-while" => visitSeqOpFn(op, operands)
+          case "flatten"                              => visitFlatten(operands)
+          case "println"                              => visitPrintln(operands)
+          case "read-line"                            => visitReadLine
+          case "str" | "int" | "double" | "char"      => visitTypeCast(op, operands)
+          case "assert"                               => visitAssert(operands)
+          case "range"                                => visitRange(operands)
+          case "fold"                                 => visitFold(operands)
+          case "export"                               => visitExport(operands)
+          case "import"                               => visitImport(operands)
         }
 
     }
   }
+
+  private def visitSeqOpFn(operationName: String,
+                           operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val fn :: seq :: _ = operands
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    new LispValueAsmWriter(fn).visitForValue()
+    mv.visitCheckCast(classOf[LengineFn])
+    new LispValueAsmWriter(seq).visitForValue()
+    mv.visitCheckCast(classOf[Sequence])
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      PreludeClass.getInternalName,
+      operationName match {
+        case "filter"     => "filter"
+        case "take-while" => "takeWhile"
+        case "drop-while" => "dropWhile"
+      },
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[LengineFn]),
+        Type.getType(classOf[Sequence])
+      ),
+      false
+    )
+  }
+
   private def visitSeqOp(operationName: String,
                          operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val seq :: _ = operands
+    new LispValueAsmWriter(seq).visitForValue()
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitCheckCast(classOf[Sequence])
+    mv.visitMethodInsn(
+      INVOKESTATIC,
+      PreludeClass.getInternalName,
+      operationName,
+      Type.getMethodDescriptor(
+        Type.getType(classOf[Object]),
+        Type.getType(classOf[Sequence])
+      ),
+      false
+    )
+  }
+
+  private def visitSeqOpN(operationName: String,
+                          operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val number :: seq :: _ = operands
     new LispValueAsmWriter(number).visitForValue()
     new LispValueAsmWriter(seq).visitForValue()

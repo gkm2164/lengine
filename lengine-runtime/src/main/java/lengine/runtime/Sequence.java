@@ -70,6 +70,48 @@ public class Sequence implements CreateIterator {
     return new Sequence(subList);
   }
 
+  public Sequence takeWhile(LengineFn test) {
+    Sequence ret = new Sequence();
+    Iterator<Object> it = list.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if (!(Boolean)test.invoke(elem)) {
+        return ret;
+      }
+
+      ret.add(elem);
+    }
+
+    return ret;
+  }
+
+  public Sequence dropWhile(LengineFn test) {
+    Sequence ret = new Sequence();
+    Iterator<Object> it = list.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if (!(Boolean)test.invoke(elem)) {
+        ret.add(elem);
+        it.forEachRemaining(ret::add);
+      }
+    }
+
+    return ret;
+  }
+
+  public Sequence filter(LengineFn test) {
+    Sequence ret = new Sequence();
+    Iterator<Object> it = list.iterator();
+    while (it.hasNext()) {
+      Object elem = it.next();
+      if ((Boolean)test.invoke(elem)) {
+        ret.add(elem);
+      }
+    }
+
+    return ret;
+  }
+
   public String toString() {
     return "[" + list.stream()
         .map(Object::toString)
@@ -87,6 +129,10 @@ public class Sequence implements CreateIterator {
     }
 
     return retSeq;
+  }
+
+  public Object len() {
+    return list.size();
   }
 
   @Override

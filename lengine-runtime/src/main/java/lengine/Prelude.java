@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+import lengine.runtime.LengineFn;
 import lengine.runtime.Sequence;
 
 public class Prelude {
@@ -195,12 +196,28 @@ public class Prelude {
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
   }
 
+  public static Object len(Sequence seq) {
+    return seq.len();
+  }
+
   public static Object take(Long n, Sequence seq) {
     return seq.take(n.intValue());
   }
 
   public static Object drop(Long n, Sequence seq) {
     return seq.drop(n.intValue());
+  }
+
+  public static Object takeWhile(LengineFn fn, Sequence seq) {
+    return seq.takeWhile(fn);
+  }
+
+  public static Object dropWhile(LengineFn fn, Sequence seq) {
+    return seq.dropWhile(fn);
+  }
+
+  public static Object filter(LengineFn fn, Sequence seq) {
+    return seq.filter(fn);
   }
 
   public static Object flatten(Sequence seq) {
@@ -294,7 +311,7 @@ public class Prelude {
           throw new RuntimeException("Unable to find method main!");
         } else {
           Method mainMethod = foundMethod.get();
-          mainMethod.invoke(null, new Object[]{ new String[]{} });
+          mainMethod.invoke(null, new Object[]{new String[]{}});
         }
         alreadyLoadedClass.add(clsName);
       }
