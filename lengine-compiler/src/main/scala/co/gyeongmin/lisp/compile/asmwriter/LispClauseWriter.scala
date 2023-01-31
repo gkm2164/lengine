@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.lambdaClass
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
 import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
 import lengine.functions.LengineLambda1
@@ -59,7 +59,7 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
             new LispValueAsmWriter(value).visitForValue(needReturn = needReturn)
             mv.visitAStore(suspectFn)
 
-            val lClass = lambdaClass(operands.size)
+            val lClass = LengineLambdaClass(operands.size)
             mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
             mv.visitCheckCast(lClass)
             operands.foreach(v => mv.visitLispValue(v, needReturn = true))

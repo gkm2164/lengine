@@ -1,15 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
+import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import lengine.Prelude
-import lengine.functions.{ LengineLambda1, LengineLambda2 }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import lengine.runtime._
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ Label, Type }
-
-import java.io.PrintStream
+import org.objectweb.asm.{Label, Type}
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -62,65 +59,14 @@ object RuntimeMethodVisitor {
     "or"  -> "or"
   )
 
-  private val PreludeClass: Class[Prelude]               = classOf[Prelude]
-  private val VoidPrimitive: Class[Void]                 = java.lang.Void.TYPE
-  private val BooleanClass: Class[java.lang.Boolean]     = classOf[java.lang.Boolean]
-  private val BooleanPrimitive: Class[java.lang.Boolean] = java.lang.Boolean.TYPE
-  private val ObjectClass: Class[Object]                 = classOf[Object]
-  private val LongClass: Class[java.lang.Long]           = classOf[java.lang.Long]
-  private val StringClass: Class[java.lang.String]       = classOf[java.lang.String]
-
   def supportOperation(operation: LispValue): Boolean = operation match {
     case EagerSymbol(op) => supportedOps.contains(op) || compareOpMap.contains(op)
     case _               => false
   }
 
-  private def visitCreateEntry(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val key :: value :: Nil = operands
-    val mv                  = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key, needReturn = true)
-    mv.visitCheckCast(classOf[LengineMapKey])
-    mv.visitLispValue(value, needReturn = true)
-    mv.visitStaticMethodCall(
-      classOf[LengineMapEntry],
-      "create",
-      classOf[LengineMapEntry],
-      classOf[LengineMapKey],
-      classOf[Object]
-    )
-  }
-
-  private def visitMapKeys(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mapObj :: Nil = operands
-    val mv            = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(mapObj)
-    mv.visitCheckCast(classOf[LengineMap])
-    mv.visitMethodCall(
-      classOf[LengineMap],
-      "keys",
-      classOf[Sequence]
-    )
-  }
-
-  private def visitMapKeyCreate(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val key :: Nil = operands
-    val mv         = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key)
-    mv.visitCheckCast(classOf[String])
-    mv.visitStaticMethodCall(
-      classOf[LengineMapKey],
-      "create",
-      classOf[LengineMapKey],
-      classOf[String]
-    )
-  }
-
-  def handle(body: List[LispValue],
-             needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  def handle(body: List[LispValue], needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)])(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
     val operation :: operands = body
     operation match {
       case EagerSymbol(op) =>
@@ -156,6 +102,50 @@ object RuntimeMethodVisitor {
     }
   }
 
+  private def visitCreateEntry(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val key :: value :: Nil = operands
+    val mv                  = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(key, needReturn = true)
+    mv.visitCheckCast(LengineMapKeyClass)
+    mv.visitLispValue(value, needReturn = true)
+    mv.visitStaticMethodCall(
+      LengineMapEntryClass,
+      "create",
+      LengineMapEntryClass,
+      LengineMapKeyClass,
+      ObjectClass
+    )
+  }
+
+  private def visitMapKeys(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mapObj :: Nil = operands
+    val mv            = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(mapObj)
+    mv.visitCheckCast(LengineMapClass)
+    mv.visitMethodCall(
+      LengineMapClass,
+      "keys",
+      SequenceClass
+    )
+  }
+
+  private def visitMapKeyCreate(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val key :: Nil = operands
+    val mv         = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(key)
+    mv.visitCheckCast(StringClass)
+    mv.visitStaticMethodCall(
+      LengineMapKeyClass,
+      "create",
+      LengineMapKeyClass,
+      StringClass
+    )
+  }
+
   private def visitSeqOpFn(operationName: String,
                            operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val fn :: seq :: _ = operands
@@ -163,9 +153,9 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(fn, needReturn = true)
-    mv.visitCheckCast(classOf[LengineLambda1[java.lang.Boolean, _]])
+    mv.visitCheckCast(LengineLambdaClass(1))
     mv.visitLispValue(seq, needReturn = true)
-    mv.visitCheckCast(classOf[CreateIterator])
+    mv.visitCheckCast(CreateIteratorClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       operationName match {
@@ -174,9 +164,9 @@ object RuntimeMethodVisitor {
         case "drop-while" => "dropWhile"
         case "split-at"   => "splitAt"
       },
-      classOf[Sequence],
-      classOf[LengineLambda1[java.lang.Boolean, _]],
-      classOf[CreateIterator]
+      SequenceClass,
+      LengineLambdaClass(1),
+      CreateIteratorClass
     )
   }
 
@@ -198,13 +188,13 @@ object RuntimeMethodVisitor {
     val mv                 = runtimeEnvironment.methodVisitor
     mv.visitLispValue(number, needReturn = true)
     mv.visitLispValue(seq, needReturn = true)
-    mv.visitCheckCast(classOf[CreateIterator])
+    mv.visitCheckCast(CreateIteratorClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       operationName,
-      classOf[Sequence],
-      classOf[java.lang.Long],
-      classOf[CreateIterator]
+      SequenceClass,
+      LongClass,
+      CreateIteratorClass
     )
   }
 
@@ -213,12 +203,12 @@ object RuntimeMethodVisitor {
     val seq :: _ = operands
     val mv       = runtimeEnvironment.methodVisitor
     mv.visitLispValue(seq, needReturn = true)
-    mv.visitCheckCast(classOf[CreateIterator])
+    mv.visitCheckCast(CreateIteratorClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       op,
-      classOf[Object],
-      classOf[CreateIterator]
+      ObjectClass,
+      CreateIteratorClass
     )
   }
 
@@ -226,12 +216,12 @@ object RuntimeMethodVisitor {
     val seq :: _ = operands
     new LispValueAsmWriter(seq).visitForValue(needReturn = true)
     val mv = runtimeEnvironment.methodVisitor
-    mv.visitCheckCast(classOf[Sequence])
+    mv.visitCheckCast(SequenceClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       "flatten",
-      classOf[Object],
-      classOf[Sequence]
+      ObjectClass,
+      SequenceClass
     )
   }
 
@@ -242,9 +232,9 @@ object RuntimeMethodVisitor {
     mv.visitStaticMethodCall(
       PreludeClass,
       operation,
-      classOf[Object],
-      classOf[Object],
-      classOf[Object]
+      ObjectClass,
+      ObjectClass,
+      ObjectClass
     )
   }
 
@@ -252,14 +242,14 @@ object RuntimeMethodVisitor {
                            needReturn: Boolean)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     mv.visitFieldInsn(GETSTATIC,
-                      Type.getType(classOf[System]).getInternalName,
+                      Type.getType(SystemClass).getInternalName,
                       "out",
-                      Type.getType(classOf[PrintStream]).getDescriptor)
+                      Type.getType(PrintStreamClass).getDescriptor)
     operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString), needReturn = true))
     mv.visitMethodCall(
-      classOf[PrintStream],
+      PrintStreamClass,
       "println",
-      Void.TYPE,
+      VoidPrimitive,
       ObjectClass
     )
     if (needReturn) {
@@ -286,13 +276,13 @@ object RuntimeMethodVisitor {
   private def visitReadLine(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    mv.visitStaticMethodCall(PreludeClass, "readLine", classOf[String])
+    mv.visitStaticMethodCall(PreludeClass, "readLine", StringClass)
   }
 
   private def visitReadEof(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
 
-    mv.visitStaticMethodCall(PreludeClass, "readEof", classOf[String])
+    mv.visitStaticMethodCall(PreludeClass, "readEof", StringClass)
   }
 
   private def visitReadFile(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
@@ -301,8 +291,8 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(filename, needReturn = true)
-    mv.visitCheckCast(classOf[String])
-    mv.visitStaticMethodCall(PreludeClass, "readFile", classOf[String], classOf[String])
+    mv.visitCheckCast(StringClass)
+    mv.visitStaticMethodCall(PreludeClass, "readFile", StringClass, StringClass)
   }
 
   private def visitReadFileSeq(
@@ -313,8 +303,8 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(filename, needReturn = true)
-    mv.visitCheckCast(classOf[String])
-    mv.visitStaticMethodCall(PreludeClass, "readFileSeq", classOf[FileSequence], classOf[String])
+    mv.visitCheckCast(StringClass)
+    mv.visitStaticMethodCall(PreludeClass, "readFileSeq", FileSequenceClass, StringClass)
   }
 
   private def visitCompareOps(op: String, operands: List[LispValue])(
@@ -328,11 +318,11 @@ object RuntimeMethodVisitor {
       .foreach(
         name =>
           mv.visitStaticMethodCall(
-            classOf[Prelude],
+            PreludeClass,
             name,
-            classOf[java.lang.Boolean],
-            classOf[Object],
-            classOf[Object]
+            BooleanClass,
+            ObjectClass,
+            ObjectClass
         )
       )
   }
@@ -348,7 +338,9 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitIfStmt(operands: List[LispValue], tailRecReference: Option[(LispSymbol, Label)])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitIfStmt(operands: List[LispValue], tailRecReference: Option[(LispSymbol, Label)])(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
     val condition :: ifmatch :: elsematch :: Nil = operands
 
     val mv = runtimeEnvironment.methodVisitor
@@ -384,12 +376,12 @@ object RuntimeMethodVisitor {
     mv.visitLispValue(to, needReturn = true)
     mv.visitCheckCast(LongClass)
     mv.visitStaticMethodCall(
-      classOf[RangeSequence],
+      RangeSequenceClass,
       op match {
         case "range"  => "createRange"
         case "=range" => "createInclusiveRange"
       },
-      classOf[RangeSequence],
+      RangeSequenceClass,
       LongClass,
       LongClass
     )
@@ -427,11 +419,11 @@ object RuntimeMethodVisitor {
     mv.visitLispValue(init, needReturn = true)
     mv.visitAStore(accLoc)
     mv.visitLispValue(seq, needReturn = true)
-    mv.visitCheckCast(classOf[CreateIterator])
+    mv.visitCheckCast(CreateIteratorClass)
     mv.visitInterfaceMethodCall(
-      classOf[CreateIterator],
+      CreateIteratorClass,
       "iterator",
-      classOf[LengineIterator]
+      LengineIteratorClass
     )
 
     val seqItLoc = runtimeEnvironment.allocateNextVar
@@ -440,7 +432,7 @@ object RuntimeMethodVisitor {
     mv.visitLabel(startLoop)
     mv.visitALoad(seqItLoc)
     mv.visitInterfaceMethodCall(
-      classOf[LengineIterator],
+      LengineIteratorClass,
       "hasNext",
       BooleanPrimitive
     )
@@ -468,11 +460,11 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     mv.visitALoad(lambdaLoc)
-    mv.visitCheckCast(classOf[LengineLambda2[_, _, _]])
+    mv.visitCheckCast(LengineLambdaClass(2))
     mv.visitALoad(accLoc)
     mv.visitALoad(elemLoc)
     mv.visitInterfaceMethodCall(
-      classOf[LengineLambda2[_, _, _]],
+      LengineLambdaClass(2),
       "invoke",
       ObjectClass,
       ObjectClass,

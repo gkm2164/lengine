@@ -8,9 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
 object LengineEnv {
-  def hasFn(operation: LispSymbol): Boolean = fnStack.contains(operation)
-
-  def getFn(operation: LispSymbol): Option[LengineFnDef] = fnStack.get(operation)
 
   type Binder = (Label, Label, Int) => Unit
 

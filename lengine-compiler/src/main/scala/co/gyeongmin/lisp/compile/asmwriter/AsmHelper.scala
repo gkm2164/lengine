@@ -1,18 +1,18 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineUnitClass
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import lengine.runtime.LengineUnit
-import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
 import org.objectweb.asm.Opcodes._
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
 
 object AsmHelper {
   implicit class MethodVisitorExtension(mv: MethodVisitor)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
     def visitUnit(): Unit =
       mv.visitStaticMethodCall(
-        classOf[LengineUnit],
+        LengineUnitClass,
         "create",
-        classOf[LengineUnit]
+        LengineUnitClass
       )
 
     private def visitCommonMethodCall(callType: Int,
@@ -66,13 +66,11 @@ object AsmHelper {
     }
 
     def visitArrayAssignWithLispValues(values: Seq[LispValue], arrLoc: Int): Unit = {
-      val tmpIdx = runtimeEnvironment.allocateNextVar
       values.zipWithIndex.foreach {
         case (value, idx) =>
-          visitStoreLispValue(value, Some(tmpIdx))
           mv.visitALoad(arrLoc)
           mv.visitLdcInsn(idx)
-          mv.visitALoad(tmpIdx)
+          mv.visitLispValue(value)
           mv.visitInsn(Opcodes.AASTORE)
       }
     }
@@ -80,7 +78,7 @@ object AsmHelper {
     def visitCheckCast(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
 
-    def visitStoreLispValue(value: LispValue, location: Option[Int] = None): Int = {
+    private def visitStoreLispValue(value: LispValue, location: Option[Int] = None): Int = {
       val idx = location.getOrElse(runtimeEnvironment.allocateNextVar)
       new LispValueAsmWriter(value).visitForValue(needReturn = true)
       visitAStore(idx)

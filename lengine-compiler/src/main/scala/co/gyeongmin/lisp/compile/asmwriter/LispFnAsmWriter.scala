@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.LengineEnv.LengineFnDef
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.lambdaClass
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -68,7 +68,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     lambdaClassWriter.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC,
       lambdaClassName,
       null, Type.getType(classOf[Object]).getInternalName,
-      Array(Type.getType(lambdaClass(f.placeHolders.length)).getInternalName))
+      Array(Type.getType(LengineLambdaClass(f.placeHolders.length)).getInternalName))
 
     capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
       case (_, idx) =>

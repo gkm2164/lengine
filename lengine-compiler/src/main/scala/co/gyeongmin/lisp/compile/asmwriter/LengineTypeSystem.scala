@@ -1,24 +1,34 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  CharacterClass,
+  CharacterPrimitive,
+  ClassClass,
+  DoubleClass,
+  DoublePrimitive,
+  LongClass,
+  LongPrimitive,
+  ObjectClass,
+  PreludeClass
+}
 import co.gyeongmin.lisp.errors.eval.EvalError
-import co.gyeongmin.lisp.lexer.statements.{LispLetDef, LispLoopStmt}
+import co.gyeongmin.lisp.lexer.statements.{ LispLetDef, LispLoopStmt }
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispSeq, LispString}
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispSeq, LispString }
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import lengine.Prelude
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
 import org.objectweb.asm.Type
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
     def boxing(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
       val (boxed, primitive) = lengineType match {
-        case LengineChar    => (classOf[java.lang.Character], java.lang.Character.TYPE)
-        case LengineInteger => (classOf[java.lang.Long], java.lang.Long.TYPE)
-        case LengineDouble  => (classOf[java.lang.Double], java.lang.Double.TYPE)
+        case LengineChar    => (CharacterClass, CharacterPrimitive)
+        case LengineInteger => (LongClass, LongPrimitive)
+        case LengineDouble  => (DoubleClass, DoublePrimitive)
         case LengineString  => return
       }
       val mv = runtimeEnvironment.methodVisitor
@@ -38,11 +48,11 @@ object LengineTypeSystem {
       }
       mv.visitLdcInsn(Type.getType(toType.getJvmType))
       mv.visitStaticMethodCall(
-        classOf[Prelude],
+        PreludeClass,
         "cast",
-        classOf[Object],
-        classOf[Object],
-        classOf[Class[_]]
+        ObjectClass,
+        ObjectClass,
+        ClassClass
       )
     }
   }

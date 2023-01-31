@@ -4,4 +4,5 @@ lengine.jar
 lengine-runtime.jar
 lenginec.jar
 .DS_Store
+./build/**
 node_modules/!/Hello.class

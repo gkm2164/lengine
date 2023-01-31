@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
+import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
@@ -9,7 +10,6 @@ import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import lengine.runtime.{LengineMap, LengineMapKey, Sequence}
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
 import scala.annotation.tailrec
@@ -18,20 +18,19 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
   import LengineTypeSystem._
 
   val mv: MethodVisitor = runtimeEnv.methodVisitor
-  private def boxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit = {
+  private def boxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit =
     mv.visitStaticMethodCall(
       boxedType,
       "valueOf",
       boxedType,
       primitiveType
     )
-  }
 
   private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
     mv.visitStaticMethodCall(
-      classOf[LengineMap],
+      LengineMapClass,
       "create",
-      classOf[LengineMap]
+      LengineMapClass
     )
     val mapIdx = runtimeEnv.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
@@ -41,31 +40,34 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         mv.visitLispValue(symbol, needReturn = true)
         mv.visitLispValue(value, needReturn = true)
         mv.visitMethodCall(
-          classOf[LengineMap],
+          LengineMapClass,
           "put",
-          Void.TYPE,
-          classOf[LengineMapKey], classOf[Object]
+          VoidPrimitive,
+          LengineMapKeyClass,
+          ObjectClass
         )
     }
     mv.visitALoad(mapIdx)
   }
 
-  def visitForValue(finalCast: Option[LengineType] = None, tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
+  def visitForValue(finalCast: Option[LengineType] = None,
+                    tailRecReference: Option[(LispSymbol, Label)] = None,
+                    needReturn: Boolean): Unit = value match {
     case LispTrue =>
       mv.visitLdcInsn(true)
-      boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
+      boxing(BooleanClass, BooleanPrimitive)
     case LispFalse =>
       mv.visitLdcInsn(false)
-      boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
+      boxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
-      boxing(classOf[Character], Character.TYPE)
+      boxing(CharacterClass, CharacterPrimitive)
     case IntegerNumber(n) =>
       mv.visitLdcInsn(n)
-      boxing(classOf[java.lang.Long], java.lang.Long.TYPE)
+      boxing(LongClass, LongPrimitive)
     case FloatNumber(n) =>
       mv.visitLdcInsn(n)
-      boxing(classOf[java.lang.Double], java.lang.Double.TYPE)
+      boxing(DoubleClass, DoublePrimitive)
     case LispString(str) =>
       mv.visitLdcInsn(str)
     case LispList(body) =>
@@ -77,10 +79,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case ObjectReferSymbol(key) =>
       mv.visitLdcInsn(key)
       mv.visitStaticMethodCall(
-        classOf[LengineMapKey],
+        LengineMapKeyClass,
         "create",
-        classOf[LengineMapKey],
-        classOf[String]
+        LengineMapKeyClass,
+        StringClass
       )
     case LispLetDef(name, value, body) =>
       val newEnv = runtimeEnv.createChild()
@@ -107,14 +109,16 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       } else {
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
       }
-    case l@LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn, tailRecReference = tailRecReference)
+    case l @ LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn, tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
       new LispValueAsmWriter(value).visitForValue(None, needReturn = true, tailRecReference = tailRecReference)
       value.resolveType match {
         case Left(err) =>
           new RuntimeException(s"Unable to resolve the type for $symbol: $err")
         case Right(varType) =>
-          val varIdx = LengineEnv.callLastWithLabel(symbol.name, varType, new LispValueDefWriter(symbol, value).writeValue)(runtimeEnv)
+          val varIdx = LengineEnv.callLastWithLabel(symbol.name,
+                                                    varType,
+                                                    new LispValueDefWriter(symbol, value).writeValue)(runtimeEnv)
           mv.visitAStore(varIdx)
           runtimeEnv.registerVariable(symbol, varIdx)
 
@@ -128,16 +132,15 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       new LispFnAsmWriter(genDef).writeValue()
   }
 
-
   private def declareSequence(body: List[LispValue]): Unit = {
-    val arrayLoc = mv.allocateNewArray(classOf[Object], body.length)
+    val arrayLoc = mv.allocateNewArray(ObjectClass, body.length)
     mv.visitArrayAssignWithLispValues(body, arrayLoc)
     mv.visitALoad(arrayLoc)
     mv.visitStaticMethodCall(
-      classOf[Sequence],
+      SequenceClass,
       "create",
-      classOf[Sequence],
-      classOf[Array[Object]]
+      SequenceClass,
+      ArrayObjectClass
     )
   }
 

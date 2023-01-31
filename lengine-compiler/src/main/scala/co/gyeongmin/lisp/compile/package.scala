@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
