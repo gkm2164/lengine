@@ -2,11 +2,13 @@ package co.gyeongmin.lisp.errors
 
 import co.gyeongmin.lisp.errors.parser._
 import co.gyeongmin.lisp.errors.tokenizer.TokenizeError
+import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispIn
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import org.scalatest.{FlatSpec, Matchers}
 
 class ParseErrorTest extends FlatSpec with Matchers {
+  val anyLocation: TokenLocation = TokenLocation(0, 0)
   val mockTokenizeError: TokenizeError = new TokenizeError {
     override def message: String = "hello"
   }
@@ -19,8 +21,8 @@ class ParseErrorTest extends FlatSpec with Matchers {
     UnableToParseNumberTypeError(LispUnit).message should be(
       s"given $LispUnit is not a number type"
     )
-    UnexpectedTokenError(LispIn, "hello").message should be(
-      s"unknown token: $LispIn, hello"
+    UnexpectedTokenError(LispIn, anyLocation, "hello").message should be(
+      s"unexpected token: 'in'(line: 0, column:0)"
     )
   }
 

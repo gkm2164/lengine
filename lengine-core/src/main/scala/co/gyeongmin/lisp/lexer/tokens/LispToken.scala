@@ -1,23 +1,11 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors.tokenizer.{
-  RatioUnderZeroNotAllowedError,
-  TokenizeError,
-  UnknownTokenError
-}
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import co.gyeongmin.lisp.lexer.values.numbers.{
-  FloatNumber,
-  IntegerNumber,
-  RatioNumber
-}
+import co.gyeongmin.lisp.errors.tokenizer.{ RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError }
+import co.gyeongmin.lisp.lexer.TokenLocation
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber, RatioNumber }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
-  LazySymbol,
-  ListSymbol,
-  ObjectReferSymbol
-}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
 
 import scala.util.matching.Regex
 
@@ -34,13 +22,13 @@ object LispToken {
   private val ListSymbolRegex: Regex =
     """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
   private val SpecialValueRegex: Regex = """#(.+)""".r
-  private val NumberRegex: Regex = """([+\-])?(\d+)""".r
-  private val RatioRegex: Regex = """([+\-]?)(\d+)/(\d+)""".r
+  private val NumberRegex: Regex       = """([+\-])?(\d+)""".r
+  private val RatioRegex: Regex        = """([+\-]?)(\d+)/(\d+)""".r
   private val FloatingPointRegex: Regex =
     """([+\-])?(\d+)(\.\d*)?([esfdlESFDL]([+\-]?\d+))?""".r
   private val StringRegex: Regex = """^"(.*)""".r
 
-  def apply(code: String): Either[TokenizeError, LispToken] = code match {
+  private def mapToken(code: String, tokenLocation: TokenLocation): Either[TokenizeError, LispToken] = code match {
     case ""                      => Right(LispNop)
     case "("                     => Right(LeftPar)
     case ")"                     => Right(RightPar)
@@ -78,10 +66,13 @@ object LispToken {
     case ListSymbolRegex(name)        => Right(ListSymbol(name))
     case SymbolRegex(name)            => Right(EagerSymbol(name))
     case StringRegex(str)             => Right(LispString(str.init))
-    case str                          => Left(UnknownTokenError(s"what is it? [$str]"))
+    case str                          => Left(UnknownTokenError(s"what is it? [$str]:${tokenLocation.line}:${tokenLocation.column}"))
   }
 
-  def parseInteger(sign: String, str: String): Long = {
+  def apply(code: String, location: TokenLocation): Either[TokenizeError, (LispToken, TokenLocation)] =
+    mapToken(code, location).map(result => (result, location))
+
+  private def parseInteger(sign: String, str: String): Long = {
     val numberPart = str.foldLeft(0L)((acc, elem) => {
       acc * 10 + digitMap(elem)
     })
@@ -90,7 +81,7 @@ object LispToken {
   }
 
   private def mapFor(
-    str: Iterable[Char],
-    kv: Char => (Char, Int)
+      str: Iterable[Char],
+      kv: Char => (Char, Int)
   ): Map[Char, Int] = str.map(kv).toMap
 }

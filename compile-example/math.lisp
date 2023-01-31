@@ -1,10 +1,5 @@
 (module Math)
 
-(fn fact (n)
-    (if (> n 1)
-        (* n (fact (- n 1)))
-        1))
-
 (export fact (lambda (n)
                  (if (> n 1)
                      (* n ($ (- n 1)))

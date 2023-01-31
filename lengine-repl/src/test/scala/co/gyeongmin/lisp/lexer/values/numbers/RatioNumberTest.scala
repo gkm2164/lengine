@@ -1,14 +1,17 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.errors.eval.UnimplementedOperationError
+import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import org.scalatest.{FlatSpec, Matchers}
 
 class RatioNumberTest extends FlatSpec with Matchers {
+  val anyLocation: TokenLocation = TokenLocation(0, 0)
+
   "tokenizer" should "parse" in {
-    LispToken("3/5") should be(Right(RatioNumber(3, 5)))
+    LispToken("3/5", anyLocation) should be(Right(RatioNumber(3, 5), TokenLocation(0,0)))
   }
 
   it should "pass" in {

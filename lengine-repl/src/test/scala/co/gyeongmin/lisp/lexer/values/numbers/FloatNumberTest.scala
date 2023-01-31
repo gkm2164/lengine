@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.lexer.values.numbers
 
+import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
@@ -13,8 +14,10 @@ class FloatNumberTest extends FlatSpec with Matchers {
   val complexNumber: ComplexNumber =
     ComplexNumber(FloatNumber(3), FloatNumber(1))
 
+  val anyLocation = TokenLocation(0, 0)
+
   "tokenizer" should "come" in {
-    LispToken("1.0") should be(Right(FloatNumber(1.0)))
+    LispToken("1.0", anyLocation) should be(Right(FloatNumber(1.0), anyLocation))
   }
 
   "arithmetic operations" should "work" in {

@@ -2,21 +2,22 @@ package co.gyeongmin.lisp
 
 import cats.syntax.either._
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.debug.{ Debugger, ReplDebugger }
+import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.lexer.tokens.{ LispToken, SpecialToken }
+import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
-import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
-import co.gyeongmin.lisp.lexer.values.functions.{ GeneralLispFunc, LispFunc, OverridableFunc }
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc, OverridableFunc}
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ListSymbol }
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ListSymbol}
 import lexer.values._
-import lexer.{ StdInReader, Tokenizer }
+import lexer.{StdInReader, TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
 import errors.LispError
+
 import java.util.concurrent.atomic.AtomicLong
 import scala.annotation.tailrec
 import scala.io.Source
@@ -291,11 +292,9 @@ package object execution {
       }
   }
 
-  val PROMPT: LispString = LispString("lengine")
-
   private val inc = new AtomicLong()
 
-  private def evalLoop(tokens: Stream[LispToken], env: LispEnvironment)(
+  private def evalLoop(tokens: Stream[(LispToken, TokenLocation)], env: LispEnvironment)(
       implicit debugger: Option[Debugger]
   ): Either[(EvalError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {
@@ -328,7 +327,7 @@ package object execution {
 
   @tailrec
   private def executeEngine(iterator: Iterator[Char])(env: LispEnvironment): Unit = {
-    val tokenizer                               = Tokenizer(iterator)
+    val tokenizer                               = Tokenizer(iterator.map(ch => (ch, TokenLocation(0, 0))))
     implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger)
     runLoop(tokenizer, env) match {
       case Right(_)                                       => ()

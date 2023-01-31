@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.lexer.Tokenizer
+import co.gyeongmin.lisp.lexer.{TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
@@ -12,12 +12,12 @@ import scala.io.Source
 
 object Main {
   @tailrec
-  private def compileLoop(acc: Vector[LispValue], tokenStream: Stream[LispToken]): List[LispValue] =
-    tokenStream.dropWhile(_ == LispNop) match {
+  private def compileLoop(acc: Vector[LispValue], tokenStream: Stream[(LispToken, TokenLocation)]): List[LispValue] =
+    tokenStream.dropWhile(_._1 == LispNop) match {
       case Stream.Empty => acc.toList
       case _ =>
         parseValue(tokenStream) match {
-          case Left(err) => throw new RuntimeException(s"Error while parse: $err")
+          case Left(err) => throw new RuntimeException(s"Error while parse: ${err.message}")
           case Right((lispValue, remain)) => compileLoop(acc :+ lispValue, remain)
         }
     }
@@ -44,17 +44,23 @@ object Main {
   def main(args: Array[String]): Unit = {
     val startTime  = System.currentTimeMillis()
     val compileOps = parseArgs(args.toList, LengineCompileOptions(sourceFileOpt = None, classNameOpt = None))
-    val tokenizer  = Tokenizer(Source.fromFile(compileOps.sourceFile))
+    val codeSource = Source.fromFile(compileOps.sourceFile)
+    val code = codeSource.mkString
+    try {
+      val tokenizer = Tokenizer(code)
 
-    tokenizer.getTokenStream
-      .map(tokenStream => compileLoop(Vector(), tokenStream))
-      .foreach(lispValues => {
-        val LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) = lispValues.head
-        val ret = writeClass(clsName, lispValues.tail)
-        val fos = new FileOutputStream(s"$clsName.class")
-        fos.write(ret)
-        fos.close()
-      })
+      tokenizer.getTokenStream
+        .map(tokenStream => compileLoop(Vector(), tokenStream))
+        .foreach(lispValues => {
+          val LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) = lispValues.head
+          val ret = writeClass(clsName, lispValues.tail)
+          val fos = new FileOutputStream(s"$clsName.class")
+          fos.write(ret)
+          fos.close()
+        })
+    } catch {
+      case re: RuntimeException => println(re.getMessage)
+    }
 
     println(s"Compiled in ${System.currentTimeMillis() - startTime}ms.")
   }
