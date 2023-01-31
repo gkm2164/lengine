@@ -91,7 +91,7 @@ object RuntimeMethodVisitor {
 
   private def visitMapKeys(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mapObj :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv            = runtimeEnvironment.methodVisitor
     mv.visitLispValue(mapObj)
     mv.visitCheckCast(classOf[LengineMap])
     mv.visitMethodCall(
@@ -101,9 +101,11 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitMapKeyCreate(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitMapKeyCreate(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val key :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv         = runtimeEnvironment.methodVisitor
     mv.visitLispValue(key)
     mv.visitCheckCast(classOf[String])
     mv.visitStaticMethodCall(
@@ -314,9 +316,10 @@ object RuntimeMethodVisitor {
 
   private def visitIfStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val condition :: ifmatch :: elsematch :: Nil = operands
-    val mv                                       = runtimeEnvironment.methodVisitor
 
-    new LispValueAsmWriter(condition).visitForValue(needReturn = true)
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(condition, needReturn = true)
+    mv.visitCheckCast(BooleanClass)
     mv.visitMethodCall(
       BooleanClass,
       "booleanValue",
@@ -359,14 +362,11 @@ object RuntimeMethodVisitor {
   }
 
   private def visitAssert(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv                  = runtimeEnvironment.methodVisitor
     val message :: v :: Nil = operands
 
-    val messageLoc = mv.visitStoreLispValue(message)
-    val vLoc       = mv.visitStoreLispValue(v)
-
-    mv.visitALoad(messageLoc)
-    mv.visitALoad(vLoc)
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(message, needReturn = true)
+    mv.visitLispValue(v, needReturn = true)
     mv.visitStaticMethodCall(
       PreludeClass,
       "assertTrue",

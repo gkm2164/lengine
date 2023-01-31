@@ -31,3 +31,9 @@
                 (if (> n 1)
                     (* n ($ (- n 1)))
                     1)))
+
+(export filter2 (lambda (xs p)
+        (fold xs nil (lambda (acc elem)
+                             (if (p elem)
+                                 (+ acc [elem])
+                                 acc)))))
