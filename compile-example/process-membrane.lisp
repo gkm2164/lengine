@@ -5,7 +5,7 @@
 
 (def all-data (read-file "./102521_membrane_GC_cell_lines.csv"))
 
-(def splitted (split all-data #\Return))
+(def splitted (split all-data #\Linefeed))
 
 (def first-values (loop for x in splitted
                         (let (line (split x #\,))
