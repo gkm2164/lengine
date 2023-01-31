@@ -12,7 +12,7 @@
                                          (let (ks (keys obj))
                                          (let (key-values (loop for k in ks
                                                                 (let (value (k obj))
-                                                                (let (object-key (+ "\"" (+ (str k) "\":")))
+                                                                (let (object-key (+ "\"" (+ (get k) "\":")))
                                                                      (+ object-key (to-json value))))))
                                                (+ (+ "{" (join key-values #\,)) "}")))))
                  (if (bool? obj)

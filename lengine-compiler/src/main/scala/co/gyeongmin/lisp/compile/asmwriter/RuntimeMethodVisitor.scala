@@ -45,6 +45,7 @@ object RuntimeMethodVisitor {
     "tail",
     "entry",
     "keys",
+    "get",
     "key",
     "bool?",
     "char?",
@@ -71,8 +72,9 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-  private def visitTypeCheck(op: String,
-                             operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitTypeCheck(op: String, operands: List[LispValue])(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
     val t = op.dropRight(1)
     val cls = t match {
       case "bool"   => BooleanClass
@@ -85,7 +87,7 @@ object RuntimeMethodVisitor {
     }
 
     val value :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv           = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(value)
     mv.visitTypeInsn(INSTANCEOF, Type.getType(cls).getInternalName)
@@ -123,6 +125,7 @@ object RuntimeMethodVisitor {
           case "import"                                                                => visitImport(operands)
           case "entry"                                                                 => visitCreateEntry(operands)
           case "key"                                                                   => visitMapKeyCreate(operands)
+          case "get"                                                                   => visitGetKeyName(operands)
           case "keys"                                                                  => visitMapKeys(operands)
           case "bool?" | "char?" | "int?" | "double?" | "string?" | "object?" | "seq?" => visitTypeCheck(op, operands)
           case _ if compareOpMap.contains(op)                                          => visitCompareOps(op, operands)
@@ -171,6 +174,20 @@ object RuntimeMethodVisitor {
       LengineMapKeyClass,
       "create",
       LengineMapKeyClass,
+      StringClass
+    )
+  }
+
+  private def visitGetKeyName(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val key :: Nil = operands
+    val mv         = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(key)
+    mv.visitCheckCast(LengineMapKeyClass)
+    mv.visitMethodCall(
+      LengineMapKeyClass,
+      "getKey",
       StringClass
     )
   }
