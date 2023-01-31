@@ -3,10 +3,10 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 import lengine.runtime._
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{Label, Type}
+import org.objectweb.asm.{ Label, Type }
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -45,7 +45,14 @@ object RuntimeMethodVisitor {
     "tail",
     "entry",
     "keys",
-    "key"
+    "key",
+    "bool?",
+    "char?",
+    "int?",
+    "double?",
+    "string?",
+    "seq?",
+    "object?",
   )
 
   private val compareOpMap = Map(
@@ -64,6 +71,27 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
+  private def visitTypeCheck(op: String,
+                             operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val t = op.dropRight(1)
+    val cls = t match {
+      case "bool"   => BooleanClass
+      case "char"   => CharacterClass
+      case "int"    => LongClass
+      case "double" => DoubleClass
+      case "string" => StringClass
+      case "seq"    => SequenceClass
+      case "object" => LengineMapClass
+    }
+
+    val value :: Nil = operands
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitLispValue(value)
+    mv.visitTypeInsn(INSTANCEOF, Type.getType(cls).getInternalName)
+    mv.visitBoxing(BooleanClass, BooleanPrimitive)
+  }
+
   def handle(body: List[LispValue], needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
@@ -71,32 +99,33 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "+"                                                 => visitCalc("add", operands)
-          case "-"                                                 => visitCalc("sub", operands)
-          case "*"                                                 => visitCalc("mult", operands)
-          case "/"                                                 => visitCalc("div", operands)
-          case "if"                                                => visitIfStmt(operands, tailRecReference)
-          case "not"                                               => visitNotOps(operands)
-          case "len"                                               => visitLenOp(operands)
-          case "take" | "drop"                                     => visitSeqOpN(op, operands)
-          case "filter" | "take-while" | "drop-while" | "split-at" => visitSeqOpFn(op, operands)
-          case "head" | "tail"                                     => visitSeqUOps(op, operands)
-          case "flatten"                                           => visitFlatten(operands)
-          case "println"                                           => visitPrintln(operands, needReturn)
-          case "read-line"                                         => visitReadLine
-          case "read-eof"                                          => visitReadEof
-          case "read-file"                                         => visitReadFile(operands)
-          case "read-file-seq"                                     => visitReadFileSeq(operands)
-          case "str" | "int" | "double" | "char" | "seq"           => visitTypeCast(op, operands)
-          case "assert"                                            => visitAssert(operands)
-          case "range" | "=range"                                  => visitRange(op, operands)
-          case "fold"                                              => visitFold(operands)
-          case "export"                                            => visitExport(operands)
-          case "import"                                            => visitImport(operands)
-          case "entry"                                             => visitCreateEntry(operands)
-          case "key"                                               => visitMapKeyCreate(operands)
-          case "keys"                                              => visitMapKeys(operands)
-          case _ if compareOpMap.contains(op)                      => visitCompareOps(op, operands)
+          case "+"                                                                     => visitCalc("add", operands)
+          case "-"                                                                     => visitCalc("sub", operands)
+          case "*"                                                                     => visitCalc("mult", operands)
+          case "/"                                                                     => visitCalc("div", operands)
+          case "if"                                                                    => visitIfStmt(operands, tailRecReference)
+          case "not"                                                                   => visitNotOps(operands)
+          case "len"                                                                   => visitLenOp(operands)
+          case "take" | "drop"                                                         => visitSeqOpN(op, operands)
+          case "filter" | "take-while" | "drop-while" | "split-at"                     => visitSeqOpFn(op, operands)
+          case "head" | "tail"                                                         => visitSeqUOps(op, operands)
+          case "flatten"                                                               => visitFlatten(operands)
+          case "println"                                                               => visitPrintln(operands, needReturn)
+          case "read-line"                                                             => visitReadLine
+          case "read-eof"                                                              => visitReadEof
+          case "read-file"                                                             => visitReadFile(operands)
+          case "read-file-seq"                                                         => visitReadFileSeq(operands)
+          case "str" | "int" | "double" | "char" | "seq"                               => visitTypeCast(op, operands)
+          case "assert"                                                                => visitAssert(operands)
+          case "range" | "=range"                                                      => visitRange(op, operands)
+          case "fold"                                                                  => visitFold(operands)
+          case "export"                                                                => visitExport(operands)
+          case "import"                                                                => visitImport(operands)
+          case "entry"                                                                 => visitCreateEntry(operands)
+          case "key"                                                                   => visitMapKeyCreate(operands)
+          case "keys"                                                                  => visitMapKeys(operands)
+          case "bool?" | "char?" | "int?" | "double?" | "string?" | "object?" | "seq?" => visitTypeCheck(op, operands)
+          case _ if compareOpMap.contains(op)                                          => visitCompareOps(op, operands)
         }
 
     }

@@ -18,13 +18,6 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
   import LengineTypeSystem._
 
   val mv: MethodVisitor = runtimeEnv.methodVisitor
-  private def boxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit =
-    mv.visitStaticMethodCall(
-      boxedType,
-      "valueOf",
-      boxedType,
-      primitiveType
-    )
 
   private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
     mv.visitStaticMethodCall(
@@ -55,19 +48,19 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
                     needReturn: Boolean): Unit = value match {
     case LispTrue =>
       mv.visitLdcInsn(true)
-      boxing(BooleanClass, BooleanPrimitive)
+      mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispFalse =>
       mv.visitLdcInsn(false)
-      boxing(BooleanClass, BooleanPrimitive)
+      mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) =>
       mv.visitLdcInsn(ch)
-      boxing(CharacterClass, CharacterPrimitive)
+      mv.visitBoxing(CharacterClass, CharacterPrimitive)
     case IntegerNumber(n) =>
       mv.visitLdcInsn(n)
-      boxing(LongClass, LongPrimitive)
+      mv.visitBoxing(LongClass, LongPrimitive)
     case FloatNumber(n) =>
       mv.visitLdcInsn(n)
-      boxing(DoubleClass, DoublePrimitive)
+      mv.visitBoxing(DoubleClass, DoublePrimitive)
     case LispString(str) =>
       mv.visitLdcInsn(str)
     case LispList(body) =>

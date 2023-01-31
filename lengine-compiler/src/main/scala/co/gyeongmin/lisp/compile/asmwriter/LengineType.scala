@@ -1,30 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import lengine.Prelude
-import lengine.functions.{
-  LengineLambda0,
-  LengineLambda1,
-  LengineLambda10,
-  LengineLambda2,
-  LengineLambda3,
-  LengineLambda4,
-  LengineLambda5,
-  LengineLambda6,
-  LengineLambda7,
-  LengineLambda8,
-  LengineLambda9
-}
-import lengine.runtime.{
-  CreateIterator,
-  FileSequence,
-  LengineIterator,
-  LengineMap,
-  LengineMapEntry,
-  LengineMapKey,
-  LengineUnit,
-  RangeSequence,
-  Sequence
-}
+import lengine.functions.{LengineLambda0, LengineLambda1, LengineLambda10, LengineLambda2, LengineLambda3, LengineLambda4, LengineLambda5, LengineLambda6, LengineLambda7, LengineLambda8, LengineLambda9}
+import lengine.runtime.{CreateIterator, FileSequence, LengineIterator, LengineMap, LengineMapEntry, LengineMapKey, LengineUnit, RangeSequence, Sequence}
+import org.objectweb.asm.MethodVisitor
 
 import java.io.PrintStream
 

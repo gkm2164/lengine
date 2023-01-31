@@ -83,5 +83,13 @@ object AsmHelper {
                        needReturn: Boolean = false,
                        tailRecReference: Option[(LispSymbol, Label)] = None): Unit =
       new LispValueAsmWriter(value).visitForValue(finalCast, tailRecReference, needReturn)
+
+    def visitBoxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit =
+      mv.visitStaticMethodCall(
+        boxedType,
+        "valueOf",
+        boxedType,
+        primitiveType
+      )
   }
 }

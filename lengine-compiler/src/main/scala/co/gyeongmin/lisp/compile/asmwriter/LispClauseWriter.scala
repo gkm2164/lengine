@@ -1,15 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
 import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
 import lengine.functions.LengineLambda1
 import lengine.runtime.{ LengineMap, LengineMapKey }
-import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ Label, MethodVisitor, Opcodes }
-
-import scala.collection.mutable
 
 class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 

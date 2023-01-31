@@ -79,4 +79,10 @@ class MainTest extends FlatSpec with Matchers {
       "./compile-example/process-membrane-2.lisp",
     ))
   }
+
+  "string test compile json.lisp" should "run and return" in {
+    Main.main(Array(
+      "./compile-example/json.lisp",
+    ))
+  }
 }
