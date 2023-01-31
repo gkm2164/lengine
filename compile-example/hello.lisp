@@ -1,5 +1,7 @@
 (module Hello)
 
+(def start (now))
+
 (println "=== Declare variables ===")
 (def v 3)
 (def str "Something Wonderful!")
@@ -93,3 +95,5 @@
 (println (+ "ID: " (:id object)))
 (println (+ "Name: " (:name object)))
 (println (+ "Value: " (:value object)))
+
+(println (- (now) start))

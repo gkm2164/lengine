@@ -54,6 +54,7 @@ object RuntimeMethodVisitor {
     "string?",
     "seq?",
     "object?",
+    "now"
   )
 
   private val compareOpMap = Map(
@@ -94,6 +95,18 @@ object RuntimeMethodVisitor {
     mv.visitBoxing(BooleanClass, BooleanPrimitive)
   }
 
+  private def visitNow()(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitStaticMethodCall(
+      SystemClass,
+      "currentTimeMillis",
+      LongPrimitive
+    )
+    mv.visitBoxing(LongClass, LongPrimitive)
+  }
+
   def handle(body: List[LispValue], needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
@@ -128,6 +141,7 @@ object RuntimeMethodVisitor {
           case "get"                                                                   => visitGetKeyName(operands)
           case "keys"                                                                  => visitMapKeys(operands)
           case "bool?" | "char?" | "int?" | "double?" | "string?" | "object?" | "seq?" => visitTypeCheck(op, operands)
+          case "now"                                                                   => visitNow()
           case _ if compareOpMap.contains(op)                                          => visitCompareOps(op, operands)
         }
 
