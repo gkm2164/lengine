@@ -190,8 +190,18 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0)
 
     mv.visitLabel(startLabel)
+
+    val newItSelf = if (isTailRec) {
+      itself match {
+        case Some(_) => itself
+        case None => Some(EagerSymbol("$"))
+      }
+    } else {
+      itself
+    }
+
     new LispValueAsmWriter(f.body)(newRuntimeEnvironment)
-      .visitForValue(None, needReturn = true, tailRecReference = itself.filter(_ => isTailRec).map((_, startLabel)))
+      .visitForValue(None, needReturn = true, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 

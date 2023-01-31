@@ -100,7 +100,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body, tailRecReference = tailRecReference).writeValue()
     case LispDoStmt(body) =>
-      visitDoBody(body)
+      visitDoBody(body, tailRecReference = tailRecReference)
     case ref: EagerSymbol =>
       if (runtimeEnv.hasVar(ref)) {
         runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
@@ -142,13 +142,13 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
   }
 
   @tailrec
-  private def visitDoBody(body: List[LispValue]): Unit = body match {
+  private def visitDoBody(body: List[LispValue], tailRecReference: Option[(LispSymbol, Label)]): Unit = body match {
     case Nil =>
       throw new RuntimeException("unexpected error: do statement can't be empty")
     case v :: Nil =>
-      mv.visitLispValue(v, needReturn = true)
+      mv.visitLispValue(v, needReturn = true, tailRecReference = tailRecReference)
     case v :: tail =>
       mv.visitLispValue(v)
-      visitDoBody(tail)
+      visitDoBody(tail, tailRecReference = tailRecReference)
   }
 }
