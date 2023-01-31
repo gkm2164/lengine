@@ -57,6 +57,8 @@
                 for y in (=range 1 x)
                 [x y]))
 
-(loop for l in comb
-      (do (println l)
-          return l))
+(println (loop for l in comb
+               (do (println l)
+                   return (flatten l))))
+
+(println nil)

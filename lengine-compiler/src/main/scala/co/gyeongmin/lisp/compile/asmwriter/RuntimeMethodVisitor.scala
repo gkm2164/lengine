@@ -43,7 +43,9 @@ object RuntimeMethodVisitor {
     "seq",
     "head",
     "tail",
-    "entry"
+    "entry",
+    "keys",
+    "key"
   )
 
   private val compareOpMap = Map(
@@ -76,13 +78,39 @@ object RuntimeMethodVisitor {
     val key :: value :: Nil = operands
     val mv                  = runtimeEnvironment.methodVisitor
     mv.visitLispValue(key, needReturn = true)
+    mv.visitCheckCast(classOf[LengineMapKey])
     mv.visitLispValue(value, needReturn = true)
     mv.visitStaticMethodCall(
       classOf[LengineMapEntry],
       "create",
       classOf[LengineMapEntry],
-      classOf[Object],
+      classOf[LengineMapKey],
       classOf[Object]
+    )
+  }
+
+  private def visitMapKeys(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mapObj :: Nil = operands
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(mapObj)
+    mv.visitCheckCast(classOf[LengineMap])
+    mv.visitMethodCall(
+      classOf[LengineMap],
+      "keys",
+      classOf[Sequence]
+    )
+  }
+
+  private def visitMapKeyCreate(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val key :: Nil = operands
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(key)
+    mv.visitCheckCast(classOf[String])
+    mv.visitStaticMethodCall(
+      classOf[LengineMapKey],
+      "create",
+      classOf[LengineMapKey],
+      classOf[String]
     )
   }
 
@@ -112,6 +140,8 @@ object RuntimeMethodVisitor {
           case "export"                                            => visitExport(operands)
           case "import"                                            => visitImport(operands)
           case "entry"                                             => visitCreateEntry(operands)
+          case "key"                                               => visitMapKeyCreate(operands)
+          case "keys"                                              => visitMapKeys(operands)
           case _ if compareOpMap.contains(op)                      => visitCompareOps(op, operands)
         }
 

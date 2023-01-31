@@ -2,21 +2,21 @@ package lengine.runtime;
 
 import java.util.Map;
 
-public class LengineMapEntry implements Map.Entry {
-  private final Object key;
+public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
+  private final LengineMapKey key;
   private final Object value;
 
-  private LengineMapEntry(Object key, Object value) {
+  private LengineMapEntry(LengineMapKey key, Object value) {
     this.key = key;
     this.value = value;
   }
 
-  public static LengineMapEntry create(Object key, Object value) {
+  public static LengineMapEntry create(LengineMapKey key, Object value) {
     return new LengineMapEntry(key, value);
   }
 
   @Override
-  public Object getKey() {
+  public LengineMapKey getKey() {
     return key;
   }
 

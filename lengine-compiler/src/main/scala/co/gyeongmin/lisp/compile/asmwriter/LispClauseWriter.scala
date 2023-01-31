@@ -2,10 +2,10 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.LengineEnv
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.lambdaClass
-import co.gyeongmin.lisp.lexer.statements.LispDoStmt
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import lengine.runtime.LengineMap
+import lengine.functions.LengineLambda1
+import lengine.runtime.{LengineMap, LengineMapKey}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{MethodVisitor, Opcodes}
 
@@ -19,15 +19,18 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
   private def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
     val map :: _ = operands
+
     mv.visitLdcInsn(key)
-    val keyIdx = runtimeEnvironment.allocateNextVar
-    mv.visitIntInsn(Opcodes.ASTORE, keyIdx)
-    new LispValueAsmWriter(map).visitForValue(needReturn = true)
-    mv.visitCheckCast(classOf[LengineMap])
-    mv.visitIntInsn(Opcodes.ALOAD, keyIdx)
-    mv.visitMethodCall(
-      classOf[LengineMap],
-      "get",
+    mv.visitStaticMethodCall(
+      classOf[LengineMapKey],
+      "create",
+      classOf[LengineMapKey],
+      classOf[String]
+    )
+    mv.visitLispValue(map, needReturn = true)
+    mv.visitInterfaceMethodCall(
+      classOf[LengineLambda1[Object, LengineMap]],
+      "invoke",
       classOf[Object],
       classOf[Object]
     )

@@ -7,8 +7,14 @@ import java.util.stream.Collectors;
 import scala.collection.Seq;
 
 public class LengineMap {
-  private final Map<Object, Object> dictionary;
+  private final LengineMap delegateMap;
+  private final Map<LengineMapKey, Object> dictionary;
   private LengineMap() {
+    this(null);
+  }
+
+  private LengineMap(LengineMap delegateMap) {
+    this.delegateMap = delegateMap;
     this.dictionary = new HashMap<>();
   }
 
@@ -16,12 +22,19 @@ public class LengineMap {
     dictionary.put(entry.getKey(), entry.getValue());
   }
 
-  public void put(Object key, Object value) {
+  public void put(LengineMapKey key, Object value) {
     dictionary.put(key, value);
   }
 
-  public Object get(Object key) {
+  public Object get(LengineMapKey key) {
+    if (delegateMap != null && delegateMap.contains(key)) {
+      return delegateMap.get(key);
+    }
     return dictionary.get(key);
+  }
+
+  private boolean contains(LengineMapKey key) {
+    return dictionary.containsKey(key);
   }
 
   public Sequence keys() {
@@ -37,17 +50,17 @@ public class LengineMap {
   }
 
   public LengineMap add(LengineMapEntry entry) {
-    LengineMap map = new LengineMap();
-    Sequence sequence = entries();
-    sequence.add(entry);
-    sequence.iterator()
-        .forEachRemaining(e ->
-            map.putEntry((LengineMapEntry)e));
+    LengineMap map = new LengineMap(this);
+    map.putEntry(entry);
     return map;
   }
 
   public static LengineMap create() {
     return new LengineMap();
+  }
+
+  public static LengineMap create(LengineMap delegateMap) {
+    return new LengineMap(delegateMap);
   }
 
   @Override

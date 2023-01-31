@@ -9,7 +9,7 @@ import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import lengine.runtime.{LengineMap, Sequence}
+import lengine.runtime.{LengineMap, LengineMapKey, Sequence}
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
 import scala.annotation.tailrec
@@ -36,16 +36,15 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     val mapIdx = runtimeEnv.allocateNextVar
     mv.visitIntInsn(Opcodes.ASTORE, mapIdx)
     map.foreach {
-      case (ObjectReferSymbol(name), value) =>
-        val valIdx = mv.visitStoreLispValue(value)
+      case (symbol, value) =>
         mv.visitALoad(mapIdx)
-        mv.visitLdcInsn(name)
-        mv.visitALoad(valIdx)
+        mv.visitLispValue(symbol, needReturn = true)
+        mv.visitLispValue(value, needReturn = true)
         mv.visitMethodCall(
           classOf[LengineMap],
           "put",
           Void.TYPE,
-          classOf[Object], classOf[Object]
+          classOf[LengineMapKey], classOf[Object]
         )
     }
     mv.visitALoad(mapIdx)
@@ -75,6 +74,14 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     case LispObject(kv) =>
       declareMap(kv)
       finalCast.foreach(LengineList.cast)
+    case ObjectReferSymbol(key) =>
+      mv.visitLdcInsn(key)
+      mv.visitStaticMethodCall(
+        classOf[LengineMapKey],
+        "create",
+        classOf[LengineMapKey],
+        classOf[String]
+      )
     case LispLetDef(name, value, body) =>
       val newEnv = runtimeEnv.createChild()
       mv.visitLabel(new Label())

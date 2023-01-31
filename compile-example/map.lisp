@@ -10,4 +10,8 @@
 (println (:name obj))
 (println (:age obj))
 
-(println (:new-entry (+ obj (entry "new-entry" "new value"))))
+(println (:new-entry (+ obj (entry :new-entry "new value"))))
+
+(println (keys obj))
+
+(println ((key "id") obj))
