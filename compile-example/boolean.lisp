@@ -26,8 +26,8 @@
 (def n2 5)
 
 (if (< n1 n2)
- (assert "n2 is bigger than n1" true)
- (assert "n1 is bigger than n2" false))
+  (assert "n2 is bigger than n1" true)
+  (assert "n1 is bigger than n2" false))
 
 (if (> n1 n2)
   (println "n1 is bigger than n2")

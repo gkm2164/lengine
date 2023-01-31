@@ -3,6 +3,7 @@ package lengine.runtime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import scala.collection.Seq;
 
@@ -63,12 +64,23 @@ public class LengineMap {
     return new LengineMap(delegateMap);
   }
 
-  @Override
-  public String toString() {
-    return dictionary.entrySet().stream().map(entry -> {
+  public Stream<String> createStringEntry() {
+    final Stream<String> parent;
+    if (delegateMap != null) {
+      parent = delegateMap.createStringEntry();
+    } else {
+      parent = Stream.empty();
+    }
+
+    return Stream.concat(parent, dictionary.entrySet().stream().map(entry -> {
       Object key = entry.getKey();
       Object value = entry.getValue();
       return String.format("%s => %s", key, value);
-    }).collect(Collectors.joining(", ", "{", "}"));
+    }));
+  }
+
+  @Override
+  public String toString() {
+    return this.createStringEntry().collect(Collectors.joining(", ", "{", "}"));
   }
 }
