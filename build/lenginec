@@ -1,7 +1,0 @@
-#!/bin/sh
-
-if [ -f lenginec.jar ]; then
-  java -jar lenginec.jar co.gyeongmin.lisp.compile.Main $@
-else
-  echo 'Lengine is not compiled. run "./install.sh"'
-fi
