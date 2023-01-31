@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.LengineEnv.LengineFnDef
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{ClassWriter, MethodVisitor}
 
@@ -16,14 +15,9 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
   def createChild(): LengineRuntimeEnvironment =
     new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone(), className, getLastVarIdx)
 
-  private val fnMapping = mutable.Map[LispSymbol, LengineFnDef]()
   var captureVariables: Option[LengineVarCapture] = None
 
   private val varIdx = new AtomicInteger(numberOfArgs)
-
-
-  def hasFn(symbol: LispSymbol): Boolean = fnMapping.contains(symbol)
-  def getFn(symbol: LispSymbol): Option[LengineFnDef] = fnMapping.get(symbol)
 
   def setRequestedCapture(captureVariables: LengineVarCapture): Unit = {
     this.captureVariables = Some(captureVariables)

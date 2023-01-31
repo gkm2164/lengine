@@ -62,6 +62,12 @@ class MainTest extends FlatSpec with Matchers {
     ))
   }
 
+  "infinity loop compile inifinity-loop.list" should "run and return" in {
+    Main.main(Array(
+      "./compile-example/infinity-loop.lisp"
+    ))
+  }
+
   "string test compile process-membrane.lisp" should "run and return" in {
     Main.main(Array(
       "./compile-example/process-membrane.lisp",

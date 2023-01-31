@@ -3,10 +3,11 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import lengine.runtime.{CreateIterator, LengineIterator, Sequence}
 import org.objectweb.asm.{Label, Opcodes}
 
-class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit env: LengineRuntimeEnvironment) {
+class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue, tailRecReference: Option[(LispSymbol, Label)] = None)(implicit env: LengineRuntimeEnvironment) {
   def writeValue(): Unit = {
     visitForStmt(forStmts, body)
   }
@@ -55,7 +56,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit e
     val mv = env.methodVisitor
     forStmts match {
       case Nil =>
-        new LispValueAsmWriter(body).visitForValue(needReturn = true)
+        new LispValueAsmWriter(body).visitForValue(needReturn = true, tailRecReference = tailRecReference)
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
         env.registerVariable(symbol, varIdx)

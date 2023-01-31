@@ -1,8 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import lengine.runtime.LengineUnit
-import org.objectweb.asm.{ MethodVisitor, Opcodes, Type }
+import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
 import org.objectweb.asm.Opcodes._
 
 object AsmHelper {
@@ -76,9 +77,8 @@ object AsmHelper {
       }
     }
 
-    def visitCheckCast(cls: Class[_]): Unit = {
+    def visitCheckCast(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
-    }
 
     def visitStoreLispValue(value: LispValue, location: Option[Int] = None): Int = {
       val idx = location.getOrElse(runtimeEnvironment.allocateNextVar)
@@ -87,7 +87,10 @@ object AsmHelper {
       idx
     }
 
-    def visitLispValue(value: LispValue, finalCast: Option[LengineType] = None, needReturn: Boolean = false): Unit =
-      new LispValueAsmWriter(value).visitForValue(finalCast, needReturn)
+    def visitLispValue(value: LispValue,
+                       finalCast: Option[LengineType] = None,
+                       needReturn: Boolean = false,
+                       tailRecReference: Option[(LispSymbol, Label)] = None): Unit =
+      new LispValueAsmWriter(value).visitForValue(finalCast, tailRecReference, needReturn)
   }
 }

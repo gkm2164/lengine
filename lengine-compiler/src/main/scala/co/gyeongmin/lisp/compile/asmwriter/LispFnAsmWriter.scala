@@ -38,12 +38,13 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     })
 
     FunctionVariableCapture.traverseTree(captureVariables, f.body)
+    val isTailRec = FunctionAnalyzer.isTailRecursion(itself, f.body)
 
     val argsWithCaptureList = traversedPlaceHolders ++ captureVariables.getRequestedCaptures
 
     val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) }.toMap
 
-    val newRuntimeEnvironment = createLambdaClass(itself, fnName, captureVariables, argsWithCapturedVars)
+    val newRuntimeEnvironment = createLambdaClass(itself, fnName, captureVariables, argsWithCapturedVars, isTailRec)
 
     val resolvedCaptures = captureVariables.getRequestedCaptures
       .map(
@@ -59,7 +60,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
   private def createLambdaClass(itself: Option[LispSymbol], fnName: String,
                                 capturedVariables: LengineVarCapture,
-                                argsWithCapturedVars: Map[LispSymbol, Int]): LengineRuntimeEnvironment = {
+                                argsWithCapturedVars: Map[LispSymbol, Int],
+                                isTailRec: Boolean): LengineRuntimeEnvironment = {
     val lambdaClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
     val lambdaClassName = s"${runtimeEnvironment.className}$$$fnName"
 
@@ -188,7 +190,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0)
 
     mv.visitLabel(startLabel)
-    new LispValueAsmWriter(f.body)(newRuntimeEnvironment).visitForValue(None, needReturn = true)
+    new LispValueAsmWriter(f.body)(newRuntimeEnvironment)
+      .visitForValue(None, needReturn = true, tailRecReference = itself.filter(_ => isTailRec).map((_, startLabel)))
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 

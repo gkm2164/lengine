@@ -7,7 +7,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import lengine.runtime.{LengineMap, LengineMapKey, Sequence}
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
@@ -50,7 +50,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitALoad(mapIdx)
   }
 
-  def visitForValue(finalCast: Option[LengineType] = None, needReturn: Boolean): Unit = value match {
+  def visitForValue(finalCast: Option[LengineType] = None, tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
     case LispTrue =>
       mv.visitLdcInsn(true)
       boxing(classOf[java.lang.Boolean], java.lang.Boolean.TYPE)
@@ -89,7 +89,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       new LispValueAsmWriter(value)(newEnv).visitForValue(needReturn = true)
       mv.visitAStore(idx)
       newEnv.registerVariable(name, idx)
-      new LispValueAsmWriter(body)(newEnv).visitForValue(needReturn = true)
+      new LispValueAsmWriter(body)(newEnv).visitForValue(needReturn = true, tailRecReference = tailRecReference)
       val used = newEnv.getLastVarIdx
       runtimeEnv.overrideUsedVar(used)
       mv.visitLabel(new Label())
@@ -98,7 +98,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         LispClause(EagerSymbol("import") :: path :: Nil)
       ).visitForValue(needReturn = false)
     case LispLoopStmt(forStmts, body) =>
-      new LispLoopAsmWriter(forStmts, body).writeValue()
+      new LispLoopAsmWriter(forStmts, body, tailRecReference = tailRecReference).writeValue()
     case LispDoStmt(body) =>
       visitDoBody(body)
     case ref: EagerSymbol =>
@@ -107,9 +107,9 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       } else {
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
       }
-    case l@LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn)
+    case l@LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn, tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
-      new LispValueAsmWriter(value).visitForValue(None, needReturn = true)
+      new LispValueAsmWriter(value).visitForValue(None, needReturn = true, tailRecReference = tailRecReference)
       value.resolveType match {
         case Left(err) =>
           new RuntimeException(s"Unable to resolve the type for $symbol: $err")

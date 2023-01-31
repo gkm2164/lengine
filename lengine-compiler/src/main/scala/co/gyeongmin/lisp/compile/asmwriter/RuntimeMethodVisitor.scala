@@ -120,7 +120,7 @@ object RuntimeMethodVisitor {
   }
 
   def handle(body: List[LispValue],
-             needReturn: Boolean)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+             needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val operation :: operands = body
     operation match {
       case EagerSymbol(op) =>
@@ -129,7 +129,7 @@ object RuntimeMethodVisitor {
           case "-"                                                 => visitCalc("sub", operands)
           case "*"                                                 => visitCalc("mult", operands)
           case "/"                                                 => visitCalc("div", operands)
-          case "if"                                                => visitIfStmt(operands)
+          case "if"                                                => visitIfStmt(operands, tailRecReference)
           case "not"                                               => visitNotOps(operands)
           case "len"                                               => visitLenOp(operands)
           case "take" | "drop"                                     => visitSeqOpN(op, operands)
@@ -348,7 +348,7 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitIfStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitIfStmt(operands: List[LispValue], tailRecReference: Option[(LispSymbol, Label)])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val condition :: ifmatch :: elsematch :: Nil = operands
 
     val mv = runtimeEnvironment.methodVisitor
@@ -366,11 +366,11 @@ object RuntimeMethodVisitor {
 
     mv.visitJumpInsn(IFNE, tLabel)
     mv.visitLabel(fLabel)
-    mv.visitLispValue(elsematch, needReturn = true)
+    mv.visitLispValue(elsematch, needReturn = true, tailRecReference = tailRecReference)
     mv.visitJumpInsn(GOTO, next)
 
     mv.visitLabel(tLabel)
-    mv.visitLispValue(ifmatch, needReturn = true)
+    mv.visitLispValue(ifmatch, needReturn = true, tailRecReference = tailRecReference)
     mv.visitLabel(next)
   }
 

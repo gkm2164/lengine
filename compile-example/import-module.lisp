@@ -1,6 +1,7 @@
 (module ImportModule)
 
 (import Math.fact)
+(import Math.fact2)
 (import Math.sum)
 (import Math.product)
 (import Module.map)
@@ -20,3 +21,5 @@
 (println ((. (. f g) h) "Text"))
 
 (println (filter2 [1 2 3 4 5] (lambda (x) (> x 2))))
+
+(println (fact2 1 5))
