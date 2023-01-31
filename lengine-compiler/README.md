@@ -16,7 +16,7 @@ From the project root(`../`), compile the lengine with below commands.
 `$ ./lenginec hello.lisp`
 `$ ./leng Hello`
 
-To build entire compiler-examples(located in [../compiler-example](../compiler-example))
+To build entire compiler-examples(located in [../compiler-example](https://github.com/gkm2164/lengine/tree/master/compile-example))
 
 ```bash
 $ ./install.sh
