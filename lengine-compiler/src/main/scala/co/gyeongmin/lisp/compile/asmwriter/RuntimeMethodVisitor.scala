@@ -34,6 +34,9 @@ object RuntimeMethodVisitor {
     "flatten",
     "println",
     "read-line",
+    "read-eof",
+    "read-file",
+    "read-file-seq",
     "not",
     "if",
     "range",
@@ -135,6 +138,9 @@ object RuntimeMethodVisitor {
           case "flatten"                                           => visitFlatten(operands)
           case "println"                                           => visitPrintln(operands, needReturn)
           case "read-line"                                         => visitReadLine
+          case "read-eof"                                          => visitReadEof
+          case "read-file"                                         => visitReadFile(operands)
+          case "read-file-seq"                                     => visitReadFileSeq(operands)
           case "str" | "int" | "double" | "char" | "seq"           => visitTypeCast(op, operands)
           case "assert"                                            => visitAssert(operands)
           case "range" | "=range"                                  => visitRange(op, operands)
@@ -281,6 +287,34 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     mv.visitStaticMethodCall(PreludeClass, "readLine", classOf[String])
+  }
+
+  private def visitReadEof(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitStaticMethodCall(PreludeClass, "readEof", classOf[String])
+  }
+
+  private def visitReadFile(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val filename :: Nil = operands
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitLispValue(filename, needReturn = true)
+    mv.visitCheckCast(classOf[String])
+    mv.visitStaticMethodCall(PreludeClass, "readFile", classOf[String], classOf[String])
+  }
+
+  private def visitReadFileSeq(
+      operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val filename :: Nil = operands
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitLispValue(filename, needReturn = true)
+    mv.visitCheckCast(classOf[String])
+    mv.visitStaticMethodCall(PreludeClass, "readFileSeq", classOf[FileSequence], classOf[String])
   }
 
   private def visitCompareOps(op: String, operands: List[LispValue])(

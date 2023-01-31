@@ -1,10 +1,15 @@
 package lengine;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -14,6 +19,7 @@ import java.util.function.BiPredicate;
 
 import lengine.functions.LengineLambda1;
 import lengine.runtime.CreateIterator;
+import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
@@ -328,6 +334,25 @@ public class Prelude {
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();
+  }
+
+  public static String readEof() throws IOException {
+    Reader sr = new InputStreamReader(System.in);
+    StringBuilder ret = new StringBuilder();
+    int ch;
+    while ((ch = sr.read()) != 0xFFFF) {
+      ret.append((char) ch);
+    }
+
+    return ret.toString();
+  }
+
+  public static String readFile(String fileName) throws IOException {
+    return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
+  }
+
+  public static FileSequence readFileSeq(String fileName) {
+    return FileSequence.create(fileName);
   }
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
