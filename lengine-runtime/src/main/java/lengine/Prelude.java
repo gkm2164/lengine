@@ -397,8 +397,8 @@ public class Prelude {
     return !((Boolean) a);
   }
 
-  public static void assertTrue(String message, Boolean value) {
-    if (!value) {
+  public static void assertTrue(Object message, Object value) {
+    if (!(Boolean)value) {
       throw new RuntimeException("Failed to assert: " + message);
     }
   }

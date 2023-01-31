@@ -5,11 +5,12 @@ import co.gyeongmin.lisp.errors.eval.EvalError
 import co.gyeongmin.lisp.lexer.statements.LispLetDef
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
-import co.gyeongmin.lisp.lexer.values.seq.{ LispSeq, LispString }
+import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispSeq, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import lengine.Prelude
+import org.objectweb.asm.Type
 
 object LengineTypeSystem {
   implicit class TypeCastor(lengineType: LengineType) {
@@ -35,14 +36,7 @@ object LengineTypeSystem {
       if (lengineType == toType) {
         return
       }
-      mv.visitLdcInsn(toType.getJvmType.getName)
-      mv.visitStaticMethodCall(
-        classOf[Class[_]],
-        "forName",
-        classOf[Class[_]],
-        List(classOf[String])
-      )
-
+      mv.visitLdcInsn(Type.getType(toType.getJvmType))
       mv.visitStaticMethodCall(
         classOf[Prelude],
         "cast",

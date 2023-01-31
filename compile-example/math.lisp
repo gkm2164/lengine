@@ -5,7 +5,10 @@
         (* n (fact (- n 1)))
         1))
 
-(export fact fact)
+(export fact (lambda (n)
+                 (if (> n 1)
+                     (* n ($ (- n 1)))
+                     1)))
 (export sum (lambda (seq)
     (fold seq 0 (lambda (x y)
                         (+ x y)))))

@@ -25,14 +25,14 @@ object AsmHelper {
     }
 
     private def visitCommonMethodCall(callType: Int,
-                                      owner: Class[_],
+                                      owner: String,
                                       name: String,
                                       retType: Class[_],
                                       args: List[Class[_]],
                                       interface: Boolean): Unit =
       mv.visitMethodInsn(
         callType,
-        Type.getType(owner).getInternalName,
+        owner,
         name,
         Type.getMethodDescriptor(
           Type.getType(retType),
@@ -50,7 +50,7 @@ object AsmHelper {
     def visitInterfaceMethodCall(owner: Class[_], name: String, retType: Class[_], args: List[Class[_]] = Nil): Unit =
       visitCommonMethodCall(
         INVOKEINTERFACE,
-        owner,
+        Type.getType(owner).getInternalName,
         name,
         retType,
         args,
@@ -61,9 +61,15 @@ object AsmHelper {
                         name: String,
                         retType: Class[_],
                         args: List[Class[_]] = Nil): Unit =
-      visitCommonMethodCall(INVOKEVIRTUAL, owner, name, retType, args, interface = false)
+      visitCommonMethodCall(INVOKEVIRTUAL, Type.getType(owner).getInternalName, name, retType, args, interface = false)
 
     def visitStaticMethodCall(owner: Class[_],
+                              name: String,
+                              retType: Class[_],
+                              args: List[Class[_]] = Nil): Unit =
+      visitCommonMethodCall(INVOKESTATIC, Type.getType(owner).getInternalName, name, retType, args, interface = false)
+
+    def visitStaticMethodCallStringOwner(owner: String,
                               name: String,
                               retType: Class[_],
                               args: List[Class[_]] = Nil): Unit =
@@ -98,5 +104,8 @@ object AsmHelper {
       visitAStore(idx)
       idx
     }
+
+    def visitLispValue(value: LispValue, finalCast: Option[LengineType] = None, needReturn: Boolean = false): Unit =
+      new LispValueAsmWriter(value).visitForValue(finalCast, needReturn)
   }
 }
