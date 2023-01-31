@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispForStmt, LispLetDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispDoStmt, LispForStmt, LispLetDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
@@ -53,6 +53,8 @@ object FunctionVariableCapture {
         childCapture.ignoreCapture(name)
         traverseTree(childCapture, body)
         captureVariables.mergeChild(childCapture)
+      case LispDoStmt(body) =>
+        body.foreach(traverseTree(captureVariables, _))
     }
   }
 
