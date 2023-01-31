@@ -9,8 +9,13 @@ public class RangeSequence implements CreateIterator {
     this.to = to;
   }
 
-  public static RangeSequence create(Long from, Long to) {
+  public static RangeSequence createRange(Long from, Long to) {
     return new RangeSequence(from.intValue(), to.intValue());
+  }
+
+
+  public static RangeSequence createInclusiveRange(Long from, Long to) {
+    return new RangeSequence(from.intValue(), to.intValue() + 1);
   }
 
   @Override

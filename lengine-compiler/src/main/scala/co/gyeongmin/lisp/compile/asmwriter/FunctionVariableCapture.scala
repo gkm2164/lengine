@@ -56,7 +56,7 @@ object FunctionVariableCapture {
     }
   }
 
-  def traverseLoopTree(capture: LengineVarCapture, loop: LispLoopStmt): Unit = loop match {
+  private def traverseLoopTree(capture: LengineVarCapture, loop: LispLoopStmt): Unit = loop match {
     case LispLoopStmt(Nil, body) =>
       traverseTree(capture, body)
     case LispLoopStmt(LispForStmt(symbol, seq) :: tail, body) =>

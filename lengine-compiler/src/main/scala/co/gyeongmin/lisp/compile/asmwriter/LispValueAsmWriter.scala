@@ -12,6 +12,8 @@ import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispVal
 import lengine.runtime.{LengineMap, Sequence}
 import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
+import scala.annotation.tailrec
+
 class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEnvironment) {
   import LengineTypeSystem._
 
@@ -21,7 +23,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       boxedType,
       "valueOf",
       boxedType,
-      primitiveType :: Nil
+      primitiveType
     )
   }
 
@@ -43,7 +45,7 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
           classOf[LengineMap],
           "put",
           Void.TYPE,
-          List(classOf[Object], classOf[Object])
+          classOf[Object], classOf[Object]
         )
     }
     mv.visitALoad(mapIdx)
@@ -90,6 +92,8 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       ).visitForValue(needReturn = false)
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body).writeValue()
+    case LispDoStmt(body) =>
+      visitDoBody(body)
     case ref: EagerSymbol =>
       if (runtimeEnv.hasVar(ref)) {
         runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
@@ -126,8 +130,18 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       classOf[Sequence],
       "create",
       classOf[Sequence],
-      List(classOf[Array[Object]])
+      classOf[Array[Object]]
     )
   }
 
+  @tailrec
+  private def visitDoBody(body: List[LispValue]): Unit = body match {
+    case Nil =>
+      throw new RuntimeException("unexpected error: do statement can't be empty")
+    case v :: Nil =>
+      mv.visitLispValue(v, needReturn = true)
+    case v :: tail =>
+      mv.visitLispValue(v)
+      visitDoBody(tail)
+  }
 }

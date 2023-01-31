@@ -64,8 +64,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit e
         mv.visitInterfaceMethodCall(
           classOf[LengineIterator],
           "next",
-          classOf[Object],
-          Nil,
+          classOf[Object]
         )
         mv.visitAStore(varIdx)
         visitForStmt(tail, body)
@@ -79,7 +78,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt], body: LispValue)(implicit e
           classOf[Sequence],
           "add",
           Void.TYPE,
-          List(classOf[Object])
+          classOf[Object]
         )
         env.deregisterVariable(symbol)
         mv.visitJumpInsn(Opcodes.GOTO, startLabel)

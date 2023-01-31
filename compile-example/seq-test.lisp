@@ -52,3 +52,11 @@
 (println (fold (range 1 5)
                ""
                (lambda (x y) (+ x y))))
+
+(def comb (loop for x in (range 1 10)
+                for y in (=range 1 x)
+                [x y]))
+
+(loop for l in comb
+      (do (println l)
+          return l))

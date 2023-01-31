@@ -59,7 +59,7 @@ object Main {
           fos.close()
         })
     } catch {
-      case re: RuntimeException => println(re.getMessage)
+      case re: RuntimeException => re.printStackTrace()
     }
 
     println(s"Compiled in ${System.currentTimeMillis() - startTime}ms.")
