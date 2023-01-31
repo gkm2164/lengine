@@ -78,13 +78,6 @@ object AsmHelper {
     def visitCheckCast(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
 
-    private def visitStoreLispValue(value: LispValue, location: Option[Int] = None): Int = {
-      val idx = location.getOrElse(runtimeEnvironment.allocateNextVar)
-      new LispValueAsmWriter(value).visitForValue(needReturn = true)
-      visitAStore(idx)
-      idx
-    }
-
     def visitLispValue(value: LispValue,
                        finalCast: Option[LengineType] = None,
                        needReturn: Boolean = false,
