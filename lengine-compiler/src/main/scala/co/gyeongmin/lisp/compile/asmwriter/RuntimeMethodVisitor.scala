@@ -307,11 +307,6 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitRealizeBool()(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-
-  }
-
   private def visitIfStmt(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val condition :: ifmatch :: elsematch :: Nil = operands
     val mv = runtimeEnvironment.methodVisitor
