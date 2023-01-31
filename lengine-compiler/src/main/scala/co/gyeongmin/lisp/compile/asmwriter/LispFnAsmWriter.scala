@@ -27,26 +27,26 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val fnName = randomGenerate()
 
-    val captureVariables = new LengineVarCapture()
+    val capture = new LengineVarCapture()
 
-    itself.foreach(captureVariables.ignoreCapture)
-    captureVariables.ignoreCapture(EagerSymbol("$"))
+    itself.foreach(capture.ignoreCapture)
+    capture.ignoreCapture(EagerSymbol("$"))
     f.placeHolders.foreach({
       case symbol: LispSymbol =>
-        captureVariables.ignoreCapture(symbol)
+        capture.ignoreCapture(symbol)
       case _ =>
     })
 
-    FunctionVariableCapture.traverseTree(captureVariables, f.body)
+    FunctionAnalyzer.captureUnknownVariables(capture, f.body)
     val isTailRec = FunctionAnalyzer.isTailRecursion(itself, f.body)
 
-    val argsWithCaptureList = traversedPlaceHolders ++ captureVariables.getRequestedCaptures
+    val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
 
     val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) }.toMap
 
-    val newRuntimeEnvironment = createLambdaClass(itself, fnName, captureVariables, argsWithCapturedVars, isTailRec)
+    val newRuntimeEnvironment = createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
-    val resolvedCaptures = captureVariables.getRequestedCaptures
+    val resolvedCaptures = capture.getRequestedCaptures
       .map(
         capture =>
           runtimeEnvironment.getVar(capture).getOrElse(throw new RuntimeException(s"Unable to resolve: $capture"))
