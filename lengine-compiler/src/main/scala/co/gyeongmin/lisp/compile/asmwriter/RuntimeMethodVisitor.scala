@@ -16,10 +16,6 @@ object RuntimeMethodVisitor {
     "double",
     "char",
     "len",
-    "+",
-    "-",
-    "*",
-    "/",
     "take",
     "drop",
     "take-while",
@@ -116,10 +112,6 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "+"                                                                     => visitCalc("ADD", requestedType, operands)
-          case "-"                                                                     => visitCalc("SUB", requestedType, operands)
-          case "*"                                                                     => visitCalc("MULT", requestedType, operands)
-          case "/"                                                                     => visitCalc("DIV", requestedType, operands)
           case "if"                                                                    => visitIfStmt(operands, requestedType, tailRecReference)
           case "and" | "or"                                                            => visit2BoolOps(op, requestedType, operands)
           case "not"                                                                   => visitNotOps(operands, requestedType)
@@ -287,27 +279,6 @@ object RuntimeMethodVisitor {
       SequenceClass,
       SequenceClass
     )
-  }
-
-  private def visitCalc(operation: String, requestedType: Class[_], operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitFieldInsn(
-      GETSTATIC,
-      Type.getType(PreludeClass).getInternalName,
-      operation,
-      Type.getType(LengineLambdaClass(2)).getDescriptor
-    )
-    operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
-    mv.visitMethodCall(
-      LengineLambdaClass(2),
-      "invoke",
-      ObjectClass,
-      ObjectClass,
-      ObjectClass
-    )
-    mv.visitCheckCast(requestedType)
   }
 
   private def visitPrintln(operands: List[LispValue],

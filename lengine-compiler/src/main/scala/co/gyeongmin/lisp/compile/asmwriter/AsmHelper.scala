@@ -1,10 +1,15 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineUnitClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  LengineLambdaClass,
+  LengineUnitClass,
+  ObjectClass,
+  PreludeClass
+}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
 
 object AsmHelper {
   implicit class MethodVisitorExtension(mv: MethodVisitor)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
@@ -57,12 +62,25 @@ object AsmHelper {
     def visitStaticMethodCallStringOwner(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
 
+    def visitCalcStatic(op: String): Unit =
+      mv.visitFieldInsn(
+        GETSTATIC,
+        Type.getType(PreludeClass).getInternalName,
+        op match {
+          case "+" => "ADD"
+          case "-" => "SUB"
+          case "*" => "MULT"
+          case "/" => "DIV"
+        },
+        Type.getType(LengineLambdaClass(2)).getDescriptor
+      )
+
     def allocateNewArray(t: Class[_], arraySize: Int): Unit = {
       mv.visitLdcInsn(arraySize)
       mv.visitTypeInsn(ANEWARRAY, Type.getType(t).getInternalName)
     }
 
-    def visitArrayAssignWithLispValues(values: Seq[LispValue]): Unit = {
+    def visitArrayAssignWithLispValues(values: Seq[LispValue]): Unit =
       values.zipWithIndex.foreach {
         case (value, idx) =>
           mv.visitInsn(Opcodes.DUP)
@@ -70,13 +88,11 @@ object AsmHelper {
           mv.visitLispValue(value, ObjectClass)
           mv.visitInsn(Opcodes.AASTORE)
       }
-    }
 
-    def visitCheckCast(cls: Class[_]): Unit = {
+    def visitCheckCast(cls: Class[_]): Unit =
       if (cls != ObjectClass) {
         mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
       }
-    }
 
     def visitInstanceOf(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.INSTANCEOF, Type.getType(cls).getInternalName)

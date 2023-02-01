@@ -1,11 +1,19 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  LengineLambdaClass,
+  LengineMapKeyClass,
+  ObjectClass,
+  PreludeClass,
+  StringClass
+}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
 
-class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
+class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
+    implicit runtimeEnvironment: LengineRuntimeEnvironment
+) {
 
   import AsmHelper._
 
@@ -33,11 +41,17 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit run
 
   def visitForValue(needReturn: Boolean = false, tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
     val operation :: operands = clause.body
+    val temporalCalcOpMap = Map(
+      EagerSymbol("+") -> "ADD",
+      EagerSymbol("-") -> "SUB",
+      EagerSymbol("*") -> "MULT",
+      EagerSymbol("/") -> "DIV"
+    )
     operation match {
-      case ObjectReferSymbol(key)                        => declareObjectRefer(key, operands)
+      case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) =>
         RuntimeMethodVisitor.handle(clause.body, requestedType, needReturn, tailRecReference)
-      case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
+      case s: EagerSymbol if !temporalCalcOpMap.contains(s) && !runtimeEnvironment.hasVar(s) =>
         throw new RuntimeException(s"unable to find the symbol definition: $s")
       case value @ (EagerSymbol(_) | LispClause(_)) =>
         tailRecReference match {
@@ -50,7 +64,16 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit run
             mv.visitJumpInsn(Opcodes.GOTO, label)
           case None =>
             val argSize = operands.size
-            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
+            value match {
+              case sym: EagerSymbol if temporalCalcOpMap.contains(sym) =>
+                mv.visitFieldInsn(
+                  Opcodes.GETSTATIC,
+                  Type.getType(PreludeClass).getInternalName,
+                  temporalCalcOpMap(sym),
+                  Type.getType(LengineLambdaClass(2)).getDescriptor
+                )
+              case _ => mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
+            }
             operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),

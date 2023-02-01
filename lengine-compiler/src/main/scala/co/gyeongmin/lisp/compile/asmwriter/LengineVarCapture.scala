@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 
 import scala.collection.mutable
 
@@ -11,6 +11,8 @@ class LengineVarCapture {
 
   private val requestedCapture: mutable.Set[LispSymbol] = mutable.Set()
   private val ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
+
+  "+-*/".map(ch => EagerSymbol(ch.toString)).foreach(ignoreCaptureSet.add)
 
   def this (parent: LengineVarCapture) = {
     this()

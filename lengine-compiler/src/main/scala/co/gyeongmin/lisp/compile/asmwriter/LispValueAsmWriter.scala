@@ -119,6 +119,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
             mv.visitCheckCast(typeToBe)
           }
         })
+    case EagerSymbol(op) if "+*/-".contains(op) =>
+      mv.visitCalcStatic(op)
     case ref: EagerSymbol =>
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
     case l @ LispClause(_) =>
