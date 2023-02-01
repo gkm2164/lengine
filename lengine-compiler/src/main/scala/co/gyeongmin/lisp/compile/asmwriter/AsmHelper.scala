@@ -133,5 +133,9 @@ object AsmHelper {
         methodName,
         primitiveType
       )
+
+    def visitDup(): Unit = {
+      mv.visitInsn(Opcodes.DUP)
+    }
   }
 }

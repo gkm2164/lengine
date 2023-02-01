@@ -45,7 +45,10 @@
            :logo #\,
          })
 
-(println (loop for x in (range 1 10)
-                  (do (def start (now))
-                      (to-json obj)
-                      return (- (now) start))))
+(def result (loop for x in (=range 1 10)
+          (let ((start (now))
+                (json-str (to-json obj)))
+               (- (now) start))))
+
+(println result)
+

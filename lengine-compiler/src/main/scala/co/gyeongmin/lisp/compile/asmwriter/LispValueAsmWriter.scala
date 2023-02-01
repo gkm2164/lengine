@@ -125,6 +125,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       new LispClauseWriter(l, typeToBe).visitForValue(needReturn, tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
       mv.visitLispValue(value, typeToBe, needReturn = true, tailRecReference = tailRecReference)
+      if (needReturn) {
+        mv.visitDup()
+      }
       val varIdx = runtimeEnv.allocateNextVar
       mv.visitAStore(varIdx)
       runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
