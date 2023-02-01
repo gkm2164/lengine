@@ -60,7 +60,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                                 capturedVariables: LengineVarCapture,
                                 argsWithCapturedVars: Map[LispSymbol, (Int, Class[_])],
                                 isTailRec: Boolean): Unit = {
-    val lambdaClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
+    val lambdaClassWriter = new ClassWriter(AsmHelper.GLOBAL_CONFIG)
     val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
 
     val thisLambdaClass = LengineLambdaClass(f.placeHolders.length)

@@ -1,25 +1,15 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
-  LengineLambdaClass,
-  LengineUnitClass,
-  ObjectClass,
-  PreludeClass
-}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass, PreludeClass}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
+import org.objectweb.asm._
 
 object AsmHelper {
-  implicit class MethodVisitorExtension(mv: MethodVisitor)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
-    def visitUnit(): Unit =
-      mv.visitStaticMethodCall(
-        LengineUnitClass,
-        "create",
-        LengineUnitClass
-      )
+  val GLOBAL_CONFIG: Int = ClassWriter.COMPUTE_FRAMES
 
+  implicit class MethodVisitorExtension(mv: MethodVisitor)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
     private def visitCommonMethodCall(callType: Int,
                                       owner: String,
                                       name: String,

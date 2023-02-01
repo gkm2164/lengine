@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +24,7 @@ import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
+import lengine.runtime.LengineUnit;
 import lengine.runtime.Sequence;
 
 public class Prelude {
@@ -119,6 +121,27 @@ public class Prelude {
     return from.toString();
   }
 
+  private static Class<?> getLargerType(Class<?> a, Class<?> b) {
+    return getRank(a) > getRank(b) ? a : b;
+  }
+
+  private static int getRank(Class<?> a) {
+    if (a.equals(Character.class)) {
+      return 0;
+    } else if (a.equals(Long.class)) {
+      return 1;
+    } else if (a.equals(Double.class)) {
+      return 2;
+    } else if (a.equals(String.class)) {
+      return 3;
+    } else if (a.equals(Sequence.class)) {
+      return 4;
+    }
+
+    throw new RuntimeException("Unable to decide rank for type: " + a.getName());
+  }
+
+
   public static final LengineLambda2<Object, Object, Object> ADD = (a, b) -> {
     if (a instanceof LengineMap && b instanceof LengineMapEntry) {
       return ((LengineMap) a).add((LengineMapEntry) b);
@@ -195,27 +218,6 @@ public class Prelude {
     throw new RuntimeException("Can't divide");
   };
 
-
-  private static Class<?> getLargerType(Class<?> a, Class<?> b) {
-    return getRank(a) > getRank(b) ? a : b;
-  }
-
-  private static int getRank(Class<?> a) {
-    if (a.equals(Character.class)) {
-      return 0;
-    } else if (a.equals(Long.class)) {
-      return 1;
-    } else if (a.equals(Double.class)) {
-      return 2;
-    } else if (a.equals(String.class)) {
-      return 3;
-    } else if (a.equals(Sequence.class)) {
-      return 4;
-    }
-
-    throw new RuntimeException("Unable to decide rank for type: " + a.getName());
-  }
-
   public static LengineLambda1<Long, Object> LEN = (obj) -> {
     if (obj instanceof CreateIterator) {
       return ((CreateIterator) obj).len();
@@ -235,15 +237,7 @@ public class Prelude {
     return seq;
   }
 
-  public static Object head(CreateIterator seq) {
-    return seq.iterator().next();
-  }
-
-  public static Sequence tail(CreateIterator seq) {
-    return drop(1L, seq);
-  }
-
-  public static Sequence take(Long n, CreateIterator seq) {
+  public static LengineLambda2<Sequence, Long, CreateIterator> TAKE = (n, seq) -> {
     int i = 0;
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -251,9 +245,8 @@ public class Prelude {
       ret.add(it.next());
     }
     return ret;
-  }
-
-  public static Sequence drop(Long n, CreateIterator seq) {
+  };
+  public static LengineLambda2<Sequence, Long, CreateIterator> DROP = (n, seq) -> {
     int i = 0;
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -262,9 +255,10 @@ public class Prelude {
     }
     it.forEachRemaining(ret::addObject);
     return ret;
-  }
-
-  public static Sequence takeWhile(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
+  };
+  public static LengineLambda1<Object, CreateIterator> HEAD = (seq) -> seq.iterator().next();
+  public static LengineLambda1<Sequence, CreateIterator> TAIL = (seq)-> DROP.invoke(1L, seq);
+  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> TAKE_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -277,9 +271,8 @@ public class Prelude {
     }
 
     return ret;
-  }
-
-  public static Sequence dropWhile(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
+  };
+  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> DROP_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -292,9 +285,9 @@ public class Prelude {
     it.forEachRemaining(ret::add);
 
     return ret;
-  }
+  };
 
-  public static Sequence filter(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
+  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> FILTER = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -305,9 +298,8 @@ public class Prelude {
     }
 
     return ret;
-  }
-
-  public static Sequence splitAt(LengineLambda1<Boolean, Object> test, CreateIterator seq) {
+  };
+  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> SPLIT_AT = (test, seq) -> {
     Sequence ret = new Sequence();
     Sequence head = new Sequence();
     Sequence tail = new Sequence();
@@ -326,11 +318,8 @@ public class Prelude {
     ret.add(tail);
 
     return ret;
-  }
-
-  public static Sequence flatten(Sequence seq) {
-    return seq.flatten();
-  }
+  };
+  public static LengineLambda1<Sequence, Sequence> FLATTEN = Sequence::flatten;
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();
@@ -368,41 +357,48 @@ public class Prelude {
     return predicate.test((Comparable) a, (Comparable) b);
   }
 
-  public static Boolean lt(Object a, Object b) {
-    return compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
-  }
+  public static LengineLambda2<Boolean, Object, Object> LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
+  public static LengineLambda2<Boolean, Object, Object> LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
+  public static LengineLambda2<Boolean, Object, Object> GREATER_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
+  public static LengineLambda2<Boolean, Object, Object> GREATER_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) >= 0);
 
-  public static Boolean le(Object a, Object b) {
-    return compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
-  }
+  public static LengineLambda2<Boolean, Object, Object> EQUALS = Objects::equals;
+  public static LengineLambda2<Boolean, Object, Object> NOT_EQUAL = (a, b) -> !Objects.equals(a, b);
+  public static LengineLambda2<Boolean, Boolean, Boolean> AND = (a, b) -> a && b;
+  public static LengineLambda2<Boolean, Boolean, Boolean> OR = (a, b) -> a || b;
+  public static LengineLambda1<Boolean, Boolean> NOT = (a) -> !a;
+  private final static LengineUnit UNIT = LengineUnit.create();
 
-  public static Boolean gt(Object a, Object b) {
-    return compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
-  }
+  public static LengineLambda1<LengineUnit, Object> PRINTLN = (str) -> {
+    System.out.println(str);
+    return UNIT;
+  };
 
-  public static Boolean ge(Object a, Object b) {
-    return compareFunction(a, b, (x, y) -> x.compareTo(y) >= 0);
-  }
+  public static LengineLambda1<LengineUnit, Object> PRINT = (str) -> {
+    System.out.print(str);
+    return UNIT;
+  };
 
-  public static Boolean eq(Object a, Object b) {
-    return Objects.equals(a, b);
-  }
+  public static LengineLambda2<LengineUnit, String, CreateIterator> PRINTF = (fmt, args) -> {
+    final LinkedList<Object> items = new LinkedList<>();
+    LengineIterator argsIt = args.iterator();
+    while (argsIt.hasNext()) {
+      items.add(argsIt.next());
+    }
 
-  public static Boolean neq(Object a, Object b) {
-    return !Objects.equals(a, b);
-  }
+    System.out.printf(fmt, items.toArray());
+    return UNIT;
+  };
 
-  public static Boolean and(Boolean a, Boolean b) {
-    return a && b;
-  }
+  public static LengineLambda2<String, String, CreateIterator> FORMAT = (fmt, args) -> {
+    final LinkedList<Object> items = new LinkedList<>();
+    LengineIterator argsIt = args.iterator();
+    while (argsIt.hasNext()) {
+      items.add(argsIt.next());
+    }
 
-  public static Boolean or(Boolean a, Boolean b) {
-    return a || b;
-  }
-
-  public static Boolean not(Boolean a) {
-    return !a;
-  }
+    return String.format(fmt, items.toArray());
+  };
 
   public static void assertTrue(Object message, Boolean value) {
     if (!value) {

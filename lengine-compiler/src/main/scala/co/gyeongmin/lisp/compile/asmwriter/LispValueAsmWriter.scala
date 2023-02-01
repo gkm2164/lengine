@@ -159,6 +159,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLispValue(v, ObjectClass, needReturn = true, tailRecReference = tailRecReference)
     case v :: tail =>
       mv.visitLispValue(v, typeToBe)
+      mv.visitInsn(Opcodes.POP)
       visitDoBody(tail, tailRecReference = tailRecReference)
   }
 }

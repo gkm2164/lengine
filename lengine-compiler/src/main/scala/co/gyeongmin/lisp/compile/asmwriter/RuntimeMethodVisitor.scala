@@ -15,29 +15,16 @@ object RuntimeMethodVisitor {
     "int",
     "double",
     "char",
-    "take",
-    "drop",
-    "take-while",
-    "drop-while",
-    "split-at",
-    "filter",
-    "flatten",
-    "println",
     "read-line",
     "read-eof",
     "read-file",
     "read-file-seq",
-    "and",
-    "or",
-    "not",
     "if",
     "range",
     "=range",
     "assert",
     "fold",
     "seq",
-    "head",
-    "tail",
     "entry",
     "keys",
     "get",
@@ -52,17 +39,8 @@ object RuntimeMethodVisitor {
     "now"
   )
 
-  private val compareOpMap = Map(
-    "<"  -> "lt",
-    "<=" -> "le",
-    ">"  -> "gt",
-    ">=" -> "ge",
-    "="  -> "eq",
-    "/=" -> "neq",
-  )
-
   def supportOperation(operation: LispValue): Boolean = operation match {
-    case EagerSymbol(op) => supportedOps.contains(op) || compareOpMap.contains(op)
+    case EagerSymbol(op) => supportedOps.contains(op)
     case _               => false
   }
 
@@ -113,12 +91,6 @@ object RuntimeMethodVisitor {
           case "if"                                                                    => visitIfStmt(operands, requestedType, tailRecReference)
           case "and" | "or"                                                            => visit2BoolOps(op, requestedType, operands)
           case "not"                                                                   => visitNotOps(operands, requestedType)
-          case "take" | "drop"                                                         => visitSeqOpN(op, operands)
-          case "filter" | "take-while" | "drop-while" | "split-at"                     => visitSeqOpFn(op, operands)
-          case "head"                                                                  => visitSeqUOps(op, ObjectClass, requestedType, operands)
-          case "tail"                                                                  => visitSeqUOps(op, SequenceClass, requestedType, operands)
-          case "flatten"                                                               => visitFlatten(operands)
-          case "println"                                                               => visitPrintln(operands, needReturn)
           case "read-line"                                                             => visitReadLine
           case "read-eof"                                                              => visitReadEof
           case "read-file"                                                             => visitReadFile(operands)
@@ -135,7 +107,7 @@ object RuntimeMethodVisitor {
           case "keys"                                                                  => visitMapKeys(operands)
           case "bool?" | "char?" | "int?" | "double?" | "string?" | "object?" | "seq?" => visitTypeCheck(op, operands)
           case "now"                                                                   => visitNow()
-          case _ if compareOpMap.contains(op)                                          => visitCompareOps(op, operands)
+          case _                                                                       => new RuntimeException("Unsupported operation: " + op)
         }
 
     }
@@ -195,92 +167,6 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitSeqOpFn(operationName: String,
-                           operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val fn :: seq :: _ = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitLispValue(fn, LengineLambdaClass(1), needReturn = true)
-    mv.visitLispValue(seq, CreateIteratorClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      operationName match {
-        case "filter"     => "filter"
-        case "take-while" => "takeWhile"
-        case "drop-while" => "dropWhile"
-        case "split-at"   => "splitAt"
-      },
-      SequenceClass,
-      LengineLambdaClass(1),
-      CreateIteratorClass
-    )
-  }
-
-  private def visitSeqOpN(operationName: String,
-                          operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val number :: seq :: _ = operands
-    val mv                 = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(number, LongClass, needReturn = true)
-    mv.visitLispValue(seq, CreateIteratorClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      operationName,
-      SequenceClass,
-      LongClass,
-      CreateIteratorClass
-    )
-  }
-
-  private def visitSeqUOps(op: String, retType: Class[_], requestedType: Class[_], operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val seq :: _ = operands
-    val mv       = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(seq, CreateIteratorClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      op,
-      retType,
-      CreateIteratorClass
-    )
-
-    if (op == "head") {
-      mv.visitCheckCast(requestedType)
-    }
-  }
-
-  private def visitFlatten(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val seq :: _ = operands
-    val mv       = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(seq, SequenceClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      "flatten",
-      SequenceClass,
-      SequenceClass
-    )
-  }
-
-  private def visitPrintln(operands: List[LispValue],
-                           needReturn: Boolean)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitFieldInsn(GETSTATIC,
-                      Type.getType(SystemClass).getInternalName,
-                      "out",
-                      Type.getType(PrintStreamClass).getDescriptor)
-    operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
-    mv.visitMethodCall(
-      PrintStreamClass,
-      "println",
-      VoidPrimitive,
-      ObjectClass
-    )
-    if (needReturn) {
-      mv.visitUnit()
-    }
-  }
-
   private def visitTypeCast(op: String, requestedType: Class[_], operands: List[LispValue])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
@@ -328,28 +214,6 @@ object RuntimeMethodVisitor {
 
     mv.visitLispValue(filename, StringClass, needReturn = true)
     mv.visitStaticMethodCall(PreludeClass, "readFileSeq", FileSequenceClass, StringClass)
-  }
-
-  private def visitCompareOps(op: String, operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val mv            = runtimeEnvironment.methodVisitor
-    val a :: b :: Nil = operands
-
-    mv.visitLispValue(a, ObjectClass, needReturn = true)
-    mv.visitLispValue(b, ObjectClass, needReturn = true)
-    compareOpMap
-      .get(op)
-      .foreach(
-        name =>
-          mv.visitStaticMethodCall(
-            PreludeClass,
-            name,
-            BooleanClass,
-            ObjectClass,
-            ObjectClass
-        )
-      )
   }
 
   private def visit2BoolOps(op: String, requestedType: Class[_], operands: List[LispValue])(

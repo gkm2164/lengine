@@ -14,7 +14,7 @@
     (join-recur (head strs) (tail strs) delim))
 
 ;;; Make str -> "str"
-(fn with-double-quotes (s) (join ["\"" s "\""] ""))
+(fn with-double-quotes (s) (format "\"%s\"" [s]))
 
 (fn to-json-object (obj to-json)
                    (let ((ks (keys obj))
@@ -48,7 +48,7 @@
 (def result (loop for x in (=range 1 10)
           (let ((start (now))
                 (json-str (to-json obj)))
-               (- (now) start))))
+               [(- (now) start) json-str])))
 
 (println result)
 

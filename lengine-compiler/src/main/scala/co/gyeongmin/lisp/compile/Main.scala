@@ -1,8 +1,8 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.lexer.{ TokenLocation, Tokenizer }
-import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import co.gyeongmin.lisp.lexer.{TokenLocation, Tokenizer}
+import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.parser.parseValue
 

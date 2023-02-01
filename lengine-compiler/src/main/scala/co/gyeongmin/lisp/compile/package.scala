@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ObjectClass, StringClass, VoidPrimitive}
-import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
+import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
@@ -12,7 +12,7 @@ import scala.collection.mutable
 package object compile {
 
   def writeClass(clsName: String, statements: List[LispValue]): Array[Byte] = {
-    val cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
+    val cw = new ClassWriter(AsmHelper.GLOBAL_CONFIG)
     cw.visit(V1_8, ACC_PUBLIC, clsName, null, "java/lang/Object", null)
     writeCsInitMethod(cw, clsName)
     writeInitMethod(cw)
