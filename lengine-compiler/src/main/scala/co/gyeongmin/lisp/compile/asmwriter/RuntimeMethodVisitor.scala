@@ -590,6 +590,6 @@ object RuntimeMethodVisitor {
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 
-    runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc)
+    runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc, ObjectClass)
   }
 }

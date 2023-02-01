@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.CreateIteratorClass
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{CreateIteratorClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import lengine.runtime.{ CreateIterator, LengineIterator, Sequence }
-import org.objectweb.asm.{ Label, Opcodes }
+import lengine.runtime.{CreateIterator, LengineIterator, Sequence}
+import org.objectweb.asm.{Label, Opcodes}
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt],
                         body: LispValue,
@@ -62,7 +62,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
           .visitForValue(needReturn = true, tailRecReference = tailRecReference)
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
-        env.registerVariable(symbol, varIdx)
+        env.registerVariable(symbol, varIdx, ObjectClass)
         val (seqIdx, dstSeqIdx, startLabel, endLabel) = seqWhileStart(seq)
         mv.visitALoad(seqIdx)
         mv.visitInterfaceMethodCall(

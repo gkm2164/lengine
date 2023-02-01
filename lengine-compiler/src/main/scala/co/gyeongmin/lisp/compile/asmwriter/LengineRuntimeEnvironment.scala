@@ -8,7 +8,7 @@ import scala.collection.mutable
 
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitor,
-                                val args: mutable.Map[LispSymbol, Int],
+                                val args: mutable.Map[LispSymbol, (Int, Class[_])],
                                 val className: String, numberOfArgs: Int) {
   def overrideUsedVar(used: Int): Unit = this.varIdx.set(used)
 
@@ -23,15 +23,15 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
     this.captureVariables = Some(captureVariables)
   }
 
-  def registerVariable(value: LispSymbol, varIdx: Int): Unit = {
-    args += (value -> varIdx)
+  def registerVariable(value: LispSymbol, varIdx: Int, knownType: Class[_]): Unit = {
+    args += (value -> (varIdx, knownType))
   }
 
   def deregisterVariable(value: LispSymbol): Unit = {
     args -= value
   }
 
-  def getVar(varName: LispSymbol): Option[Int] = args.get(varName)
+  def getVar(varName: LispSymbol): Option[(Int, Class[_])] = args.get(varName)
 
   def hasVar(varName: LispSymbol): Boolean = args.contains(varName)
 

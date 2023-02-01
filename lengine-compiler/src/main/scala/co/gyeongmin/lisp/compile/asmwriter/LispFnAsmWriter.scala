@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ LengineLambdaClass, ObjectClass }
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
-import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import org.objectweb.asm.{ ClassWriter, Label, Opcodes, Type }
 
 import java.io.FileOutputStream
 import scala.collection.mutable
@@ -19,7 +19,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
     ) match {
-      case Left(err) => throw new RuntimeException(s"unexpected error: $err")
+      case Left(err)    => throw new RuntimeException(s"unexpected error: $err")
       case Right(value) => value
     }
 
@@ -40,31 +40,39 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
 
-    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) }.toMap
+    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, (int + 1, ObjectClass)) }.toMap
 
     createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
     val resolvedCaptures = capture.getRequestedCaptures
       .map(
         capture =>
-          runtimeEnvironment.getVar(capture).getOrElse(throw new RuntimeException(s"Unable to resolve: $capture"))
+          runtimeEnvironment
+            .getVar(capture)
+            .getOrElse(throw new RuntimeException(s"Unable to resolve: $capture"))
       )
 
     createFnReference(fnName, resolvedCaptures)
   }
 
-
-  private def createLambdaClass(itself: Option[LispSymbol], fnName: String,
+  private def createLambdaClass(itself: Option[LispSymbol],
+                                fnName: String,
                                 capturedVariables: LengineVarCapture,
-                                argsWithCapturedVars: Map[LispSymbol, Int],
+                                argsWithCapturedVars: Map[LispSymbol, (Int, Class[_])],
                                 isTailRec: Boolean): LengineRuntimeEnvironment = {
     val lambdaClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
-    val lambdaClassName = s"${runtimeEnvironment.className}$$$fnName"
+    val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
 
-    lambdaClassWriter.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC,
+    val thisLambdaClass = LengineLambdaClass(f.placeHolders.length)
+
+    lambdaClassWriter.visit(
+      Opcodes.V1_8,
+      Opcodes.ACC_PUBLIC,
       lambdaClassName,
-      null, Type.getType(classOf[Object]).getInternalName,
-      Array(Type.getType(LengineLambdaClass(f.placeHolders.length)).getInternalName))
+      null,
+      Type.getType(classOf[Object]).getInternalName,
+      Array(Type.getType(thisLambdaClass).getInternalName)
+    )
 
     capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
       case (_, idx) =>
@@ -137,10 +145,9 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       case (_, idx) =>
         lambdaMv.visitIntInsn(Opcodes.ALOAD, 0)
         lambdaMv.visitFieldInsn(Opcodes.GETFIELD,
-          lambdaClassName,
-          s"var$idx",
-          Type.getType(classOf[Object]).getDescriptor
-        )
+                                lambdaClassName,
+                                s"var$idx",
+                                Type.getType(classOf[Object]).getDescriptor)
     }
 
     val argsType = argsWithCapturedVars.map(_ => Type.getType(classOf[Object])).toList
@@ -162,18 +169,20 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val mv = lambdaClassWriter
       .visitMethod(Opcodes.ACC_PUBLIC,
-        "invokeActual",
-        Type.getMethodDescriptor(
-          Type.getType(classOf[Object]),
-          argsType: _*
-        ),
-        null,
-        null)
+                   "invokeActual",
+                   Type.getMethodDescriptor(
+                     Type.getType(classOf[Object]),
+                     argsType: _*
+                   ),
+                   null,
+                   null)
 
     val startLabel = new Label()
-    val endLabel = new Label()
+    val endLabel   = new Label()
 
-    val initialArgMap: mutable.Map[LispSymbol, Int] = itself.map(it => mutable.Map(it -> 0)).getOrElse(mutable.Map())
+    val initialArgMap: mutable.Map[LispSymbol, (Int, Class[_])] =
+      itself.map(it => mutable.Map[LispSymbol, (Int, Class[_])](it -> (0, thisLambdaClass)))
+        .getOrElse(mutable.Map())
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
       runtimeEnvironment.classWriter,
@@ -183,14 +192,14 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       argsType.size + 1
     )
 
-    newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0)
+    newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0, thisLambdaClass)
 
     mv.visitLabel(startLabel)
 
     val newItSelf = if (isTailRec) {
       itself match {
         case Some(_) => itself
-        case None => Some(EagerSymbol("$"))
+        case None    => Some(EagerSymbol("$"))
       }
     } else {
       itself
@@ -205,11 +214,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitInsn(Opcodes.ARETURN)
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
-      Type.getType(classOf[java.lang.Long]).getDescriptor,
-      null,
-      startLabel,
-      endLabel,
-      newRuntimeEnvironment.getLastVarIdx)
+                          Type.getType(classOf[java.lang.Long]).getDescriptor,
+                          null,
+                          startLabel,
+                          endLabel,
+                          newRuntimeEnvironment.getLastVarIdx)
     mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
     mv.visitEnd()
 
@@ -220,7 +229,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment
   }
 
-  private def createFnReference(methodName: String, capturedArgLocs: Seq[Int]): Unit = {
+  private def createFnReference(methodName: String, capturedArgLocs: Seq[(Int, Class[_])]): Unit = {
     val pmv = runtimeEnvironment.methodVisitor
 
     val lambdaClsName = s"${runtimeEnvironment.className}$$$methodName"
@@ -231,7 +240,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     )
     pmv.visitInsn(Opcodes.DUP)
     capturedArgLocs.foreach(capturedLoc => {
-      pmv.visitALoad(capturedLoc)
+      pmv.visitALoad(capturedLoc._1)
+      pmv.visitCheckCast(capturedLoc._2)
     })
     pmv.visitMethodInsn(
       Opcodes.INVOKESPECIAL,

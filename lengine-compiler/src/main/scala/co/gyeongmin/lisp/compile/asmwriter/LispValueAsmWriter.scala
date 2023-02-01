@@ -97,7 +97,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
           val idx = newEnv.allocateNextVar
           new LispValueAsmWriter(value, ObjectClass)(newEnv).visitForValue(needReturn = true)
           mv.visitAStore(idx)
-          newEnv.registerVariable(name, idx)
+          newEnv.registerVariable(name, idx, ObjectClass)
       }
       new LispValueAsmWriter(body, ObjectClass)(newEnv).visitForValue(needReturn = true, tailRecReference = tailRecReference)
       val used = newEnv.getLastVarIdx
@@ -114,8 +114,10 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       visitDoBody(body, tailRecReference = tailRecReference)
     case ref: EagerSymbol if runtimeEnv.hasVar(ref) =>
         runtimeEnv.getVar(ref).foreach(varLoc => {
-          mv.visitIntInsn(Opcodes.ALOAD, varLoc)
-          mv.visitCheckCast(typeToBe)
+          mv.visitIntInsn(Opcodes.ALOAD, varLoc._1)
+          if (varLoc._2 == ObjectClass) {
+            mv.visitCheckCast(typeToBe)
+          }
         })
     case ref: EagerSymbol =>
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
@@ -125,12 +127,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLispValue(value, typeToBe, needReturn = true, tailRecReference = tailRecReference)
       val varIdx = runtimeEnv.allocateNextVar
       mv.visitAStore(varIdx)
-      runtimeEnv.registerVariable(symbol, varIdx)
+      runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
     case LispFuncDef(symbol, funcDef) =>
       new LispFnAsmWriter(funcDef).writeValue(itself = Some(symbol))
       val fnIdx = runtimeEnv.allocateNextVar
       mv.visitAStore(fnIdx)
-      runtimeEnv.registerVariable(symbol, fnIdx)
+      runtimeEnv.registerVariable(symbol, fnIdx, LengineLambdaClass(funcDef.placeHolders.size))
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
   }
