@@ -49,19 +49,19 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispCaseCondition(condition, thenValue) :: tail =>
       mv.visitLispValue(condition, BooleanClass, needReturn = true)
       mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
-      mv.visitJumpInsn(Opcodes.IFEQ, nextLabel)
+      mv.visitIfEq(nextLabel)
       mv.visitLispValue(thenValue, typeToBe, needReturn = needReturn, tailRecReference)
-      mv.visitJumpInsn(Opcodes.GOTO, exitLabel)
+      mv.visitGoto(exitLabel)
       mv.visitLabel(nextLabel)
       declareCaseStmt(tail, fallback, exitLabel, needReturn = needReturn, tailRecReference)
   }
 
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
     case LispTrue =>
-      mv.visitInsn(Opcodes.ICONST_0)
+      mv.visitInsn(Opcodes.ICONST_1)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispFalse =>
-      mv.visitInsn(Opcodes.ICONST_1)
+      mv.visitInsn(Opcodes.ICONST_0)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) =>
       mv.visitIntInsn(Opcodes.SIPUSH, ch)
