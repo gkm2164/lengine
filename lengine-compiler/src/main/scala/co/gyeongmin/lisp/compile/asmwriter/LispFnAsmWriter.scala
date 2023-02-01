@@ -59,7 +59,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                                 fnName: String,
                                 capturedVariables: LengineVarCapture,
                                 argsWithCapturedVars: Map[LispSymbol, (Int, Class[_])],
-                                isTailRec: Boolean): LengineRuntimeEnvironment = {
+                                isTailRec: Boolean): Unit = {
     val lambdaClassWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES)
     val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
 
@@ -181,7 +181,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val endLabel   = new Label()
 
     val initialArgMap: mutable.Map[LispSymbol, (Int, Class[_])] =
-      itself.map(it => mutable.Map[LispSymbol, (Int, Class[_])](it -> (0, thisLambdaClass)))
+      itself.map(it => mutable.Map(it -> (0, thisLambdaClass)))
         .getOrElse(mutable.Map())
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
@@ -225,8 +225,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     lambdaClassWriter.visitEnd()
     val lambdaFileWriter = new FileOutputStream(s"$lambdaClassName.class")
     lambdaFileWriter.write(lambdaClassWriter.toByteArray)
-
-    newRuntimeEnvironment
   }
 
   private def createFnReference(methodName: String, capturedArgLocs: Seq[(Int, Class[_])]): Unit = {
