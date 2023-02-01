@@ -54,6 +54,6 @@ public class JvmTest {
   public void something2(int x, int y) {
     System.out.println(String.class);
 
-    while(true);
+    System.out.println(new Object[] { 1, 2, 3, 4, 5 });
   }
 }

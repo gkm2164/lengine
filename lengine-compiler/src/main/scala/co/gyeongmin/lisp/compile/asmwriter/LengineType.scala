@@ -1,9 +1,30 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import lengine.Prelude
-import lengine.functions.{LengineLambda0, LengineLambda1, LengineLambda10, LengineLambda2, LengineLambda3, LengineLambda4, LengineLambda5, LengineLambda6, LengineLambda7, LengineLambda8, LengineLambda9}
-import lengine.runtime.{CreateIterator, FileSequence, LengineIterator, LengineMap, LengineMapEntry, LengineMapKey, LengineUnit, RangeSequence, Sequence}
-import org.objectweb.asm.MethodVisitor
+import lengine.functions.{
+  LengineLambda0,
+  LengineLambda1,
+  LengineLambda10,
+  LengineLambda2,
+  LengineLambda3,
+  LengineLambda4,
+  LengineLambda5,
+  LengineLambda6,
+  LengineLambda7,
+  LengineLambda8,
+  LengineLambda9
+}
+import lengine.runtime.{
+  CreateIterator,
+  FileSequence,
+  LengineIterator,
+  LengineMap,
+  LengineMapEntry,
+  LengineMapKey,
+  LengineUnit,
+  RangeSequence,
+  Sequence
+}
 
 import java.io.PrintStream
 
@@ -17,7 +38,6 @@ object LengineType {
   val DoubleClass: Class[java.lang.Double]           = classOf[java.lang.Double]
   val DoublePrimitive: Class[java.lang.Double]       = java.lang.Double.TYPE
   val StringClass: Class[java.lang.String]           = classOf[java.lang.String]
-  val ClassClass: Class[Class[_]]                    = classOf[Class[_]]
   val ObjectClass: Class[Object]                     = classOf[Object]
   val ArrayObjectClass: Class[Array[Object]]         = classOf[Array[Object]]
   val CharacterClass: Class[java.lang.Character]     = classOf[Character]
@@ -47,46 +67,4 @@ object LengineType {
   val CreateIteratorClass: Class[CreateIterator]   = classOf[CreateIterator]
   val LengineIteratorClass: Class[LengineIterator] = classOf[LengineIterator]
   val FileSequenceClass: Class[FileSequence]       = classOf[FileSequence]
-}
-
-trait LengineType {
-  def getJvmType: Class[_ <: Object]
-}
-
-trait LengineNumber extends LengineType
-
-case object LengineAny extends LengineType {
-  override def getJvmType: Class[_ <: Object] = classOf[java.lang.Object]
-}
-
-case object LengineChar extends LengineNumber {
-  override def getJvmType: Class[Character] = classOf[java.lang.Character]
-}
-
-case object LengineInteger extends LengineNumber {
-  override def getJvmType: Class[java.lang.Long] = classOf[java.lang.Long]
-
-}
-
-case object LengineDouble extends LengineNumber {
-  override def getJvmType: Class[java.lang.Double] = classOf[java.lang.Double]
-
-}
-
-case object LengineString extends LengineType {
-  override def getJvmType: Class[String] = classOf[java.lang.String]
-
-}
-
-case object LengineList extends LengineType {
-  override def getJvmType: Class[_ <: Object] = classOf[Sequence]
-}
-
-case object LengineBoolean extends LengineType {
-  override def getJvmType: Class[_ <: Object] = classOf[java.lang.Boolean]
-}
-
-case object LengineObject extends LengineType {
-  override def getJvmType: Class[_ <: Object] = classOf[LengineMap]
-
 }

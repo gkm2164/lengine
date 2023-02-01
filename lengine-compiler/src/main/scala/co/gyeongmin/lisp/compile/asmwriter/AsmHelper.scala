@@ -57,18 +57,15 @@ object AsmHelper {
     def visitStaticMethodCallStringOwner(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
 
-    def allocateNewArray(t: Class[_], arraySize: Int): Int = {
-      val arrLoc = runtimeEnvironment.allocateNextVar
+    def allocateNewArray(t: Class[_], arraySize: Int): Unit = {
       mv.visitLdcInsn(arraySize)
       mv.visitTypeInsn(ANEWARRAY, Type.getType(t).getInternalName)
-      mv.visitIntInsn(ASTORE, arrLoc)
-      arrLoc
     }
 
-    def visitArrayAssignWithLispValues(values: Seq[LispValue], arrLoc: Int): Unit = {
+    def visitArrayAssignWithLispValues(values: Seq[LispValue]): Unit = {
       values.zipWithIndex.foreach {
         case (value, idx) =>
-          mv.visitALoad(arrLoc)
+          mv.visitInsn(Opcodes.DUP)
           mv.visitLdcInsn(idx)
           mv.visitLispValue(value)
           mv.visitInsn(Opcodes.AASTORE)
@@ -78,11 +75,13 @@ object AsmHelper {
     def visitCheckCast(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
 
+    def visitInstanceOf(cls: Class[_]): Unit =
+      mv.visitTypeInsn(Opcodes.INSTANCEOF, Type.getType(cls).getInternalName)
+
     def visitLispValue(value: LispValue,
-                       finalCast: Option[LengineType] = None,
                        needReturn: Boolean = false,
                        tailRecReference: Option[(LispSymbol, Label)] = None): Unit =
-      new LispValueAsmWriter(value).visitForValue(finalCast, tailRecReference, needReturn)
+      new LispValueAsmWriter(value).visitForValue(tailRecReference, needReturn)
 
     def visitBoxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit =
       mv.visitStaticMethodCall(

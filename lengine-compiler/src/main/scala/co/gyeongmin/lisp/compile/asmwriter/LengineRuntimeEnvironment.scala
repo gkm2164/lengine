@@ -36,7 +36,7 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
   def hasVar(varName: LispSymbol): Boolean = args.contains(varName)
 
 
-  def allocateNextVar: Int = varIdx.getAndAdd(2)
+  def allocateNextVar: Int = varIdx.getAndAdd(1)
 
   def getLastVarIdx: Int = varIdx.get()
   def copy: LengineRuntimeEnvironment =

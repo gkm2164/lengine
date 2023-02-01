@@ -27,7 +27,7 @@ import lengine.runtime.Sequence;
 public class Prelude {
   private static final Set<String> alreadyLoadedClass = new HashSet<>();
 
-  public static Object cast(Object from, Class<?> to) {
+  private static Object cast(Object from, Class<?> to) {
     if (to.equals(Character.class)) {
       return castChar(from);
     } else if (to.equals(Long.class)) {
@@ -44,23 +44,23 @@ public class Prelude {
   }
 
   public static Object cast_str(Object from) {
-    return cast(from, String.class);
+    return castString(from);
   }
 
   public static Object cast_int(Object from) {
-    return cast(from, Long.class);
+    return castLong(from);
   }
 
   public static Object cast_double(Object from) {
-    return cast(from, Double.class);
+    return castDouble(from);
   }
 
   public static Object cast_char(Object from) {
-    return cast(from, Character.class);
+    return castChar(from);
   }
 
   public static Object cast_seq(Object from) {
-    return cast(from, Sequence.class);
+    return castSequence(from);
   }
 
   private static Sequence castSequence(Object from) {
@@ -390,40 +390,23 @@ public class Prelude {
     return !Objects.equals(a, b);
   }
 
-  public static Boolean and(Object a, Object b) {
-    if (!(a instanceof Boolean)) {
-      throw new RuntimeException("first parameter is not boolean");
-    }
-    if (!(b instanceof Boolean)) {
-      throw new RuntimeException("second parameter is not boolean");
-    }
-
-    return ((Boolean) a) && ((Boolean) b);
+  public static Boolean and(Boolean a, Boolean b) {
+    return a && b;
   }
 
-  public static Boolean or(Object a, Object b) {
-    if (!(a instanceof Boolean)) {
-      throw new RuntimeException("first parameter is not boolean");
-    }
-    if (!(b instanceof Boolean)) {
-      throw new RuntimeException("second parameter is not boolean");
-    }
-
-    return ((Boolean) a) || ((Boolean) b);
+  public static Boolean or(Boolean a, Boolean b) {
+    return a || b;
   }
 
-  public static Boolean not(Object a) {
-    if (!(a instanceof Boolean)) {
-      throw new RuntimeException("first parameter is not boolean");
-    }
-
-    return !((Boolean) a);
+  public static Boolean not(Boolean a) {
+    return !a;
   }
 
-  public static void assertTrue(Object message, Object value) {
-    if (!(Boolean)value) {
+  public static void assertTrue(Object message, Boolean value) {
+    if (!value) {
       throw new RuntimeException("Failed to assert: " + message);
     }
+    System.out.println("PASSED: " + message);
   }
 
   public static void loadClass(String clsName) {

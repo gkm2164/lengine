@@ -2,10 +2,9 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ClassWriter, Type}
+import org.objectweb.asm.{ClassWriter, Label, Type}
 
 import scala.collection.mutable
 
@@ -24,27 +23,27 @@ package object compile {
   }
 
   private def writeMain(cw: ClassWriter, statements: List[LispValue], className: String): Unit = {
-    val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC, "main",
-      Type.getMethodDescriptor(
-        Type.getType(java.lang.Void.TYPE),
-        Type.getType(classOf[Array[String]])
-      ), null, null)
+    val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
+                            "main",
+                            Type.getMethodDescriptor(
+                              Type.getType(java.lang.Void.TYPE),
+                              Type.getType(classOf[Array[String]])
+                            ),
+                            null,
+                            null)
     mv.visitCode()
-    mv.visitLabel(LengineEnv.startLabel)
+    val startLabel: Label = new Label()
+    val endLabel: Label = new Label()
+    mv.visitLabel(startLabel)
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
-      new LengineRuntimeEnvironment(
-        cw,
-        mv,
-        mutable.Map(),
-        className,
-        2)
+      new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, 1)
 
     statements.foreach(stmt => new LispValueAsmWriter(stmt).visitForValue(needReturn = false))
-    mv.visitLabel(LengineEnv.endLabel)
+    mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)
-    new LispValueDefWriter(EagerSymbol("__PADDING__"), IntegerNumber(0))
-      .writeValue(LengineEnv.startLabel, LengineEnv.endLabel, mainRuntimeEnv.getLastVarIdx)
-    LengineEnv.declareVars()
+    // Need to give hint to assembly generator for helping decide frame size
+    new LispValueDefWriter(EagerSymbol("__PADDING__"))
+      .writeValue(startLabel, endLabel, mainRuntimeEnv.getLastVarIdx)
     mv.visitMaxs(mainRuntimeEnv.getLastVarIdx, mainRuntimeEnv.getLastVarIdx)
     mv.visitEnd()
   }
@@ -69,13 +68,13 @@ package object compile {
     )
     fieldVisit.visitEnd()
 
-    val mv = cw.visitMethod(ACC_STATIC, "<clinit>",
-      Type.getMethodDescriptor(
-        Type.getType(Void.TYPE)
-      ),
-      null,
-      null
-    )
+    val mv = cw.visitMethod(ACC_STATIC,
+                            "<clinit>",
+                            Type.getMethodDescriptor(
+                              Type.getType(Void.TYPE)
+                            ),
+                            null,
+                            null)
     mv.visitCode()
     mv.visitTypeInsn(NEW, "java/util/HashMap")
     mv.visitInsn(DUP)
@@ -97,7 +96,6 @@ package object compile {
     mv.visitEnd()
   }
 
-
   private def writeExportMethod(cw: ClassWriter, clsName: String): Unit = {
     val mv = cw.visitMethod(
       ACC_PUBLIC | ACC_STATIC,
@@ -107,7 +105,8 @@ package object compile {
         Type.getType(classOf[Object]),
         Type.getType(classOf[Object])
       ),
-      null, null
+      null,
+      null
     )
 
     mv.visitFieldInsn(GETSTATIC, clsName, "exportMap", "Ljava/util/Map;")
@@ -137,7 +136,8 @@ package object compile {
         Type.getType(classOf[Object]),
         Type.getType(classOf[Object])
       ),
-      null, null
+      null,
+      null
     )
 
     mv.visitFieldInsn(GETSTATIC, clsName, "exportMap", "Ljava/util/Map;")

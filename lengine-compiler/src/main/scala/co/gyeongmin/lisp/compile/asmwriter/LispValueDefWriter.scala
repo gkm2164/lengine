@@ -1,22 +1,18 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.ObjectClass
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{Label, Type}
 
-class LispValueDefWriter(symbol: LispSymbol, value: LispValue)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
-  import LengineTypeSystem._
-
+class LispValueDefWriter(symbol: LispSymbol)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   def writeValue(startLabel: Label, endLabel: Label, index: Int): Unit = {
     val mv = runtimeEnvironment.methodVisitor
-    value.resolveType.foreach(resolvedType => {
-      mv.visitLocalVariable(symbol.name,
-        Type.getType(resolvedType.getJvmType).getDescriptor,
-        null,
-        startLabel,
-        endLabel,
-        index
-      )
-    })
+    mv.visitLocalVariable(symbol.name,
+      Type.getType(ObjectClass).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      index
+    )
   }
 }

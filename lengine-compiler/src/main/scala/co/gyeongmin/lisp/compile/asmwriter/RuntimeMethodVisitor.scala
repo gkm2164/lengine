@@ -34,6 +34,8 @@ object RuntimeMethodVisitor {
     "read-eof",
     "read-file",
     "read-file-seq",
+    "and",
+    "or",
     "not",
     "if",
     "range",
@@ -64,8 +66,6 @@ object RuntimeMethodVisitor {
     ">="  -> "ge",
     "="   -> "eq",
     "/="  -> "neq",
-    "and" -> "and",
-    "or"  -> "or"
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
@@ -91,7 +91,7 @@ object RuntimeMethodVisitor {
     val mv           = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(value)
-    mv.visitTypeInsn(INSTANCEOF, Type.getType(cls).getInternalName)
+    mv.visitInstanceOf(cls)
     mv.visitBoxing(BooleanClass, BooleanPrimitive)
   }
 
@@ -119,6 +119,7 @@ object RuntimeMethodVisitor {
           case "*"                                                                     => visitCalc("mult", operands)
           case "/"                                                                     => visitCalc("div", operands)
           case "if"                                                                    => visitIfStmt(operands, tailRecReference)
+          case "and" | "or"                                                            => visit2BoolOps(op, operands)
           case "not"                                                                   => visitNotOps(operands)
           case "len"                                                                   => visitLenOp(operands)
           case "take" | "drop"                                                         => visitSeqOpN(op, operands)
@@ -305,7 +306,7 @@ object RuntimeMethodVisitor {
                       Type.getType(SystemClass).getInternalName,
                       "out",
                       Type.getType(PrintStreamClass).getDescriptor)
-    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(Some(LengineString), needReturn = true))
+    operands.foreach(v => new LispValueAsmWriter(v).visitForValue(needReturn = true))
     mv.visitMethodCall(
       PrintStreamClass,
       "println",
@@ -387,6 +388,22 @@ object RuntimeMethodVisitor {
       )
   }
 
+  private def visit2BoolOps(op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val a :: b :: Nil = operands
+    val mv = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(a, needReturn = true)
+    mv.visitCheckCast(BooleanClass)
+    mv.visitLispValue(b, needReturn = true)
+    mv.visitCheckCast(BooleanClass)
+    mv.visitStaticMethodCall(
+      PreludeClass,
+      op,
+      BooleanClass,
+      BooleanClass,
+      BooleanClass
+    )
+  }
+
   private def visitNotOps(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     operands.foreach(v => mv.visitLispValue(v, needReturn = true))
@@ -394,7 +411,7 @@ object RuntimeMethodVisitor {
       PreludeClass,
       "not",
       BooleanClass,
-      ObjectClass
+      BooleanClass
     )
   }
 
@@ -453,12 +470,13 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
     mv.visitLispValue(message, needReturn = true)
     mv.visitLispValue(v, needReturn = true)
+    mv.visitCheckCast(BooleanClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       "assertTrue",
       VoidPrimitive,
       ObjectClass,
-      ObjectClass
+      BooleanClass
     )
   }
 
@@ -538,7 +556,7 @@ object RuntimeMethodVisitor {
 
     val nameOfSymbol = symbol.asInstanceOf[LispSymbol].name
     val mv           = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(value, finalCast = None, needReturn = true)
+    mv.visitLispValue(value, needReturn = true)
     mv.visitAStore(symbolLoc)
 
     mv.visitLdcInsn(nameOfSymbol)

@@ -1,7 +1,5 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.LengineEnv
-import co.gyeongmin.lisp.compile.LengineEnv.LengineFnDef
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
@@ -16,7 +14,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
   private def randomGenerate() = s"lambda$$${f.hashCode().toHexString}"
 
-  def writeValue(itself: Option[LispSymbol] = None): LengineFnDef = {
+  def writeValue(itself: Option[LispSymbol] = None): Unit = {
     val traversedPlaceHolders = traverse(
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
@@ -44,7 +42,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, int + 1) }.toMap
 
-    val newRuntimeEnvironment = createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
+    createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
     val resolvedCaptures = capture.getRequestedCaptures
       .map(
@@ -53,8 +51,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       )
 
     createFnReference(fnName, resolvedCaptures)
-
-    LengineEnv.defineFn(EagerSymbol(fnName), f.placeHolders.size, newRuntimeEnvironment)
   }
 
 
@@ -201,7 +197,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     }
 
     new LispValueAsmWriter(f.body)(newRuntimeEnvironment)
-      .visitForValue(None, needReturn = true, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
+      .visitForValue(needReturn = true, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 
