@@ -60,12 +60,12 @@ object RuntimeMethodVisitor {
   )
 
   private val compareOpMap = Map(
-    "<"   -> "lt",
-    "<="  -> "le",
-    ">"   -> "gt",
-    ">="  -> "ge",
-    "="   -> "eq",
-    "/="  -> "neq",
+    "<"  -> "lt",
+    "<=" -> "le",
+    ">"  -> "gt",
+    ">=" -> "ge",
+    "="  -> "eq",
+    "/=" -> "neq",
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
@@ -388,9 +388,10 @@ object RuntimeMethodVisitor {
       )
   }
 
-  private def visit2BoolOps(op: String, operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visit2BoolOps(op: String,
+                            operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val a :: b :: Nil = operands
-    val mv = runtimeEnvironment.methodVisitor
+    val mv            = runtimeEnvironment.methodVisitor
     mv.visitLispValue(a, needReturn = true)
     mv.visitCheckCast(BooleanClass)
     mv.visitLispValue(b, needReturn = true)
@@ -505,11 +506,8 @@ object RuntimeMethodVisitor {
       LengineIteratorClass
     )
 
-    val seqItLoc = runtimeEnvironment.allocateNextVar
-    mv.visitAStore(seqItLoc)
-
     mv.visitLabel(startLoop)
-    mv.visitALoad(seqItLoc)
+    mv.visitInsn(DUP)
     mv.visitInterfaceMethodCall(
       LengineIteratorClass,
       "hasNext",
@@ -517,30 +515,30 @@ object RuntimeMethodVisitor {
     )
     mv.visitJumpInsn(IFEQ, endLoop)
 
-    mv.visitALoad(seqItLoc)
+    mv.visitInsn(DUP)
     mv.visitInterfaceMethodCall(
       classOf[LengineIterator],
       "next",
       ObjectClass
     )
-    val elemLoc = runtimeEnvironment.allocateNextVar
-    mv.visitAStore(elemLoc)
 
-    visitLambdaFn2Invoke(fnLoc, accLoc, elemLoc)
+    mv.visitIntInsn(ALOAD, fnLoc)
+    mv.visitInsn(SWAP)
+    mv.visitIntInsn(ALOAD, accLoc)
+    mv.visitInsn(SWAP)
+    visitLambdaFn2Invoke()
     mv.visitAStore(accLoc)
 
     mv.visitJumpInsn(GOTO, startLoop)
     mv.visitLabel(endLoop)
+    mv.visitInsn(POP)
     mv.visitALoad(accLoc)
   }
 
-  private def visitLambdaFn2Invoke(lambdaLoc: Int, accLoc: Int, elemLoc: Int)(
+  private def visitLambdaFn2Invoke()(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
-    mv.visitALoad(lambdaLoc)
-    mv.visitALoad(accLoc)
-    mv.visitALoad(elemLoc)
     mv.visitInterfaceMethodCall(
       LengineLambdaClass(2),
       "invoke",
@@ -552,15 +550,10 @@ object RuntimeMethodVisitor {
 
   private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val symbol :: value :: Nil = operands
-    val symbolLoc              = runtimeEnvironment.allocateNextVar
-
-    val nameOfSymbol = symbol.asInstanceOf[LispSymbol].name
-    val mv           = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(value, needReturn = true)
-    mv.visitAStore(symbolLoc)
-
+    val nameOfSymbol           = symbol.asInstanceOf[LispSymbol].name
+    val mv                     = runtimeEnvironment.methodVisitor
     mv.visitLdcInsn(nameOfSymbol)
-    mv.visitALoad(symbolLoc)
+    mv.visitLispValue(value, needReturn = true)
     mv.visitStaticMethodCallStringOwner(
       runtimeEnvironment.className,
       "export",

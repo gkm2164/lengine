@@ -1,6 +1,9 @@
 package lengine.runtime;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class JvmTest {
@@ -53,6 +56,14 @@ public class JvmTest {
 
   public void something2(int x, int y) {
     System.out.println(String.class);
+
+    List<Integer> list = new ArrayList<>();
+    list.add(10);
+    list.add(20);
+
+    for (Integer integer : list) {
+      System.out.println(integer);
+    }
 
     System.out.println(new Object[] { 1, 2, 3, 4, 5 });
   }
