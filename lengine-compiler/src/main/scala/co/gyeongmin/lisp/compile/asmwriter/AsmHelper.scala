@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineUnitClass
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineUnitClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
@@ -67,21 +67,25 @@ object AsmHelper {
         case (value, idx) =>
           mv.visitInsn(Opcodes.DUP)
           mv.visitLdcInsn(idx)
-          mv.visitLispValue(value)
+          mv.visitLispValue(value, ObjectClass)
           mv.visitInsn(Opcodes.AASTORE)
       }
     }
 
-    def visitCheckCast(cls: Class[_]): Unit =
-      mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
+    def visitCheckCast(cls: Class[_]): Unit = {
+      if (cls != ObjectClass) {
+        mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
+      }
+    }
 
     def visitInstanceOf(cls: Class[_]): Unit =
       mv.visitTypeInsn(Opcodes.INSTANCEOF, Type.getType(cls).getInternalName)
 
     def visitLispValue(value: LispValue,
+                       typeToBe: Class[_],
                        needReturn: Boolean = false,
                        tailRecReference: Option[(LispSymbol, Label)] = None): Unit =
-      new LispValueAsmWriter(value).visitForValue(tailRecReference, needReturn)
+      new LispValueAsmWriter(value, typeToBe).visitForValue(tailRecReference, needReturn)
 
     def visitBoxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object]): Unit =
       mv.visitStaticMethodCall(

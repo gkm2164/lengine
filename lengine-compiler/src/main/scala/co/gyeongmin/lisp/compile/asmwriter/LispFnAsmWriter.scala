@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -196,7 +196,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       itself
     }
 
-    new LispValueAsmWriter(f.body)(newRuntimeEnvironment)
+    new LispValueAsmWriter(f.body, ObjectClass)(newRuntimeEnvironment)
       .visitForValue(needReturn = true, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)

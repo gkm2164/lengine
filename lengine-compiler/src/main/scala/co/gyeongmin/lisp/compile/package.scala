@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp
 
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ObjectClass, StringClass, VoidPrimitive}
 import co.gyeongmin.lisp.compile.asmwriter.{LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
@@ -38,7 +39,7 @@ package object compile {
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, 1)
 
-    statements.foreach(stmt => new LispValueAsmWriter(stmt).visitForValue(needReturn = false))
+    statements.foreach(stmt => new LispValueAsmWriter(stmt, ObjectClass).visitForValue(needReturn = false))
     mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)
     // Need to give hint to assembly generator for helping decide frame size
@@ -101,9 +102,9 @@ package object compile {
       ACC_PUBLIC | ACC_STATIC,
       "export",
       Type.getMethodDescriptor(
-        Type.getType(Void.TYPE),
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object])
+        Type.getType(VoidPrimitive),
+        Type.getType(StringClass),
+        Type.getType(ObjectClass)
       ),
       null,
       null
@@ -117,9 +118,9 @@ package object compile {
       "java/util/Map",
       "put",
       Type.getMethodDescriptor(
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object])
+        Type.getType(ObjectClass),
+        Type.getType(ObjectClass),
+        Type.getType(ObjectClass)
       ),
       true
     )
@@ -133,8 +134,8 @@ package object compile {
       ACC_PUBLIC | ACC_STATIC,
       "importSymbol",
       Type.getMethodDescriptor(
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object])
+        Type.getType(ObjectClass),
+        Type.getType(StringClass)
       ),
       null,
       null

@@ -237,7 +237,7 @@ public class Prelude {
     return seq.iterator().next();
   }
 
-  public static Object tail(CreateIterator seq) {
+  public static Sequence tail(CreateIterator seq) {
     return drop(1L, seq);
   }
 
@@ -326,7 +326,7 @@ public class Prelude {
     return ret;
   }
 
-  public static Object flatten(Sequence seq) {
+  public static Sequence flatten(Sequence seq) {
     return seq.flatten();
   }
 

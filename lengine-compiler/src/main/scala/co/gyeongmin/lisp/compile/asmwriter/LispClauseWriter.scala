@@ -1,13 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.LengineLambdaClass
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
-import lengine.functions.LengineLambda1
-import lengine.runtime.{ LengineMap, LengineMapKey }
-import org.objectweb.asm.{ Label, MethodVisitor, Opcodes }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
-class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
+class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
   import AsmHelper._
 
@@ -18,27 +16,27 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
     mv.visitLdcInsn(key)
     mv.visitStaticMethodCall(
-      classOf[LengineMapKey],
+      LengineMapKeyClass,
       "create",
-      classOf[LengineMapKey],
-      classOf[String]
+      LengineMapKeyClass,
+      StringClass
     )
-    mv.visitLispValue(map, needReturn = true)
+    mv.visitLispValue(map, ObjectClass, needReturn = true)
     mv.visitInterfaceMethodCall(
-      classOf[LengineLambda1[Object, LengineMap]],
+      LengineLambdaClass(1),
       "invoke",
-      classOf[Object],
-      classOf[Object]
+      ObjectClass,
+      ObjectClass
     )
+    mv.visitCheckCast(requestedType)
   }
-
-  private def times[T](number: Int, value: T): Seq[T] = (1 to number).map(_ => value)
 
   def visitForValue(needReturn: Boolean = false, tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key)                        => declareObjectRefer(key, operands)
-      case s if RuntimeMethodVisitor.supportOperation(s) => RuntimeMethodVisitor.handle(clause.body, needReturn, tailRecReference)
+      case s if RuntimeMethodVisitor.supportOperation(s) =>
+        RuntimeMethodVisitor.handle(clause.body, requestedType, needReturn, tailRecReference)
       case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
         throw new RuntimeException(s"unable to find the symbol definition: $s")
       case value @ (EagerSymbol(_) | LispClause(_)) =>
@@ -46,25 +44,21 @@ class LispClauseWriter(clause: LispClause)(implicit runtimeEnvironment: LengineR
           case Some((reference, label)) if reference == operation || operation == EagerSymbol("$") =>
             operands.zipWithIndex.foreach {
               case (v, loc) =>
-                mv.visitLispValue(v, needReturn = true)
+                mv.visitLispValue(v, requestedType, needReturn = true)
                 mv.visitAStore(loc + 1)
             }
             mv.visitJumpInsn(Opcodes.GOTO, label)
           case None =>
-            val suspectFn = runtimeEnvironment.allocateNextVar
-            new LispValueAsmWriter(value).visitForValue(needReturn = needReturn)
-            mv.visitAStore(suspectFn)
-
-            val lClass = LengineLambdaClass(operands.size)
-            mv.visitIntInsn(Opcodes.ALOAD, suspectFn)
-            mv.visitCheckCast(lClass)
-            operands.foreach(v => mv.visitLispValue(v, needReturn = true))
+            val argSize = operands.size
+            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
+            operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
             mv.visitInterfaceMethodCall(
-              lClass,
+              LengineLambdaClass(argSize),
               "invoke",
-              classOf[Object],
-              operands.map(_ => classOf[Object]): _*
+              ObjectClass,
+              operands.map(_ => ObjectClass): _*
             )
+            mv.visitCheckCast(requestedType)
         }
 
     }
