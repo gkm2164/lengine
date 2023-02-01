@@ -489,6 +489,7 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
     mv.visitLispValue(lambda, needReturn = true)
+    mv.visitCheckCast(LengineLambdaClass(2))
     val fnLoc = runtimeEnvironment.allocateNextVar
     mv.visitAStore(fnLoc)
 
@@ -538,7 +539,6 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     mv.visitALoad(lambdaLoc)
-    mv.visitCheckCast(LengineLambdaClass(2))
     mv.visitALoad(accLoc)
     mv.visitALoad(elemLoc)
     mv.visitInterfaceMethodCall(

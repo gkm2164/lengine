@@ -57,14 +57,17 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None,
                     needReturn: Boolean): Unit = value match {
     case LispTrue =>
-      mv.visitLdcInsn(true)
+      mv.visitInsn(Opcodes.ICONST_0)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispFalse =>
-      mv.visitLdcInsn(false)
+      mv.visitInsn(Opcodes.ICONST_1)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) =>
-      mv.visitLdcInsn(ch)
+      mv.visitIntInsn(Opcodes.SIPUSH, ch)
       mv.visitBoxing(CharacterClass, CharacterPrimitive)
+    case IntegerNumber(n) if n >= 0 && n <= 1 =>
+      mv.visitInsn(Opcodes.LCONST_0 + n.toInt)
+      mv.visitBoxing(LongClass, LongPrimitive)
     case IntegerNumber(n) =>
       mv.visitLdcInsn(n)
       mv.visitBoxing(LongClass, LongPrimitive)
@@ -111,12 +114,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       new LispLoopAsmWriter(forStmts, body, tailRecReference = tailRecReference).writeValue()
     case LispDoStmt(body) =>
       visitDoBody(body, tailRecReference = tailRecReference)
-    case ref: EagerSymbol =>
-      if (runtimeEnv.hasVar(ref)) {
+    case ref: EagerSymbol if runtimeEnv.hasVar(ref) =>
         runtimeEnv.getVar(ref).foreach(varLoc => mv.visitIntInsn(Opcodes.ALOAD, varLoc))
-      } else {
+    case ref: EagerSymbol =>
         throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
-      }
     case l @ LispClause(_) => new LispClauseWriter(l).visitForValue(needReturn, tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
       mv.visitLispValue(value, needReturn = true, tailRecReference = tailRecReference)
