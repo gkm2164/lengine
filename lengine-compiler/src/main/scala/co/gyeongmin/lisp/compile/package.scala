@@ -45,7 +45,7 @@ package object compile {
     // Need to give hint to assembly generator for helping decide frame size
     new LispValueDefWriter(EagerSymbol("__PADDING__"))
       .writeValue(startLabel, endLabel, mainRuntimeEnv.getLastVarIdx)
-    mv.visitMaxs(mainRuntimeEnv.getLastVarIdx, mainRuntimeEnv.getLastVarIdx)
+    mv.visitMaxs(0, 0)
     mv.visitEnd()
   }
 
