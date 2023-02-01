@@ -1,11 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType._
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{CreateIteratorClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.Label
+import lengine.runtime.{CreateIterator, LengineIterator, Sequence}
+import org.objectweb.asm.{Label, Opcodes}
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt],
                         body: LispValue,
@@ -14,71 +15,79 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
   def writeValue(): Unit =
     visitForStmt(forStmts, body)
 
+  def declareSequence(newSeqLoc: Int): Unit = {
+    val mv = env.methodVisitor
+
+    mv.visitStaticMethodCall(
+      classOf[Sequence],
+      "create",
+      classOf[Sequence]
+    )
+    mv.visitIntInsn(Opcodes.ASTORE, newSeqLoc)
+  }
+
+  private def seqWhileStart(seq: LispValue): (Int, Int, Label, Label) = {
+    val startLoop = new Label()
+    val endLoop   = new Label()
+
+    val mv = env.methodVisitor
+    new LispValueAsmWriter(seq, CreateIteratorClass).visitForValue(needReturn = true)
+    mv.visitInterfaceMethodCall(
+      classOf[CreateIterator],
+      "iterator",
+      classOf[LengineIterator]
+    )
+    val seqIteratorLoc = env.allocateNextVar
+    val newSeqLoc      = env.allocateNextVar
+    mv.visitAStore(seqIteratorLoc)
+
+    declareSequence(newSeqLoc)
+
+    mv.visitLabel(startLoop)
+    mv.visitALoad(seqIteratorLoc)
+    mv.visitInterfaceMethodCall(
+      classOf[LengineIterator],
+      "hasNext",
+      java.lang.Boolean.TYPE
+    )
+    mv.visitJumpInsn(Opcodes.IFEQ, endLoop)
+    (seqIteratorLoc, newSeqLoc, startLoop, endLoop)
+  }
+
   private def visitForStmt(forStmts: List[LispForStmt], body: LispValue): Unit = {
+    val mv = env.methodVisitor
     forStmts match {
       case Nil =>
         new LispValueAsmWriter(body, requestedType)
           .visitForValue(needReturn = true, tailRecReference = tailRecReference)
       case LispForStmt(symbol, seq) :: tail =>
-        val startLoop = new Label()
-        val endLoop = new Label()
-
         val varIdx = env.allocateNextVar
         env.registerVariable(symbol, varIdx, ObjectClass)
-
-        val seqIteratorLoc = env.allocateNextVar
-        val newSeqLoc = env.allocateNextVar
-        val tmpIdx = env.allocateNextVar
-
-        val mv = env.methodVisitor
-        mv.visitLispValue(seq, CreateIteratorClass, needReturn = true)
+        val (seqIdx, dstSeqIdx, startLabel, endLabel) = seqWhileStart(seq)
+        mv.visitALoad(seqIdx)
         mv.visitInterfaceMethodCall(
-          CreateIteratorClass,
-          "iterator",
-          LengineIteratorClass
-        )
-
-        mv.visitAStore(seqIteratorLoc)
-
-        mv.visitStaticMethodCall(
-          SequenceClass,
-          "create",
-          SequenceClass
-        )
-        mv.visitAStore(newSeqLoc)
-
-        mv.visitLabel(startLoop)
-        mv.visitALoad(seqIteratorLoc)
-        mv.visitInterfaceMethodCall(
-          LengineIteratorClass,
-          "hasNext",
-          BooleanPrimitive
-        )
-        mv.visitIfEq(endLoop)
-
-        mv.visitALoad(seqIteratorLoc)
-        mv.visitInterfaceMethodCall(
-          LengineIteratorClass,
+          classOf[LengineIterator],
           "next",
-          ObjectClass
+          classOf[Object]
         )
         mv.visitAStore(varIdx)
         visitForStmt(tail, body)
 
+        val tmpIdx = env.allocateNextVar
         mv.visitAStore(tmpIdx)
-        mv.visitALoad(newSeqLoc)
-        mv.visitCheckCast(SequenceClass)
+        mv.visitALoad(dstSeqIdx)
+        mv.visitCheckCast(classOf[Sequence])
         mv.visitALoad(tmpIdx)
         mv.visitMethodCall(
-          SequenceClass,
+          classOf[Sequence],
           "add",
-          VoidPrimitive,
-          ObjectClass
+          Void.TYPE,
+          classOf[Object]
         )
         env.deregisterVariable(symbol)
-        mv.visitGoto(startLoop)
-        mv.visitLabel(endLoop)
-        mv.visitALoad(newSeqLoc)
+        mv.visitJumpInsn(Opcodes.GOTO, startLabel)
+        mv.visitLabel(endLabel)
+        mv.visitALoad(dstSeqIdx)
     }
   }
 }

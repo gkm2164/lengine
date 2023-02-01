@@ -4,8 +4,6 @@
 (def F false)
 (def bool-list [T F])
 
-(println T)
-
 (assert "T should be true" T)
 (assert "F should be false" (not F))
 (assert "should eq to" (= [T F] bool-list))

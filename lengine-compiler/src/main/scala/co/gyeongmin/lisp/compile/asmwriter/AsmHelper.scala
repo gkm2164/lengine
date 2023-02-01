@@ -133,13 +133,5 @@ object AsmHelper {
         methodName,
         primitiveType
       )
-
-    def visitIfEq(label: Label): Unit = {
-      mv.visitJumpInsn(IFEQ, label)
-    }
-
-    def visitGoto(label: Label): Unit = {
-      mv.visitJumpInsn(GOTO, label)
-    }
   }
 }
