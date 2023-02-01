@@ -3,13 +3,13 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
+import org.objectweb.asm.{ Label, MethodVisitor, Opcodes }
 
 import scala.annotation.tailrec
 
@@ -38,7 +38,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   @tailrec
-  private def declareCaseStmt(cases: List[LispCaseCondition], fallback: LispValue, exitLabel: Label, needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)], nextLabel: Label = new Label()): Unit = cases match {
+  private def declareCaseStmt(cases: List[LispCaseCondition],
+                              fallback: LispValue,
+                              exitLabel: Label,
+                              needReturn: Boolean,
+                              tailRecReference: Option[(LispSymbol, Label)],
+                              nextLabel: Label = new Label()): Unit = cases match {
     case Nil =>
       mv.visitLispValue(fallback, typeToBe, needReturn = needReturn, tailRecReference)
     case LispCaseCondition(condition, thenValue) :: tail =>
@@ -51,8 +56,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       declareCaseStmt(tail, fallback, exitLabel, needReturn = needReturn, tailRecReference)
   }
 
-  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None,
-                    needReturn: Boolean): Unit = value match {
+  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
     case LispTrue =>
       mv.visitInsn(Opcodes.ICONST_0)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
@@ -99,7 +103,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
           mv.visitAStore(idx)
           newEnv.registerVariable(name, idx, ObjectClass)
       }
-      new LispValueAsmWriter(body, ObjectClass)(newEnv).visitForValue(needReturn = true, tailRecReference = tailRecReference)
+      new LispValueAsmWriter(body, ObjectClass)(newEnv)
+        .visitForValue(needReturn = true, tailRecReference = tailRecReference)
       val used = newEnv.getLastVarIdx
       runtimeEnv.overrideUsedVar(used)
       mv.visitLabel(new Label())
@@ -113,16 +118,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispDoStmt(body) =>
       visitDoBody(body, tailRecReference = tailRecReference)
     case ref: EagerSymbol if runtimeEnv.hasVar(ref) =>
-        runtimeEnv.getVar(ref).foreach(varLoc => {
-          mv.visitIntInsn(Opcodes.ALOAD, varLoc._1)
-          if (varLoc._2 == ObjectClass) {
-            mv.visitCheckCast(typeToBe)
-          }
-        })
-    case EagerSymbol(op) if "+*/-".contains(op) =>
-      mv.visitCalcStatic(op)
+      mv.visitLoadVariable(ref, typeToBe)
     case ref: EagerSymbol =>
-        throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
+      throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
     case l @ LispClause(_) =>
       new LispClauseWriter(l, typeToBe).visitForValue(needReturn, tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>

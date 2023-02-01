@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{ClassWriter, MethodVisitor}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import org.objectweb.asm.{ ClassWriter, MethodVisitor }
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
@@ -9,7 +9,8 @@ import scala.collection.mutable
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitor,
                                 val args: mutable.Map[LispSymbol, (Int, Class[_])],
-                                val className: String, numberOfArgs: Int) {
+                                val className: String,
+                                numberOfArgs: Int) {
   def overrideUsedVar(used: Int): Unit = this.varIdx.set(used)
 
   def createChild(): LengineRuntimeEnvironment =
@@ -19,21 +20,19 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
 
   private val varIdx = new AtomicInteger(numberOfArgs)
 
-  def setRequestedCapture(captureVariables: LengineVarCapture): Unit = {
+  def setRequestedCapture(captureVariables: LengineVarCapture): Unit =
     this.captureVariables = Some(captureVariables)
-  }
 
-  def registerVariable(value: LispSymbol, varIdx: Int, knownType: Class[_]): Unit = {
+  def registerVariable(value: LispSymbol, varIdx: Int, knownType: Class[_]): Unit =
     args += (value -> (varIdx, knownType))
-  }
 
-  def deregisterVariable(value: LispSymbol): Unit = {
+  def deregisterVariable(value: LispSymbol): Unit =
     args -= value
-  }
 
   def getVar(varName: LispSymbol): Option[(Int, Class[_])] = args.get(varName)
 
-  def hasVar(varName: LispSymbol): Boolean = args.contains(varName)
+  def hasVar(varName: LispSymbol): Boolean =
+    args.contains(varName) || "+-*/".map(ch => EagerSymbol(ch.toString)).contains(varName)
   def allocateNextVar: Int = varIdx.getAndAdd(1)
 
   def getLastVarIdx: Int = varIdx.get()

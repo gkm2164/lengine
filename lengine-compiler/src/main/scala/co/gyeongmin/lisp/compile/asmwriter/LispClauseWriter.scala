@@ -58,7 +58,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
           case Some((reference, label)) if reference == operation || operation == EagerSymbol("$") =>
             operands.zipWithIndex.foreach {
               case (v, loc) =>
-                mv.visitLispValue(v, requestedType, needReturn = true)
+                mv.visitLispValue(v, ObjectClass, needReturn = true)
                 mv.visitAStore(loc + 1)
             }
             mv.visitJumpInsn(Opcodes.GOTO, label)
@@ -72,7 +72,8 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
                   temporalCalcOpMap(sym),
                   Type.getType(LengineLambdaClass(2)).getDescriptor
                 )
-              case _ => mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
+              case _ =>
+                mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
             }
             operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
             mv.visitInterfaceMethodCall(

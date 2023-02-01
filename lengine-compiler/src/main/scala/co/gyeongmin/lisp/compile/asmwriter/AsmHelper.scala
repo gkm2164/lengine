@@ -62,7 +62,23 @@ object AsmHelper {
     def visitStaticMethodCallStringOwner(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
 
-    def visitCalcStatic(op: String): Unit =
+    def visitLoadVariable(lispSymbol: LispSymbol, typeToBe: Class[_]): Unit = {
+      if ("+*/-".contains(lispSymbol.name)) {
+        visitCalcStatic(lispSymbol.name)
+      } else {
+        runtimeEnvironment
+          .getVar(lispSymbol)
+          .foreach {
+            case (loc, preservedType) =>
+              mv.visitIntInsn(Opcodes.ALOAD, loc)
+              if (preservedType == ObjectClass) {
+                mv.visitCheckCast(typeToBe)
+              }
+          }
+      }
+    }
+
+    private def visitCalcStatic(op: String): Unit =
       mv.visitFieldInsn(
         GETSTATIC,
         Type.getType(PreludeClass).getInternalName,

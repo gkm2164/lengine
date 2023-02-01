@@ -14,15 +14,14 @@
     (join-recur (head strs) (tail strs) delim))
 
 ;;; Make str -> "str"
-(fn with-double-quotes (s)
-    (+ "\"" (+ s "\"")))
+(fn with-double-quotes (s) (join ["\"" s "\""] ""))
 
 (fn to-json-object (obj to-json)
                    (let ((ks (keys obj))
                          (key-values (loop for k in ks
                                            (let ((value (k obj))
-                                                 (object-key (+ "\"" (+ (get k) "\":"))))
-                                                 (+ object-key (to-json value))))))
+                                                 (object-key (+ (with-double-quotes (get k)) ":")))
+                                                (+ object-key (to-json value))))))
                         (+ (+ "{"
                               (join key-values #\,) )
                            "}")))
