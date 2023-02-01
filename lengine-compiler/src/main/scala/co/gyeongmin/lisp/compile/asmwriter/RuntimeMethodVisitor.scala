@@ -15,13 +15,11 @@ object RuntimeMethodVisitor {
     "int",
     "double",
     "char",
-    "len",
     "take",
     "drop",
     "take-while",
     "drop-while",
     "split-at",
-    "len",
     "filter",
     "flatten",
     "println",
@@ -115,7 +113,6 @@ object RuntimeMethodVisitor {
           case "if"                                                                    => visitIfStmt(operands, requestedType, tailRecReference)
           case "and" | "or"                                                            => visit2BoolOps(op, requestedType, operands)
           case "not"                                                                   => visitNotOps(operands, requestedType)
-          case "len"                                                                   => visitLenOp(operands, requestedType)
           case "take" | "drop"                                                         => visitSeqOpN(op, operands)
           case "filter" | "take-while" | "drop-while" | "split-at"                     => visitSeqOpFn(op, operands)
           case "head"                                                                  => visitSeqUOps(op, ObjectClass, requestedType, operands)
@@ -218,22 +215,6 @@ object RuntimeMethodVisitor {
       LengineLambdaClass(1),
       CreateIteratorClass
     )
-  }
-
-  private def visitLenOp(operands: List[LispValue],
-                         requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val seq :: _ = operands
-    val mv       = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(seq, ObjectClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      "len",
-      ObjectClass,
-      ObjectClass
-    )
-    if (requestedType == LongClass) {
-      mv.visitCheckCast(requestedType)
-    }
   }
 
   private def visitSeqOpN(operationName: String,

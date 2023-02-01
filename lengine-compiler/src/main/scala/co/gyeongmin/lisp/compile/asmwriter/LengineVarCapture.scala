@@ -13,6 +13,7 @@ class LengineVarCapture {
   private val ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
 
   "+-*/".map(ch => EagerSymbol(ch.toString)).foreach(ignoreCaptureSet.add)
+  ignoreCaptureSet.add(EagerSymbol("len"))
 
   def this (parent: LengineVarCapture) = {
     this()

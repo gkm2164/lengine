@@ -41,6 +41,9 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
 
   def visitForValue(needReturn: Boolean = false, tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
     val operation :: operands = clause.body
+    val supportedByPrelude = Map(
+      EagerSymbol("len") -> "LEN"
+    )
     val temporalCalcOpMap = Map(
       EagerSymbol("+") -> "ADD",
       EagerSymbol("-") -> "SUB",
@@ -51,7 +54,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) =>
         RuntimeMethodVisitor.handle(clause.body, requestedType, needReturn, tailRecReference)
-      case s: EagerSymbol if !temporalCalcOpMap.contains(s) && !runtimeEnvironment.hasVar(s) =>
+      case s: EagerSymbol if !temporalCalcOpMap.contains(s) && !runtimeEnvironment.hasVar(s) && !supportedByPrelude.contains(s) =>
         throw new RuntimeException(s"unable to find the symbol definition: $s")
       case value @ (EagerSymbol(_) | LispClause(_)) =>
         tailRecReference match {
@@ -65,6 +68,13 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
           case None =>
             val argSize = operands.size
             value match {
+              case sym: EagerSymbol if supportedByPrelude.contains(sym) =>
+                mv.visitFieldInsn(
+                  Opcodes.GETSTATIC,
+                  Type.getType(PreludeClass).getInternalName,
+                  "LEN",
+                  Type.getType(LengineLambdaClass(1)).getDescriptor
+                )
               case sym: EagerSymbol if temporalCalcOpMap.contains(sym) =>
                 mv.visitFieldInsn(
                   Opcodes.GETSTATIC,

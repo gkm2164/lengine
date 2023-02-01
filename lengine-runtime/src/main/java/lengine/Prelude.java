@@ -216,15 +216,15 @@ public class Prelude {
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
   }
 
-  public static Object len(Object seq) {
-    if (seq instanceof CreateIterator) {
-      return ((CreateIterator) seq).len();
-    } else if (seq instanceof String) {
-      return (long) ((String) seq).length();
+  public static LengineLambda1<Long, Object> LEN = (obj) -> {
+    if (obj instanceof CreateIterator) {
+      return ((CreateIterator) obj).len();
+    } else if (obj instanceof String) {
+      return (long) ((String) obj).length();
     }
 
-    throw new RuntimeException("unable to decide the size for " + seq);
-  }
+    throw new RuntimeException("unable to decide the size for " + obj);
+  };
 
   private static Sequence toSeq(String str) {
     Sequence seq = new Sequence();

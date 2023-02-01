@@ -29,7 +29,7 @@ public class RangeSequence implements CreateIterator {
   }
 
   @Override
-  public Object len() {
+  public Long len() {
     return (long)Math.abs(to - from);
   }
 }

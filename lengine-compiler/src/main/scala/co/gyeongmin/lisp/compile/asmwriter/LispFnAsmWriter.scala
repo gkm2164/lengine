@@ -219,7 +219,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                           startLabel,
                           endLabel,
                           newRuntimeEnvironment.getLastVarIdx)
-    mv.visitMaxs(newRuntimeEnvironment.getLastVarIdx, newRuntimeEnvironment.getLastVarIdx)
+    mv.visitMaxs(0, 0)
     mv.visitEnd()
 
     lambdaClassWriter.visitEnd()

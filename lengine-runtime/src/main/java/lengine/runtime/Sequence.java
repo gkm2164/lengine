@@ -74,7 +74,7 @@ public class Sequence implements CreateIterator {
   }
 
   @Override
-  public Object len() {
+  public Long len() {
     return (long)list.size();
   }
 
