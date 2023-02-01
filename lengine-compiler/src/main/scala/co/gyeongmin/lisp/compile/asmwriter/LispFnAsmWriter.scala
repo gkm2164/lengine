@@ -181,8 +181,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val endLabel   = new Label()
 
     val initialArgMap: mutable.Map[LispSymbol, (Int, Class[_])] =
-      itself.map(it => mutable.Map(it -> (0, thisLambdaClass)))
-        .getOrElse(mutable.Map())
+      itself.map(it => mutable.Map[LispSymbol, (Int, Class[_])](it -> (0, thisLambdaClass)))
+        .getOrElse(mutable.Map[LispSymbol, (Int, Class[_])]())
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
       runtimeEnvironment.classWriter,
