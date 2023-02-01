@@ -3,7 +3,7 @@
 (import Module.map)
 (import Module.split)
 
-(def xs (let (x "33")
+(def xs (let ((x "33"))
              (+ x 234)))
 
 (println (len (seq "Hello World")))

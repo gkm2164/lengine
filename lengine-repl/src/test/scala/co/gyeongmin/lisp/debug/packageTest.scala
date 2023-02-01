@@ -1,25 +1,11 @@
 package co.gyeongmin.lisp.debug
 
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.errors.eval.{
-  EmptyBodyClauseError,
-  EvalError,
-  UnimplementedOperationError
-}
+import co.gyeongmin.lisp.errors.eval.{EmptyBodyClauseError, EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.execution.LispEnvironment
-import co.gyeongmin.lisp.lexer.statements.{
-  LispDoStmt,
-  LispForStmt,
-  LispLetDef,
-  LispLoopStmt
-}
+import co.gyeongmin.lisp.lexer.statements.{LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt}
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
-import co.gyeongmin.lisp.lexer.values.{
-  LispClause,
-  LispObject,
-  LispUnit,
-  LispValue
-}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispObject, LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.LispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
@@ -40,8 +26,11 @@ class packageTest extends FlatSpec with Matchers {
       "for statement with x: eager evaluation symbol in [() () ()]: List"
     )
     LispDoStmt(Nil).debug() should be("do statement")
-    LispLetDef(EagerSymbol("x"), LispUnit, LispUnit).debug() should be(
-      "let statement define x: eager evaluation symbol"
+    LispLetDef(List(LispLetDecl(EagerSymbol("x"), LispUnit)), LispUnit).debug() should be(
+      "let statement define (x: eager evaluation symbol)"
+    )
+    LispLetDef(List(LispLetDecl(EagerSymbol("x"), LispUnit), LispLetDecl(EagerSymbol("y"), LispUnit)), LispUnit).debug() should be(
+      "let statement define (x: eager evaluation symbol, y: eager evaluation symbol)"
     )
     LispLoopStmt(Nil, LispUnit).debug() should be("loop statement")
 

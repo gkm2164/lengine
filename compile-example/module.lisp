@@ -9,11 +9,11 @@
 (fn split-real (s delim)
     (if (= 0 (len s))
         []
-        (let (delim-check (lambda (ch) (= ch delim)))
-        (let (splitted (split-at delim-check s))
-        (let (first (head splitted))
-        (let (last (head (tail splitted)))
-             (+ [first] (split-real last delim))))))))
+        (let ((delim-check (lambda (ch) (= ch delim)))
+              (splitted (split-at delim-check s))
+              (first (head splitted))
+              (last (head (tail splitted))))
+             (+ [first] (split-real last delim)))))
 
 (fn to-string (xs)
     (fold xs "" (lambda (acc elem) (+ acc elem))))

@@ -55,8 +55,8 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
     assertStmt(LispValueDef(EagerSymbol("a"), LispUnit), "(def a ())")
 
     assertStmt(
-      LispLetDef(EagerSymbol("a"), LispUnit, LispUnit),
-      "(let a () ())"
+      LispLetDef(List(LispLetDecl(EagerSymbol("a"), LispUnit)), LispUnit),
+      "(let ((a ())) ())"
     )
 
     assertStmt(

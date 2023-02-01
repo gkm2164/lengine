@@ -47,8 +47,9 @@ object LispRecoverStmt {
       s"(def ${symbol.recoverStmt} ${value.recoverStmt})"
     case LispLoopStmt(forStmts, body) =>
       s"(loop ${forStmts.map(_.recoverStmt).mkString(" ")} ${body.recoverStmt})"
-    case LispLetDef(name, value, body) =>
-      s"(let ${name.recoverStmt} ${value.recoverStmt} ${body.recoverStmt})"
+    case LispLetDecl(name, value) => s"(${name.recoverStmt} ${value.recoverStmt})"
+    case LispLetDef(decls, body) =>
+      s"(let (${decls.map(_.recoverStmt).mkString(" ")}) ${body.recoverStmt})"
     case ObjectReferSymbol(name) => s":$name"
     case ListSymbol(name)        => s"$name"
     case LispString(value)       => s""""$value""""

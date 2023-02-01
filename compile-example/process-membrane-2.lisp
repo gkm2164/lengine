@@ -8,8 +8,8 @@
 
 ;;; Now the sequence type can be folded.
 (def head-values (fold file-sequence [] (lambda (acc elem)
-                                                (let (commas (split elem #\,))
-                                                     (+ acc [(head commas)])))))
+                                                (let ((commas (split elem #\,)))
+                                                     (+ acc [(head commas)]) ))))
 
 (def numbers (map (lambda (x) (double x))
                   (filter (lambda (x) (and (/= x "NaN") (/= x "EOF")))

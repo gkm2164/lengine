@@ -2,19 +2,19 @@ package co.gyeongmin.lisp
 
 import cats.syntax.either._
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
+import co.gyeongmin.lisp.debug.{ Debugger, ReplDebugger }
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
+import co.gyeongmin.lisp.lexer.tokens.{ LispToken, SpecialToken }
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc, OverridableFunc}
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
+import co.gyeongmin.lisp.lexer.values.functions.{ GeneralLispFunc, LispFunc, OverridableFunc }
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ListSymbol}
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ListSymbol }
 import lexer.values._
-import lexer.{StdInReader, TokenLocation, Tokenizer}
+import lexer.{ StdInReader, TokenLocation, Tokenizer }
 import co.gyeongmin.lisp.parser.parseValue
 import errors.LispError
 
@@ -214,14 +214,14 @@ package object execution {
   }
 
   implicit class LispLetDefExecutionSyntax(letStmt: LispLetDef) {
-    def execute(env: LispEnvironment): Either[EvalError, LispValue] = {
-      val LispLetDef(name, value, body) = letStmt
-      for {
-        valueEvalRes <- value.eval(env)
-        (v, _) = valueEvalRes
-        bodyRes <- body.eval(env.updated(name, v))
-        (result, _) = bodyRes
-      } yield result
+    def execute(env: LispEnvironment): Either[EvalError, LispValue] = letStmt match {
+      case LispLetDef(Nil, body) => body.eval(env).map(_._1)
+      case LispLetDef(LispLetDecl(name, value) :: tail, body) =>
+        for {
+          valueEvalRes <- value.eval(env)
+          (v, _) = valueEvalRes
+          res <- LispLetDef(tail, body).execute(env.updated(name, v))
+        } yield res
     }
   }
 

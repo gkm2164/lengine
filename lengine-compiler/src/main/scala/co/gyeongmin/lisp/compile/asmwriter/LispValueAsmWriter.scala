@@ -77,13 +77,16 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
         LengineMapKeyClass,
         StringClass
       )
-    case LispLetDef(name, value, body) =>
+    case LispLetDef(decls, body) =>
       val newEnv = runtimeEnv.createChild()
       mv.visitLabel(new Label())
-      val idx = newEnv.allocateNextVar
-      new LispValueAsmWriter(value)(newEnv).visitForValue(needReturn = true)
-      mv.visitAStore(idx)
-      newEnv.registerVariable(name, idx)
+      decls.foreach {
+        case LispLetDecl(name, value) =>
+          val idx = newEnv.allocateNextVar
+          new LispValueAsmWriter(value)(newEnv).visitForValue(needReturn = true)
+          mv.visitAStore(idx)
+          newEnv.registerVariable(name, idx)
+      }
       new LispValueAsmWriter(body)(newEnv).visitForValue(needReturn = true, tailRecReference = tailRecReference)
       val used = newEnv.getLastVarIdx
       runtimeEnv.overrideUsedVar(used)

@@ -6,9 +6,9 @@
 (fn join-recur (acc remains delim)
                (if (= (len remains) 0)
                    acc
-                   (let (elem (head remains))
-                   (let (rest (tail remains))
-                        (join-recur (+ (+ acc delim) elem) rest delim)))))
+                   (let ((elem (head remains))
+                         (rest (tail remains)))
+                         (join-recur (+ (+ acc delim) elem) rest delim))))
 
 (fn join (strs delim)
     (join-recur (head strs) (tail strs) delim))
@@ -18,14 +18,14 @@
     (+ "\"" (+ s "\"")))
 
 (fn to-json-object (obj to-json)
-                   (let (ks (keys obj))
-                   (let (key-values (loop for k in ks
-                                          (let (value (k obj))
-                                          (let (object-key (+ "\"" (+ (get k) "\":")))
-                                               (+ object-key (to-json value))))))
-                         (+ (+ "{"
-                               (join key-values #\,) )
-                            "}" ))))
+                   (let ((ks (keys obj))
+                         (key-values (loop for k in ks
+                                           (let ((value (k obj))
+                                                 (object-key (+ "\"" (+ (get k) "\":"))))
+                                                 (+ object-key (to-json value))))))
+                        (+ (+ "{"
+                              (join key-values #\,) )
+                           "}")))
 
 
 ;;; Actual logics

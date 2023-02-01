@@ -93,7 +93,8 @@ package object debug {
       case LispDoStmt(_)        => s"do statement"
       case LispForStmt(symbol, seq) =>
         s"for statement with ${symbol.debug()} in ${seq.debug()}"
-      case LispLetDef(name, _, _) => s"let statement define ${name.debug()}"
+      case LispLetDecl(name, _) => name.debug()
+      case LispLetDef(decls, _) => s"let statement define (${decls.map(_.debug()).mkString(", ")})"
       case LispLoopStmt(_, _)     => s"loop statement"
       case OverridableFunc(functions) =>
         s"${functions.length} amount of functions are defined"

@@ -8,7 +8,7 @@
 (def splitted (split all-data #\Linefeed))
 
 (def first-values (loop for x in splitted
-                        (let (line (split x #\,))
+                        (let ((line (split x #\,)))
                              (head line))))
 
 (def numbers (map (lambda (x) (double x))

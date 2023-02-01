@@ -110,13 +110,17 @@ package object parser {
 
   private def parseLetClause: LispTokenState[LispLetDef] =
     for {
-      _     <- takeToken[LeftPar.type]
-      name  <- takeToken[LispSymbol]
-      value <- parseValue
-      _     <- takeToken[RightPar.type]
-      body  <- parseValue
-      _     <- takeToken[RightPar.type]
-    } yield LispLetDef(name, value, body)
+      _ <- takeToken[LeftPar.type]
+      decls <- many(for {
+        _     <- takeToken[LeftPar.type]
+        name  <- takeToken[LispSymbol]
+        value <- parseValue
+        _     <- takeToken[RightPar.type]
+      } yield LispLetDecl(name, value))
+      _    <- takeToken[RightPar.type]
+      body <- parseValue
+      _    <- takeToken[RightPar.type]
+    } yield LispLetDef(decls, body)
 
   private def parseDoClause: LispTokenState[LispDoStmt] =
     for {
