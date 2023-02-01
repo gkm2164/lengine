@@ -4,7 +4,6 @@ import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import lengine.runtime._
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ Label, Type }
 
@@ -117,10 +116,10 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "+"                                                                     => visitCalc("add", requestedType, operands)
-          case "-"                                                                     => visitCalc("sub", requestedType, operands)
-          case "*"                                                                     => visitCalc("mult", requestedType, operands)
-          case "/"                                                                     => visitCalc("div", requestedType, operands)
+          case "+"                                                                     => visitCalc("ADD", requestedType, operands)
+          case "-"                                                                     => visitCalc("SUB", requestedType, operands)
+          case "*"                                                                     => visitCalc("MULT", requestedType, operands)
+          case "/"                                                                     => visitCalc("DIV", requestedType, operands)
           case "if"                                                                    => visitIfStmt(operands, requestedType, tailRecReference)
           case "and" | "or"                                                            => visit2BoolOps(op, requestedType, operands)
           case "not"                                                                   => visitNotOps(operands, requestedType)
@@ -294,10 +293,16 @@ object RuntimeMethodVisitor {
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val mv = runtimeEnvironment.methodVisitor
-    operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
-    mv.visitStaticMethodCall(
-      PreludeClass,
+    mv.visitFieldInsn(
+      GETSTATIC,
+      Type.getType(PreludeClass).getInternalName,
       operation,
+      Type.getType(LengineLambdaClass(2)).getDescriptor
+    )
+    operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
+    mv.visitMethodCall(
+      LengineLambdaClass(2),
+      "invoke",
       ObjectClass,
       ObjectClass,
       ObjectClass

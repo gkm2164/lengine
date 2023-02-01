@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 
 import lengine.functions.LengineLambda1;
+import lengine.functions.LengineLambda2;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
@@ -118,7 +119,7 @@ public class Prelude {
     return from.toString();
   }
 
-  public static Object add(Object a, Object b) {
+  public static final LengineLambda2<Object, Object, Object> ADD = (a, b) -> {
     if (a instanceof LengineMap && b instanceof LengineMapEntry) {
       return ((LengineMap) a).add((LengineMapEntry) b);
     }
@@ -143,9 +144,9 @@ public class Prelude {
     }
 
     throw new RuntimeException("Can't add");
-  }
+  };
 
-  public static Object sub(Object a, Object b) {
+  public static final LengineLambda2<Object, Object, Object> SUB = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -159,9 +160,9 @@ public class Prelude {
     }
 
     throw new RuntimeException("Can't subtract");
-  }
+  };
 
-  public static Object mult(Object a, Object b) {
+  public static final LengineLambda2<Object, Object, Object> MULT = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -175,9 +176,10 @@ public class Prelude {
     }
 
     throw new RuntimeException("Can't multiply");
-  }
+  };
 
-  public static Object div(Object a, Object b) {
+
+  public static final LengineLambda2<Object, Object, Object> DIV = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -191,7 +193,7 @@ public class Prelude {
     }
 
     throw new RuntimeException("Can't divide");
-  }
+  };
 
 
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
@@ -218,7 +220,7 @@ public class Prelude {
     if (seq instanceof CreateIterator) {
       return ((CreateIterator) seq).len();
     } else if (seq instanceof String) {
-      return (long)((String) seq).length();
+      return (long) ((String) seq).length();
     }
 
     throw new RuntimeException("unable to decide the size for " + seq);
