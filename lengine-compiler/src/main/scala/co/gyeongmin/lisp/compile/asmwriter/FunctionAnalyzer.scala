@@ -1,6 +1,8 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.lexer.statements.{
+  LispCaseCondition,
+  LispCaseStmt,
   LispDoStmt,
   LispForStmt,
   LispLetDecl,
@@ -75,21 +77,38 @@ object FunctionAnalyzer {
         captureVariables.mergeChild(childCapture)
       case LispDoStmt(body) =>
         body.foreach(captureUnknownVariables(captureVariables, _))
+      case LispCaseStmt(Nil, fallback) =>
+        captureUnknownVariables(captureVariables, fallback)
+      case LispCaseStmt(LispCaseCondition(cond, value) :: tail, fallback) =>
+        captureUnknownVariables(captureVariables, cond)
+        captureUnknownVariables(captureVariables, value)
+        captureUnknownVariables(captureVariables, LispCaseStmt(tail, fallback))
     }
   }
 
+  /**
+  * Tail recursion analyzer
+
+  Assume that this is the last value of the clause, if the first referring symbol for the clause is itself,
+  then, refer it as tail recursion. Only the first referring symbol will be replaced to loop, but, laters not.
+  * */
+
   def isTailRecursion(itself: Option[LispSymbol], body: LispValue): Boolean = body match {
-    case LispClause((symbol: LispSymbol) :: _) if symbol == EagerSymbol("$") || itself.contains(symbol) =>
-      true
+    case LispClause((symbol: LispSymbol) :: _) if symbol == EagerSymbol("$") || itself.contains(symbol) => true
     case LispClause(EagerSymbol("if") :: _ :: thenValue :: elseValue :: Nil) =>
       isTailRecursion(itself, thenValue) || isTailRecursion(itself, elseValue)
+    case LispCaseStmt(Nil, fallback) =>
+      isTailRecursion(itself, fallback)
+    case LispCaseStmt(LispCaseCondition(_, thenValue) :: tail, fallback) =>
+      isTailRecursion(itself, thenValue) || isTailRecursion(itself, LispCaseStmt(tail, fallback))
     case LispDoStmt(last :: Nil) =>
       isTailRecursion(itself, last)
     case _ @LispDoStmt(_ :: tail) =>
       isTailRecursion(itself, LispDoStmt(tail))
     case LispLetDef(decls, body) if decls.forall {
           case LispLetDecl(symbol, _) => !itself.contains(symbol) && symbol != EagerSymbol("$")
-        } => isTailRecursion(itself, body)
+        } =>
+      isTailRecursion(itself, body)
     case LispLoopStmt(Nil, body) =>
       isTailRecursion(itself, body)
     case LispLoopStmt(head :: tail, body) if !itself.contains(head.symbol) && head.symbol != EagerSymbol("$") =>

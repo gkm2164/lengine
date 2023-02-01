@@ -122,6 +122,19 @@ package object parser {
       _    <- takeToken[RightPar.type]
     } yield LispLetDef(decls, body)
 
+  private def parseCase: LispTokenState[LispCaseStmt] =
+    for {
+      conditions <- many(for {
+        _ <- takeToken[LeftPar.type]
+        cond <- parseValue
+        value <- parseValue
+        _ <- takeToken[RightPar.type]
+      } yield LispCaseCondition(cond, value))
+      _ <- takeToken[LispDefault.type]
+      fallback <- parseValue
+      _ <- takeToken[RightPar.type]
+    } yield LispCaseStmt(conditions, fallback)
+
   private def parseDoClause: LispTokenState[LispDoStmt] =
     for {
       stmts   <- many(parseValue)
@@ -171,6 +184,7 @@ package object parser {
     case (LispImport, _) #:: tail => parseImportStmt(tail)
     case (LispLoop, _) #:: tail   => parseLoopStmt(tail)
     case (LispNs, _) #:: tail     => parseNamespace(tail)
+    case (LispCase, _) #:: tail   => parseCase(tail)
     case (RightPar, _) #:: tail   => LispTokenState(LispUnit)(tail)
     case last =>
       (for {

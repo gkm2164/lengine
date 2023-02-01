@@ -52,6 +52,8 @@ object LispToken {
     case "do"                    => Right(LispDo)
     case "return"                => Right(LispReturn)
     case "nil"                   => Right(LispNil)
+    case "case"                  => Right(LispCase)
+    case "default"               => Right(LispDefault)
     case SpecialValueRegex(body) => Right(SpecialToken(body))
     case NumberRegex(sign, num)  => Right(IntegerNumber(parseInteger(sign, num)))
     case v @ FloatingPointRegex(_, _, _, _, _) =>

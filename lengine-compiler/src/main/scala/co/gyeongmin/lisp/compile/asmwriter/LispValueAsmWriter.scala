@@ -40,6 +40,20 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
     mv.visitALoad(mapIdx)
   }
 
+  @tailrec
+  private def declareCaseStmt(cases: List[LispCaseCondition], fallback: LispValue, exitLabel: Label, needReturn: Boolean, tailRecReference: Option[(LispSymbol, Label)], nextLabel: Label = new Label()): Unit = cases match {
+    case Nil =>
+      mv.visitLispValue(fallback, needReturn = needReturn, tailRecReference)
+    case LispCaseCondition(condition, thenValue) :: tail =>
+      mv.visitLispValue(condition, needReturn = true)
+      mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
+      mv.visitJumpInsn(Opcodes.IFEQ, nextLabel)
+      mv.visitLispValue(thenValue, needReturn = needReturn, tailRecReference)
+      mv.visitJumpInsn(Opcodes.GOTO, exitLabel)
+      mv.visitLabel(nextLabel)
+      declareCaseStmt(tail, fallback, exitLabel, needReturn = needReturn, tailRecReference)
+  }
+
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None,
                     needReturn: Boolean): Unit = value match {
     case LispTrue =>
@@ -63,6 +77,10 @@ class LispValueAsmWriter(value: LispValue)(implicit runtimeEnv: LengineRuntimeEn
       declareSequence(body)
     case LispObject(kv) =>
       declareMap(kv)
+    case LispCaseStmt(cases, fallback) =>
+      val exitLabel = new Label()
+      declareCaseStmt(cases, fallback, exitLabel, needReturn = needReturn, tailRecReference = tailRecReference)
+      mv.visitLabel(exitLabel)
     case ObjectReferSymbol(key) =>
       mv.visitLdcInsn(key)
       mv.visitStaticMethodCall(

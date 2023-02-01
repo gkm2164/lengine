@@ -30,19 +30,13 @@
 
 ;;; Actual logics
 (fn to-json (obj)
-            (if (bool? obj)
-                (str obj)
-            (if (char? obj)
-                (with-double-quotes (str obj))
-            (if (int? obj)
-                (str obj)
-            (if (string? obj)
-                (with-double-quotes obj)
-            (if (double? obj)
-                (str obj)
-            (if (object? obj)
-                (to-json-object obj $)
-                "null")))))))
+            (case ((bool? obj) (str obj))
+                  ((char? obj) (with-double-quotes (str obj)))
+                  ((int? obj) (str obj))
+                  ((string? obj) (with-double-quotes obj))
+                  ((double? obj) (str obj))
+                  ((object? obj) (to-json-object obj $))
+                   default "null"))
 
 (def obj {
            :id "Hello"

@@ -90,5 +90,12 @@ object AsmHelper {
         boxedType,
         primitiveType
       )
+
+    def visitUnboxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object], methodName: String): Unit =
+      mv.visitMethodCall(
+        boxedType,
+        methodName,
+        primitiveType
+      )
   }
 }
