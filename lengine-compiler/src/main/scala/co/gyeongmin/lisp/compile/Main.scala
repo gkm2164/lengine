@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.UnoverridableFunctions
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.lexer.{TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
@@ -48,7 +48,7 @@ object Main {
     val codeSource = Source.fromFile(compileOps.sourceFile)
     val code       = codeSource.mkString
     try {
-      replaceForbiddenKeywords(UnoverridableFunctions.keySet.map(_.name))
+      replaceForbiddenKeywords(ReservedKeywordFunctions.keySet.map(_.name))
 
       val tokenizer = Tokenizer(code)
 

@@ -20,24 +20,11 @@ object RuntimeMethodVisitor {
     "keys",
     "get",
     "key",
-    "now"
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
     case EagerSymbol(op) => supportedOps.contains(op)
     case _               => false
-  }
-
-  private def visitNow()(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitStaticMethodCall(
-      SystemClass,
-      "currentTimeMillis",
-      LongPrimitive
-    )
-    mv.visitBoxing(LongClass, LongPrimitive)
   }
 
   def handle(body: List[LispValue],
@@ -62,7 +49,6 @@ object RuntimeMethodVisitor {
           case "key"                                                                   => visitMapKeyCreate(operands)
           case "get"                                                                   => visitGetKeyName(operands)
           case "keys"                                                                  => visitMapKeys(operands)
-          case "now"                                                                   => visitNow()
           case _                                                                       => new RuntimeException("Unsupported operation: " + op)
         }
 

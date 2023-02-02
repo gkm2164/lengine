@@ -55,9 +55,11 @@
            (do (printf fmt x)
                return (println ""))))
 
-(def json-file-stream (open-file "./compile-example/json-example.json"))
+(def json-file-stream (read-file-seq "./compile-example/json-example.json"))
 
-(def json-chs (fold json-file-stream [] +))
+(def json-chs (fold json-file-stream "" +))
+
+(println json-chs)
 
 (fn empty? (sequence)
            (= 0 (len sequence)))

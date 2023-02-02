@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
+import lengine.functions.LengineLambda0;
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
@@ -217,6 +218,21 @@ public class Prelude {
 
     throw new RuntimeException("Can't divide");
   };
+  public static final LengineLambda2<Object, Object, Object> _REM = (a, b) -> {
+    Class<?> largerType = getLargerType(a.getClass(), b.getClass());
+    Object x = cast(a, largerType);
+    Object y = cast(b, largerType);
+
+    if (x instanceof Character) {
+      return (Character) x % (Character) y;
+    } else if (x instanceof Long) {
+      return (Long) x % (Long) y;
+    } else if (x instanceof Double) {
+      return (Double) x % (Double) y;
+    }
+
+    throw new RuntimeException("Can't divide");
+  };
   private static final LengineLambda1<Long, Object> _LEN = (obj) -> {
     if (obj instanceof CreateIterator) {
       return ((CreateIterator) obj).len();
@@ -377,7 +393,7 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_SEQUENCE = (obj) -> isInstanceOf(CreateIterator.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
-
+  private static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
   private static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
     File file = new File(path);
     final long lengthOfFile = file.length();
@@ -405,7 +421,7 @@ public class Prelude {
           public Object peek() {
             try {
               reader.mark(1);
-              char read = (char)reader.read();
+              char read = (char) reader.read();
               reader.reset();
               return read;
             } catch (IOException e) {
@@ -435,6 +451,7 @@ public class Prelude {
   public static final LengineLambdaCommon SUB = _SUB;
   public static final LengineLambdaCommon MULT = _MULT;
   public static final LengineLambdaCommon DIV = _DIV;
+  public static final LengineLambdaCommon REM = _REM;
   public static final LengineLambdaCommon LEN = _LEN;
   public static final LengineLambdaCommon TAKE = _TAKE;
   public static final LengineLambdaCommon DROP = _DROP;
@@ -479,6 +496,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_SEQUENCE = _IS_SEQUENCE;
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
   public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
+  public static final LengineLambdaCommon NOW = _NOW;
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();

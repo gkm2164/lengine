@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 
 object InteroperabilityHelper {
-  val UnoverridableFunctions: Map[LispSymbol, String] = Map(
+  val ReservedKeywordFunctions: Map[LispSymbol, String] = Map(
     "str"     -> "CAST_STR",
     "int"     -> "CAST_INT",
     "char"    -> "CAST_CHARACTER",
@@ -29,6 +29,7 @@ object InteroperabilityHelper {
     "-"       -> "SUB",
     "*"       -> "MULT",
     "/"       -> "DIV",
+    "rem"     -> "REM",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }
@@ -57,7 +58,8 @@ object InteroperabilityHelper {
     "assert-equals"     -> "ASSERT_EQUALS",
     "assert-not-equals" -> "ASSERT_NOT_EQUALS",
     "open-file"         -> "OPEN_FILE",
+    "now"               -> "NOW",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
-  } ++ UnoverridableFunctions
+  } ++ ReservedKeywordFunctions
 }

@@ -99,3 +99,5 @@
 (println (+ "Value: " (:value object)))
 
 (println (- (now) start))
+
+(println (rem 10 3))
