@@ -33,7 +33,7 @@ object FunctionAnalyzer {
     }
 
     body match {
-      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue | LispFalse =>
+      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() | LispFalse() =>
       case LispList(body) =>
         body.foreach(v => captureUnknownVariables(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)

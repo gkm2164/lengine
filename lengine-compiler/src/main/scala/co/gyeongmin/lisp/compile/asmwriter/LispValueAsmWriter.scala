@@ -57,10 +57,10 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
-    case LispTrue =>
+    case LispTrue() =>
       mv.visitInsn(Opcodes.ICONST_1)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
-    case LispFalse =>
+    case LispFalse() =>
       mv.visitInsn(Opcodes.ICONST_0)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) =>

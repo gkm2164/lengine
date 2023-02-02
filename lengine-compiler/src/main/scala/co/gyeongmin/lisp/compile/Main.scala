@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
-import co.gyeongmin.lisp.lexer.{TokenLocation, Tokenizer}
+import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.parser.{parseValue, appendForbiddenKeywords}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.parser.{appendForbiddenKeywords, parseValue}
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
@@ -13,8 +13,8 @@ import scala.io.Source
 
 object Main {
   @tailrec
-  private def compileLoop(acc: Vector[LispValue], tokenStream: Stream[(LispToken, TokenLocation)]): List[LispValue] =
-    tokenStream.dropWhile(_._1 == LispNop) match {
+  private def compileLoop(acc: Vector[LispValue], tokenStream: Stream[LispToken]): List[LispValue] =
+    tokenStream.dropWhile(_ == LispNop()) match {
       case Stream.Empty => acc.toList
       case _ =>
         parseValue(tokenStream) match {
@@ -63,7 +63,7 @@ object Main {
                 "unable to determine module's name. Please declare with (module <name>) clause on the first line of your code."
               )
           }
-          val ret = writeClass(clsName, lispValues.tail)
+          val ret = writeClass(compileOps.sourceFile, clsName, lispValues.tail)
           val fos = new FileOutputStream(s"$clsName.class")
           fos.write(ret)
           fos.close()

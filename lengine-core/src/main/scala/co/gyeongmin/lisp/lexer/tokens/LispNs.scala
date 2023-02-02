@@ -2,4 +2,4 @@ package co.gyeongmin.lisp.lexer.tokens
 
 /** Lisp Namespace, (ns "namespace")
   */
-case object LispNs extends LispToken
+case class LispNs() extends LispToken

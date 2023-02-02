@@ -1,5 +1,5 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-case object LispLoop extends LispToken {
+case class LispLoop() extends LispToken {
   override def toString: String = "loop"
 }

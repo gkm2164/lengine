@@ -5,21 +5,21 @@ import co.gyeongmin.lisp.lexer.values.LispValue
 
 abstract class LispBoolean extends LispValue {
   override def not: Either[EvalError, LispBoolean] = this match {
-    case LispTrue  => Right(LispFalse)
-    case LispFalse => Right(LispTrue)
+    case LispTrue()  => Right(LispFalse())
+    case LispFalse() => Right(LispTrue())
   }
 
   override def and(other: LispValue): Either[EvalError, LispBoolean] =
     (this, other) match {
-      case (LispTrue, LispTrue)             => Right(LispTrue)
-      case (_: LispBoolean, _: LispBoolean) => Right(LispFalse)
+      case (LispTrue(), LispTrue())             => Right(LispTrue())
+      case (_: LispBoolean, _: LispBoolean) => Right(LispFalse())
       case (_, v)                           => Left(UnimplementedOperationError("and: Boolean", v))
     }
 
   override def or(other: LispValue): Either[EvalError, LispBoolean] =
     (this, other) match {
-      case (LispFalse, LispFalse)           => Right(LispFalse)
-      case (_: LispBoolean, _: LispBoolean) => Right(LispTrue)
+      case (LispFalse(), LispFalse())           => Right(LispFalse())
+      case (_: LispBoolean, _: LispBoolean) => Right(LispTrue())
       case (_, v)                           => Left(UnimplementedOperationError("or: Boolean", v))
     }
 
@@ -27,5 +27,5 @@ abstract class LispBoolean extends LispValue {
 
 object LispBoolean {
   def apply(boolean: Boolean): LispBoolean =
-    if (boolean) LispTrue else LispFalse
+    if (boolean) LispTrue() else LispFalse()
 }

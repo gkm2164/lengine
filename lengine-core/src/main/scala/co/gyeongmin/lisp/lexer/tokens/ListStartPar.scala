@@ -1,5 +1,5 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-case object ListStartPar extends LispToken {
+case class ListStartPar() extends LispToken {
   override def toString: String = "'("
 }

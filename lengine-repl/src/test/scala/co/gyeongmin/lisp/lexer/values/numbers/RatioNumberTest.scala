@@ -11,7 +11,7 @@ class RatioNumberTest extends FlatSpec with Matchers {
   val anyLocation: TokenLocation = TokenLocation(0, 0)
 
   "tokenizer" should "parse" in {
-    LispToken("3/5", anyLocation) should be(Right(RatioNumber(3, 5), TokenLocation(0,0)))
+    LispToken("3/5", anyLocation) should be(Right(RatioNumber(3, 5)))
   }
 
   it should "pass" in {
@@ -63,17 +63,17 @@ class RatioNumberTest extends FlatSpec with Matchers {
       IntegerNumber(1)
     )) should be(Right(ComplexNumber(RatioNumber(1, 4), RatioNumber(-1, 4))))
 
-    (RatioNumber(1, 2) eq RatioNumber(1, 2)) should be(Right(LispTrue))
-    (RatioNumber(1, 2) eq IntegerNumber(1)) should be(Right(LispFalse))
-    (RatioNumber(1, 2) eq FloatNumber(0.5)) should be(Right(LispTrue))
+    (RatioNumber(1, 2) eq RatioNumber(1, 2)) should be(Right(LispTrue()))
+    (RatioNumber(1, 2) eq IntegerNumber(1)) should be(Right(LispFalse()))
+    (RatioNumber(1, 2) eq FloatNumber(0.5)) should be(Right(LispTrue()))
     (RatioNumber(1, 2) eq ComplexNumber(
       IntegerNumber(1),
       IntegerNumber(2)
-    )) should be(Right(LispFalse))
+    )) should be(Right(LispFalse()))
 
-    (RatioNumber(1, 2) gt RatioNumber(1, 2)) should be(Right(LispFalse))
-    (RatioNumber(1, 2) gt IntegerNumber(1)) should be(Right(LispFalse))
-    (RatioNumber(1, 2) gt FloatNumber(0.5)) should be(Right(LispFalse))
+    (RatioNumber(1, 2) gt RatioNumber(1, 2)) should be(Right(LispFalse()))
+    (RatioNumber(1, 2) gt IntegerNumber(1)) should be(Right(LispFalse()))
+    (RatioNumber(1, 2) gt FloatNumber(0.5)) should be(Right(LispFalse()))
   }
 
   it should "fail" in {

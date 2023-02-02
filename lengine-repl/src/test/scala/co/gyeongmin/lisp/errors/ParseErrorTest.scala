@@ -21,8 +21,8 @@ class ParseErrorTest extends FlatSpec with Matchers {
     UnableToParseNumberTypeError(LispUnit).message should be(
       s"given $LispUnit is not a number type"
     )
-    UnexpectedTokenError(LispIn, anyLocation, "hello").message should be(
-      s"unexpected token: 'in'(line: 0, column:0)"
+    UnexpectedTokenError(LispIn(), "hello").message should be(
+      s"unexpected token: 'in'(line: None, column:None)"
     )
   }
 

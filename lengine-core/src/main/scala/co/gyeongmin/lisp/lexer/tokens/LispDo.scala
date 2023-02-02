@@ -1,5 +1,5 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-case object LispDo extends LispToken {
+case class LispDo() extends LispToken {
   override def toString: String = "do"
 }

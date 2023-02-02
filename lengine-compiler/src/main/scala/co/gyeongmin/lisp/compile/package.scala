@@ -4,6 +4,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ObjectClass, StringClass
 import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.parser.ParserLineNumberMap
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ClassWriter, Label, Type}
 
@@ -11,9 +12,10 @@ import scala.collection.mutable
 
 package object compile {
 
-  def writeClass(clsName: String, statements: List[LispValue]): Array[Byte] = {
+  def writeClass(sourceFileName: String, clsName: String, statements: List[LispValue]): Array[Byte] = {
     val cw = new ClassWriter(AsmHelper.GLOBAL_CONFIG)
     cw.visit(V1_8, ACC_PUBLIC, clsName, null, "java/lang/Object", null)
+    cw.visitSource(sourceFileName, null)
     writeCsInitMethod(cw, clsName)
     writeInitMethod(cw)
     writeMain(cw, statements, clsName)
@@ -39,13 +41,12 @@ package object compile {
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, 1)
 
-    statements.zipWithIndex.foreach {
-      case (stmt, idx) =>
+    statements.foreach(stmt => {
         val thisLabel = new Label
         mv.visitLabel(thisLabel)
-        mv.visitLineNumber(idx, thisLabel)
+        stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
         new LispValueAsmWriter(stmt, ObjectClass).visitForValue(needReturn = false)
-    }
+    })
     mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)
     // Need to give hint to assembly generator for helping decide frame size

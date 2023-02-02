@@ -1,5 +1,5 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-case object LispIn extends LispToken {
+case class LispIn() extends LispToken {
   override def toString: String = "in"
 }

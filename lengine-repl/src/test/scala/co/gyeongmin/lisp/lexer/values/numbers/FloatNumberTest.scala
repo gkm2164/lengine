@@ -17,7 +17,7 @@ class FloatNumberTest extends FlatSpec with Matchers {
   val anyLocation = TokenLocation(0, 0)
 
   "tokenizer" should "come" in {
-    LispToken("1.0", anyLocation) should be(Right(FloatNumber(1.0), anyLocation))
+    LispToken("1.0", anyLocation) should be(Right(FloatNumber(1.0)))
   }
 
   "arithmetic operations" should "work" in {
@@ -52,14 +52,14 @@ class FloatNumberTest extends FlatSpec with Matchers {
 
     number1.neg should be(Right(FloatNumber(-10.0)))
 
-    (number1 eq intNumber) should be(Right(LispFalse))
-    (number1 eq ratioNumber) should be(Right(LispFalse))
-    (number1 eq number1) should be(Right(LispTrue))
-    (number1 eq complexNumber) should be(Right(LispFalse))
+    (number1 eq intNumber) should be(Right(LispFalse()))
+    (number1 eq ratioNumber) should be(Right(LispFalse()))
+    (number1 eq number1) should be(Right(LispTrue()))
+    (number1 eq complexNumber) should be(Right(LispFalse()))
 
-    (number1 gt intNumber) should be(Right(LispTrue))
-    (number1 gt ratioNumber) should be(Right(LispTrue))
-    (number1 gt number1) should be(Right(LispFalse))
+    (number1 gt intNumber) should be(Right(LispTrue()))
+    (number1 gt ratioNumber) should be(Right(LispTrue()))
+    (number1 gt number1) should be(Right(LispFalse()))
   }
 
   "converting data type" should "work" in {

@@ -60,7 +60,7 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       }
     }
 
-  private def next(): Either[TokenizeError, Seq[(LispToken, TokenLocation)]] =
+  private def next(): Either[TokenizeError, Seq[LispToken]] =
     loop(("", TokenLocation(1, 1))).flatMap(
       xs =>
         traverse(xs.map {
@@ -69,16 +69,16 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
         })
     )
 
-  private def streamLoop: Stream[(LispToken, TokenLocation)] = next() match {
+  private def streamLoop: Stream[LispToken] = next() match {
     case Right(xs) =>
-      xs.foldRight((LispNop, TokenLocation(0, 0)) #:: streamLoop)((x, tokens) => x #:: tokens)
+      xs.foldRight(LispNop() #:: streamLoop)((x, tokens) => x #:: tokens)
     case Left(EOFError) => Stream.empty
     case Left(e) =>
       println(s"[ERROR] Lexing error: ${e.message}")
-      (LispNop, TokenLocation(0, 0)) #:: streamLoop
+      LispNop() #:: streamLoop
   }
 
-  def getTokenStream: Either[TokenizeError, Stream[(LispToken, TokenLocation)]] = Right(
+  def getTokenStream: Either[TokenizeError, Stream[LispToken]] = Right(
     streamLoop
   )
 }

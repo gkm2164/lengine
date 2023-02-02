@@ -59,8 +59,8 @@ package object debug {
     }
 
     def booleanDebug(boolean: LispBoolean): String = boolean match {
-      case LispFalse => s"false: Boolean"
-      case LispTrue  => s"true: Boolean"
+      case LispFalse() => s"false: Boolean"
+      case LispTrue()  => s"true: Boolean"
       case x         => s"${x.toString}(unknown): Boolean"
     }
 

@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.lexer.values
 
 import co.gyeongmin.lisp.errors.LispError
 import co.gyeongmin.lisp.errors.eval.{EvalError, InvalidTypeError, NotANumberTypeError, UnimplementedOperationError}
+import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.numbers._
@@ -12,6 +13,11 @@ import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
   val tokenId: String = UUID.randomUUID().toString
+
+  def wrapLocation(location: Option[TokenLocation]): LispValue = {
+    location.foreach(this.setTokenLocation)
+    this
+  }
 
   def not: Either[EvalError, LispBoolean] = Left(
     UnimplementedOperationError("!", this)

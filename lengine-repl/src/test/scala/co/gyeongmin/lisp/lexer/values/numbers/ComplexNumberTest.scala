@@ -48,11 +48,11 @@ class ComplexNumberTest extends FlatSpec with Matchers {
     one.toComplex should be(Right(one))
 
     ComplexNumber(IntegerNumber(0), IntegerNumber(0)).isZero should be(
-      Right(LispTrue)
+      Right(LispTrue())
     )
 
-    (one eq one) should be(Right(LispTrue))
-    (one eq IntegerNumber(1)) should be(Right(LispFalse))
+    (one eq one) should be(Right(LispTrue()))
+    (one eq IntegerNumber(1)) should be(Right(LispFalse()))
 
     one.zero should be(Right(ComplexNumber(IntegerNumber(0), IntegerNumber(0))))
   }

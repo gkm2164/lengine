@@ -1,5 +1,5 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-case object LispFn extends LispToken {
+case class LispFn() extends LispToken {
   override def toString: String = "fn"
 }

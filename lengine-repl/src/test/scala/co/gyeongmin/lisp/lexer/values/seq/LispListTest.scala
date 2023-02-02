@@ -18,7 +18,7 @@ class LispListTest extends FlatSpec with Matchers {
       )
     )
 
-    (lispList eq lispList) should be(Right(LispTrue))
+    (lispList eq lispList) should be(Right(LispTrue()))
     lispList.recoverStmt should be("""(list () ())""")
     (mockValue :: lispList)
       .flatMap(_.asInstanceOf[LispList].printable()) should be(

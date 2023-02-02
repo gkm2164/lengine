@@ -76,7 +76,7 @@ package object execution {
       case clause: LispClause => clause.execute(env).map((_, env))
       case m: SpecialToken    => Left(UnimplementedOperationError("macro", m))
       case n: LispNumber      => Right((n, env))
-      case LispObject(_) | LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue | LispFalse =>
+      case LispObject(_) | LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue() | LispFalse() =>
         Right((v, env))
       case f: GeneralLispFunc => Right((f, env))
       case value =>
@@ -294,7 +294,7 @@ package object execution {
 
   private val inc = new AtomicLong()
 
-  private def evalLoop(tokens: Stream[(LispToken, TokenLocation)], env: LispEnvironment)(
+  private def evalLoop(tokens: Stream[LispToken], env: LispEnvironment)(
       implicit debugger: Option[Debugger]
   ): Either[(EvalError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {

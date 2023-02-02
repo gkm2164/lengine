@@ -16,7 +16,7 @@ class IntegerNumberTest extends FlatSpec with Matchers {
   val anyLocation = TokenLocation(0, 0)
 
   "tokenizer" should "come" in {
-    LispToken("1", anyLocation) should be(Right(IntegerNumber(1), anyLocation))
+    LispToken("1", anyLocation) should be(Right(IntegerNumber(1)))
   }
 
   "arithmetic operations" should "work" in {
@@ -27,14 +27,14 @@ class IntegerNumberTest extends FlatSpec with Matchers {
     (number1 % number2) should be(Right(IntegerNumber(3)))
     (number1 % LispUnit) should matchPattern { case Left(_) => }
 
-    (number1 eq number2) should be(Right(LispFalse))
-    (number1 gt number2) should be(Right(LispFalse))
+    (number1 eq number2) should be(Right(LispFalse()))
+    (number1 gt number2) should be(Right(LispFalse()))
 
-    (number1 eq ratioNumber) should be(Right(LispFalse))
-    (number1 gt ratioNumber) should be(Right(LispTrue))
+    (number1 eq ratioNumber) should be(Right(LispFalse()))
+    (number1 gt ratioNumber) should be(Right(LispTrue()))
 
-    (number1 eq floatNumber) should be(Right(LispFalse))
-    (number1 gt floatNumber) should be(Right(LispTrue))
+    (number1 eq floatNumber) should be(Right(LispFalse()))
+    (number1 gt floatNumber) should be(Right(LispTrue()))
 
     number1.neg should be(Right(IntegerNumber(-3)))
 
@@ -62,7 +62,7 @@ class IntegerNumberTest extends FlatSpec with Matchers {
     )
 
     (number1 eq complexNumber) should be(
-      Right(LispFalse)
+      Right(LispFalse())
     )
   }
 
