@@ -63,7 +63,7 @@ object AsmHelper {
             .getVar(lispSymbol)
             .foreach {
               case (loc, preservedType) =>
-                mv.visitIntInsn(Opcodes.ALOAD, loc)
+                visitALoad(loc)
                 if (preservedType == ObjectClass) {
                   mv.visitCheckCast(typeToBe)
                 }

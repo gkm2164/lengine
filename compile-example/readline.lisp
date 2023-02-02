@@ -4,8 +4,8 @@
 (import Module.split)
 (import Module.to-string)
 
-(def str (read-line))
-(def trimmed (to-string (filter (lambda (ch) (/= ch #\Space)) (seq str))))
+(def line (read-line))
+(def trimmed (to-string (filter (lambda (ch) (/= ch #\Space)) (seq line))))
 (def splitted (split trimmed #\,))
 (def nums (map (lambda (s) (int s)) splitted))
 (def sum (fold nums 0 +))

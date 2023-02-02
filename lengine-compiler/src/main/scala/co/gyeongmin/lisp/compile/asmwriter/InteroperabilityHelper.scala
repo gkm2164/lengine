@@ -3,11 +3,37 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 
 object InteroperabilityHelper {
+  val UnoverridableFunctions: Map[LispSymbol, String] = Map(
+    "str" -> "CAST_STR",
+    "int" -> "CAST_INT",
+    "char" -> "CAST_CHARACTER",
+    "seq" -> "CAST_SEQUENCE",
+    "double" -> "CAST_DOUBLE",
+    "bool?" -> "IS_BOOL",
+    "char?" -> "IS_CHAR",
+    "int?" -> "IS_INT",
+    "double?" -> "IS_DOUBLE",
+    "string?" -> "IS_STR",
+    "seq?" -> "IS_SEQUENCE",
+    "object?" -> "IS_OBJECT",
+    "<" -> "LESS_THAN",
+    "<=" -> "LESS_EQUALS",
+    ">" -> "GREATER_THAN",
+    ">=" -> "GREATER_EQUALS",
+    "=" -> "EQUALS",
+    "/=" -> "NOT_EQUALS",
+    "and" -> "AND",
+    "or" -> "OR",
+    "not" -> "NOT",
+    "+" -> "ADD",
+    "-" -> "SUB",
+    "*" -> "MULT",
+    "/" -> "DIV",
+  ).map {
+    case (key, value) => EagerSymbol(key) -> value
+  }
+
   val SupportedFunctions: Map[LispSymbol, String] = Map(
-    "+"                 -> "ADD",
-    "-"                 -> "SUB",
-    "*"                 -> "MULT",
-    "/"                 -> "DIV",
     "len"               -> "LEN",
     "take"              -> "TAKE",
     "drop"              -> "DROP",
@@ -19,15 +45,6 @@ object InteroperabilityHelper {
     "split-at"          -> "SPLIT_AT",
     "fold"              -> "FOLD",
     "flatten"           -> "FLATTEN",
-    "<"                 -> "LESS_THAN",
-    "<="                -> "LESS_EQUALS",
-    ">"                 -> "GREATER_THAN",
-    ">="                -> "GREATER_EQUALS",
-    "="                 -> "EQUALS",
-    "/="                -> "NOT_EQUALS",
-    "and"               -> "AND",
-    "or"                -> "OR",
-    "not"               -> "NOT",
     "println"           -> "PRINTLN",
     "print"             -> "PRINT",
     "printf"            -> "PRINTF",
@@ -39,19 +56,8 @@ object InteroperabilityHelper {
     "assert-false"      -> "ASSERT_FALSE",
     "assert-equals"     -> "ASSERT_EQUALS",
     "assert-not-equals" -> "ASSERT_NOT_EQUALS",
-    "str"               -> "CAST_STR",
-    "int"               -> "CAST_INT",
-    "char"              -> "CAST_CHARACTER",
-    "seq"               -> "CAST_SEQUENCE",
-    "double"            -> "CAST_DOUBLE",
-    "bool?"             -> "IS_BOOL",
-    "char?"             -> "IS_CHAR",
-    "int?"              -> "IS_INT",
-    "double?"           -> "IS_DOUBLE",
-    "string?"           -> "IS_STR",
-    "seq?"              -> "IS_SEQUENCE",
-    "object?"           -> "IS_OBJECT",
+
   ).map {
     case (key, value) => EagerSymbol(key) -> value
-  }
+  } ++ UnoverridableFunctions
 }
