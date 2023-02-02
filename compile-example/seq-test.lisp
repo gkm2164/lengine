@@ -60,7 +60,32 @@
                    return (flatten l))))
 
 
-(println nil)
+(def xs nil)
+(def xs-1 (cons 2 nil))
+(def xs-2 (cons 1 (cons 2 (cons 3 nil))))
 
-(println (cons 2 nil))
-(println (cons 1 (cons 2 (cons 3 nil))))
+(println xs)
+(println xs-1)
+(println xs-2)
+
+(println (fold xs-2 0 +))
+
+(fn fold-left (seq acc folder)
+               (fold seq acc folder))
+
+(fn fold-right (seq acc folder)
+                (fold seq acc (lambda (elem acc) (folder acc elem))))
+
+(def make-lengine-list (fold-right (=range 1 10) nil cons))
+
+(println make-lengine-list)
+
+(fn reverse-loop (acc xs)
+                 (if (nil? xs)
+                     acc
+                     ($ (cons (head xs) acc) (tail xs))))
+
+(fn reverse (lst)
+            (reverse-loop nil lst))
+
+(println (reverse make-lengine-list))

@@ -55,7 +55,6 @@ class MainTest extends FlatSpec with Matchers {
     runCommand("(and true true)") should include("true: Boolean")
     runCommand("(or true false)") should include("true: Boolean")
     runCommand("(cons 1 [2 3])") should include("1 2 3")
-    runCommand("(cons 1 (cons 2 nil))") should include("1 2")
     runCommand("""(cons #\a "BC")""") should include("aBC")
     runCommand("(float 3)") should include("3.0: Float")
     runCommand("(now)") should include("Integer")

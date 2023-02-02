@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
 import co.gyeongmin.lisp.lexer.{TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.parser.{parseValue, replaceForbiddenKeywords}
+import co.gyeongmin.lisp.parser.{parseValue, appendForbiddenKeywords}
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
@@ -48,7 +48,8 @@ object Main {
     val codeSource = Source.fromFile(compileOps.sourceFile)
     val code       = codeSource.mkString
     try {
-      replaceForbiddenKeywords(ReservedKeywordFunctions.keySet.map(_.name))
+      appendForbiddenKeywords(ReservedKeywordFunctions.keySet.map(_.name))
+      appendForbiddenKeywords(ReservedKeywordVars.keySet.map(_.name))
 
       val tokenizer = Tokenizer(code)
 

@@ -29,7 +29,7 @@ public class LengineListIterator implements LengineIterator {
     }
 
     current = ((Cons) current).next;
-    return ret;
+    return ((Cons)ret).item;
   }
 
 }

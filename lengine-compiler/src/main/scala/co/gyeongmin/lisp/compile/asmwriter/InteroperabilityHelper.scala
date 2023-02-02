@@ -16,6 +16,8 @@ object InteroperabilityHelper {
     "string?" -> "IS_STR",
     "seq?"    -> "IS_SEQUENCE",
     "object?" -> "IS_OBJECT",
+    "cons?"   -> "IS_CONS",
+    "nil?"    -> "IS_NIL",
     "<"       -> "LESS_THAN",
     "<="      -> "LESS_EQUALS",
     ">"       -> "GREATER_THAN",
@@ -74,11 +76,17 @@ object InteroperabilityHelper {
     "cons"              -> "CONS",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
-  }
+  } ++ ReservedKeywordFunctions
 
-  val SupportedVars: Map[LispSymbol, String] = Map(
-    "nil" -> "NIL"
+  val ReservedKeywordVars: Map[LispSymbol, String] = Map(
+    "nil"  -> "NIL",
+    "none" -> "NONE"
   ).map {
     case (key, value) => EagerSymbol(key) -> value
-  } ++ ReservedKeywordFunctions
+  }
+
+  val SupportedVars: Map[LispSymbol, String] = Map[String, String](
+    ).map {
+    case (key, value) => EagerSymbol(key) -> value
+  } ++ ReservedKeywordVars
 }

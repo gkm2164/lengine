@@ -2,7 +2,6 @@ package lengine.runtime;
 
 import org.apache.commons.collections4.iterators.PeekingIterator;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class SequenceIterator implements LengineIterator {

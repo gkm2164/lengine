@@ -25,10 +25,12 @@ import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
+import lengine.runtime.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineList;
+import lengine.runtime.LengineListIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
 import lengine.runtime.LengineUnit;
@@ -253,12 +255,16 @@ public class Prelude {
     }
     return ret;
   };
-  private static final LengineLambda2<Sequence, Long, CreateIterator> _DROP = (n, seq) -> {
+  private static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
     int i = 0;
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (i++ < n && it.hasNext()) {
       it.next();
+    }
+
+    if (it instanceof LengineListIterator) {
+      return ((LengineListIterator)it)._this();
     }
     it.forEachRemaining(ret::addObject);
     return ret;
@@ -269,7 +275,7 @@ public class Prelude {
   }
 
   private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().peek();
-  private static final LengineLambda1<Sequence, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
+  private static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
   private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _TAKE_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -395,6 +401,8 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_SEQUENCE = (obj) -> isInstanceOf(CreateIterator.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj);
   private static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
   private static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
     File file = new File(path);
@@ -499,6 +507,8 @@ public class Prelude {
   public static final LengineLambdaCommon IS_STR = _IS_STR;
   public static final LengineLambdaCommon IS_SEQUENCE = _IS_SEQUENCE;
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
+  public static final LengineLambdaCommon IS_CONS = _IS_CONS;
+  public static final LengineLambdaCommon IS_NIL = _IS_NIL;
   public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
   public static final LengineLambdaCommon NOW = _NOW;
   public static final LengineLambdaCommon CONS = _CONS;

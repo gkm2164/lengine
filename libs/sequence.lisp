@@ -3,8 +3,13 @@
 
 (import "libs/utils")
 
-(fn concat-loop (acc nil) acc)
-(fn concat-loop (acc xs) (concat-loop (++ acc (head xs)) (tail xs)))
+(def nil [])
+(fn empty? (seq) (= (len seq) 0))
+
+(fn concat-loop (acc xs)
+                 (if (empty? xs)
+                      acc
+                      (concat-loop (++ acc (head xs)) (tail xs))))
 
 (fn concat (xs*) (concat-loop "" xs*))
 
@@ -16,7 +21,6 @@
 (fn reverse (acc xs) (reverse (cons (head xs) acc) (tail xs)))
 (fn reverse (xs) (reverse nil xs))
 
-(fn empty? (seq) (= (len seq) 0))
 
 ;;; map sequence to given f
 (fn map (seq f) (loop for x in seq (f x)))
