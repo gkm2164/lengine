@@ -15,7 +15,7 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 package object parser {
-  private val ForbiddenOverrides: mutable.Set[String] = mutable.Set()
+  private val ForbiddenOverrides: mutable.Set[String] = mutable.Set("fn", "def", "let", "do", "loop", "for", "in")
 
   def replaceForbiddenKeywords(set: Set[String]): Unit = this.ForbiddenOverrides ++= set
 

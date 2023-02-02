@@ -1,17 +1,10 @@
 package lengine.runtime;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-
 public class FileSequence implements CreateIterator {
-  private final FileReader fis;
+  private final String fileName;
 
   public FileSequence(String fileName) {
-    try {
-      this.fis = new FileReader(fileName);
-    } catch (FileNotFoundException e) {
-      throw new RuntimeException(e);
-    }
+    this.fileName = fileName;
   }
 
   public static FileSequence create(String fileName) {
@@ -20,7 +13,7 @@ public class FileSequence implements CreateIterator {
 
   @Override
   public LengineIterator iterator() {
-    return new FileSequenceIterator(fis);
+    return new FileSequenceIterator(fileName);
   }
 
   @Override

@@ -1,6 +1,9 @@
 package lengine;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -247,8 +250,8 @@ public class Prelude {
     return cls.isInstance(value);
   }
 
-  private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().next();
-  private static final LengineLambda1<Sequence, CreateIterator> _TAIL = (seq)-> _DROP.invoke(1L, seq);
+  private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().peek();
+  private static final LengineLambda1<Sequence, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
   private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _TAKE_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -312,7 +315,7 @@ public class Prelude {
   private static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
     Object ret = acc;
     LengineIterator it = seq.iterator();
-    while(it.hasNext()) {
+    while (it.hasNext()) {
       ret = fn.invoke(ret, it.next());
     }
 
@@ -375,6 +378,58 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_SEQUENCE = (obj) -> isInstanceOf(CreateIterator.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
 
+  private static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
+    File file = new File(path);
+    final long lengthOfFile = file.length();
+    final BufferedReader reader;
+    try {
+      reader = new BufferedReader(new FileReader(file));
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+
+    return new CreateIterator() {
+      @Override
+      public LengineIterator iterator() {
+        return new LengineIterator() {
+          @Override
+          public boolean hasNext() {
+            try {
+              return reader.ready();
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+
+          @Override
+          public Object peek() {
+            try {
+              reader.mark(1);
+              char read = (char)reader.read();
+              reader.reset();
+              return read;
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+
+          @Override
+          public Object next() {
+            try {
+              return (char) reader.read();
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        };
+      }
+
+      @Override
+      public Long len() {
+        return lengthOfFile;
+      }
+    };
+  };
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -423,6 +478,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_STR = _IS_STR;
   public static final LengineLambdaCommon IS_SEQUENCE = _IS_SEQUENCE;
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
+  public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();

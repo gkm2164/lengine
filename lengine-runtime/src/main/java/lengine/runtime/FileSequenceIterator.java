@@ -1,29 +1,46 @@
 package lengine.runtime;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import org.apache.commons.collections4.iterators.PeekingIterator;
 
-public class FileSequenceIterator implements LengineIterator {
-  private final BufferedReader br;
-  private String buffer;
-  public FileSequenceIterator(FileReader fis) {
-    this.br = new BufferedReader(fis);
-    this.buffer = "";
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
+
+public class FileSequenceIterator implements LengineIterator, AutoCloseable {
+
+  private final Stream<String> thisStream;
+  private final PeekingIterator<String> thisIterator;
+  public FileSequenceIterator(String fis) {
+    try {
+      thisStream = Files.lines(Paths.get(fis));
+      thisIterator = PeekingIterator.peekingIterator(thisStream.iterator());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public boolean hasNext() {
-    try {
-      buffer = this.br.readLine();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return buffer != null;
+    return thisIterator.hasNext();
+  }
+
+  @Override
+  public Object peek() {
+    return thisIterator.peek();
   }
 
   @Override
   public Object next() {
-    return buffer;
+    return thisIterator.next();
+  }
+
+  @Override
+  public void close() {
+    thisStream.close();
   }
 }

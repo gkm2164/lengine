@@ -16,6 +16,11 @@ public class RangeSequenceIterator implements LengineIterator {
   }
 
   @Override
+  public Object peek() {
+    return current;
+  }
+
+  @Override
   public Object next() {
     return current++;
   }

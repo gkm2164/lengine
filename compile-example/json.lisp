@@ -55,3 +55,18 @@
            (do (printf fmt x)
                return (println ""))))
 
+(def json-file-stream (open-file "./compile-example/json-example.json"))
+
+(def json-chs (fold json-file-stream [] +))
+
+(fn empty? (sequence)
+           (= 0 (len sequence)))
+
+(fn whitespace? (ch) false)
+
+(fn json-obj (acc sequence)
+             (case (((empty? sequence) acc)
+                    ((whitespace? (head sequence)) ($ acc (tail sequence))))
+                   default acc))
+
+

@@ -4,31 +4,31 @@ import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 
 object InteroperabilityHelper {
   val UnoverridableFunctions: Map[LispSymbol, String] = Map(
-    "str" -> "CAST_STR",
-    "int" -> "CAST_INT",
-    "char" -> "CAST_CHARACTER",
-    "seq" -> "CAST_SEQUENCE",
-    "double" -> "CAST_DOUBLE",
-    "bool?" -> "IS_BOOL",
-    "char?" -> "IS_CHAR",
-    "int?" -> "IS_INT",
+    "str"     -> "CAST_STR",
+    "int"     -> "CAST_INT",
+    "char"    -> "CAST_CHARACTER",
+    "seq"     -> "CAST_SEQUENCE",
+    "double"  -> "CAST_DOUBLE",
+    "bool?"   -> "IS_BOOL",
+    "char?"   -> "IS_CHAR",
+    "int?"    -> "IS_INT",
     "double?" -> "IS_DOUBLE",
     "string?" -> "IS_STR",
-    "seq?" -> "IS_SEQUENCE",
+    "seq?"    -> "IS_SEQUENCE",
     "object?" -> "IS_OBJECT",
-    "<" -> "LESS_THAN",
-    "<=" -> "LESS_EQUALS",
-    ">" -> "GREATER_THAN",
-    ">=" -> "GREATER_EQUALS",
-    "=" -> "EQUALS",
-    "/=" -> "NOT_EQUALS",
-    "and" -> "AND",
-    "or" -> "OR",
-    "not" -> "NOT",
-    "+" -> "ADD",
-    "-" -> "SUB",
-    "*" -> "MULT",
-    "/" -> "DIV",
+    "<"       -> "LESS_THAN",
+    "<="      -> "LESS_EQUALS",
+    ">"       -> "GREATER_THAN",
+    ">="      -> "GREATER_EQUALS",
+    "="       -> "EQUALS",
+    "/="      -> "NOT_EQUALS",
+    "and"     -> "AND",
+    "or"      -> "OR",
+    "not"     -> "NOT",
+    "+"       -> "ADD",
+    "-"       -> "SUB",
+    "*"       -> "MULT",
+    "/"       -> "DIV",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }
@@ -56,7 +56,7 @@ object InteroperabilityHelper {
     "assert-false"      -> "ASSERT_FALSE",
     "assert-equals"     -> "ASSERT_EQUALS",
     "assert-not-equals" -> "ASSERT_NOT_EQUALS",
-
+    "open-file"         -> "OPEN_FILE",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   } ++ UnoverridableFunctions
