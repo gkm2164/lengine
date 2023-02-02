@@ -90,6 +90,7 @@
 
 (println (reverse make-lengine-list))
 
+;;; merges 2 arrays
 (fn ++ (xs ys)
        (if (nil? xs) ys
                      (cons (head xs) ($ (tail xs) ys))))

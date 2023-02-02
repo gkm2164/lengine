@@ -60,8 +60,8 @@ object RuntimeMethodVisitor {
   )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val key :: value :: Nil = operands
     val mv                  = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key, LengineMapKeyClass, needReturn = true)
-    mv.visitLispValue(value, ObjectClass, needReturn = true)
+    mv.visitLispValue(key, LengineMapKeyClass)
+    mv.visitLispValue(value, ObjectClass)
     mv.visitStaticMethodCall(
       LengineMapEntryClass,
       "create",
@@ -126,7 +126,7 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
-    mv.visitLispValue(filename, StringClass, needReturn = true)
+    mv.visitLispValue(filename, StringClass)
     mv.visitStaticMethodCall(PreludeClass, "readFile", StringClass, StringClass)
   }
 
@@ -137,7 +137,7 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
-    mv.visitLispValue(filename, StringClass, needReturn = true)
+    mv.visitLispValue(filename, StringClass)
     mv.visitStaticMethodCall(PreludeClass, "readFileSeq", FileSequenceClass, StringClass)
   }
 
@@ -146,8 +146,8 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val a :: b :: Nil = operands
     val mv            = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(a, BooleanClass, needReturn = true)
-    mv.visitLispValue(b, BooleanClass, needReturn = true)
+    mv.visitLispValue(a, BooleanClass)
+    mv.visitLispValue(b, BooleanClass)
     mv.visitStaticMethodCall(
       PreludeClass,
       op,
@@ -163,7 +163,7 @@ object RuntimeMethodVisitor {
   private def visitNotOps(operands: List[LispValue],
                           requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
-    operands.foreach(v => mv.visitLispValue(v, BooleanClass, needReturn = true))
+    operands.foreach(v => mv.visitLispValue(v, BooleanClass))
     mv.visitStaticMethodCall(
       PreludeClass,
       "not",
@@ -183,7 +183,7 @@ object RuntimeMethodVisitor {
     val condition :: ifmatch :: elsematch :: Nil = operands
 
     val mv = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(condition, BooleanClass, needReturn = true)
+    mv.visitLispValue(condition, BooleanClass)
     mv.visitMethodCall(
       BooleanClass,
       "booleanValue",
@@ -196,11 +196,11 @@ object RuntimeMethodVisitor {
 
     mv.visitJumpInsn(IFNE, tLabel)
     mv.visitLabel(fLabel)
-    mv.visitLispValue(elsematch, requestedType, needReturn = true, tailRecReference = tailRecReference)
+    mv.visitLispValue(elsematch, requestedType, tailRecReference = tailRecReference)
     mv.visitJumpInsn(GOTO, next)
 
     mv.visitLabel(tLabel)
-    mv.visitLispValue(ifmatch, requestedType, needReturn = true, tailRecReference = tailRecReference)
+    mv.visitLispValue(ifmatch, requestedType, tailRecReference = tailRecReference)
     mv.visitLabel(next)
   }
 
@@ -209,7 +209,8 @@ object RuntimeMethodVisitor {
     val nameOfSymbol           = symbol.asInstanceOf[LispSymbol].name
     val mv                     = runtimeEnvironment.methodVisitor
     mv.visitLdcInsn(nameOfSymbol)
-    mv.visitLispValue(value, ObjectClass, needReturn = true)
+    mv.visitLispValue(value, ObjectClass)
+    mv.visitInsn(DUP)
     mv.visitStaticMethodCallStringOwner(
       runtimeEnvironment.className,
       "export",
@@ -245,6 +246,7 @@ object RuntimeMethodVisitor {
     )
 
     val varLoc = runtimeMethodVisitor.allocateNextVar
+    mv.visitInsn(DUP)
     mv.visitAStore(varLoc)
 
     runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc, ObjectClass)

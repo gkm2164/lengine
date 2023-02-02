@@ -206,7 +206,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     }
 
     new LispValueAsmWriter(f.body, ObjectClass)(newRuntimeEnvironment)
-      .visitForValue(needReturn = true, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
+      .visitForValue(tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 

@@ -28,7 +28,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
       LengineMapKeyClass,
       StringClass
     )
-    mv.visitLispValue(map, ObjectClass, needReturn = true)
+    mv.visitLispValue(map, ObjectClass)
     mv.visitInterfaceMethodCall(
       LengineLambdaClass(1),
       "invoke",
@@ -51,14 +51,14 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
           case Some((reference, label)) if reference == operation || operation == EagerSymbol("$") =>
             operands.zipWithIndex.foreach {
               case (v, loc) =>
-                mv.visitLispValue(v, ObjectClass, needReturn = true)
+                mv.visitLispValue(v, ObjectClass)
                 mv.visitAStore(loc + 1)
             }
             mv.visitJumpInsn(Opcodes.GOTO, label)
-          case None =>
+          case _ =>
             val argSize = operands.size
-            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn = true)
-            operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
+            mv.visitLispValue(value, LengineLambdaClass(argSize))
+            operands.foreach(v => mv.visitLispValue(v, ObjectClass))
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),
               "invoke",

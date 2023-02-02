@@ -31,7 +31,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
     val endLoop   = new Label()
 
     val mv = env.methodVisitor
-    new LispValueAsmWriter(seq, CreateIteratorClass).visitForValue(needReturn = true)
+    new LispValueAsmWriter(seq, CreateIteratorClass).visitForValue()
     mv.visitInterfaceMethodCall(
       classOf[CreateIterator],
       "iterator",
@@ -59,7 +59,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
     forStmts match {
       case Nil =>
         new LispValueAsmWriter(body, requestedType)
-          .visitForValue(needReturn = true, tailRecReference = tailRecReference)
+          .visitForValue(tailRecReference = tailRecReference)
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
         env.registerVariable(symbol, varIdx, ObjectClass)

@@ -25,8 +25,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     map.foreach {
       case (symbol, value) =>
         mv.visitInsn(Opcodes.DUP)
-        mv.visitLispValue(symbol, LengineMapKeyClass, needReturn = true)
-        mv.visitLispValue(value, ObjectClass, needReturn = true)
+        mv.visitLispValue(symbol, LengineMapKeyClass)
+        mv.visitLispValue(value, ObjectClass)
         mv.visitMethodCall(
           LengineMapClass,
           "put",
@@ -41,22 +41,21 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   private def declareCaseStmt(cases: List[LispCaseCondition],
                               fallback: LispValue,
                               exitLabel: Label,
-                              needReturn: Boolean,
                               tailRecReference: Option[(LispSymbol, Label)],
                               nextLabel: Label = new Label()): Unit = cases match {
     case Nil =>
-      mv.visitLispValue(fallback, typeToBe, needReturn = needReturn, tailRecReference)
+      mv.visitLispValue(fallback, typeToBe, tailRecReference)
     case LispCaseCondition(condition, thenValue) :: tail =>
-      mv.visitLispValue(condition, BooleanClass, needReturn = true)
+      mv.visitLispValue(condition, BooleanClass)
       mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
       mv.visitJumpInsn(Opcodes.IFEQ, nextLabel)
-      mv.visitLispValue(thenValue, typeToBe, needReturn = needReturn, tailRecReference)
+      mv.visitLispValue(thenValue, typeToBe, tailRecReference)
       mv.visitJumpInsn(Opcodes.GOTO, exitLabel)
       mv.visitLabel(nextLabel)
-      declareCaseStmt(tail, fallback, exitLabel, needReturn = needReturn, tailRecReference)
+      declareCaseStmt(tail, fallback, exitLabel, tailRecReference)
   }
 
-  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None, needReturn: Boolean): Unit = value match {
+  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
     case LispTrue() =>
       mv.visitInsn(Opcodes.ICONST_1)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
@@ -83,7 +82,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       declareMap(kv)
     case LispCaseStmt(cases, fallback) =>
       val exitLabel = new Label()
-      declareCaseStmt(cases, fallback, exitLabel, needReturn = needReturn, tailRecReference = tailRecReference)
+      declareCaseStmt(cases, fallback, exitLabel, tailRecReference = tailRecReference)
       mv.visitLabel(exitLabel)
     case ObjectReferSymbol(key) =>
       mv.visitLdcInsn(key)
@@ -99,12 +98,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       decls.foreach {
         case LispLetDecl(name, value) =>
           val idx = newEnv.allocateNextVar
-          new LispValueAsmWriter(value, ObjectClass)(newEnv).visitForValue(needReturn = true)
+          new LispValueAsmWriter(value, ObjectClass)(newEnv).visitForValue()
           mv.visitAStore(idx)
           newEnv.registerVariable(name, idx, ObjectClass)
       }
       new LispValueAsmWriter(body, ObjectClass)(newEnv)
-        .visitForValue(needReturn = true, tailRecReference = tailRecReference)
+        .visitForValue(tailRecReference = tailRecReference)
       val used = newEnv.getLastVarIdx
       runtimeEnv.overrideUsedVar(used)
       mv.visitLabel(new Label())
@@ -112,7 +111,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil),
         typeToBe
-      ).visitForValue(needReturn = false)
+      ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference).writeValue()
     case LispDoStmt(body) =>
@@ -124,16 +123,15 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case l @ LispClause(_) =>
       new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
-      mv.visitLispValue(value, typeToBe, needReturn = true, tailRecReference = tailRecReference)
-      if (needReturn) {
-        mv.visitDup()
-      }
+      mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
+      mv.visitDup()
       val varIdx = runtimeEnv.allocateNextVar
       mv.visitAStore(varIdx)
       runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
     case LispFuncDef(symbol, funcDef) =>
       new LispFnAsmWriter(funcDef).writeValue(itself = Some(symbol))
       val fnIdx = runtimeEnv.allocateNextVar
+      mv.visitDup()
       mv.visitAStore(fnIdx)
       runtimeEnv.registerVariable(symbol, fnIdx, LengineLambdaClass(funcDef.placeHolders.size))
     case genDef: GeneralLispFunc =>
@@ -156,7 +154,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case Nil =>
       throw new RuntimeException("unexpected error: do statement can't be empty")
     case v :: Nil =>
-      mv.visitLispValue(v, ObjectClass, needReturn = true, tailRecReference = tailRecReference)
+      mv.visitLispValue(v, ObjectClass, tailRecReference = tailRecReference)
     case v :: tail =>
       mv.visitLispValue(v, typeToBe)
       mv.visitInsn(Opcodes.POP)

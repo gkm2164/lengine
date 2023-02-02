@@ -45,7 +45,8 @@ package object compile {
         val thisLabel = new Label
         mv.visitLabel(thisLabel)
         stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
-        new LispValueAsmWriter(stmt, ObjectClass).visitForValue(needReturn = false)
+        new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
+        mv.visitInsn(POP)
     })
     mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)

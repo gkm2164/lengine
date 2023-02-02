@@ -58,17 +58,30 @@
 (def json-file-stream (read-file-seq "./compile-example/json-example.json"))
 
 (def json-chs (fold json-file-stream "" +))
-
 (println json-chs)
+
+(def json-ch-seq (seq json-chs))
+(println json-ch-seq)
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
 
 (fn whitespace? (ch) false)
 
+(fn fold-right (seq acc folder)
+                (fold seq acc (lambda (elem acc) (folder acc elem))))
+
+(fn seq-to-llist (xs)
+                 (fold-right xs nil cons))
+
+(fn filter (p xs)
+           (case ((nil? xs) nil)
+                 ((p (head xs)) (cons (head xs) ($ p (tail xs))))
+                 default ($ p (tail xs))))
+
+(println (seq-to-llist json-ch-seq))
+
 (fn json-obj (acc sequence)
              (case (((empty? sequence) acc)
                     ((whitespace? (head sequence)) ($ acc (tail sequence))))
                    default acc))
-
-
