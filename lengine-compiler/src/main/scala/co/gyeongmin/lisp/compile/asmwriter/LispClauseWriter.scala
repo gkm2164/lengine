@@ -1,10 +1,10 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, PreludeClass, StringClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
 class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     implicit runtimeEnvironment: LengineRuntimeEnvironment
@@ -39,7 +39,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) =>
-        RuntimeMethodVisitor.handle(clause.body, requestedType, needReturn, tailRecReference)
+        RuntimeMethodVisitor.handle(clause.body, requestedType, tailRecReference)
       case s: EagerSymbol if !SupportedFunctions.contains(s) && !runtimeEnvironment.hasVar(s) =>
         throw new RuntimeException(s"unable to find the symbol definition: $s")
       case value @ (EagerSymbol(_) | LispClause(_)) =>
@@ -53,17 +53,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
             mv.visitJumpInsn(Opcodes.GOTO, label)
           case None =>
             val argSize = operands.size
-            value match {
-              case sym: EagerSymbol if SupportedFunctions.contains(sym) =>
-                mv.visitFieldInsn(
-                  Opcodes.GETSTATIC,
-                  Type.getType(PreludeClass).getInternalName,
-                  SupportedFunctions(sym),
-                  Type.getType(LengineLambdaClass(operands.length)).getDescriptor
-                )
-              case _ =>
-                mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
-            }
+            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
             operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),

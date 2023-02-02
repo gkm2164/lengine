@@ -3,9 +3,9 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ Label, Type }
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -20,9 +20,6 @@ object RuntimeMethodVisitor {
     "read-file",
     "read-file-seq",
     "if",
-    "range",
-    "=range",
-    "assert",
     "fold",
     "seq",
     "entry",
@@ -80,7 +77,6 @@ object RuntimeMethodVisitor {
 
   def handle(body: List[LispValue],
              requestedType: Class[_],
-             needReturn: Boolean,
              tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
@@ -96,8 +92,6 @@ object RuntimeMethodVisitor {
           case "read-file"                                                             => visitReadFile(operands)
           case "read-file-seq"                                                         => visitReadFileSeq(operands)
           case "str" | "int" | "double" | "char" | "seq"                               => visitTypeCast(op, requestedType, operands)
-          case "assert"                                                                => visitAssert(operands)
-          case "range" | "=range"                                                      => visitRange(op, operands)
           case "fold"                                                                  => visitFold(operands, requestedType)
           case "export"                                                                => visitExport(operands)
           case "import"                                                                => visitImport(operands)
@@ -277,40 +271,6 @@ object RuntimeMethodVisitor {
     mv.visitLabel(tLabel)
     mv.visitLispValue(ifmatch, requestedType, needReturn = true, tailRecReference = tailRecReference)
     mv.visitLabel(next)
-  }
-
-  private def visitRange(op: String,
-                         operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val from :: to :: Nil = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(from, LongClass, needReturn = true)
-    mv.visitLispValue(to, LongClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      RangeSequenceClass,
-      op match {
-        case "range"  => "createRange"
-        case "=range" => "createInclusiveRange"
-      },
-      RangeSequenceClass,
-      LongClass,
-      LongClass
-    )
-  }
-
-  private def visitAssert(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val message :: v :: Nil = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(message, ObjectClass, needReturn = true)
-    mv.visitLispValue(v, BooleanClass, needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      "assertTrue",
-      VoidPrimitive,
-      ObjectClass,
-      BooleanClass
-    )
   }
 
   // (fold <seq> <init> <lambda>)

@@ -4,9 +4,9 @@
 (def F false)
 (def bool-list [T F])
 
-(assert "T should be true" T)
-(assert "F should be false" (not F))
-(assert "should eq to" (= [T F] bool-list))
+(assert-true "T should be true" T)
+(assert-false "F should be false" F)
+(assert-equals "should eq to" [T F] bool-list)
 
 (def lt (< 3 5))
 (def gt (> 3 5))

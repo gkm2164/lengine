@@ -1,7 +1,8 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import org.objectweb.asm.{ ClassWriter, MethodVisitor }
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
+import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
+import org.objectweb.asm.{ClassWriter, MethodVisitor}
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
@@ -32,7 +33,7 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
   def getVar(varName: LispSymbol): Option[(Int, Class[_])] = args.get(varName)
 
   def hasVar(varName: LispSymbol): Boolean =
-    args.contains(varName) || "+-*/".map(ch => EagerSymbol(ch.toString)).contains(varName)
+    args.contains(varName) || SupportedFunctions.contains(varName)
   def allocateNextVar: Int = varIdx.getAndAdd(1)
 
   def getLastVarIdx: Int = varIdx.get()

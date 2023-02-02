@@ -19,16 +19,21 @@ import java.util.function.BiPredicate;
 
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
+import lengine.functions.LengineLambda3;
+import lengine.functions.LengineLambdaCommon;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
 import lengine.runtime.LengineUnit;
+import lengine.runtime.RangeSequence;
 import lengine.runtime.Sequence;
 
 public class Prelude {
   private static final Set<String> alreadyLoadedClass = new HashSet<>();
+
+  private final static LengineUnit UNIT = LengineUnit.create();
 
   private static Object cast(Object from, Class<?> to) {
     if (to.equals(Character.class)) {
@@ -141,8 +146,24 @@ public class Prelude {
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
   }
 
+  private static Sequence toSeq(String str) {
+    Sequence seq = new Sequence();
+    char[] charArr = str.toCharArray();
+    for (char c : charArr) {
+      seq.add(c);
+    }
+    return seq;
+  }
 
-  public static final LengineLambda2<Object, Object, Object> ADD = (a, b) -> {
+  private static LengineUnit assertTrue(String message, Boolean value) {
+    if (!value) {
+      throw new RuntimeException("Failed to assert: " + message);
+    }
+    System.out.println("PASSED: " + message);
+    return UNIT;
+  }
+
+  private static final LengineLambda2<Object, Object, Object> _ADD = (a, b) -> {
     if (a instanceof LengineMap && b instanceof LengineMapEntry) {
       return ((LengineMap) a).add((LengineMapEntry) b);
     }
@@ -168,8 +189,7 @@ public class Prelude {
 
     throw new RuntimeException("Can't add");
   };
-
-  public static final LengineLambda2<Object, Object, Object> SUB = (a, b) -> {
+  private static final LengineLambda2<Object, Object, Object> _SUB = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -184,8 +204,7 @@ public class Prelude {
 
     throw new RuntimeException("Can't subtract");
   };
-
-  public static final LengineLambda2<Object, Object, Object> MULT = (a, b) -> {
+  public static final LengineLambda2<Object, Object, Object> _MULT = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -200,9 +219,7 @@ public class Prelude {
 
     throw new RuntimeException("Can't multiply");
   };
-
-
-  public static final LengineLambda2<Object, Object, Object> DIV = (a, b) -> {
+  public static final LengineLambda2<Object, Object, Object> _DIV = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -217,8 +234,7 @@ public class Prelude {
 
     throw new RuntimeException("Can't divide");
   };
-
-  public static LengineLambda1<Long, Object> LEN = (obj) -> {
+  private static final LengineLambda1<Long, Object> _LEN = (obj) -> {
     if (obj instanceof CreateIterator) {
       return ((CreateIterator) obj).len();
     } else if (obj instanceof String) {
@@ -227,17 +243,7 @@ public class Prelude {
 
     throw new RuntimeException("unable to decide the size for " + obj);
   };
-
-  private static Sequence toSeq(String str) {
-    Sequence seq = new Sequence();
-    char[] charArr = str.toCharArray();
-    for (char c : charArr) {
-      seq.add(c);
-    }
-    return seq;
-  }
-
-  public static LengineLambda2<Sequence, Long, CreateIterator> TAKE = (n, seq) -> {
+  private static final LengineLambda2<Sequence, Long, CreateIterator> _TAKE = (n, seq) -> {
     int i = 0;
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -246,7 +252,7 @@ public class Prelude {
     }
     return ret;
   };
-  public static LengineLambda2<Sequence, Long, CreateIterator> DROP = (n, seq) -> {
+  private static final LengineLambda2<Sequence, Long, CreateIterator> _DROP = (n, seq) -> {
     int i = 0;
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
@@ -256,9 +262,9 @@ public class Prelude {
     it.forEachRemaining(ret::addObject);
     return ret;
   };
-  public static LengineLambda1<Object, CreateIterator> HEAD = (seq) -> seq.iterator().next();
-  public static LengineLambda1<Sequence, CreateIterator> TAIL = (seq)-> DROP.invoke(1L, seq);
-  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> TAKE_WHILE = (test, seq) -> {
+  private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().next();
+  private static final LengineLambda1<Sequence, CreateIterator> _TAIL = (seq)-> _DROP.invoke(1L, seq);
+  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _TAKE_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -272,7 +278,7 @@ public class Prelude {
 
     return ret;
   };
-  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> DROP_WHILE = (test, seq) -> {
+  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _DROP_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -286,8 +292,7 @@ public class Prelude {
 
     return ret;
   };
-
-  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> FILTER = (test, seq) -> {
+  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _FILTER = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -299,7 +304,7 @@ public class Prelude {
 
     return ret;
   };
-  public static LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> SPLIT_AT = (test, seq) -> {
+  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _SPLIT_AT = (test, seq) -> {
     Sequence ret = new Sequence();
     Sequence head = new Sequence();
     Sequence tail = new Sequence();
@@ -319,7 +324,86 @@ public class Prelude {
 
     return ret;
   };
-  public static LengineLambda1<Sequence, Sequence> FLATTEN = Sequence::flatten;
+  private static final LengineLambda1<Sequence, Sequence> _FLATTEN = Sequence::flatten;
+  private static final LengineLambda2<Boolean, Object, Object> _LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
+  private static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
+  private static final LengineLambda2<Boolean, Object, Object> _GREATER_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
+  private static final LengineLambda2<Boolean, Object, Object> _GREATER_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) >= 0);
+  private static final LengineLambda2<Boolean, Object, Object> _EQUALS = Objects::equals;
+  private static final LengineLambda2<Boolean, Object, Object> _NOT_EQUALS = (a, b) -> !Objects.equals(a, b);
+  private static final LengineLambda2<Boolean, Boolean, Boolean> _AND = (a, b) -> a && b;
+  private static final LengineLambda2<Boolean, Boolean, Boolean> _OR = (a, b) -> a || b;
+  private static final LengineLambda1<Boolean, Boolean> _NOT = (a) -> !a;
+  private static final LengineLambda1<LengineUnit, Object> _PRINTLN = (str) -> {
+    System.out.println(str);
+    return UNIT;
+  };
+  private static final LengineLambda1<LengineUnit, Object> _PRINT = (str) -> {
+    System.out.print(str);
+    return UNIT;
+  };
+  private static final LengineLambda2<LengineUnit, String, CreateIterator> _PRINTF = (fmt, args) -> {
+    final LinkedList<Object> items = new LinkedList<>();
+    LengineIterator argsIt = args.iterator();
+    while (argsIt.hasNext()) {
+      items.add(argsIt.next());
+    }
+
+    System.out.printf(fmt, items.toArray());
+    return UNIT;
+  };
+  private static final LengineLambda2<String, String, CreateIterator> _FORMAT = (fmt, args) -> {
+    final LinkedList<Object> items = new LinkedList<>();
+    LengineIterator argsIt = args.iterator();
+    while (argsIt.hasNext()) {
+      items.add(argsIt.next());
+    }
+
+    return String.format(fmt, items.toArray());
+  };
+  private static final LengineLambda2<RangeSequence, Long, Long> _RANGE = RangeSequence::createRange;
+  private static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
+  public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_TRUE = Prelude::assertTrue;
+  public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
+  public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> assertTrue(message, _EQUALS.invoke(a, b));
+  public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
+
+
+
+  public static final LengineLambdaCommon ADD = _ADD;
+  public static final LengineLambdaCommon SUB = _SUB;
+  public static final LengineLambdaCommon MULT = _MULT;
+  public static final LengineLambdaCommon DIV = _DIV;
+  public static final LengineLambdaCommon LEN = _LEN;
+  public static final LengineLambdaCommon TAKE = _TAKE;
+  public static final LengineLambdaCommon DROP = _DROP;
+  public static final LengineLambdaCommon HEAD = _HEAD;
+  public static final LengineLambdaCommon TAIL = _TAIL;
+  public static final LengineLambdaCommon TAKE_WHILE = _TAKE_WHILE;
+  public static final LengineLambdaCommon DROP_WHILE = _DROP_WHILE;
+  public static final LengineLambdaCommon FILTER = _FILTER;
+  public static final LengineLambdaCommon SPLIT_AT = _SPLIT_AT;
+  public static final LengineLambdaCommon FLATTEN = _FLATTEN;
+  public static final LengineLambdaCommon LESS_THAN = _LESS_THAN;
+  public static final LengineLambdaCommon LESS_EQUALS = _LESS_EQUALS;
+  public static final LengineLambdaCommon GREATER_THAN = _GREATER_THAN;
+  public static final LengineLambdaCommon GREATER_EQUALS = _GREATER_EQUALS;
+  public static final LengineLambdaCommon EQUALS = _EQUALS;
+  public static final LengineLambdaCommon NOT_EQUALS = _NOT_EQUALS;
+  public static final LengineLambdaCommon AND = _AND;
+  public static final LengineLambdaCommon OR = _OR;
+  public static final LengineLambdaCommon NOT = _NOT;
+  public static final LengineLambdaCommon PRINTLN = _PRINTLN;
+  public static final LengineLambdaCommon PRINT = _PRINT;
+  public static final LengineLambdaCommon PRINTF = _PRINTF;
+  public static final LengineLambdaCommon FORMAT = _FORMAT;
+  public static final LengineLambdaCommon RANGE = _RANGE;
+  public static final LengineLambdaCommon INCLUSIVE_RANGE = _INCLUSIVE_RANGE;
+  public static final LengineLambdaCommon ASSERT = _ASSERT_TRUE;
+  public static final LengineLambdaCommon ASSERT_TRUE = _ASSERT_TRUE;
+  public static final LengineLambdaCommon ASSERT_FALSE = _ASSERT_FALSE;
+  public static final LengineLambdaCommon ASSERT_EQUALS = _ASSERT_EQUALS;
+  public static final LengineLambdaCommon ASSERT_NOT_EQUALS = _ASSERT_NOT_EQUALS;
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();
@@ -355,56 +439,6 @@ public class Prelude {
     }
 
     return predicate.test((Comparable) a, (Comparable) b);
-  }
-
-  public static LengineLambda2<Boolean, Object, Object> LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
-  public static LengineLambda2<Boolean, Object, Object> LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
-  public static LengineLambda2<Boolean, Object, Object> GREATER_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
-  public static LengineLambda2<Boolean, Object, Object> GREATER_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) >= 0);
-
-  public static LengineLambda2<Boolean, Object, Object> EQUALS = Objects::equals;
-  public static LengineLambda2<Boolean, Object, Object> NOT_EQUAL = (a, b) -> !Objects.equals(a, b);
-  public static LengineLambda2<Boolean, Boolean, Boolean> AND = (a, b) -> a && b;
-  public static LengineLambda2<Boolean, Boolean, Boolean> OR = (a, b) -> a || b;
-  public static LengineLambda1<Boolean, Boolean> NOT = (a) -> !a;
-  private final static LengineUnit UNIT = LengineUnit.create();
-
-  public static LengineLambda1<LengineUnit, Object> PRINTLN = (str) -> {
-    System.out.println(str);
-    return UNIT;
-  };
-
-  public static LengineLambda1<LengineUnit, Object> PRINT = (str) -> {
-    System.out.print(str);
-    return UNIT;
-  };
-
-  public static LengineLambda2<LengineUnit, String, CreateIterator> PRINTF = (fmt, args) -> {
-    final LinkedList<Object> items = new LinkedList<>();
-    LengineIterator argsIt = args.iterator();
-    while (argsIt.hasNext()) {
-      items.add(argsIt.next());
-    }
-
-    System.out.printf(fmt, items.toArray());
-    return UNIT;
-  };
-
-  public static LengineLambda2<String, String, CreateIterator> FORMAT = (fmt, args) -> {
-    final LinkedList<Object> items = new LinkedList<>();
-    LengineIterator argsIt = args.iterator();
-    while (argsIt.hasNext()) {
-      items.add(argsIt.next());
-    }
-
-    return String.format(fmt, items.toArray());
-  };
-
-  public static void assertTrue(Object message, Boolean value) {
-    if (!value) {
-      throw new RuntimeException("Failed to assert: " + message);
-    }
-    System.out.println("PASSED: " + message);
   }
 
   public static void loadClass(String clsName) {

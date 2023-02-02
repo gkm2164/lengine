@@ -1,32 +1,8 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import lengine.Prelude
-import lengine.functions.{
-  LengineLambda0,
-  LengineLambda1,
-  LengineLambda10,
-  LengineLambda2,
-  LengineLambda3,
-  LengineLambda4,
-  LengineLambda5,
-  LengineLambda6,
-  LengineLambda7,
-  LengineLambda8,
-  LengineLambda9
-}
-import lengine.runtime.{
-  CreateIterator,
-  FileSequence,
-  LengineIterator,
-  LengineMap,
-  LengineMapEntry,
-  LengineMapKey,
-  LengineUnit,
-  RangeSequence,
-  Sequence
-}
-
-import java.io.PrintStream
+import lengine.functions._
+import lengine.runtime._
 
 object LengineType {
   val VoidPrimitive: Class[Void]                     = java.lang.Void.TYPE
@@ -42,10 +18,8 @@ object LengineType {
   val ArrayObjectClass: Class[Array[Object]]         = classOf[Array[Object]]
   val CharacterClass: Class[java.lang.Character]     = classOf[Character]
   val SystemClass: Class[System]                     = classOf[System]
-  val PrintStreamClass: Class[PrintStream]           = classOf[PrintStream]
 
   val PreludeClass: Class[Prelude]                 = classOf[Prelude]
-  val LengineUnitClass: Class[LengineUnit]         = classOf[LengineUnit]
   val LengineMapClass: Class[LengineMap]           = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]     = classOf[LengineMapKey]
   val LengineMapEntryClass: Class[LengineMapEntry] = classOf[LengineMapEntry]
@@ -62,9 +36,9 @@ object LengineType {
     classOf[LengineLambda9[_, _, _, _, _, _, _, _, _, _]],
     classOf[LengineLambda10[_, _, _, _, _, _, _, _, _, _, _]],
   )
-  val SequenceClass: Class[Sequence]               = classOf[Sequence]
-  val RangeSequenceClass: Class[RangeSequence]     = classOf[RangeSequence]
-  val CreateIteratorClass: Class[CreateIterator]   = classOf[CreateIterator]
-  val LengineIteratorClass: Class[LengineIterator] = classOf[LengineIterator]
-  val FileSequenceClass: Class[FileSequence]       = classOf[FileSequence]
+  val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
+  val SequenceClass: Class[Sequence]                       = classOf[Sequence]
+  val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
+  val LengineIteratorClass: Class[LengineIterator]         = classOf[LengineIterator]
+  val FileSequenceClass: Class[FileSequence]               = classOf[FileSequence]
 }

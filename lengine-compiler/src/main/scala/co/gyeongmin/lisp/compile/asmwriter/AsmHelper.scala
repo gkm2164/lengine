@@ -1,6 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass, PreludeClass}
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaCommonClass, ObjectClass, PreludeClass}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
@@ -52,9 +53,19 @@ object AsmHelper {
     def visitStaticMethodCallStringOwner(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
 
+    private def visitGetStaticField(owner: Class[_], name: String, descriptor: Class[_]): Unit =
+      mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, name, Type.getType(descriptor).getDescriptor)
+
     def visitLoadVariable(lispSymbol: LispSymbol, typeToBe: Class[_]): Unit = {
-      if ("+*/-".contains(lispSymbol.name)) {
-        visitCalcStatic(lispSymbol.name)
+      if (SupportedFunctions.contains(lispSymbol)) {
+        visitGetStaticField(
+          PreludeClass,
+          SupportedFunctions(lispSymbol),
+          LengineLambdaCommonClass
+        )
+        if (typeToBe != ObjectClass) {
+          visitCheckCast(typeToBe)
+        }
       } else {
         runtimeEnvironment
           .getVar(lispSymbol)
@@ -67,19 +78,6 @@ object AsmHelper {
           }
       }
     }
-
-    private def visitCalcStatic(op: String): Unit =
-      mv.visitFieldInsn(
-        GETSTATIC,
-        Type.getType(PreludeClass).getInternalName,
-        op match {
-          case "+" => "ADD"
-          case "-" => "SUB"
-          case "*" => "MULT"
-          case "/" => "DIV"
-        },
-        Type.getType(LengineLambdaClass(2)).getDescriptor
-      )
 
     def allocateNewArray(t: Class[_], arraySize: Int): Unit = {
       mv.visitLdcInsn(arraySize)
