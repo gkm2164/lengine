@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 
 import scala.collection.mutable
@@ -14,6 +14,7 @@ class LengineVarCapture {
   private val ignoreCaptureSet: mutable.Set[LispSymbol] = mutable.Set()
 
   ignoreCaptureSet ++= SupportedFunctions.keySet
+  ignoreCaptureSet ++= SupportedVars.keySet
 
   def this (parent: LengineVarCapture) = {
     this()

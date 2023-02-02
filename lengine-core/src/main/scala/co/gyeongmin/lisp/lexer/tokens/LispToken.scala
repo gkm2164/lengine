@@ -51,7 +51,6 @@ object LispToken {
     case "false"                 => Right(LispFalse)
     case "do"                    => Right(LispDo)
     case "return"                => Right(LispReturn)
-    case "nil"                   => Right(LispNil)
     case "case"                  => Right(LispCase)
     case "default"               => Right(LispDefault)
     case SpecialValueRegex(body) => Right(SpecialToken(body))

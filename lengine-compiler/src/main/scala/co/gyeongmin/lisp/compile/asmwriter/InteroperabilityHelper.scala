@@ -59,6 +59,25 @@ object InteroperabilityHelper {
     "assert-not-equals" -> "ASSERT_NOT_EQUALS",
     "open-file"         -> "OPEN_FILE",
     "now"               -> "NOW",
+    "str"               -> "CAST_STR",
+    "int"               -> "CAST_INT",
+    "char"              -> "CAST_CHARACTER",
+    "seq"               -> "CAST_SEQUENCE",
+    "double"            -> "CAST_DOUBLE",
+    "bool?"             -> "IS_BOOL",
+    "char?"             -> "IS_CHAR",
+    "int?"              -> "IS_INT",
+    "double?"           -> "IS_DOUBLE",
+    "string?"           -> "IS_STR",
+    "seq?"              -> "IS_SEQUENCE",
+    "object?"           -> "IS_OBJECT",
+    "cons"              -> "CONS",
+  ).map {
+    case (key, value) => EagerSymbol(key) -> value
+  }
+
+  val SupportedVars: Map[LispSymbol, String] = Map(
+    "nil" -> "NIL"
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   } ++ ReservedKeywordFunctions

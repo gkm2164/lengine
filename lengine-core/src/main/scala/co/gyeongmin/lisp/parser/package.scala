@@ -22,7 +22,6 @@ package object parser {
   def parseValue: LispTokenState[LispValue] = {
     case Stream.Empty                  => Left(EmptyTokenListError)
     case (LispNop, _) #:: tail         => parseValue(tail)
-    case (LispNil, _) #:: tail         => LispTokenState(LispList(Nil))(tail)
     case (ListStartPar, _) #:: tail    => parseList(takeToken[RightPar.type])(tail)
     case (LeftBracket, _) #:: tail     => parseList(takeToken[RightBracket.type])(tail)
     case (LeftBrace, _) #:: tail       => parseBrace(tail)

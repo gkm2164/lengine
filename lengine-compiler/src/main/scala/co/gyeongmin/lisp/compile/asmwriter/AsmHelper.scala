@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ LengineLambdaCommonClass, ObjectClass, PreludeClass }
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaCommonClass, ObjectClass, PreludeClass}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
@@ -73,6 +73,15 @@ object AsmHelper {
             PreludeClass,
             SupportedFunctions(lispSymbol),
             LengineLambdaCommonClass
+          )
+          if (typeToBe != ObjectClass) {
+            visitCheckCast(typeToBe)
+          }
+        case None if SupportedVars.contains(lispSymbol) =>
+          visitGetStaticField(
+            PreludeClass,
+            SupportedVars(lispSymbol),
+            ObjectClass
           )
           if (typeToBe != ObjectClass) {
             visitCheckCast(typeToBe)

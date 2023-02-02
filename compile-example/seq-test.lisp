@@ -59,4 +59,8 @@
                (do (println l)
                    return (flatten l))))
 
+
 (println nil)
+
+(println (cons 2 nil))
+(println (cons 1 (cons 2 (cons 3 nil))))

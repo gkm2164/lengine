@@ -28,9 +28,11 @@ import lengine.functions.LengineLambdaCommon;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineList;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
 import lengine.runtime.LengineUnit;
+import lengine.runtime.Nil;
 import lengine.runtime.RangeSequence;
 import lengine.runtime.Sequence;
 
@@ -446,6 +448,8 @@ public class Prelude {
       }
     };
   };
+  private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
+
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -497,6 +501,8 @@ public class Prelude {
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
   public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
   public static final LengineLambdaCommon NOW = _NOW;
+  public static final LengineLambdaCommon CONS = _CONS;
+  public static final Object NIL = Nil.get();
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();
