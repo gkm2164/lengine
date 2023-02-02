@@ -313,8 +313,9 @@ public class Prelude {
     Object ret = acc;
     LengineIterator it = seq.iterator();
     while(it.hasNext()) {
-      ret = fn.invoke(acc, it.next());
+      ret = fn.invoke(ret, it.next());
     }
+
     return ret;
   };
   private static final LengineLambda1<Sequence, Sequence> _FLATTEN = Sequence::flatten;

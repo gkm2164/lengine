@@ -1,9 +1,9 @@
 (module Seq)
 
+(import Runtime.fold)
+
 (def seqs [1 2 3 4 5])
-(def fold-result (fold (range 1 10)
-                       0
-                       +))
+(def fold-result (fold (range 1 10) 0 +))
 
 (println "Testing sequence")
 (println seqs)

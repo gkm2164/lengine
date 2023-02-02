@@ -4,12 +4,12 @@
 
 (println "=== Declare variables ===")
 (def v 3)
-(def str "Something Wonderful!")
+(def strs "Something Wonderful!")
 (def name "YoonJung")
 
 (println "=== Testing variable reference ===")
 (println v)
-(println str)
+(println strs)
 (println name)
 (println "=== Print char ===")
 (println #\n)
