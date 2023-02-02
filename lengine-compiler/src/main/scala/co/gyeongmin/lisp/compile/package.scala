@@ -39,7 +39,13 @@ package object compile {
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, 1)
 
-    statements.foreach(stmt => new LispValueAsmWriter(stmt, ObjectClass).visitForValue(needReturn = false))
+    statements.zipWithIndex.foreach {
+      case (stmt, idx) =>
+        val thisLabel = new Label
+        mv.visitLabel(thisLabel)
+        mv.visitLineNumber(idx, thisLabel)
+        new LispValueAsmWriter(stmt, ObjectClass).visitForValue(needReturn = false)
+    }
     mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)
     // Need to give hint to assembly generator for helping decide frame size

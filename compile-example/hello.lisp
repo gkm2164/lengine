@@ -101,3 +101,5 @@
 (println (- (now) start))
 
 (println (rem 10 3))
+
+(printf "Hello%n" [])

@@ -89,3 +89,10 @@
             (reverse-loop nil lst))
 
 (println (reverse make-lengine-list))
+
+(fn ++ (xs ys)
+       (if (nil? xs) ys
+                     (cons (head xs) ($ (tail xs) ys))))
+
+(println (++ xs-1 xs-2))
+

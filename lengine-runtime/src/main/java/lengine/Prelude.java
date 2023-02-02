@@ -290,7 +290,7 @@ public class Prelude {
 
     return ret;
   };
-  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _DROP_WHILE = (test, seq) -> {
+  private static final LengineLambda2<CreateIterator, LengineLambda1<Boolean, Object>, CreateIterator> _DROP_WHILE = (test, seq) -> {
     Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (it.hasNext()) {
@@ -299,6 +299,10 @@ public class Prelude {
         ret.add(elem);
         break;
       }
+    }
+
+    if (it instanceof LengineListIterator) {
+      return ((LengineListIterator)it)._this();
     }
     it.forEachRemaining(ret::add);
 

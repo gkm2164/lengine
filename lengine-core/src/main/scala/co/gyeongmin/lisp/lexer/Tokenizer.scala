@@ -20,9 +20,9 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case ('\\', _) if escape =>
-          parseString(builder + "\\", wrap)
-        case ('\\', _) =>
+        case ('#', _) if escape =>
+          parseString(builder + "#", wrap)
+        case ('#', _) =>
           parseString(builder, wrap, escape = true)
         case (ch, _) if ch == wrap && escape =>
           parseString(builder + wrap, wrap)

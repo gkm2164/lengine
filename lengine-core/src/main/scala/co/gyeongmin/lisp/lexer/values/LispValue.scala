@@ -7,9 +7,11 @@ import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.numbers._
 import co.gyeongmin.lisp.lexer.values.seq.LispSeq
 
+import java.util.UUID
 import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
+  val tokenId: String = UUID.randomUUID().toString
 
   def not: Either[EvalError, LispBoolean] = Left(
     UnimplementedOperationError("!", this)
