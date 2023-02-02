@@ -7,9 +7,9 @@
 (def str (read-line))
 (def trimmed (to-string (filter (lambda (ch) (/= ch #\Space)) (seq str))))
 (def splitted (split trimmed #\,))
-(def num-seq (map (lambda (s) (int s)) splitted))
-(def sum (fold num-seq 0 (lambda (acc elem) (+ acc elem))))
-(def avg (/ (double sum) (len num-seq)))
+(def nums (map (lambda (s) (int s)) splitted))
+(def sum (fold nums 0 +))
+(def avg (/ (double sum) (len nums)))
 
 (println sum)
 (println avg)

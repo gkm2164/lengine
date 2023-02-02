@@ -46,9 +46,12 @@
          })
 
 (def result (loop for x in (=range 1 10)
-          (let ((start (now))
-                (json-str (to-json obj)))
-               [(- (now) start) json-str])))
+                  (let ((start (now))
+                        (json-str (to-json obj)))
+                       [(- (now) start) json-str])))
 
-(println result)
+(loop for x in result
+      (let ((fmt "%dms elapsed, and got result: [%s]"))
+           (do (printf fmt x)
+               return (println ""))))
 

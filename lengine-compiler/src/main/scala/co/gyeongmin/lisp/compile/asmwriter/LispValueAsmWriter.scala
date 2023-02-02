@@ -122,7 +122,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case ref: EagerSymbol =>
       throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
     case l @ LispClause(_) =>
-      new LispClauseWriter(l, typeToBe).visitForValue(needReturn, tailRecReference = tailRecReference)
+      new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
       mv.visitLispValue(value, typeToBe, needReturn = true, tailRecReference = tailRecReference)
       if (needReturn) {

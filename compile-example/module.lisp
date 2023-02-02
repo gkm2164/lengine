@@ -1,10 +1,12 @@
 (module Module)
 
-(fn map (f seq)
-  (loop for x in seq
-    (f x)))
+(fn map (f xs)
+        (loop for x in xs
+              (f x)))
 
-(export map map)
+(export map (lambda (f xs)
+                    (loop for x in xs
+                          (f x))))
 
 (fn split-real (s delim)
     (if (= 0 (len s))
@@ -37,3 +39,8 @@
                              (if (p elem)
                                  (+ acc [elem])
                                  acc)))))
+
+(export fold-custom (lambda (seq acc f)
+                            (let ((elem (head seq))
+                                  (next-acc (f acc elem)))
+                                 ($ (tail seq) next-acc f))))

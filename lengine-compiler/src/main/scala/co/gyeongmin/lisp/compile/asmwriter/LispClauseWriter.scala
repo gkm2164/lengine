@@ -34,13 +34,13 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     mv.visitCheckCast(requestedType)
   }
 
-  def visitForValue(needReturn: Boolean = false, tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
+  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
       case s if RuntimeMethodVisitor.supportOperation(s) =>
         RuntimeMethodVisitor.handle(clause.body, requestedType, tailRecReference)
-      case s: EagerSymbol if !SupportedFunctions.contains(s) && !runtimeEnvironment.hasVar(s) =>
+      case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
         throw new RuntimeException(s"unable to find the symbol definition: $s")
       case value @ (EagerSymbol(_) | LispClause(_)) =>
         tailRecReference match {
@@ -53,7 +53,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
             mv.visitJumpInsn(Opcodes.GOTO, label)
           case None =>
             val argSize = operands.size
-            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn)
+            mv.visitLispValue(value, LengineLambdaClass(argSize), needReturn = true)
             operands.foreach(v => mv.visitLispValue(v, ObjectClass, needReturn = true))
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),

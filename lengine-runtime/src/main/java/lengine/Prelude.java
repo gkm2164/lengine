@@ -51,26 +51,6 @@ public class Prelude {
     throw new RuntimeException("unable to cast");
   }
 
-  public static Object cast_str(Object from) {
-    return castString(from);
-  }
-
-  public static Object cast_int(Object from) {
-    return castLong(from);
-  }
-
-  public static Object cast_double(Object from) {
-    return castDouble(from);
-  }
-
-  public static Object cast_char(Object from) {
-    return castChar(from);
-  }
-
-  public static Object cast_seq(Object from) {
-    return castSequence(from);
-  }
-
   private static Sequence castSequence(Object from) {
     if (from instanceof Sequence) {
       return (Sequence) from;
@@ -262,6 +242,11 @@ public class Prelude {
     it.forEachRemaining(ret::addObject);
     return ret;
   };
+
+  private static <T> Boolean isInstanceOf(Class<T> cls, Object value) {
+    return cls.isInstance(value);
+  }
+
   private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().next();
   private static final LengineLambda1<Sequence, CreateIterator> _TAIL = (seq)-> _DROP.invoke(1L, seq);
   private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _TAKE_WHILE = (test, seq) -> {
@@ -324,6 +309,14 @@ public class Prelude {
 
     return ret;
   };
+  private static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
+    Object ret = acc;
+    LengineIterator it = seq.iterator();
+    while(it.hasNext()) {
+      ret = fn.invoke(acc, it.next());
+    }
+    return ret;
+  };
   private static final LengineLambda1<Sequence, Sequence> _FLATTEN = Sequence::flatten;
   private static final LengineLambda2<Boolean, Object, Object> _LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
   private static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
@@ -363,11 +356,23 @@ public class Prelude {
   };
   private static final LengineLambda2<RangeSequence, Long, Long> _RANGE = RangeSequence::createRange;
   private static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
-  public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_TRUE = Prelude::assertTrue;
-  public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
-  public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> assertTrue(message, _EQUALS.invoke(a, b));
-  public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
+  private static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_TRUE = Prelude::assertTrue;
+  private static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
+  private static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> assertTrue(message, _EQUALS.invoke(a, b));
+  private static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
+  private static final LengineLambda1<String, Object> _CAST_STR = Prelude::castString;
+  private static final LengineLambda1<Long, Object> _CAST_INT = Prelude::castLong;
+  private static final LengineLambda1<Double, Object> _CAST_DOUBLE = Prelude::castDouble;
+  private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
+  private static final LengineLambda1<Sequence, Object> _CAST_SEQUENCE = Prelude::castSequence;
 
+  private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_DOUBLE = (obj) -> isInstanceOf(Double.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_SEQUENCE = (obj) -> isInstanceOf(CreateIterator.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
 
 
   public static final LengineLambdaCommon ADD = _ADD;
@@ -383,6 +388,7 @@ public class Prelude {
   public static final LengineLambdaCommon DROP_WHILE = _DROP_WHILE;
   public static final LengineLambdaCommon FILTER = _FILTER;
   public static final LengineLambdaCommon SPLIT_AT = _SPLIT_AT;
+  public static final LengineLambdaCommon FOLD = _FOLD;
   public static final LengineLambdaCommon FLATTEN = _FLATTEN;
   public static final LengineLambdaCommon LESS_THAN = _LESS_THAN;
   public static final LengineLambdaCommon LESS_EQUALS = _LESS_EQUALS;
@@ -404,6 +410,18 @@ public class Prelude {
   public static final LengineLambdaCommon ASSERT_FALSE = _ASSERT_FALSE;
   public static final LengineLambdaCommon ASSERT_EQUALS = _ASSERT_EQUALS;
   public static final LengineLambdaCommon ASSERT_NOT_EQUALS = _ASSERT_NOT_EQUALS;
+  public static final LengineLambdaCommon CAST_STR = _CAST_STR;
+  public static final LengineLambdaCommon CAST_INT = _CAST_INT;
+  public static final LengineLambdaCommon CAST_DOUBLE = _CAST_DOUBLE;
+  public static final LengineLambdaCommon CAST_CHARACTER = _CAST_CHARACTER;
+  public static final LengineLambdaCommon CAST_SEQUENCE = _CAST_SEQUENCE;
+  public static final LengineLambdaCommon IS_BOOL = _IS_BOOL;
+  public static final LengineLambdaCommon IS_CHAR = _IS_CHAR;
+  public static final LengineLambdaCommon IS_INT = _IS_INT;
+  public static final LengineLambdaCommon IS_DOUBLE = _IS_DOUBLE;
+  public static final LengineLambdaCommon IS_STR = _IS_STR;
+  public static final LengineLambdaCommon IS_SEQUENCE = _IS_SEQUENCE;
+  public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
 
   public static String readLine() throws IOException {
     return new BufferedReader(new InputStreamReader(System.in)).readLine();

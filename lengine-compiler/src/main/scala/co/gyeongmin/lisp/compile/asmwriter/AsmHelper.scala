@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.SupportedFunctions
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaCommonClass, ObjectClass, PreludeClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ LengineLambdaCommonClass, ObjectClass, PreludeClass }
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Opcodes._
@@ -56,28 +56,30 @@ object AsmHelper {
     private def visitGetStaticField(owner: Class[_], name: String, descriptor: Class[_]): Unit =
       mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, name, Type.getType(descriptor).getDescriptor)
 
-    def visitLoadVariable(lispSymbol: LispSymbol, typeToBe: Class[_]): Unit = {
-      if (SupportedFunctions.contains(lispSymbol)) {
-        visitGetStaticField(
-          PreludeClass,
-          SupportedFunctions(lispSymbol),
-          LengineLambdaCommonClass
-        )
-        if (typeToBe != ObjectClass) {
-          visitCheckCast(typeToBe)
-        }
-      } else {
-        runtimeEnvironment
-          .getVar(lispSymbol)
-          .foreach {
-            case (loc, preservedType) =>
-              mv.visitIntInsn(Opcodes.ALOAD, loc)
-              if (preservedType == ObjectClass) {
-                mv.visitCheckCast(typeToBe)
-              }
+    def visitLoadVariable(lispSymbol: LispSymbol, typeToBe: Class[_]): Unit =
+      runtimeEnvironment.getVar(lispSymbol) match {
+        case Some(_) =>
+          runtimeEnvironment
+            .getVar(lispSymbol)
+            .foreach {
+              case (loc, preservedType) =>
+                mv.visitIntInsn(Opcodes.ALOAD, loc)
+                if (preservedType == ObjectClass) {
+                  mv.visitCheckCast(typeToBe)
+                }
+            }
+        case None if SupportedFunctions.contains(lispSymbol) =>
+          visitGetStaticField(
+            PreludeClass,
+            SupportedFunctions(lispSymbol),
+            LengineLambdaCommonClass
+          )
+          if (typeToBe != ObjectClass) {
+            visitCheckCast(typeToBe)
           }
+        case None =>
+          throw new RuntimeException(s"Unable to resolve the symbol: $lispSymbol")
       }
-    }
 
     def allocateNewArray(t: Class[_], arraySize: Int): Unit = {
       mv.visitLdcInsn(arraySize)
@@ -97,9 +99,6 @@ object AsmHelper {
       if (cls != ObjectClass) {
         mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
       }
-
-    def visitInstanceOf(cls: Class[_]): Unit =
-      mv.visitTypeInsn(Opcodes.INSTANCEOF, Type.getType(cls).getInternalName)
 
     def visitLispValue(value: LispValue,
                        typeToBe: Class[_],
@@ -122,8 +121,7 @@ object AsmHelper {
         primitiveType
       )
 
-    def visitDup(): Unit = {
+    def visitDup(): Unit =
       mv.visitInsn(Opcodes.DUP)
-    }
   }
 }

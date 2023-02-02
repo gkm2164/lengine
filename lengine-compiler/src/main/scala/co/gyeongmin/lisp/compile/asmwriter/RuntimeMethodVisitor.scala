@@ -11,56 +11,21 @@ object RuntimeMethodVisitor {
   private val supportedOps = Set(
     "export",
     "import",
-    "str",
-    "int",
-    "double",
-    "char",
     "read-line",
     "read-eof",
     "read-file",
     "read-file-seq",
     "if",
-    "fold",
-    "seq",
     "entry",
     "keys",
     "get",
     "key",
-    "bool?",
-    "char?",
-    "int?",
-    "double?",
-    "string?",
-    "seq?",
-    "object?",
     "now"
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
     case EagerSymbol(op) => supportedOps.contains(op)
     case _               => false
-  }
-
-  private def visitTypeCheck(op: String, operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val t = op.dropRight(1)
-    val cls = t match {
-      case "bool"   => BooleanClass
-      case "char"   => CharacterClass
-      case "int"    => LongClass
-      case "double" => DoubleClass
-      case "string" => StringClass
-      case "seq"    => SequenceClass
-      case "object" => LengineMapClass
-    }
-
-    val value :: Nil = operands
-    val mv           = runtimeEnvironment.methodVisitor
-
-    mv.visitLispValue(value, ObjectClass)
-    mv.visitInstanceOf(cls)
-    mv.visitBoxing(BooleanClass, BooleanPrimitive)
   }
 
   private def visitNow()(
@@ -91,15 +56,12 @@ object RuntimeMethodVisitor {
           case "read-eof"                                                              => visitReadEof
           case "read-file"                                                             => visitReadFile(operands)
           case "read-file-seq"                                                         => visitReadFileSeq(operands)
-          case "str" | "int" | "double" | "char" | "seq"                               => visitTypeCast(op, requestedType, operands)
-          case "fold"                                                                  => visitFold(operands, requestedType)
           case "export"                                                                => visitExport(operands)
           case "import"                                                                => visitImport(operands)
           case "entry"                                                                 => visitCreateEntry(operands)
           case "key"                                                                   => visitMapKeyCreate(operands)
           case "get"                                                                   => visitGetKeyName(operands)
           case "keys"                                                                  => visitMapKeys(operands)
-          case "bool?" | "char?" | "int?" | "double?" | "string?" | "object?" | "seq?" => visitTypeCheck(op, operands)
           case "now"                                                                   => visitNow()
           case _                                                                       => new RuntimeException("Unsupported operation: " + op)
         }
@@ -159,23 +121,6 @@ object RuntimeMethodVisitor {
       "getKey",
       StringClass
     )
-  }
-
-  private def visitTypeCast(op: String, requestedType: Class[_], operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val operand :: _ = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-
-    new LispValueAsmWriter(operand, ObjectClass).visitForValue(needReturn = true)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      s"cast_$op",
-      ObjectClass,
-      ObjectClass
-    )
-    mv.visitCheckCast(requestedType)
   }
 
   private def visitReadLine(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
@@ -271,61 +216,6 @@ object RuntimeMethodVisitor {
     mv.visitLabel(tLabel)
     mv.visitLispValue(ifmatch, requestedType, needReturn = true, tailRecReference = tailRecReference)
     mv.visitLabel(next)
-  }
-
-  // (fold <seq> <init> <lambda>)
-  private def visitFold(operands: List[LispValue],
-                        requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val startLoop = new Label()
-    val endLoop   = new Label()
-
-    val seq :: init :: lambda :: Nil = operands
-    val seqLoc                       = runtimeEnvironment.allocateNextVar
-
-    val mv = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(lambda, LengineLambdaClass(2), needReturn = true) // [L]
-    mv.visitLispValue(init, ObjectClass, needReturn = true)             // [L, A]
-    mv.visitInsn(DUP2)                                                  // [L, A, L, A]
-    mv.visitLispValue(seq, CreateIteratorClass, needReturn = true)
-    mv.visitInterfaceMethodCall(
-      CreateIteratorClass,
-      "iterator",
-      LengineIteratorClass
-    )                               // [L, A, L, A, I]
-    mv.visitIntInsn(ASTORE, seqLoc) // [L, A, L, A]
-
-    mv.visitLabel(startLoop)
-
-    mv.visitALoad(seqLoc)
-    mv.visitInterfaceMethodCall(
-      LengineIteratorClass,
-      "hasNext",
-      BooleanPrimitive
-    )
-    mv.visitJumpInsn(IFEQ, endLoop) // [L, A, L, A]
-    mv.visitALoad(seqLoc)
-    mv.visitInterfaceMethodCall(
-      LengineIteratorClass,
-      "next",
-      ObjectClass
-    ) // [L, A, L, A, E]
-
-    mv.visitInterfaceMethodCall(
-      LengineLambdaClass(2),
-      "invoke",
-      ObjectClass,
-      ObjectClass,
-      ObjectClass
-    )                  // [L, A, A']
-    mv.visitInsn(SWAP) // [L, A', A]
-    mv.visitInsn(POP)  // [L, A']
-    mv.visitInsn(DUP2) // [L, A', L, A']
-    mv.visitJumpInsn(GOTO, startLoop)
-    mv.visitLabel(endLoop)
-    mv.visitInsn(POP2) // [L, A']
-    mv.visitInsn(SWAP) // [A', L]
-    mv.visitInsn(POP)  // [A']
-    mv.visitCheckCast(requestedType)
   }
 
   private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {

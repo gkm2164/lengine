@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 
 object InteroperabilityHelper {
   val SupportedFunctions: Map[LispSymbol, String] = Map(
@@ -17,6 +17,7 @@ object InteroperabilityHelper {
     "drop-while"        -> "DROP_WHILE",
     "filter"            -> "FILTER",
     "split-at"          -> "SPLIT_AT",
+    "fold"              -> "FOLD",
     "flatten"           -> "FLATTEN",
     "<"                 -> "LESS_THAN",
     "<="                -> "LESS_EQUALS",
@@ -37,7 +38,19 @@ object InteroperabilityHelper {
     "assert-true"       -> "ASSERT_TRUE",
     "assert-false"      -> "ASSERT_FALSE",
     "assert-equals"     -> "ASSERT_EQUALS",
-    "assert-not-equals" -> "ASSERT_NOT_EQUALS"
+    "assert-not-equals" -> "ASSERT_NOT_EQUALS",
+    "str"               -> "CAST_STR",
+    "int"               -> "CAST_INT",
+    "char"              -> "CAST_CHARACTER",
+    "seq"               -> "CAST_SEQUENCE",
+    "double"            -> "CAST_DOUBLE",
+    "bool?"             -> "IS_BOOL",
+    "char?"             -> "IS_CHAR",
+    "int?"              -> "IS_INT",
+    "double?"           -> "IS_DOUBLE",
+    "string?"           -> "IS_STR",
+    "seq?"              -> "IS_SEQUENCE",
+    "object?"           -> "IS_OBJECT",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }
