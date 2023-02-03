@@ -34,10 +34,14 @@
                     (* n ($ (- n 1)))
                     1)))
 
-(export filter2 (lambda (xs p)
+(fn append (xs elem)
+           (if (nil? xs) (cons elem nil)
+               ($ (tail xs) elem)))
+
+(export filter (lambda (xs p)
         (fold xs nil (lambda (acc elem)
                              (if (p elem)
-                                 (+ acc [elem])
+                                 (append acc elem)
                                  acc)))))
 
 (export fold-custom (lambda (seq acc f)

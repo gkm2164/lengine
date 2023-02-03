@@ -81,8 +81,7 @@
 (println make-lengine-list)
 
 (fn reverse-loop (acc xs)
-                 (if (nil? xs)
-                     acc
+                 (if (nil? xs) nil
                      ($ (cons (head xs) acc) (tail xs))))
 
 (fn reverse (lst)

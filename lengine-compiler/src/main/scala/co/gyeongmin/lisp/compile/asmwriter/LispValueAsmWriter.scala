@@ -114,12 +114,11 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference).writeValue()
-    case LispDoStmt(body) =>
-      visitDoBody(body, tailRecReference = tailRecReference)
-    case ref: EagerSymbol if runtimeEnv.hasVar(ref) =>
+    case doStmt: LispDoStmt => visitDoBody(doStmt, tailRecReference = tailRecReference)
+    case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
       mv.visitLoadVariable(ref, typeToBe)
-    case ref: EagerSymbol =>
-      throw new RuntimeException(s"Unexpected exception: no capture found: $ref")
+    case ref: LispSymbol =>
+      throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
     case l @ LispClause(_) =>
       new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
     case LispValueDef(symbol, value) =>
@@ -150,14 +149,14 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   @tailrec
-  private def visitDoBody(body: List[LispValue], tailRecReference: Option[(LispSymbol, Label)]): Unit = body match {
-    case Nil =>
-      throw new RuntimeException("unexpected error: do statement can't be empty")
-    case v :: Nil =>
+  private def visitDoBody(body: LispDoStmt, tailRecReference: Option[(LispSymbol, Label)]): Unit = body match {
+    case LispDoStmt(Nil) =>
+      throw CompileException("unexpected error: do statement can't be empty", runtimeEnv.fileName, body.tokenLocation)
+    case LispDoStmt(v :: Nil) =>
       mv.visitLispValue(v, ObjectClass, tailRecReference = tailRecReference)
-    case v :: tail =>
+    case LispDoStmt(v :: tail) =>
       mv.visitLispValue(v, typeToBe)
       mv.visitInsn(Opcodes.POP)
-      visitDoBody(tail, tailRecReference = tailRecReference)
+      visitDoBody(LispDoStmt(tail), tailRecReference = tailRecReference)
   }
 }

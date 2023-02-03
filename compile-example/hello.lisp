@@ -72,11 +72,6 @@
 (println (take 3 [1 2 3 4 5]))
 (println (drop 3 [1 2 3 4 5]))
 
-(println (+ [] 3))
-(println (+ [] "ABCDEF"))
-
-(println (flatten seq-nested))
-
 (println "Test Unit type")
 (println (println "this would be printed first, and then ()"))
 

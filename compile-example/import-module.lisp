@@ -5,7 +5,7 @@
 (import Math.product)
 (import Module.map)
 (import Module.compose)
-(import Module.filter2)
+(import Module.filter)
 
 (println (map (lambda (x) (+ x 3)) [1 2 3 4 5]))
 
@@ -19,6 +19,6 @@
 (fn . (f g) (compose f g))
 (println ((. (. f g) h) "Text"))
 
-(println (filter2 [1 2 3 4 5] (lambda (x) (> x 2))))
+(println (filter [1 2 3 4 5] (lambda (x) (> x 2))))
 
 (println (fact 5))

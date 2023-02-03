@@ -127,7 +127,7 @@ public class Prelude {
       return 2;
     } else if (a.equals(String.class)) {
       return 3;
-    } else if (a.equals(Sequence.class)) {
+    } else if (a.equals(CreateIterator.class)) {
       return 4;
     }
 
@@ -168,11 +168,6 @@ public class Prelude {
       return (Double) x + (Double) y;
     } else if (x instanceof String) {
       return x + (String) y;
-    } else if (x instanceof Sequence) {
-      Sequence newSeq = new Sequence();
-      newSeq.append((Sequence) x);
-      newSeq.append((Sequence) y);
-      return newSeq;
     }
 
     throw new RuntimeException("Can't add");
@@ -246,28 +241,30 @@ public class Prelude {
 
     throw new RuntimeException("unable to decide the size for " + obj);
   };
-  private static final LengineLambda2<Sequence, Long, CreateIterator> _TAKE = (n, seq) -> {
-    int i = 0;
-    Sequence ret = new Sequence();
-    LengineIterator it = seq.iterator();
-    while (i++ < n && it.hasNext()) {
-      ret.add(it.next());
+  private static final LengineLambda2<CreateIterator, Long, CreateIterator> _TAKE = (n, seq) -> {
+    if (seq.len() == 0) {
+      return Nil.get();
     }
-    return ret;
+    int i = 0;
+    LengineIterator it = seq.iterator();
+    Cons head = LengineList.cons(it.next(), null);
+    Cons _this = head;
+    while (i++ < n && it.hasNext()) {
+      Cons newCons = LengineList.cons(it.next(), null);
+      _this.setNext(newCons);
+      _this = newCons;
+    }
+
+    _this.setNext(Nil.get());
+    return head;
   };
   private static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
     int i = 0;
-    Sequence ret = new Sequence();
     LengineIterator it = seq.iterator();
     while (i++ < n && it.hasNext()) {
       it.next();
     }
-
-    if (it instanceof LengineListIterator) {
-      return ((LengineListIterator)it)._this();
-    }
-    it.forEachRemaining(ret::addObject);
-    return ret;
+    return ((LengineListIterator)it)._this();
   };
 
   private static <T> Boolean isInstanceOf(Class<T> cls, Object value) {

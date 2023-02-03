@@ -5,4 +5,6 @@ import co.gyeongmin.lisp.errors.eval.EvalError
 case class EagerSymbol(name: String) extends LispSymbol {
   override def printable(): Either[EvalError, String] =
     Right(name)
+
+  override def toString: String = name
 }

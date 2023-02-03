@@ -2,7 +2,8 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ObjectClass, StringClass, VoidPrimitive}
 import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
-import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.statements.LispImportDef
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.parser.ParserLineNumberMap
 import org.objectweb.asm.Opcodes._
@@ -18,14 +19,14 @@ package object compile {
     cw.visitSource(sourceFileName, null)
     writeCsInitMethod(cw, clsName)
     writeInitMethod(cw)
-    writeMain(cw, statements, clsName)
+    writeMain(sourceFileName, cw, statements, clsName)
     writeExportMethod(cw, clsName)
     writeImportMethod(cw, clsName)
 
     cw.toByteArray
   }
 
-  private def writeMain(cw: ClassWriter, statements: List[LispValue], className: String): Unit = {
+  private def writeMain(sourceFileName: String, cw: ClassWriter, statements: List[LispValue], className: String): Unit = {
     val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
                             "main",
                             Type.getMethodDescriptor(
@@ -39,14 +40,17 @@ package object compile {
     val endLabel: Label = new Label()
     mv.visitLabel(startLabel)
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
-      new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, 1)
+      new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, sourceFileName, 1)
 
     statements.foreach(stmt => {
         val thisLabel = new Label
         mv.visitLabel(thisLabel)
         stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
         new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
-        mv.visitInsn(POP)
+        stmt match {
+          case LispImportDef(_) | LispClause(EagerSymbol("export") :: _)=>
+          case _ => mv.visitInsn(POP)
+        }
     })
     mv.visitLabel(endLabel)
     mv.visitInsn(RETURN)

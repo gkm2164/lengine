@@ -5,8 +5,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import scala.collection.Seq;
-
 public class LengineMap {
   private final LengineMap delegateMap;
   private final Map<LengineMapKey, Object> dictionary;
@@ -38,16 +36,12 @@ public class LengineMap {
     return dictionary.containsKey(key);
   }
 
-  public Sequence keys() {
-    Sequence ret = new Sequence();
-    dictionary.keySet().forEach(ret::add);
-    return ret;
+  public LengineList keys() {
+    return LengineList.create(dictionary.keySet());
   }
 
-  public Sequence entries() {
-    Sequence ret = new Sequence();
-    dictionary.forEach((key, value) -> ret.add(LengineMapEntry.create(key, value)));
-    return ret;
+  public LengineList entries() {
+    return LengineList.create(dictionary.entrySet());
   }
 
   public LengineMap add(LengineMapEntry entry) {

@@ -210,7 +210,6 @@ object RuntimeMethodVisitor {
     val mv                     = runtimeEnvironment.methodVisitor
     mv.visitLdcInsn(nameOfSymbol)
     mv.visitLispValue(value, ObjectClass)
-    mv.visitInsn(DUP)
     mv.visitStaticMethodCallStringOwner(
       runtimeEnvironment.className,
       "export",
@@ -244,9 +243,7 @@ object RuntimeMethodVisitor {
       ObjectClass,
       StringClass
     )
-
     val varLoc = runtimeMethodVisitor.allocateNextVar
-    mv.visitInsn(DUP)
     mv.visitAStore(varLoc)
 
     runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc, ObjectClass)

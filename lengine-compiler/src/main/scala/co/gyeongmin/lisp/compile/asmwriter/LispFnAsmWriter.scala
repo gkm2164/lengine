@@ -19,7 +19,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
     ) match {
-      case Left(err)    => throw new RuntimeException(s"unexpected error: $err")
+      case Left(err)    => throw CompileException(s"functions placeholders should be symbol: $err", runtimeEnvironment.fileName, f.tokenLocation)
       case Right(value) => value
     }
 
@@ -95,6 +95,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       null,
       null
     )
+
+    lambdaClassWriter.visitSource(runtimeEnvironment.fileName, null)
 
     lambdaConstructMv.visitIntInsn(Opcodes.ALOAD, 0)
     lambdaConstructMv.visitMethodInsn(
@@ -189,6 +191,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       mv,
       argsWithCapturedVars.foldLeft(initialArgMap)((acc, pair) => acc += pair),
       runtimeEnvironment.className,
+      runtimeEnvironment.fileName,
       argsType.size + 1
     )
 
@@ -204,7 +207,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     } else {
       itself
     }
-
+    f.body.tokenLocation.foreach(loc => {
+      val label = new Label()
+      mv.visitLabel(label)
+      mv.visitLineNumber(loc.line, label)
+    })
     new LispValueAsmWriter(f.body, ObjectClass)(newRuntimeEnvironment)
       .visitForValue(tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))
 

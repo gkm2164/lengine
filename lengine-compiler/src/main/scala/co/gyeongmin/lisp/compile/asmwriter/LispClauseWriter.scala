@@ -1,14 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
-  LengineLambdaClass,
-  LengineMapKeyClass,
-  ObjectClass,
-  StringClass
-}
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
-import org.objectweb.asm.{ Label, MethodVisitor, Opcodes }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
 
 class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     implicit runtimeEnvironment: LengineRuntimeEnvironment
@@ -45,7 +40,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
       case s if RuntimeMethodVisitor.supportOperation(s) =>
         RuntimeMethodVisitor.handle(clause.body, requestedType, tailRecReference)
       case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
-        throw new RuntimeException(s"unable to find the symbol definition: $s")
+        throw CompileException(s"unable to find the symbol definition: [$s]", runtimeEnvironment.fileName, s.tokenLocation)
       case value @ (EagerSymbol(_) | LispClause(_)) =>
         tailRecReference match {
           case Some((reference, label)) if reference == operation || operation == EagerSymbol("$") =>
@@ -67,7 +62,6 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
             )
             mv.visitCheckCast(requestedType)
         }
-
     }
   }
 }
