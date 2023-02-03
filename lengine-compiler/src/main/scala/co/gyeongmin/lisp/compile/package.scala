@@ -1,25 +1,12 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
-  JavaHashMapClass,
-  JavaMapClass,
-  ObjectClass,
-  StringClass,
-  VoidPrimitive
-}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{JavaHashMapClass, JavaMapClass, ObjectClass, StringArrayClass, StringClass, VoidPrimitive}
 import co.gyeongmin.lisp.compile.asmwriter.MethodVisitorWrapper.MethodVisitorWrapperExt
-import co.gyeongmin.lisp.compile.asmwriter.{
-  AsmHelper,
-  CompileException,
-  LengineRuntimeEnvironment,
-  LispValueAsmWriter,
-  LispValueDefWriter,
-  MethodVisitorWrapper
-}
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter, MethodVisitorWrapper}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ ClassWriter, Label, Type }
+import org.objectweb.asm.{ClassWriter, Label, Type}
 
 import scala.collection.mutable
 
@@ -46,8 +33,8 @@ package object compile {
       .visitMethod(ACC_PUBLIC | ACC_STATIC,
                    "main",
                    Type.getMethodDescriptor(
-                     Type.getType(java.lang.Void.TYPE),
-                     Type.getType(classOf[Array[String]])
+                     Type.getType(VoidPrimitive),
+                     Type.getType(StringArrayClass)
                    ),
                    null,
                    null)
@@ -97,7 +84,7 @@ package object compile {
     val fieldVisit = cw.visitField(
       ACC_PUBLIC | ACC_STATIC,
       "exportMap",
-      Type.getType(classOf[java.util.Map[String, Object]]).getDescriptor,
+      Type.getType(JavaMapClass).getDescriptor,
       null,
       null
     )
@@ -107,7 +94,7 @@ package object compile {
       .visitMethod(ACC_STATIC,
                    "<clinit>",
                    Type.getMethodDescriptor(
-                     Type.getType(Void.TYPE)
+                     Type.getType(VoidPrimitive)
                    ),
                    null,
                    null)
@@ -124,7 +111,7 @@ package object compile {
     mv.visitPutStatic(
       className,
       "exportMap",
-      classOf[java.util.Map[_, _]]
+      JavaMapClass
     )
 
     mv.visitReturn()
@@ -147,7 +134,7 @@ package object compile {
       )
       .wrap()
 
-    mv.visitGetStatic(clsName, "exportMap", classOf[java.util.Map[_, _]])
+    mv.visitGetStatic(clsName, "exportMap", JavaMapClass)
     mv.visitALoad(0)
     mv.visitALoad(1)
     mv.visitInterfaceMethodCall(

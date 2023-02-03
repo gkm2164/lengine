@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ LengineLambdaClass, ObjectClass, VoidPrimitive }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LongClass, ObjectClass, VoidPrimitive}
 import co.gyeongmin.lisp.compile.asmwriter.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import org.objectweb.asm.{ ClassWriter, Label, Opcodes, Type }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
 import java.io.FileOutputStream
 import scala.collection.mutable
@@ -75,7 +75,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       Opcodes.ACC_PUBLIC,
       lambdaClassName,
       null,
-      Type.getType(classOf[Object]).getInternalName,
+      Type.getType(ObjectClass).getInternalName,
       Array(Type.getType(thisLambdaClass).getInternalName)
     )
 
@@ -84,7 +84,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         lambdaClassWriter.visitField(
           Opcodes.ACC_PUBLIC,
           s"var$idx",
-          Type.getType(classOf[Object]).getDescriptor,
+          Type.getType(ObjectClass).getDescriptor,
           null,
           null
         )
@@ -95,8 +95,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         Opcodes.ACC_PUBLIC,
         "<init>",
         Type.getMethodDescriptor(
-          Type.getType(Void.TYPE),
-          capturedVariables.getRequestedCaptures.map(_ => Type.getType(classOf[Object])): _*
+          Type.getType(VoidPrimitive),
+          capturedVariables.getRequestedCaptures.map(_ => Type.getType(ObjectClass)): _*
         ),
         null,
         null
@@ -119,7 +119,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         lambdaConstructMv.visitPutField(
           lambdaClassName,
           s"var$idx",
-          classOf[Object]
+          ObjectClass
         )
     }
 
@@ -132,8 +132,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         Opcodes.ACC_PUBLIC,
         "invoke",
         Type.getMethodDescriptor(
-          Type.getType(classOf[Object]),
-          f.placeHolders.map(_ => Type.getType(classOf[Object])): _*
+          Type.getType(ObjectClass),
+          f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
         ),
         null,
         null
@@ -222,7 +222,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitAReturn()
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
-                          Type.getType(classOf[java.lang.Long]).getDescriptor,
+                          Type.getType(LongClass).getDescriptor,
                           null,
                           startLabel,
                           endLabel,

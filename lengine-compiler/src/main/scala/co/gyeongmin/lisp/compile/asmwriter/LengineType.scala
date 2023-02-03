@@ -14,6 +14,7 @@ object LengineType {
   val DoubleClass: Class[java.lang.Double]             = classOf[java.lang.Double]
   val DoublePrimitive: Class[java.lang.Double]         = java.lang.Double.TYPE
   val StringClass: Class[java.lang.String]             = classOf[java.lang.String]
+  val StringArrayClass: Class[Array[java.lang.String]] = classOf[Array[java.lang.String]]
   val ObjectClass: Class[Object]                       = classOf[Object]
   val JavaMapClass: Class[java.util.Map[_, _]]         = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]] = classOf[java.util.HashMap[_, _]]
@@ -41,4 +42,5 @@ object LengineType {
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
   val LengineList: Class[LengineList]                      = classOf[LengineList]
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
+  val LengineIteratorClass: Class[LengineIterator]         = classOf[LengineIterator]
 }

@@ -1,10 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ConsClass, CreateIteratorClass, LengineListClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import lengine.runtime.{CreateIterator, LengineIterator}
 import org.objectweb.asm.Label
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt],
@@ -60,14 +59,14 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
 
         mv.visitLispValue(seq, CreateIteratorClass) // [S]
         mv.visitInterfaceMethodCall(
-          classOf[CreateIterator],
+          CreateIteratorClass,
           "iterator",
-          classOf[LengineIterator]
+          LengineIteratorClass
         ) // [I<S>]
         mv.visitLabel(startLoop)
         mv.visitDup() // [I<S>, I<S>]
         mv.visitInterfaceMethodCall(
-          classOf[LengineIterator],
+          LengineIteratorClass,
           "hasNext",
           BooleanPrimitive
         ) // [I<S>, Z]
@@ -77,9 +76,9 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitDup()
         // [I<S> I<S>]
         mv.visitInterfaceMethodCall(
-          classOf[LengineIterator],
+          LengineIteratorClass,
           "next",
-          classOf[Object]
+          ObjectClass
         )
         // [I<S> E]
         mv.visitAStore(varIdx)
