@@ -1,13 +1,17 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ObjectClass, StringClass, VoidPrimitive}
-import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
-import co.gyeongmin.lisp.lexer.statements.LispImportDef
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ ObjectClass, StringClass, VoidPrimitive }
+import co.gyeongmin.lisp.compile.asmwriter.{
+  AsmHelper,
+  LengineRuntimeEnvironment,
+  LispValueAsmWriter,
+  LispValueDefWriter,
+  MethodVisitorWrapper
+}
+import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.parser.ParserLineNumberMap
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ClassWriter, Label, Type}
+import org.objectweb.asm.{ ClassWriter, Label, Type }
 
 import scala.collection.mutable
 
@@ -26,39 +30,50 @@ package object compile {
     cw.toByteArray
   }
 
-  private def writeMain(sourceFileName: String, cw: ClassWriter, statements: List[LispValue], className: String): Unit = {
-    val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
-                            "main",
-                            Type.getMethodDescriptor(
-                              Type.getType(java.lang.Void.TYPE),
-                              Type.getType(classOf[Array[String]])
-                            ),
-                            null,
-                            null)
+  private def writeMain(sourceFileName: String,
+                        cw: ClassWriter,
+                        statements: List[LispValue],
+                        className: String): Unit = {
+    val mv = new MethodVisitorWrapper(
+      cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
+                     "main",
+                     Type.getMethodDescriptor(
+                       Type.getType(java.lang.Void.TYPE),
+                       Type.getType(classOf[Array[String]])
+                     ),
+                     null,
+                     null)
+    )
+
     mv.visitCode()
     val startLabel: Label = new Label()
-    val endLabel: Label = new Label()
+    val endLabel: Label   = new Label()
     mv.visitLabel(startLabel)
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, sourceFileName, 1)
 
     statements.foreach(stmt => {
-        val thisLabel = new Label
-        mv.visitLabel(thisLabel)
-        stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
-        new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
-        stmt match {
-          case LispClause(EagerSymbol("export") :: _)=>
-          case _ => mv.visitInsn(POP)
-        }
+      val thisLabel = new Label
+      mv.visitLabel(thisLabel)
+      stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
+      new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
+      stmt match {
+        case LispClause(EagerSymbol("export") :: _) =>
+        case _                                      => mv.visitPop()
+      }
+      if (mv.stackSizeTrace.get() > 0) {
+        System.err.printf(s"somewhere, leaking is happening: (${stmt.tokenLocation})")
+      }
     })
     mv.visitLabel(endLabel)
-    mv.visitInsn(RETURN)
+    mv.visitReturn()
     // Need to give hint to assembly generator for helping decide frame size
     new LispValueDefWriter(EagerSymbol("__PADDING__"))
       .writeValue(startLabel, endLabel, mainRuntimeEnv.getLastVarIdx)
     mv.visitMaxs(0, 0)
     mv.visitEnd()
+
+    println(s"Maximum use of stackSize: ${mv.stackSizeTrace.getMaxValue}")
   }
 
   private def writeInitMethod(cw: ClassWriter): Unit = {

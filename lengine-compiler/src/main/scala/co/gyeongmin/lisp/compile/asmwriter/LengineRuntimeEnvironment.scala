@@ -8,16 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
-                                val methodVisitor: MethodVisitor,
+                                val methodVisitor: MethodVisitorWrapper,
                                 val args: mutable.Map[LispSymbol, (Int, Class[_])],
                                 val className: String,
                                 val fileName: String,
                                 numberOfArgs: Int) {
-  def overrideUsedVar(used: Int): Unit = this.varIdx.set(used)
-
-  def createChild(): LengineRuntimeEnvironment =
-    new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone(), className, fileName, getLastVarIdx)
-
   var captureVariables: Option[LengineVarCapture] = None
 
   private val varIdx = new AtomicInteger(numberOfArgs)
@@ -38,6 +33,4 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
   def allocateNextVar: Int = varIdx.getAndAdd(1)
 
   def getLastVarIdx: Int = varIdx.get()
-  def copy: LengineRuntimeEnvironment =
-    new LengineRuntimeEnvironment(classWriter, methodVisitor, args.clone, className, fileName, numberOfArgs)
 }

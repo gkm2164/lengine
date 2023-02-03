@@ -1,11 +1,10 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ LengineLambdaClass, ObjectClass }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass, VoidPrimitive}
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import org.objectweb.asm.{ ClassWriter, Label, Opcodes, Type }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
 import java.io.FileOutputStream
 import scala.collection.mutable
@@ -169,7 +168,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     lambdaMv.visitMaxs(1, 1)
     lambdaMv.visitEnd()
 
-    val mv = lambdaClassWriter
+    val mv = new MethodVisitorWrapper(lambdaClassWriter
       .visitMethod(Opcodes.ACC_PUBLIC,
                    "invokeActual",
                    Type.getMethodDescriptor(
@@ -177,7 +176,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                      argsType: _*
                    ),
                    null,
-                   null)
+                   null))
 
     val startLabel = new Label()
     val endLabel   = new Label()
@@ -218,7 +217,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 
     mv.visitLabel(endLabel)
-    mv.visitInsn(Opcodes.ARETURN)
+    mv.visitAReturn()
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
                           Type.getType(classOf[java.lang.Long]).getDescriptor,
@@ -239,24 +238,17 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val lambdaClsName = s"${runtimeEnvironment.className}$$$methodName"
 
-    pmv.visitTypeInsn(
-      Opcodes.NEW,
-      s"${runtimeEnvironment.className}$$$methodName"
-    )
-    pmv.visitInsn(Opcodes.DUP)
+    pmv.visitNew(s"${runtimeEnvironment.className}$$$methodName")
+    pmv.visitDup()
     capturedArgLocs.foreach(capturedLoc => {
       pmv.visitALoad(capturedLoc._1)
       pmv.visitCheckCast(capturedLoc._2)
     })
-    pmv.visitMethodInsn(
-      Opcodes.INVOKESPECIAL,
+    pmv.visitSpecialMethodCallStringOwner(
       lambdaClsName,
       "<init>",
-      Type.getMethodDescriptor(
-        Type.getType(Void.TYPE),
-        capturedArgLocs.map(_ => Type.getType(classOf[Object])): _*
-      ),
-      false
+      VoidPrimitive,
+      capturedArgLocs.map(_ => ObjectClass)
     )
   }
 }

@@ -1,11 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes._
 
 object RuntimeMethodVisitor {
   private val supportedOps = Set(
@@ -54,14 +52,16 @@ object RuntimeMethodVisitor {
     val fLabel = new Label()
     val next   = new Label()
 
-    mv.visitJumpInsn(IFNE, tLabel)
+    mv.visitIfNe(tLabel)
     mv.visitLabel(fLabel)
     mv.visitLispValue(elsematch, requestedType, tailRecReference = tailRecReference)
-    mv.visitJumpInsn(GOTO, next)
+    mv.visitGoto(next)
 
     mv.visitLabel(tLabel)
     mv.visitLispValue(ifmatch, requestedType, tailRecReference = tailRecReference)
     mv.visitLabel(next)
+
+    mv.stackSizeTrace.decrementAndGet()
   }
 
   private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
@@ -103,7 +103,7 @@ object RuntimeMethodVisitor {
       ObjectClass,
       StringClass
     )
-    mv.visitInsn(DUP)
+    mv.visitDup()
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 

@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
@@ -9,12 +8,12 @@ import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
 import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
 import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
-import org.objectweb.asm.{ Label, MethodVisitor, Opcodes }
+import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
 
 class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeEnv: LengineRuntimeEnvironment) {
-  val mv: MethodVisitor = runtimeEnv.methodVisitor
+  val mv: MethodVisitorWrapper = runtimeEnv.methodVisitor
 
   private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
     mv.visitStaticMethodCall(
@@ -24,7 +23,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     )
     map.foreach {
       case (symbol, value) =>
-        mv.visitInsn(Opcodes.DUP)
+        mv.visitDup()
         mv.visitLispValue(symbol, LengineMapKeyClass)
         mv.visitLispValue(value, ObjectClass)
         mv.visitMethodCall(
@@ -48,25 +47,25 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispCaseCondition(condition, thenValue) :: tail =>
       mv.visitLispValue(condition, BooleanClass)
       mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
-      mv.visitJumpInsn(Opcodes.IFEQ, nextLabel)
+      mv.visitIfEq(nextLabel)
       mv.visitLispValue(thenValue, typeToBe, tailRecReference)
-      mv.visitJumpInsn(Opcodes.GOTO, exitLabel)
+      mv.visitGoto(exitLabel)
       mv.visitLabel(nextLabel)
       declareCaseStmt(tail, fallback, exitLabel, tailRecReference)
   }
 
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
     case LispTrue() => // 1 stack
-      mv.visitInsn(Opcodes.ICONST_1)
+      mv.visitIConst1()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispFalse() => // 1 stack
-      mv.visitInsn(Opcodes.ICONST_0)
+      mv.visitIConst0()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
     case LispChar(ch) => // 1 stack
-      mv.visitIntInsn(Opcodes.SIPUSH, ch)
+      mv.visitSiPush(ch)
       mv.visitBoxing(CharacterClass, CharacterPrimitive)
     case IntegerNumber(n) if n >= 0 && n <= 1 => // 1 stack
-      mv.visitInsn(Opcodes.LCONST_0 + n.toInt)
+      mv.visitLConstN(n.toInt)
       mv.visitBoxing(LongClass, LongPrimitive)
     case IntegerNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
@@ -140,7 +139,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
 
   private def declareSequence(body: List[LispValue]): Unit = {
     mv.allocateNewArray(ObjectClass, body.length) // 1 stack
-    mv.visitArrayAssignWithLispValues(body) // 1 stack
+    mv.visitArrayAssignWithLispValues(body)       // 1 stack
     mv.visitStaticMethodCall(
       LengineList,
       "create",
@@ -157,7 +156,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLispValue(v, ObjectClass, tailRecReference = tailRecReference)
     case LispDoStmt(v :: tail) =>
       mv.visitLispValue(v, typeToBe)
-      mv.visitInsn(Opcodes.POP)
+      mv.visitPop()
       visitDoBody(LispDoStmt(tail), tailRecReference = tailRecReference)
   }
 }

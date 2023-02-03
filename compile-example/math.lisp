@@ -1,6 +1,5 @@
 (module Math)
 
-
 (fn fact (acc n)
          (if (= n 1)
              acc

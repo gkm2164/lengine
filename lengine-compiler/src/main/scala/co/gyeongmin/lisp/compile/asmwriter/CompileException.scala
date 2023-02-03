@@ -7,4 +7,4 @@ case class CompileException(msg: String, filename: String, location: Option[Toke
       .map {
         case TokenLocation(line, column) => s" at $filename:$line:$column"
       }
-      .getOrElse("")}") {}
+      .getOrElse("")}")

@@ -1,12 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ ConsClass, CreateIteratorClass, LengineListClass, ObjectClass }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ConsClass, CreateIteratorClass, LengineListClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import lengine.runtime.{ CreateIterator, LengineIterator }
-import org.objectweb.asm.{ Label, Opcodes }
+import lengine.runtime.{CreateIterator, LengineIterator}
+import org.objectweb.asm.Label
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt],
                         body: LispValue,
@@ -70,9 +69,9 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitInterfaceMethodCall(
           classOf[LengineIterator],
           "hasNext",
-          java.lang.Boolean.TYPE
+          BooleanPrimitive
         ) // [I<S>, Z]
-        mv.visitJumpInsn(Opcodes.IFEQ, endLoop)
+        mv.visitIfEq(endLoop)
         //[I<S>]
 
         mv.visitDup()
@@ -93,9 +92,9 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         // [I<S>]
 
         env.deregisterVariable(symbol)
-        mv.visitJumpInsn(Opcodes.GOTO, startLoop)
+        mv.visitGoto(startLoop)
         mv.visitLabel(endLoop)
-        mv.visitInsn(Opcodes.POP)
+        mv.visitPop()
         // []
 
         mv.visitALoad(newSeqLoc)

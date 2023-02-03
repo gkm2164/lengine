@@ -3,15 +3,12 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes}
+import org.objectweb.asm.Label
 
 class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     implicit runtimeEnvironment: LengineRuntimeEnvironment
 ) {
-
-  import AsmHelper._
-
-  val mv: MethodVisitor = runtimeEnvironment.methodVisitor
+  val mv: MethodVisitorWrapper = runtimeEnvironment.methodVisitor
 
   private def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
     val map :: _ = operands
@@ -49,7 +46,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
                 mv.visitLispValue(v, ObjectClass)
                 mv.visitAStore(loc + 1)
             }
-            mv.visitJumpInsn(Opcodes.GOTO, label)
+            mv.visitGoto(label)
           case _ =>
             val argSize = operands.size
             mv.visitLispValue(value, LengineLambdaClass(argSize))

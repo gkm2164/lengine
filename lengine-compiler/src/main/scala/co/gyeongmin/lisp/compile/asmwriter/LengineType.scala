@@ -23,7 +23,6 @@ object LengineType {
   val ConsClass: Class[Cons]                       = classOf[Cons]
   val LengineMapClass: Class[LengineMap]           = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]     = classOf[LengineMapKey]
-  val LengineMapEntryClass: Class[LengineMapEntry] = classOf[LengineMapEntry]
   val LengineLambdaClass: List[Class[_]] = List(
     classOf[LengineLambda0[_]],
     classOf[LengineLambda1[_, _]],
@@ -40,5 +39,4 @@ object LengineType {
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
   val LengineList: Class[LengineList]                      = classOf[LengineList]
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
-  val FileSequenceClass: Class[FileSequence]               = classOf[FileSequence]
 }
