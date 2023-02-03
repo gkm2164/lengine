@@ -26,18 +26,20 @@ import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
-import lengine.runtime.Cons;
+import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
-import lengine.runtime.LengineList;
-import lengine.runtime.LengineListIterator;
-import lengine.runtime.LengineMap;
-import lengine.runtime.LengineMapEntry;
-import lengine.runtime.LengineMapKey;
+import lengine.util.LengineList;
+import lengine.util.LengineListIterator;
+import lengine.util.LengineMap;
+import lengine.util.LengineMapEntry;
+import lengine.util.LengineMapKey;
 import lengine.runtime.LengineUnit;
-import lengine.runtime.Nil;
+import lengine.util.Nil;
 import lengine.runtime.RangeSequence;
+
+import static java.lang.String.format;
 
 public class Prelude {
   private static final Set<String> alreadyLoadedClass = new HashSet<>();
@@ -67,7 +69,7 @@ public class Prelude {
       return (char) ((Double) from).intValue();
     }
 
-    throw new RuntimeException(String.format("unable to cast from %s to Character", from.getClass()));
+    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
   }
 
   private static Long castLong(Object from) {
@@ -81,7 +83,7 @@ public class Prelude {
       return Long.parseLong((String) from);
     }
 
-    throw new RuntimeException(String.format("unable to cast from %s to Character", from.getClass()));
+    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
   }
 
   private static Double castDouble(Object from) {
@@ -95,10 +97,14 @@ public class Prelude {
       return Double.parseDouble((String) from);
     }
 
-    throw new RuntimeException(String.format("unable to cast from %s to Character", from.getClass()));
+    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
   }
 
   private static String castString(Object from) {
+    if (from instanceof LengineList) {
+      return ((LengineList) from).printable(true);
+    }
+
     return from.toString();
   }
 
@@ -109,7 +115,7 @@ public class Prelude {
       return (LengineList) o;
     }
 
-    throw new RuntimeException(String.format("Unable to cast from %s to List", o.getClass()));
+    throw new RuntimeException(format("Unable to cast from %s to List", o.getClass()));
   }
 
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
@@ -305,7 +311,7 @@ public class Prelude {
       items.add(argsIt.next());
     }
 
-    return String.format(fmt, items.toArray());
+    return format(fmt, items.toArray());
   };
   private static final LengineLambda2<RangeSequence, Long, Long> _RANGE = RangeSequence::createRange;
   private static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
@@ -318,7 +324,6 @@ public class Prelude {
   private static final LengineLambda1<Double, Object> _CAST_DOUBLE = Prelude::castDouble;
   private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
   private static final LengineLambda1<LengineList, Object> _CAST_LIST = Prelude::castList;
-
   private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
@@ -379,6 +384,11 @@ public class Prelude {
       public Long len() {
         return lengthOfFile;
       }
+
+      @Override
+      public String printable(boolean isFirst) {
+        return format("[<file handle for %s>]", path);
+      }
     };
   };
   private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
@@ -416,7 +426,6 @@ public class Prelude {
   };
 
   public static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
-
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;

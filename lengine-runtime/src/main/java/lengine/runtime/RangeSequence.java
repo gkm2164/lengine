@@ -32,4 +32,9 @@ public class RangeSequence implements CreateIterator {
   public Long len() {
     return (long)Math.abs(to - from);
   }
+
+  @Override
+  public String printable(boolean isFirst) {
+    return String.format("[range class %d %d]", from, to - 1);
+  }
 }

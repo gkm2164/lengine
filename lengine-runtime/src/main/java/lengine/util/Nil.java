@@ -1,4 +1,6 @@
-package lengine.runtime;
+package lengine.util;
+
+import lengine.runtime.LengineIterator;
 
 public class Nil extends LengineList {
     private static Nil singleton = null;
@@ -24,5 +26,10 @@ public class Nil extends LengineList {
     @Override
     public String toString() {
         return "nil";
+    }
+
+    @Override
+    public String printable(boolean isFirst) {
+        return "]";
     }
 }

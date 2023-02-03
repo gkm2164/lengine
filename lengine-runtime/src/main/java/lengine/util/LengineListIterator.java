@@ -1,4 +1,6 @@
-package lengine.runtime;
+package lengine.util;
+
+import lengine.runtime.LengineIterator;
 
 public class LengineListIterator implements LengineIterator {
   private LengineList current;

@@ -20,4 +20,9 @@ public class FileSequence implements CreateIterator {
   public Long len() {
     return null;
   }
+
+  @Override
+  public String printable(boolean isFirst) {
+    return "[<file-sequence>]";
+  }
 }

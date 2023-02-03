@@ -3,6 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
+import lengine.util.{Cons, LengineList, LengineMap, LengineMapKey}
 
 object LengineType {
   val VoidPrimitive: Class[Void]                       = java.lang.Void.TYPE

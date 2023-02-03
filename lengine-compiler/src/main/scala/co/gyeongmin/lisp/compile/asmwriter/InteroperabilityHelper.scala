@@ -1,98 +1,98 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.PreludeClass
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import lengine.runtime.ExportSymbols
 
 import java.lang.reflect.Field
 
 object InteroperabilityHelper {
   val ReservedKeywordFunctions: Map[LispSymbol, Field] = Map(
-    "str"     -> "CAST_STR",
-    "int"     -> "CAST_INT",
-    "char"    -> "CAST_CHARACTER",
-    "list"    -> "CAST_LIST",
-    "double"  -> "CAST_DOUBLE",
-    "bool?"   -> "IS_BOOL",
-    "char?"   -> "IS_CHAR",
-    "int?"    -> "IS_INT",
-    "double?" -> "IS_DOUBLE",
-    "string?" -> "IS_STR",
-    "list?"   -> "IS_LIST",
-    "object?" -> "IS_OBJECT",
-    "cons?"   -> "IS_CONS",
-    "nil?"    -> "IS_NIL",
-    "key"     -> "KEY",
-    "keys"    -> "KEYS",
-    "entry"   -> "ENTRY",
-    "entries" -> "ENTRIES",
-    "get"     -> "GET",
-    "<"       -> "LESS_THAN",
-    "<="      -> "LESS_EQUALS",
-    ">"       -> "GREATER_THAN",
-    ">="      -> "GREATER_EQUALS",
-    "="       -> "EQUALS",
-    "/="      -> "NOT_EQUALS",
-    "and"     -> "AND",
-    "or"      -> "OR",
-    "not"     -> "NOT",
-    "+"       -> "ADD",
-    "-"       -> "SUB",
-    "*"       -> "MULT",
-    "/"       -> "DIV",
-    "rem"     -> "REM",
+    "str"     -> ExportSymbols.CAST_STR_FIELD,
+    "int"     -> ExportSymbols.CAST_INT_FIELD,
+    "char"    -> ExportSymbols.CAST_CHARACTER_FIELD,
+    "list"    -> ExportSymbols.CAST_LIST_FIELD,
+    "double"  -> ExportSymbols.CAST_DOUBLE_FIELD,
+    "bool?"   -> ExportSymbols.IS_BOOL_FIELD,
+    "char?"   -> ExportSymbols.IS_CHAR_FIELD,
+    "int?"    -> ExportSymbols.IS_INT_FIELD,
+    "double?" -> ExportSymbols.IS_DOUBLE_FIELD,
+    "string?" -> ExportSymbols.IS_STR_FIELD,
+    "list?"   -> ExportSymbols.IS_LIST_FIELD,
+    "object?" -> ExportSymbols.IS_OBJECT_FIELD,
+    "cons?"   -> ExportSymbols.IS_CONS_FIELD,
+    "nil?"    -> ExportSymbols.IS_NIL_FIELD,
+    "key"     -> ExportSymbols.KEY_FIELD,
+    "keys"    -> ExportSymbols.KEYS_FIELD,
+    "entry"   -> ExportSymbols.ENTRY_FIELD,
+    "entries" -> ExportSymbols.ENTRIES_FIELD,
+    "get"     -> ExportSymbols.GET_FIELD,
+    "<"       -> ExportSymbols.LESS_THAN_FIELD,
+    "<="      -> ExportSymbols.LESS_EQUALS_FIELD,
+    ">"       -> ExportSymbols.GREATER_THAN_FIELD,
+    ">="      -> ExportSymbols.GREATER_EQUALS_FIELD,
+    "="       -> ExportSymbols.EQUALS_FIELD,
+    "/="      -> ExportSymbols.NOT_EQUALS_FIELD,
+    "and"     -> ExportSymbols.AND_FIELD,
+    "or"      -> ExportSymbols.OR_FIELD,
+    "not"     -> ExportSymbols.NOT_FIELD,
+    "+"       -> ExportSymbols.ADD_FIELD,
+    "-"       -> ExportSymbols.SUB_FIELD,
+    "*"       -> ExportSymbols.MULT_FIELD,
+    "/"       -> ExportSymbols.DIV_FIELD,
+    "rem"     -> ExportSymbols.REM_FIELD,
   ).map {
-    case (key, value) => EagerSymbol(key) -> PreludeClass.getField(value)
+    case (key, value) => EagerSymbol(key) -> value
   }
 
   val SupportedFunctions: Map[LispSymbol, Field] = Map(
-    "len"               -> "LEN",
-    "take"              -> "TAKE",
-    "drop"              -> "DROP",
-    "head"              -> "HEAD",
-    "tail"              -> "TAIL",
-    "fold"              -> "FOLD",
-    "println"           -> "PRINTLN",
-    "print"             -> "PRINT",
-    "printf"            -> "PRINTF",
-    "format"            -> "FORMAT",
-    "range"             -> "RANGE",
-    "=range"            -> "INCLUSIVE_RANGE",
-    "assert"            -> "ASSERT",
-    "assert-true"       -> "ASSERT_TRUE",
-    "assert-false"      -> "ASSERT_FALSE",
-    "assert-equals"     -> "ASSERT_EQUALS",
-    "assert-not-equals" -> "ASSERT_NOT_EQUALS",
-    "open-file"         -> "OPEN_FILE",
-    "now"               -> "NOW",
-    "str"               -> "CAST_STR",
-    "int"               -> "CAST_INT",
-    "char"              -> "CAST_CHARACTER",
-    "list"              -> "CAST_LIST",
-    "double"            -> "CAST_DOUBLE",
-    "bool?"             -> "IS_BOOL",
-    "char?"             -> "IS_CHAR",
-    "int?"              -> "IS_INT",
-    "double?"           -> "IS_DOUBLE",
-    "string?"           -> "IS_STR",
-    "list?"             -> "IS_LIST",
-    "object?"           -> "IS_OBJECT",
-    "cons"              -> "CONS",
-    "read-line"         -> "READ_LINE",
-    "read-eof"          -> "READ_EOF",
-    "read-file"         -> "READ_FILE",
-    "read-file-seq"     -> "READ_FILE_SEQ",
+    "len"               -> ExportSymbols.LEN_FIELD,
+    "take"              -> ExportSymbols.TAKE_FIELD,
+    "drop"              -> ExportSymbols.DROP_FIELD,
+    "head"              -> ExportSymbols.HEAD_FIELD,
+    "tail"              -> ExportSymbols.TAIL_FIELD,
+    "fold"              -> ExportSymbols.FOLD_FIELD,
+    "println"           -> ExportSymbols.PRINTLN_FIELD,
+    "print"             -> ExportSymbols.PRINT_FIELD,
+    "printf"            -> ExportSymbols.PRINTF_FIELD,
+    "format"            -> ExportSymbols.FORMAT_FIELD,
+    "range"             -> ExportSymbols.RANGE_FIELD,
+    "=range"            -> ExportSymbols.INCLUSIVE_RANGE_FIELD,
+    "assert"            -> ExportSymbols.ASSERT_FIELD,
+    "assert-true"       -> ExportSymbols.ASSERT_TRUE_FIELD,
+    "assert-false"      -> ExportSymbols.ASSERT_FALSE_FIELD,
+    "assert-equals"     -> ExportSymbols.ASSERT_EQUALS_FIELD,
+    "assert-not-equals" -> ExportSymbols.ASSERT_NOT_EQUALS_FIELD,
+    "open-file"         -> ExportSymbols.OPEN_FILE_FIELD,
+    "now"               -> ExportSymbols.NOW_FIELD,
+    "str"               -> ExportSymbols.CAST_STR_FIELD,
+    "int"               -> ExportSymbols.CAST_INT_FIELD,
+    "char"              -> ExportSymbols.CAST_CHARACTER_FIELD,
+    "list"              -> ExportSymbols.CAST_LIST_FIELD,
+    "double"            -> ExportSymbols.CAST_DOUBLE_FIELD,
+    "bool?"             -> ExportSymbols.IS_BOOL_FIELD,
+    "char?"             -> ExportSymbols.IS_CHAR_FIELD,
+    "int?"              -> ExportSymbols.IS_INT_FIELD,
+    "double?"           -> ExportSymbols.IS_DOUBLE_FIELD,
+    "string?"           -> ExportSymbols.IS_STR_FIELD,
+    "list?"             -> ExportSymbols.IS_LIST_FIELD,
+    "object?"           -> ExportSymbols.IS_OBJECT_FIELD,
+    "cons"              -> ExportSymbols.CONS_FIELD,
+    "read-line"         -> ExportSymbols.READ_LINE_FIELD,
+    "read-eof"          -> ExportSymbols.READ_EOF_FIELD,
+    "read-file"         -> ExportSymbols.READ_FILE_FIELD,
+    "read-file-seq"     -> ExportSymbols.READ_FILE_SEQ_FIELD,
   ).map {
-    case (key, value) => EagerSymbol(key) -> PreludeClass.getField(value)
+    case (key, value) => EagerSymbol(key) -> value
   } ++ ReservedKeywordFunctions
 
   val ReservedKeywordVars: Map[LispSymbol, Field] = Map(
-    "nil"  -> "NIL",
+    "nil" -> ExportSymbols.NIL_FIELD,
   ).map {
-    case (key, value) => EagerSymbol(key) ->  PreludeClass.getField(value)
+    case (key, value) => EagerSymbol(key) -> value
   }
 
-  val SupportedVars: Map[LispSymbol, Field] = Map[String, String](
+  val SupportedVars: Map[LispSymbol, Field] = Map[String, Field](
     ).map {
-    case (key, value) => EagerSymbol(key) ->  PreludeClass.getField(value)
+    case (key, value) => EagerSymbol(key) -> value
   } ++ ReservedKeywordVars
 }

@@ -1,4 +1,6 @@
-package lengine.runtime;
+package lengine.util;
+
+import lengine.runtime.LengineIterator;
 
 import java.util.Objects;
 
@@ -27,6 +29,17 @@ public class Cons extends LengineList {
     @Override
     public Long len() {
         return 1 + next.len();
+    }
+
+    @Override
+    public String printable(boolean isFirst) {
+        String ret = "";
+        if (isFirst) {
+            ret += "[" + item.toString();
+        } else {
+            ret += " " + item.toString();
+        }
+        return ret + next.printable(false);
     }
 
     @Override
