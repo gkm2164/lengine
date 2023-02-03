@@ -1,8 +1,16 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ ObjectClass, StringClass, VoidPrimitive }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  JavaHashMapClass,
+  JavaMapClass,
+  ObjectClass,
+  StringClass,
+  VoidPrimitive
+}
+import co.gyeongmin.lisp.compile.asmwriter.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.{
   AsmHelper,
+  CompileException,
   LengineRuntimeEnvironment,
   LispValueAsmWriter,
   LispValueDefWriter,
@@ -34,17 +42,16 @@ package object compile {
                         cw: ClassWriter,
                         statements: List[LispValue],
                         className: String): Unit = {
-    val mv = new MethodVisitorWrapper(
-      cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
-                     "main",
-                     Type.getMethodDescriptor(
-                       Type.getType(java.lang.Void.TYPE),
-                       Type.getType(classOf[Array[String]])
-                     ),
-                     null,
-                     null)
-    )
-
+    val mv = cw
+      .visitMethod(ACC_PUBLIC | ACC_STATIC,
+                   "main",
+                   Type.getMethodDescriptor(
+                     Type.getType(java.lang.Void.TYPE),
+                     Type.getType(classOf[Array[String]])
+                   ),
+                   null,
+                   null)
+      .wrap()
     mv.visitCode()
     val startLabel: Label = new Label()
     val endLabel: Label   = new Label()
@@ -62,7 +69,9 @@ package object compile {
         case _                                      => mv.visitPop()
       }
       if (mv.stackSizeTrace.get() > 0) {
-        System.err.printf(s"somewhere, leaking is happening: (${stmt.tokenLocation})")
+        throw CompileException(s"somewhere, stack leaking is happening",
+                               filename = mainRuntimeEnv.fileName,
+                               location = stmt.tokenLocation)
       }
     })
     mv.visitLabel(endLabel)
@@ -70,19 +79,17 @@ package object compile {
     // Need to give hint to assembly generator for helping decide frame size
     new LispValueDefWriter(EagerSymbol("__PADDING__"))
       .writeValue(startLabel, endLabel, mainRuntimeEnv.getLastVarIdx)
-    mv.visitMaxs(0, 0)
+    mv.visitMaxs()
     mv.visitEnd()
-
-    println(s"Maximum use of stackSize: ${mv.stackSizeTrace.getMaxValue}")
   }
 
   private def writeInitMethod(cw: ClassWriter): Unit = {
-    val mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null)
+    val mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null).wrap()
     mv.visitCode()
-    mv.visitVarInsn(ALOAD, 0)
-    mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
-    mv.visitInsn(RETURN)
-    mv.visitMaxs(1, 1)
+    mv.visitALoad(0)
+    mv.visitSpecialMethodCall(ObjectClass, "<init>", VoidPrimitive)
+    mv.visitReturn()
+    mv.visitMaxs()
     mv.visitEnd()
   }
 
@@ -96,92 +103,89 @@ package object compile {
     )
     fieldVisit.visitEnd()
 
-    val mv = cw.visitMethod(ACC_STATIC,
-                            "<clinit>",
-                            Type.getMethodDescriptor(
-                              Type.getType(Void.TYPE)
-                            ),
-                            null,
-                            null)
+    val mv: MethodVisitorWrapper = cw
+      .visitMethod(ACC_STATIC,
+                   "<clinit>",
+                   Type.getMethodDescriptor(
+                     Type.getType(Void.TYPE)
+                   ),
+                   null,
+                   null)
+      .wrap()
+
     mv.visitCode()
-    mv.visitTypeInsn(NEW, "java/util/HashMap")
-    mv.visitInsn(DUP)
-    mv.visitMethodInsn(
-      INVOKESPECIAL,
-      "java/util/HashMap",
+    mv.visitNew(JavaHashMapClass)
+    mv.visitDup()
+    mv.visitSpecialMethodCall(
+      JavaHashMapClass,
       "<init>",
-      "()V",
-      false
+      VoidPrimitive
     )
-    mv.visitFieldInsn(
-      PUTSTATIC,
+    mv.visitPutStatic(
       className,
       "exportMap",
-      "Ljava/util/Map;"
+      classOf[java.util.Map[_, _]]
     )
-    mv.visitInsn(RETURN)
-    mv.visitMaxs(1, 1)
+
+    mv.visitReturn()
+    mv.visitMaxs()
     mv.visitEnd()
   }
 
   private def writeExportMethod(cw: ClassWriter, clsName: String): Unit = {
-    val mv = cw.visitMethod(
-      ACC_PUBLIC | ACC_STATIC,
-      "export",
-      Type.getMethodDescriptor(
-        Type.getType(VoidPrimitive),
-        Type.getType(StringClass),
-        Type.getType(ObjectClass)
-      ),
-      null,
-      null
-    )
+    val mv = cw
+      .visitMethod(
+        ACC_PUBLIC | ACC_STATIC,
+        "export",
+        Type.getMethodDescriptor(
+          Type.getType(VoidPrimitive),
+          Type.getType(StringClass),
+          Type.getType(ObjectClass)
+        ),
+        null,
+        null
+      )
+      .wrap()
 
-    mv.visitFieldInsn(GETSTATIC, clsName, "exportMap", "Ljava/util/Map;")
-    mv.visitIntInsn(ALOAD, 0)
-    mv.visitIntInsn(ALOAD, 1)
-    mv.visitMethodInsn(
-      INVOKEINTERFACE,
-      "java/util/Map",
+    mv.visitGetStatic(clsName, "exportMap", classOf[java.util.Map[_, _]])
+    mv.visitALoad(0)
+    mv.visitALoad(1)
+    mv.visitInterfaceMethodCall(
+      JavaMapClass,
       "put",
-      Type.getMethodDescriptor(
-        Type.getType(ObjectClass),
-        Type.getType(ObjectClass),
-        Type.getType(ObjectClass)
-      ),
-      true
+      ObjectClass,
+      ObjectClass,
+      ObjectClass
     )
-    mv.visitInsn(RETURN)
-    mv.visitMaxs(1, 1)
+    mv.visitReturn()
+    mv.visitMaxs()
     mv.visitEnd()
   }
 
   private def writeImportMethod(cw: ClassWriter, clsName: String): Unit = {
-    val mv = cw.visitMethod(
-      ACC_PUBLIC | ACC_STATIC,
-      "importSymbol",
-      Type.getMethodDescriptor(
-        Type.getType(ObjectClass),
-        Type.getType(StringClass)
-      ),
-      null,
-      null
-    )
+    val mv = cw
+      .visitMethod(
+        ACC_PUBLIC | ACC_STATIC,
+        "importSymbol",
+        Type.getMethodDescriptor(
+          Type.getType(ObjectClass),
+          Type.getType(StringClass)
+        ),
+        null,
+        null
+      )
+      .wrap()
 
-    mv.visitFieldInsn(GETSTATIC, clsName, "exportMap", "Ljava/util/Map;")
-    mv.visitIntInsn(ALOAD, 0)
-    mv.visitMethodInsn(
-      INVOKEINTERFACE,
-      "java/util/Map",
+    mv.visitGetStatic(clsName, "exportMap", JavaMapClass)
+    mv.visitALoad(0)
+    mv.visitInterfaceMethodCall(
+      JavaMapClass,
       "get",
-      Type.getMethodDescriptor(
-        Type.getType(classOf[Object]),
-        Type.getType(classOf[Object]),
-      ),
-      true
+      ObjectClass,
+      ObjectClass
     )
-    mv.visitInsn(ARETURN)
-    mv.visitMaxs(1, 1)
+    mv.visitAReturn()
+    mv.visitMaxs()
     mv.visitEnd()
   }
 }

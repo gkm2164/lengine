@@ -1,48 +1,49 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaCommonClass, ObjectClass, PreludeClass, VoidPrimitive}
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ SupportedFunctions, SupportedVars }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  LengineLambdaCommonClass,
+  ObjectClass,
+  PreludeClass,
+  VoidPrimitive
+}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{Label, MethodVisitor, Opcodes, Type}
+import org.objectweb.asm.{ Label, MethodVisitor, Opcodes, Type }
 import org.objectweb.asm.Opcodes._
 
-import java.util.concurrent.atomic.AtomicInteger
-
-class AtomicIntegerWrapper {
-  def addAndGet(n: Int): Unit = {
-    thisAtomic.addAndGet(n)
-    if (n > 0) {
-      if (thisAtomic.get() > stackSizeTractMax.get()) {
-        stackSizeTractMax.set(thisAtomic.get())
-      }
-    }
-  }
-
-
-  private val thisAtomic = new AtomicInteger
-  private val stackSizeTractMax = new AtomicInteger()
-  def get() = thisAtomic.get()
-  def incrementAndGet(): Int = {
-    val ret = thisAtomic.incrementAndGet()
-    if (thisAtomic.get() > stackSizeTractMax.get()) {
-      stackSizeTractMax.set(thisAtomic.get())
-    }
-    ret
-  }
-  def decrementAndGet(): Int = thisAtomic.decrementAndGet()
-
-  def getMaxValue: Int = stackSizeTractMax.get()
-}
+import java.lang.reflect.Field
 
 class MethodVisitorWrapper(mv: MethodVisitor) {
+
+
+
   val stackSizeTrace = new AtomicIntegerWrapper
 
+  def visitPutStatic(owner: String, operation: String, value: Class[_]): Unit = {
+    mv.visitFieldInsn(PUTSTATIC, owner, operation, Type.getType(value).getDescriptor)
+    stackSizeTrace.decrementAndGet()
+  }
+
+  def visitGetStatic(owner: String, operation: String, value: Class[_]): Unit = {
+    mv.visitFieldInsn(GETSTATIC, owner, operation, Type.getType(value).getDescriptor)
+    stackSizeTrace.incrementAndGet()
+  }
+
+  def visitGetStatic(owner: Class[_], operation: String, value: Class[_]): Unit = {
+    mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, operation, Type.getType(value).getDescriptor)
+    stackSizeTrace.incrementAndGet()
+  }
+
+  def visitGetField(owner: String, fieldName: String, descriptor: Class[_]): Unit = {
+    mv.visitFieldInsn(GETFIELD, owner, fieldName, Type.getType(descriptor).getDescriptor)
+    stackSizeTrace.incrementAndGet()
+  }
   def visitAReturn(): Unit = mv.visitInsn(ARETURN)
 
   def visitEnd(): Unit = mv.visitEnd()
 
-  def visitMaxs(maxStack: Int, maxLocals: Int): Unit = mv.visitMaxs(maxStack, maxLocals)
+  def visitMaxs(): Unit = mv.visitMaxs(0, 0)
 
   def visitReturn(): Unit = mv.visitInsn(RETURN)
 
@@ -99,12 +100,24 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
     stackSizeTrace.incrementAndGet()
   }
 
-  def visitGoto(label: Label): Unit = {
+  def visitNew(cls: Class[_]): Unit =
+    visitNew(Type.getType(cls).getInternalName)
+
+  def visitGoto(label: Label): Unit =
     mv.visitJumpInsn(GOTO, label)
-  }
 
   def visitLdcInsn(key: Any): Unit = {
     mv.visitLdcInsn(key)
+    stackSizeTrace.incrementAndGet()
+  }
+
+  def visitAStore(location: Int): Unit = {
+    mv.visitIntInsn(ASTORE, location)
+    stackSizeTrace.decrementAndGet()
+  }
+
+  def visitALoad(location: Int): Unit = {
+    mv.visitIntInsn(ALOAD, location)
     stackSizeTrace.incrementAndGet()
   }
 
@@ -135,16 +148,6 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
     }
   }
 
-  def visitAStore(location: Int): Unit = {
-    mv.visitIntInsn(ASTORE, location)
-    stackSizeTrace.decrementAndGet()
-  }
-
-  def visitALoad(location: Int): Unit = {
-    mv.visitIntInsn(ALOAD, location)
-    stackSizeTrace.incrementAndGet()
-  }
-
   def visitInterfaceMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
     visitCommonMethodCall(
       INVOKEINTERFACE,
@@ -158,21 +161,38 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
   def visitMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
     visitCommonMethodCall(INVOKEVIRTUAL, Type.getType(owner).getInternalName, name, retType, args, interface = false)
 
+  def visitMethodCall(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
+    visitCommonMethodCall(INVOKEVIRTUAL, owner, name, retType, args, interface = false)
+
   def visitStaticMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
     visitCommonMethodCall(INVOKESTATIC, Type.getType(owner).getInternalName, name, retType, args, interface = false)
 
-  def visitStaticMethodCallStringOwner(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
+  def visitStaticMethodCall(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
     visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
+  def visitSpecialMethodCall(owner: String, methodName: String, retType: Class[_], args: Class[_]*): Unit =
+    visitCommonMethodCall(INVOKESPECIAL, owner, methodName, retType, args, interface = false)
 
-  private def visitGetStaticField(owner: Class[_], name: String, descriptor: Class[_]): Unit = {
-    mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, name, Type.getType(descriptor).getDescriptor)
+  def visitSpecialMethodCall(owner: Class[_], methodName: String, retType: Class[_], args: Class[_]*): Unit =
+    visitCommonMethodCall(INVOKESPECIAL,
+                          Type.getType(owner).getInternalName,
+                          methodName,
+                          retType,
+                          args,
+                          interface = false)
+
+  private def visitGetStaticField(owner: Class[_], fieldName: String, descriptor: Class[_]): Unit = {
+    mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, fieldName, Type.getType(descriptor).getDescriptor)
     stackSizeTrace.incrementAndGet()
   }
 
-  def visitSpecialMethodCallStringOwner(lambdaClsName: String,
-                                        str: String,
-                                        retType: Class[_],
-                                        seq: Seq[Class[_]]): Unit = visitCommonMethodCall(INVOKESPECIAL, lambdaClsName, str, retType, seq, interface = false)
+  def visitPutField(owner: String, fieldName: String, descriptorClass: Class[_]): Unit = {
+    mv.visitFieldInsn(PUTFIELD, owner, fieldName, Type.getType(descriptorClass).getDescriptor)
+    stackSizeTrace.decrementAndGet()
+  }
+
+
+  private def visitGetStaticField(owner: Class[_], field: Field, descriptor: Class[_]): Unit =
+    visitGetStaticField(owner, field.getName, descriptor)
 
   def visitLoadVariable(lispSymbol: LispSymbol,
                         typeToBe: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
@@ -259,4 +279,8 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
   }
 }
 
-
+object MethodVisitorWrapper {
+  implicit class MethodVisitorWrapperExt(mv: MethodVisitor) {
+    def wrap(): MethodVisitorWrapper = new MethodVisitorWrapper(mv)
+  }
+}

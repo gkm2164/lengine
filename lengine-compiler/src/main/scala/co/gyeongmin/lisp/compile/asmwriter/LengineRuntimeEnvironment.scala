@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{ClassWriter, MethodVisitor}
+import org.objectweb.asm.ClassWriter
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable

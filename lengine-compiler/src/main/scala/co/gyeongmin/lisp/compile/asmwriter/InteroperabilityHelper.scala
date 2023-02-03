@@ -1,9 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.PreludeClass
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+
+import java.lang.reflect.Field
 
 object InteroperabilityHelper {
-  val ReservedKeywordFunctions: Map[LispSymbol, String] = Map(
+  val ReservedKeywordFunctions: Map[LispSymbol, Field] = Map(
     "str"     -> "CAST_STR",
     "int"     -> "CAST_INT",
     "char"    -> "CAST_CHARACTER",
@@ -38,10 +41,10 @@ object InteroperabilityHelper {
     "/"       -> "DIV",
     "rem"     -> "REM",
   ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) => EagerSymbol(key) -> PreludeClass.getField(value)
   }
 
-  val SupportedFunctions: Map[LispSymbol, String] = Map(
+  val SupportedFunctions: Map[LispSymbol, Field] = Map(
     "len"               -> "LEN",
     "take"              -> "TAKE",
     "drop"              -> "DROP",
@@ -79,18 +82,17 @@ object InteroperabilityHelper {
     "read-file"         -> "READ_FILE",
     "read-file-seq"     -> "READ_FILE_SEQ",
   ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) => EagerSymbol(key) -> PreludeClass.getField(value)
   } ++ ReservedKeywordFunctions
 
-  val ReservedKeywordVars: Map[LispSymbol, String] = Map(
+  val ReservedKeywordVars: Map[LispSymbol, Field] = Map(
     "nil"  -> "NIL",
-    "none" -> "NONE"
   ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) => EagerSymbol(key) ->  PreludeClass.getField(value)
   }
 
-  val SupportedVars: Map[LispSymbol, String] = Map[String, String](
+  val SupportedVars: Map[LispSymbol, Field] = Map[String, String](
     ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) => EagerSymbol(key) ->  PreludeClass.getField(value)
   } ++ ReservedKeywordVars
 }

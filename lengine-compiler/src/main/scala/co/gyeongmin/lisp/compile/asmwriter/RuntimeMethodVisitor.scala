@@ -70,7 +70,7 @@ object RuntimeMethodVisitor {
     val mv                     = runtimeEnvironment.methodVisitor
     mv.visitLdcInsn(nameOfSymbol)
     mv.visitLispValue(value, ObjectClass)
-    mv.visitStaticMethodCallStringOwner(
+    mv.visitStaticMethodCall(
       runtimeEnvironment.className,
       "export",
       VoidPrimitive,
@@ -97,7 +97,7 @@ object RuntimeMethodVisitor {
     )
 
     mv.visitLdcInsn(importName)
-    mv.visitStaticMethodCallStringOwner(
+    mv.visitStaticMethodCall(
       clsName,
       "importSymbol",
       ObjectClass,

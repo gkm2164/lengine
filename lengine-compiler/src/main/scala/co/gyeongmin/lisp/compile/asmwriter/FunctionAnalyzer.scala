@@ -1,12 +1,21 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef}
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.statements.{
+  LispCaseCondition,
+  LispCaseStmt,
+  LispDoStmt,
+  LispForStmt,
+  LispLetDecl,
+  LispLetDef,
+  LispLoopStmt,
+  LispValueDef
+}
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispValue }
 
 object FunctionAnalyzer {
 
@@ -79,12 +88,11 @@ object FunctionAnalyzer {
   }
 
   /**
-  * Tail recursion analyzer
+    * Tail recursion analyzer
 
   Assume that this is the last value of the clause, if the first referring symbol for the clause is itself,
   then, refer it as tail recursion. Only the first referring symbol will be replaced to loop, but, laters not.
-  * */
-
+    * */
   def isTailRecursion(itself: Option[LispSymbol], body: LispValue): Boolean = body match {
     case LispClause((symbol: LispSymbol) :: _) if symbol == EagerSymbol("$") || itself.contains(symbol) => true
     case LispClause(EagerSymbol("if") :: _ :: thenValue :: elseValue :: Nil) =>
