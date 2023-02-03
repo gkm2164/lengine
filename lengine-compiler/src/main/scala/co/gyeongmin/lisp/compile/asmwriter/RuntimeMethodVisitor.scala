@@ -11,15 +11,7 @@ object RuntimeMethodVisitor {
   private val supportedOps = Set(
     "export",
     "import",
-    "read-line",
-    "read-eof",
-    "read-file",
-    "read-file-seq",
     "if",
-    "entry",
-    "keys",
-    "get",
-    "key",
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
@@ -34,107 +26,13 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "if"            => visitIfStmt(operands, requestedType, tailRecReference)
-          case "read-line"     => visitReadLine
-          case "read-eof"      => visitReadEof
-          case "read-file"     => visitReadFile(operands)
-          case "read-file-seq" => visitReadFileSeq(operands)
           case "export"        => visitExport(operands)
           case "import"        => visitImport(operands)
-          case "entry"         => visitCreateEntry(operands)
-          case "key"           => visitMapKeyCreate(operands)
-          case "get"           => visitGetKeyName(operands)
-          case "keys"          => visitMapKeys(operands)
+          case "if"            => visitIfStmt(operands, requestedType, tailRecReference)
           case _               => new RuntimeException("Unsupported operation: " + op)
         }
 
     }
-  }
-
-  private def visitCreateEntry(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val key :: value :: Nil = operands
-    val mv                  = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key, LengineMapKeyClass)
-    mv.visitLispValue(value, ObjectClass)
-    mv.visitStaticMethodCall(
-      LengineMapEntryClass,
-      "create",
-      LengineMapEntryClass,
-      LengineMapKeyClass,
-      ObjectClass
-    )
-  }
-
-  private def visitMapKeys(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mapObj :: Nil = operands
-    val mv            = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(mapObj, LengineMapClass)
-    mv.visitMethodCall(
-      LengineMapClass,
-      "keys",
-      LengineList
-    )
-  }
-
-  private def visitMapKeyCreate(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val key :: Nil = operands
-    val mv         = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key, StringClass)
-    mv.visitStaticMethodCall(
-      LengineMapKeyClass,
-      "create",
-      LengineMapKeyClass,
-      StringClass
-    )
-  }
-
-  private def visitGetKeyName(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val key :: Nil = operands
-    val mv         = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(key, LengineMapKeyClass)
-    mv.visitMethodCall(
-      LengineMapKeyClass,
-      "getKey",
-      StringClass
-    )
-  }
-
-  private def visitReadLine(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitStaticMethodCall(PreludeClass, "readLine", StringClass)
-  }
-
-  private def visitReadEof(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitStaticMethodCall(PreludeClass, "readEof", StringClass)
-  }
-
-  private def visitReadFile(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val filename :: Nil = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitLispValue(filename, StringClass)
-    mv.visitStaticMethodCall(PreludeClass, "readFile", StringClass, StringClass)
-  }
-
-  private def visitReadFileSeq(
-      operands: List[LispValue]
-  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val filename :: Nil = operands
-
-    val mv = runtimeEnvironment.methodVisitor
-
-    mv.visitLispValue(filename, StringClass)
-    mv.visitStaticMethodCall(PreludeClass, "readFileSeq", FileSequenceClass, StringClass)
   }
 
   private def visitIfStmt(operands: List[LispValue],
@@ -205,6 +103,7 @@ object RuntimeMethodVisitor {
       ObjectClass,
       StringClass
     )
+    mv.visitInsn(DUP)
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 

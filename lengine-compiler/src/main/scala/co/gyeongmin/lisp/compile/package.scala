@@ -48,7 +48,7 @@ package object compile {
         stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
         new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
         stmt match {
-          case LispImportDef(_) | LispClause(EagerSymbol("export") :: _)=>
+          case LispClause(EagerSymbol("export") :: _)=>
           case _ => mv.visitInsn(POP)
         }
     })

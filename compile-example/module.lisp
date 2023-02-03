@@ -35,6 +35,8 @@
 (fn reverse (xs)
     (fold xs nil (lambda (acc elem) (cons elem acc))))
 
+(export reverse reverse)
+
 (export split (lambda (s delim)
                       (reverse (map (lambda (x) (to-string (reverse x)))
                                (split-real (list s) delim)))))
@@ -50,6 +52,7 @@
 (fn append (xs elem)
            (if (nil? xs) (cons elem nil)
                ($ (tail xs) elem)))
+(export append append)
 
 (export filter (lambda (xs p)
         (fold xs nil (lambda (acc elem)

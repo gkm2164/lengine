@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
@@ -33,6 +34,7 @@ import lengine.runtime.LengineList;
 import lengine.runtime.LengineListIterator;
 import lengine.runtime.LengineMap;
 import lengine.runtime.LengineMapEntry;
+import lengine.runtime.LengineMapKey;
 import lengine.runtime.LengineUnit;
 import lengine.runtime.Nil;
 import lengine.runtime.RangeSequence;
@@ -251,7 +253,7 @@ public class Prelude {
     while (i++ < n && it.hasNext()) {
       it.next();
     }
-    return ((LengineListIterator)it)._this();
+    return ((LengineListIterator) it)._this();
   };
 
   private static <T> Boolean isInstanceOf(Class<T> cls, Object value) {
@@ -315,16 +317,7 @@ public class Prelude {
   private static final LengineLambda1<Long, Object> _CAST_INT = Prelude::castLong;
   private static final LengineLambda1<Double, Object> _CAST_DOUBLE = Prelude::castDouble;
   private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
-  private static final LengineLambda1<LengineList, Object> _CAST_LIST = (o) -> {
-    if (o instanceof String) {
-      return LengineList.create(o.toString());
-    } else if (o instanceof LengineList) {
-      return (LengineList) o;
-    }
-
-    throw new RuntimeException(String.format("Unable to cast from %s to List", o.getClass()));
-  };
-
+  private static final LengineLambda1<LengineList, Object> _CAST_LIST = Prelude::castList;
 
   private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
@@ -390,6 +383,40 @@ public class Prelude {
   };
   private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
 
+  private static final LengineLambda1<LengineMapKey, String> _KEY = LengineMapKey::create;
+  private static final LengineLambda1<LengineList, LengineMap> _KEYS = LengineMap::keys;
+  private static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
+  private static final LengineLambda1<LengineList, LengineMap> _ENTRIES = LengineMap::entries;
+  private static final LengineLambda1<String, LengineMapKey> _GET = LengineMapKey::getKey;
+
+  private static final LengineLambda0<String> _READ_LINE = () -> new Scanner(System.in).next("\n");
+
+  private static final LengineLambda0<String> _READ_EOF = () -> {
+    Reader sr = new InputStreamReader(System.in);
+    StringBuilder ret = new StringBuilder();
+    int ch;
+    while (true) {
+      try {
+        if ((ch = sr.read()) == 0xFFFF) break;
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      ret.append((char) ch);
+    }
+
+    return ret.toString();
+  };
+
+  private static final LengineLambda1<String, String> _READ_FILE = (fileName) -> {
+    try {
+      return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  };
+
+  public static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
+
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -439,30 +466,16 @@ public class Prelude {
   public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
   public static final LengineLambdaCommon NOW = _NOW;
   public static final LengineLambdaCommon CONS = _CONS;
+  public static final LengineLambdaCommon KEY = _KEY;
+  public static final LengineLambdaCommon KEYS = _KEYS;
+  public static final LengineLambdaCommon ENTRY = _ENTRY;
+  public static final LengineLambdaCommon ENTRIES = _ENTRIES;
+  public static final LengineLambdaCommon GET = _GET;
+  public static final LengineLambdaCommon READ_LINE = _READ_LINE;
+  public static final LengineLambdaCommon READ_EOF = _READ_EOF;
+  public static final LengineLambdaCommon READ_FILE = _READ_FILE;
+  public static final LengineLambdaCommon READ_FILE_SEQ = _READ_FILE_SEQ;
   public static final Object NIL = Nil.get();
-
-  public static String readLine() throws IOException {
-    return new BufferedReader(new InputStreamReader(System.in)).readLine();
-  }
-
-  public static String readEof() throws IOException {
-    Reader sr = new InputStreamReader(System.in);
-    StringBuilder ret = new StringBuilder();
-    int ch;
-    while ((ch = sr.read()) != 0xFFFF) {
-      ret.append((char) ch);
-    }
-
-    return ret.toString();
-  }
-
-  public static String readFile(String fileName) throws IOException {
-    return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
-  }
-
-  public static FileSequence readFileSeq(String fileName) {
-    return FileSequence.create(fileName);
-  }
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());

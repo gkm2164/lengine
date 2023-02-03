@@ -18,6 +18,11 @@ object InteroperabilityHelper {
     "object?" -> "IS_OBJECT",
     "cons?"   -> "IS_CONS",
     "nil?"    -> "IS_NIL",
+    "key"     -> "KEY",
+    "keys"    -> "KEYS",
+    "entry"   -> "ENTRY",
+    "entries" -> "ENTRIES",
+    "get"     -> "GET",
     "<"       -> "LESS_THAN",
     "<="      -> "LESS_EQUALS",
     ">"       -> "GREATER_THAN",
@@ -69,6 +74,10 @@ object InteroperabilityHelper {
     "list?"             -> "IS_LIST",
     "object?"           -> "IS_OBJECT",
     "cons"              -> "CONS",
+    "read-line"         -> "READ_LINE",
+    "read-eof"          -> "READ_EOF",
+    "read-file"         -> "READ_FILE",
+    "read-file-seq"     -> "READ_FILE_SEQ",
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   } ++ ReservedKeywordFunctions

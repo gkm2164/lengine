@@ -10,11 +10,11 @@
 })
 
 ;;; You can confirm that these 2 are identical
-(assert "should be same" (= :id (key "id")))
+(assert-equals "should be same" :id (key "id"))
 
 ;;; The key is a function that takes a parameter.
 ;;; Below 2 are identical.
-(assert "Two are identical" (= (:id obj) ((key "id") obj)))
+(assert-equals "Two are identical" (:id obj) ((key "id") obj))
 
 ;;; Map object is immutable. You can't make a change on map.
 (println obj)

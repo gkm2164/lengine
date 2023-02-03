@@ -56,25 +56,25 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
-    case LispTrue() =>
+    case LispTrue() => // 1 stack
       mv.visitInsn(Opcodes.ICONST_1)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
-    case LispFalse() =>
+    case LispFalse() => // 1 stack
       mv.visitInsn(Opcodes.ICONST_0)
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
-    case LispChar(ch) =>
+    case LispChar(ch) => // 1 stack
       mv.visitIntInsn(Opcodes.SIPUSH, ch)
       mv.visitBoxing(CharacterClass, CharacterPrimitive)
-    case IntegerNumber(n) if n >= 0 && n <= 1 =>
+    case IntegerNumber(n) if n >= 0 && n <= 1 => // 1 stack
       mv.visitInsn(Opcodes.LCONST_0 + n.toInt)
       mv.visitBoxing(LongClass, LongPrimitive)
-    case IntegerNumber(n) =>
+    case IntegerNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(LongClass, LongPrimitive)
-    case FloatNumber(n) =>
+    case FloatNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
-    case LispString(str) =>
+    case LispString(str) => // 1 stack
       mv.visitLdcInsn(str)
     case LispList(body) =>
       declareSequence(body)
@@ -91,21 +91,21 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         "create",
         LengineMapKeyClass,
         StringClass
-      )
+      ) // 1 stack
     case LispLetDef(decls, body) =>
-      val newEnv = runtimeEnv.createChild()
       mv.visitLabel(new Label())
       decls.foreach {
         case LispLetDecl(name, value) =>
-          val idx = newEnv.allocateNextVar
-          new LispValueAsmWriter(value, ObjectClass)(newEnv).visitForValue()
+          val idx = runtimeEnv.allocateNextVar
+          new LispValueAsmWriter(value, ObjectClass).visitForValue()
           mv.visitAStore(idx)
-          newEnv.registerVariable(name, idx, ObjectClass)
+          runtimeEnv.registerVariable(name, idx, ObjectClass)
       }
-      new LispValueAsmWriter(body, ObjectClass)(newEnv)
+      new LispValueAsmWriter(body, ObjectClass)
         .visitForValue(tailRecReference = tailRecReference)
-      val used = newEnv.getLastVarIdx
-      runtimeEnv.overrideUsedVar(used)
+      for (elem <- decls) {
+        runtimeEnv.deregisterVariable(elem.name)
+      }
       mv.visitLabel(new Label())
     case LispImportDef(path) =>
       new LispValueAsmWriter(
@@ -114,7 +114,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference).writeValue()
-    case doStmt: LispDoStmt => visitDoBody(doStmt, tailRecReference = tailRecReference)
+    case doStmt: LispDoStmt =>
+      visitDoBody(doStmt, tailRecReference = tailRecReference)
     case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
       mv.visitLoadVariable(ref, typeToBe)
     case ref: LispSymbol =>
@@ -138,14 +139,14 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   private def declareSequence(body: List[LispValue]): Unit = {
-    mv.allocateNewArray(ObjectClass, body.length)
-    mv.visitArrayAssignWithLispValues(body)
+    mv.allocateNewArray(ObjectClass, body.length) // 1 stack
+    mv.visitArrayAssignWithLispValues(body) // 1 stack
     mv.visitStaticMethodCall(
       LengineList,
       "create",
       LengineList,
       ArrayObjectClass
-    )
+    ) // 1stack
   }
 
   @tailrec
