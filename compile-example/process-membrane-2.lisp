@@ -2,6 +2,7 @@
 
 (import Module.split)
 (import Module.map)
+(import Module.filter)
 
 ;;; Read file in Sequence type
 (def file-sequence (read-file-seq "./102521_membrane_GC_cell_lines.csv"))

@@ -8,23 +8,36 @@
                     (loop for x in xs
                           (f x))))
 
-(fn split-real (s delim)
-    (if (= 0 (len s))
-        []
+(fn split-at-loop (p xs l r)
+                  (if (nil? xs) (cons l (cons r nil))
+                      (let ((h (head xs))
+                            (t (tail xs)))
+                           (if (not (p h))
+                               ($ p t (cons h l) r)
+                               (cons l (cons t nil))))))
+
+(fn split-at (p xs)
+             (split-at-loop p xs nil nil))
+
+(fn split-real (chs delim)
+    (if (nil? chs) nil
         (let ((delim-check (lambda (ch) (= ch delim)))
-              (splitted (split-at delim-check s))
+              (splitted (split-at delim-check chs))
               (first (head splitted))
               (last (head (tail splitted))))
-             (+ [first] (split-real last delim)))))
+             (cons first ($ last delim)))))
 
 (fn to-string (xs)
     (fold xs "" (lambda (acc elem) (+ acc elem))))
 
 (export to-string to-string)
 
+(fn reverse (xs)
+    (fold xs nil (lambda (acc elem) (cons elem acc))))
+
 (export split (lambda (s delim)
-        (map (lambda (x) (to-string x))
-             (split-real (seq s) delim))))
+                      (reverse (map (lambda (x) (to-string (reverse x)))
+                               (split-real (list s) delim)))))
 
 (export compose (lambda (f g)
                         (lambda (x) (f (g x)))))
@@ -41,7 +54,7 @@
 (export filter (lambda (xs p)
         (fold xs nil (lambda (acc elem)
                              (if (p elem)
-                                 (append acc elem)
+                                 (cons elem acc)
                                  acc)))))
 
 (export fold-custom (lambda (seq acc f)

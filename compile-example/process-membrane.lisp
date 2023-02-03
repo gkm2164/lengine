@@ -2,6 +2,7 @@
 
 (import Module.split)
 (import Module.map)
+(import Module.filter)
 
 (def all-data (read-file "./102521_membrane_GC_cell_lines.csv"))
 

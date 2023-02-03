@@ -60,7 +60,7 @@
 (def json-chs (fold json-file-stream "" +))
 (println json-chs)
 
-(def json-ch-seq (seq json-chs))
+(def json-ch-seq (list json-chs))
 (println json-ch-seq)
 
 (fn empty? (sequence)

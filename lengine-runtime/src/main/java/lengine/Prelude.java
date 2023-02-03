@@ -36,7 +36,6 @@ import lengine.runtime.LengineMapEntry;
 import lengine.runtime.LengineUnit;
 import lengine.runtime.Nil;
 import lengine.runtime.RangeSequence;
-import lengine.runtime.Sequence;
 
 public class Prelude {
   private static final Set<String> alreadyLoadedClass = new HashSet<>();
@@ -52,22 +51,9 @@ public class Prelude {
       return castDouble(from);
     } else if (to.equals(String.class)) {
       return castString(from);
-    } else if (to.equals(Sequence.class)) {
-      return castSequence(from);
     }
 
     throw new RuntimeException("unable to cast");
-  }
-
-  private static Sequence castSequence(Object from) {
-    if (from instanceof Sequence) {
-      return (Sequence) from;
-    } else if (from instanceof String) {
-      return toSeq((String) from);
-    }
-    Sequence newSeq = new Sequence();
-    newSeq.add(from);
-    return newSeq;
   }
 
   private static Character castChar(Object from) {
@@ -114,6 +100,16 @@ public class Prelude {
     return from.toString();
   }
 
+  private static LengineList castList(Object o) {
+    if (o instanceof String) {
+      return LengineList.create(o.toString());
+    } else if (o instanceof LengineList) {
+      return (LengineList) o;
+    }
+
+    throw new RuntimeException(String.format("Unable to cast from %s to List", o.getClass()));
+  }
+
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
     return getRank(a) > getRank(b) ? a : b;
   }
@@ -132,15 +128,6 @@ public class Prelude {
     }
 
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
-  }
-
-  private static Sequence toSeq(String str) {
-    Sequence seq = new Sequence();
-    char[] charArr = str.toCharArray();
-    for (char c : charArr) {
-      seq.add(c);
-    }
-    return seq;
   }
 
   private static LengineUnit assertTrue(String message, Boolean value) {
@@ -249,7 +236,7 @@ public class Prelude {
     LengineIterator it = seq.iterator();
     Cons head = LengineList.cons(it.next(), null);
     Cons _this = head;
-    while (i++ < n && it.hasNext()) {
+    while (++i < n && it.hasNext()) {
       Cons newCons = LengineList.cons(it.next(), null);
       _this.setNext(newCons);
       _this = newCons;
@@ -273,70 +260,6 @@ public class Prelude {
 
   private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().peek();
   private static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
-  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _TAKE_WHILE = (test, seq) -> {
-    Sequence ret = new Sequence();
-    LengineIterator it = seq.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (!test.invoke(elem)) {
-        return ret;
-      }
-
-      ret.add(elem);
-    }
-
-    return ret;
-  };
-  private static final LengineLambda2<CreateIterator, LengineLambda1<Boolean, Object>, CreateIterator> _DROP_WHILE = (test, seq) -> {
-    Sequence ret = new Sequence();
-    LengineIterator it = seq.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (!test.invoke(elem)) {
-        ret.add(elem);
-        break;
-      }
-    }
-
-    if (it instanceof LengineListIterator) {
-      return ((LengineListIterator)it)._this();
-    }
-    it.forEachRemaining(ret::add);
-
-    return ret;
-  };
-  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _FILTER = (test, seq) -> {
-    Sequence ret = new Sequence();
-    LengineIterator it = seq.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (test.invoke(elem)) {
-        ret.add(elem);
-      }
-    }
-
-    return ret;
-  };
-  private static final LengineLambda2<Sequence, LengineLambda1<Boolean, Object>, CreateIterator> _SPLIT_AT = (test, seq) -> {
-    Sequence ret = new Sequence();
-    Sequence head = new Sequence();
-    Sequence tail = new Sequence();
-    LengineIterator it = seq.iterator();
-    while (it.hasNext()) {
-      Object elem = it.next();
-      if (test.invoke(elem)) {
-        break;
-      }
-      head.add(elem);
-
-    }
-
-    it.forEachRemaining(tail::add);
-    ret.add(head);
-    ret.add(tail);
-
-    return ret;
-  };
   private static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
     Object ret = acc;
     LengineIterator it = seq.iterator();
@@ -346,7 +269,6 @@ public class Prelude {
 
     return ret;
   };
-  private static final LengineLambda1<Sequence, Sequence> _FLATTEN = Sequence::flatten;
   private static final LengineLambda2<Boolean, Object, Object> _LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
   private static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
   private static final LengineLambda2<Boolean, Object, Object> _GREATER_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
@@ -393,14 +315,23 @@ public class Prelude {
   private static final LengineLambda1<Long, Object> _CAST_INT = Prelude::castLong;
   private static final LengineLambda1<Double, Object> _CAST_DOUBLE = Prelude::castDouble;
   private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
-  private static final LengineLambda1<Sequence, Object> _CAST_SEQUENCE = Prelude::castSequence;
+  private static final LengineLambda1<LengineList, Object> _CAST_LIST = (o) -> {
+    if (o instanceof String) {
+      return LengineList.create(o.toString());
+    } else if (o instanceof LengineList) {
+      return (LengineList) o;
+    }
+
+    throw new RuntimeException(String.format("Unable to cast from %s to List", o.getClass()));
+  };
+
 
   private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_DOUBLE = (obj) -> isInstanceOf(Double.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
-  private static final LengineLambda1<Boolean, Object> _IS_SEQUENCE = (obj) -> isInstanceOf(CreateIterator.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_LIST = (obj) -> isInstanceOf(CreateIterator.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj);
@@ -470,12 +401,7 @@ public class Prelude {
   public static final LengineLambdaCommon DROP = _DROP;
   public static final LengineLambdaCommon HEAD = _HEAD;
   public static final LengineLambdaCommon TAIL = _TAIL;
-  public static final LengineLambdaCommon TAKE_WHILE = _TAKE_WHILE;
-  public static final LengineLambdaCommon DROP_WHILE = _DROP_WHILE;
-  public static final LengineLambdaCommon FILTER = _FILTER;
-  public static final LengineLambdaCommon SPLIT_AT = _SPLIT_AT;
   public static final LengineLambdaCommon FOLD = _FOLD;
-  public static final LengineLambdaCommon FLATTEN = _FLATTEN;
   public static final LengineLambdaCommon LESS_THAN = _LESS_THAN;
   public static final LengineLambdaCommon LESS_EQUALS = _LESS_EQUALS;
   public static final LengineLambdaCommon GREATER_THAN = _GREATER_THAN;
@@ -500,13 +426,13 @@ public class Prelude {
   public static final LengineLambdaCommon CAST_INT = _CAST_INT;
   public static final LengineLambdaCommon CAST_DOUBLE = _CAST_DOUBLE;
   public static final LengineLambdaCommon CAST_CHARACTER = _CAST_CHARACTER;
-  public static final LengineLambdaCommon CAST_SEQUENCE = _CAST_SEQUENCE;
+  public static final LengineLambdaCommon CAST_LIST = _CAST_LIST;
   public static final LengineLambdaCommon IS_BOOL = _IS_BOOL;
   public static final LengineLambdaCommon IS_CHAR = _IS_CHAR;
   public static final LengineLambdaCommon IS_INT = _IS_INT;
   public static final LengineLambdaCommon IS_DOUBLE = _IS_DOUBLE;
   public static final LengineLambdaCommon IS_STR = _IS_STR;
-  public static final LengineLambdaCommon IS_SEQUENCE = _IS_SEQUENCE;
+  public static final LengineLambdaCommon IS_LIST = _IS_LIST;
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
   public static final LengineLambdaCommon IS_CONS = _IS_CONS;
   public static final LengineLambdaCommon IS_NIL = _IS_NIL;

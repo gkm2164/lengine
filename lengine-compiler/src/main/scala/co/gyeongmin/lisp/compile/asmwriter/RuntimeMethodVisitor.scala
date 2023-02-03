@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes._
 
@@ -27,29 +27,25 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-  def handle(body: List[LispValue],
-             requestedType: Class[_],
-             tailRecReference: Option[(LispSymbol, Label)])(
+  def handle(body: List[LispValue], requestedType: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val operation :: operands = body
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "if"                                                                    => visitIfStmt(operands, requestedType, tailRecReference)
-          case "and" | "or"                                                            => visit2BoolOps(op, requestedType, operands)
-          case "not"                                                                   => visitNotOps(operands, requestedType)
-          case "read-line"                                                             => visitReadLine
-          case "read-eof"                                                              => visitReadEof
-          case "read-file"                                                             => visitReadFile(operands)
-          case "read-file-seq"                                                         => visitReadFileSeq(operands)
-          case "export"                                                                => visitExport(operands)
-          case "import"                                                                => visitImport(operands)
-          case "entry"                                                                 => visitCreateEntry(operands)
-          case "key"                                                                   => visitMapKeyCreate(operands)
-          case "get"                                                                   => visitGetKeyName(operands)
-          case "keys"                                                                  => visitMapKeys(operands)
-          case _                                                                       => new RuntimeException("Unsupported operation: " + op)
+          case "if"            => visitIfStmt(operands, requestedType, tailRecReference)
+          case "read-line"     => visitReadLine
+          case "read-eof"      => visitReadEof
+          case "read-file"     => visitReadFile(operands)
+          case "read-file-seq" => visitReadFileSeq(operands)
+          case "export"        => visitExport(operands)
+          case "import"        => visitImport(operands)
+          case "entry"         => visitCreateEntry(operands)
+          case "key"           => visitMapKeyCreate(operands)
+          case "get"           => visitGetKeyName(operands)
+          case "keys"          => visitMapKeys(operands)
+          case _               => new RuntimeException("Unsupported operation: " + op)
         }
 
     }
@@ -78,7 +74,7 @@ object RuntimeMethodVisitor {
     mv.visitMethodCall(
       LengineMapClass,
       "keys",
-      SequenceClass
+      LengineList
     )
   }
 
@@ -139,40 +135,6 @@ object RuntimeMethodVisitor {
 
     mv.visitLispValue(filename, StringClass)
     mv.visitStaticMethodCall(PreludeClass, "readFileSeq", FileSequenceClass, StringClass)
-  }
-
-  private def visit2BoolOps(op: String, requestedType: Class[_], operands: List[LispValue])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
-  ): Unit = {
-    val a :: b :: Nil = operands
-    val mv            = runtimeEnvironment.methodVisitor
-    mv.visitLispValue(a, BooleanClass)
-    mv.visitLispValue(b, BooleanClass)
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      op,
-      BooleanClass,
-      BooleanClass,
-      BooleanClass
-    )
-    if (requestedType != ObjectClass) {
-      mv.visitCheckCast(requestedType)
-    }
-  }
-
-  private def visitNotOps(operands: List[LispValue],
-                          requestedType: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv = runtimeEnvironment.methodVisitor
-    operands.foreach(v => mv.visitLispValue(v, BooleanClass))
-    mv.visitStaticMethodCall(
-      PreludeClass,
-      "not",
-      BooleanClass,
-      BooleanClass
-    )
-    if (requestedType != BooleanClass) {
-      mv.visitCheckCast(requestedType)
-    }
   }
 
   private def visitIfStmt(operands: List[LispValue],

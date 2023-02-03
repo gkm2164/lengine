@@ -19,6 +19,8 @@ object LengineType {
   val CharacterClass: Class[java.lang.Character]     = classOf[Character]
 
   val PreludeClass: Class[Prelude]                 = classOf[Prelude]
+  val LengineListClass: Class[LengineList]         = classOf[LengineList]
+  val ConsClass: Class[Cons]                       = classOf[Cons]
   val LengineMapClass: Class[LengineMap]           = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]     = classOf[LengineMapKey]
   val LengineMapEntryClass: Class[LengineMapEntry] = classOf[LengineMapEntry]
@@ -36,7 +38,7 @@ object LengineType {
     classOf[LengineLambda10[_, _, _, _, _, _, _, _, _, _, _]],
   )
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
-  val SequenceClass: Class[LengineList]                    = classOf[LengineList]
+  val LengineList: Class[LengineList]                      = classOf[LengineList]
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
   val FileSequenceClass: Class[FileSequence]               = classOf[FileSequence]
 }

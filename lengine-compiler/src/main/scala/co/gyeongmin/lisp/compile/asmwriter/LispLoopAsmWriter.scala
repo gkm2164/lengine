@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorExtension
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{CreateIteratorClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ConsClass, CreateIteratorClass, LengineList, LengineListClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import lengine.runtime.{CreateIterator, LengineIterator, Sequence}
+import lengine.runtime.{CreateIterator, LengineIterator}
 import org.objectweb.asm.{Label, Opcodes}
 
 class LispLoopAsmWriter(forStmts: List[LispForStmt],
@@ -19,9 +19,9 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
     val mv = env.methodVisitor
 
     mv.visitStaticMethodCall(
-      classOf[Sequence],
-      "create",
-      classOf[Sequence]
+      LengineListClass,
+      "nil",
+      LengineListClass
     )
     mv.visitIntInsn(Opcodes.ASTORE, newSeqLoc)
   }
@@ -62,6 +62,8 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
           .visitForValue(tailRecReference = tailRecReference)
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
+        val tmpIdx = env.allocateNextVar
+
         env.registerVariable(symbol, varIdx, ObjectClass)
         val (seqIdx, dstSeqIdx, startLabel, endLabel) = seqWhileStart(seq)
         mv.visitALoad(seqIdx)
@@ -72,18 +74,16 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         )
         mv.visitAStore(varIdx)
         visitForStmt(tail, body)
-
-        val tmpIdx = env.allocateNextVar
-        mv.visitAStore(tmpIdx)
         mv.visitALoad(dstSeqIdx)
-        mv.visitCheckCast(classOf[Sequence])
-        mv.visitALoad(tmpIdx)
-        mv.visitMethodCall(
-          classOf[Sequence],
-          "add",
-          Void.TYPE,
-          classOf[Object]
+        mv.visitCheckCast(LengineListClass)
+        mv.visitStaticMethodCall(
+          LengineListClass,
+          "cons",
+          ConsClass,
+          ObjectClass,
+          LengineListClass
         )
+        mv.visitAStore(dstSeqIdx)
         env.deregisterVariable(symbol)
         mv.visitJumpInsn(Opcodes.GOTO, startLabel)
         mv.visitLabel(endLabel)

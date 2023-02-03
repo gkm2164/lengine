@@ -49,7 +49,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         capture =>
           runtimeEnvironment
             .getVar(capture)
-            .getOrElse(throw new RuntimeException(s"Unable to resolve: $capture"))
+            .getOrElse(throw CompileException(s"Unable to resolve: $capture", runtimeEnvironment.fileName, capture.tokenLocation))
       )
 
     createFnReference(fnName, resolvedCaptures)

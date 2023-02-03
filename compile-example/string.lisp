@@ -6,7 +6,7 @@
 (def xs (let ((x "33"))
              (+ x 234)))
 
-(println (len (seq "Hello World")))
+(println (len (list "Hello World")))
 (println (split "Hello,World,This,Is,Real,World" #\,))
 
 (println (head [1 2 3 4 5]))

@@ -20,17 +20,36 @@
               (fold seqs 0 (lambda (acc elem)
                 (+ acc elem)))))
 
-(println (take 3 seqs))
-(println (drop 3 seqs))
-(println (take-while (lambda (x) (<= x 3)) seqs))
-(println (drop-while (lambda (x) (<= x 3)) seqs))
+(fn take-while (p xs)
+               (case ((nil? xs) nil)
+                     ((p (head xs)) (cons (head xs) ($ p (tail xs))))
+                     default nil))
+
+(fn drop-while (p xs)
+               (case ((nil? xs) nil)
+                     ((p (head xs)) ($ p (tail xs)))
+                     default xs))
+
+(fn filter (p xs)
+           (case ((nil? xs) nil)
+                 ((p (head xs)) (cons (head xs) ($ p (tail xs))))
+                 default ($ p (tail xs))))
 
 (println (take 3 seqs))
 (println (drop 3 seqs))
 (println (take-while (lambda (x) (<= x 3)) seqs))
 (println (drop-while (lambda (x) (<= x 3)) seqs))
 
-(assert "should same" (= (take 3 seqs) [1 2 3]))
+(println (take 3 seqs))
+(println (drop 3 seqs))
+(println (take-while (lambda (x) (<= x 3)) seqs))
+(println (drop-while (lambda (x) (<= x 3)) seqs))
+
+(println "Taking")
+(println (take 3 seqs))
+(println [1 2 3])
+
+(assert-equals "should same" (take 3 seqs) [1 2 3])
 (assert "should same" (= (drop 3 seqs) [4 5]))
 (assert "should same" (= (take-while (lambda (x) (<= x 3)) seqs) [1 2 3]))
 (assert "should same" (= (drop-while (lambda (x) (<= x 3)) seqs) [4 5]))
@@ -44,7 +63,7 @@
                                  [1 2 3 4 5])
                          [4 5]))
 
-(loop for x in (seq "something")
+(loop for x in (list "something")
       (println x))
 
 (println (fold (range 1 5)
@@ -54,6 +73,17 @@
 (def comb (loop for x in (range 1 10)
                 for y in (=range 1 x)
                 [x y]))
+
+(fn ++ (xs ys)
+       (if (nil? xs) ys
+           (cons (head xs) (++ (tail xs) ys))))
+
+(fn flatten (xs)
+            (if (nil? xs) nil
+                (let ((h (head xs))
+                      (t (tail xs)))
+                     (if (list? h) (++ ($ h) ($ t))
+                         (cons h (flatten t))))))
 
 (println (loop for l in comb
                (do (println l)

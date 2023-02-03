@@ -141,9 +141,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     mv.allocateNewArray(ObjectClass, body.length)
     mv.visitArrayAssignWithLispValues(body)
     mv.visitStaticMethodCall(
-      SequenceClass,
+      LengineList,
       "create",
-      SequenceClass,
+      LengineList,
       ArrayObjectClass
     )
   }
