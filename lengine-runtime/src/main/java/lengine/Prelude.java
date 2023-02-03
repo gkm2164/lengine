@@ -36,6 +36,7 @@ import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
 import lengine.util.LengineMapKey;
 import lengine.runtime.LengineUnit;
+import lengine.util.LengineSequence;
 import lengine.util.Nil;
 import lengine.runtime.RangeSequence;
 
@@ -103,6 +104,8 @@ public class Prelude {
   private static String castString(Object from) {
     if (from instanceof LengineList) {
       return ((LengineList) from).printable(true);
+    } else if (from instanceof LengineSequence) {
+      return ((LengineSequence) from).printable(true);
     }
 
     return from.toString();
@@ -116,6 +119,18 @@ public class Prelude {
     }
 
     throw new RuntimeException(format("Unable to cast from %s to List", o.getClass()));
+  }
+
+  private static LengineSequence castSeq(Object o) {
+    if (o instanceof String) {
+      return LengineSequence.create(o.toString());
+    } else if (o instanceof LengineSequence) {
+      return (LengineSequence) o;
+    } else if (o instanceof CreateIterator) {
+      return LengineSequence.create((CreateIterator) o);
+    }
+
+    throw new RuntimeException(format("Unable to cast from %s to Sequence", o.getClass()));
   }
 
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
@@ -259,7 +274,14 @@ public class Prelude {
     while (i++ < n && it.hasNext()) {
       it.next();
     }
-    return ((LengineListIterator) it)._this();
+
+    if (it instanceof LengineListIterator) {
+      return ((LengineListIterator) it)._this();
+    } else {
+      LengineSequence seqs = new LengineSequence();
+      it.forEachRemaining(seqs::add);
+      return seqs;
+    }
   };
 
   private static <T> Boolean isInstanceOf(Class<T> cls, Object value) {
@@ -324,12 +346,14 @@ public class Prelude {
   private static final LengineLambda1<Double, Object> _CAST_DOUBLE = Prelude::castDouble;
   private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
   private static final LengineLambda1<LengineList, Object> _CAST_LIST = Prelude::castList;
+  private static final LengineLambda1<LengineSequence, Object> _CAST_SEQ = Prelude::castSeq;
   private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_DOUBLE = (obj) -> isInstanceOf(Double.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
-  private static final LengineLambda1<Boolean, Object> _IS_LIST = (obj) -> isInstanceOf(CreateIterator.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_LIST = (obj) -> isInstanceOf(LengineList.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj);
@@ -463,12 +487,14 @@ public class Prelude {
   public static final LengineLambdaCommon CAST_DOUBLE = _CAST_DOUBLE;
   public static final LengineLambdaCommon CAST_CHARACTER = _CAST_CHARACTER;
   public static final LengineLambdaCommon CAST_LIST = _CAST_LIST;
+  public static final LengineLambdaCommon CAST_SEQ = _CAST_SEQ;
   public static final LengineLambdaCommon IS_BOOL = _IS_BOOL;
   public static final LengineLambdaCommon IS_CHAR = _IS_CHAR;
   public static final LengineLambdaCommon IS_INT = _IS_INT;
   public static final LengineLambdaCommon IS_DOUBLE = _IS_DOUBLE;
   public static final LengineLambdaCommon IS_STR = _IS_STR;
   public static final LengineLambdaCommon IS_LIST = _IS_LIST;
+  public static final LengineLambdaCommon IS_SEQ = _IS_SEQ;
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
   public static final LengineLambdaCommon IS_CONS = _IS_CONS;
   public static final LengineLambdaCommon IS_NIL = _IS_NIL;

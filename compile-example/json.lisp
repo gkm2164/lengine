@@ -1,5 +1,8 @@
 (module Json)
 
+(import Module.filter)
+(import Module.reverse)
+
 ;;; Finally! reached to JSON related library
 
 ;;; Below is actually, "Reduce" operation.
@@ -61,7 +64,6 @@
 (println json-chs)
 
 (def json-ch-seq (list json-chs))
-(println json-ch-seq)
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
@@ -74,12 +76,10 @@
 (fn seq-to-llist (xs)
                  (fold-right xs nil cons))
 
-(fn filter (p xs)
-           (case ((nil? xs) nil)
-                 ((p (head xs)) (cons (head xs) ($ p (tail xs))))
-                 default ($ p (tail xs))))
+(println (str (reverse (seq-to-llist json-ch-seq))))
 
-(println (seq-to-llist json-ch-seq))
+(println (str (seq [1 2 3 4 5])))
+
 
 (fn json-obj (acc sequence)
              (case (((empty? sequence) acc)

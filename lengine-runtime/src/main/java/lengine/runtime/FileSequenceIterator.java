@@ -1,14 +1,10 @@
 package lengine.runtime;
 
-import org.apache.commons.collections4.iterators.PeekingIterator;
+import lengine.util.PeekingIterator;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 public class FileSequenceIterator implements LengineIterator, AutoCloseable {
