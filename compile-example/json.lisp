@@ -84,33 +84,44 @@
 
 (fn space? (ch) (contains space ch))
 (fn colon? (ch) (= #\: ch))
+(fn double-quote? (ch) (= #\" ch))
+(fn not-p (p) (lambda (x) (not (p x))))
 (fn and-combiner (p q) (lambda (x) (and (p x) (q x))))
 (fn .and (p-seqs) (fold p-seqs always-true and-combiner))
 (fn or-combiner  (p q)  (lambda (x) (or (p x) (q x))))
 (fn .or (p-seqs) (fold p-seqs always-false or-combiner))
 
-(fn parse-string (s) ["" s])
-(fn parse-number (s) [0 s])
-(fn parse-boolean (s) [false s])
-(fn parse-null (s) ["null" s])
+(fn next (s ch)
+         (let ((first (head s))
+               (last (tail s)))
+              (if (= first ch) s
+                  ($ last ch))))
+
+(fn parse-string (s) [(take-while (not-p double-quote?) s) (tail (drop-while (not-p double-quote?) s))])
+(fn parse-number (s) [0 (tail s)])
+(fn parse-boolean (s) [false (tail s)])
+(fn parse-null (s) ["null" (tail s)])
+(fn join (xs str)
+         (fold xs "" +))
 
 (fn parse-object (acc s pv)
     (case ((nil? s) acc)
-          ((= (head s) #\{) ($ acc (tail s) pv))
           ((= (head s) #\,) ($ acc (tail s) pv))
+          ((= (head s) #\Space) ($ acc (tail s) pv))
           ((= (head s) #\")
-            (let ((key-remains (parse-string s))    ;;; ["SomeString" REMAINS]
-                  (ignore (println key-remains))
-                  (key-name (head key-remains))     ;;; "SomeString"
-                  (ignore (println key-name))
-                  (remains (drop-while colon? (head (tail key-remains)))) ;;; REMAINS
-                  (ignore (println remains))
-                  (value-remains (pv remains))      ;;;
-                  (ignore (println value-remains))
+            (let ((key-remains (parse-string (tail s)))    ;;; ["SomeString" REMAINS]
+                  (key-name (join (head key-remains) ""))     ;;; "SomeString"
+                  (ignore (printf "KEY: %s\n" [key-name]))
+                  (after-key (head (tail key-remains)))
+                  (remains (drop 1 (next after-key #\Space))) ;;; REMAINS
+                  ;;; (ignore (printf "AFTER-COLON: %s\n" [remains]))
+                  (value-remains (pv remains))
+                  (ignore (printf "VALUE-REMAIN: %s\n" [value-remains]))
                   (value (head value-remains))
+
                   (ignore (println value))
                   (e (entry (key key-name) value))
-                  (ignore (println e))
+                  (ignore (str (println e)))
                   (remains-2 (drop-while space? (head (tail value-remains)))))
                  (parse-object (+ acc e) remains-2 pv)))
           default nil))
@@ -119,21 +130,19 @@
 
 (fn parse-value (json-str)
       (if (= 0 (len json-str)) ["" json-str]
-      (let ((clean (drop-while space? json-str))
-            (ignore (printf "ITER: %s\n" [(str clean)]))
-            (first (head clean))
-            (ignore (printf "ITER: %c\n" [first]))
+      (let (
+            (first (head json-str))
+            (ignore (printf "PARSE-VALUE: %c\n" [first]))
            )
 
-           (case ((= #\{ first) (parse-object {} (tail clean) $))
-                 ((= #\[ first) (parse-array  clean))
-                 ((= #\" first) (parse-string clean))
-                 ((contains (list "1234567890") first) (parse-number clean))
-                 ((= #\t first) (parse-boolean clean))
-                 ((= #\f first) (parse-boolean clean))
-                 ((= #\n first) (parse-null clean))
+           (case ((= #\{ first) (parse-object {} (tail json-str) $))
+                 ((= #\[ first) (parse-array  json-str))
+                 ((= #\" first) (parse-string (tail json-str)))
+                 ((contains (list "1234567890") first) (parse-number json-str))
+                 ((= #\t first) (parse-boolean json-str))
+                 ((= #\f first) (parse-boolean json-str))
+                 ((= #\n first) (parse-null json-str))
+                 ((= #\Space first) ($ (tail json-str)))
                  default nil))))
 
-(printf "[%s]" [(str llist)])
-(println (str (drop-while space? llist)))
 (println (head (parse-value llist)))

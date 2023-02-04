@@ -29,4 +29,9 @@ public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
   public Object setValue(Object value) {
     throw new IllegalArgumentException("the operation is not allowed");
   }
+
+  @Override
+  public String toString() {
+    return "(entry " + key + " -> " + value + ")";
+  }
 }

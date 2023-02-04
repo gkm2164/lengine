@@ -67,6 +67,11 @@ public class LengineSequence implements CreateIterator {
   }
 
   @Override
+  public String toString() {
+    return printable(true);
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof LengineSequence)) return false;
