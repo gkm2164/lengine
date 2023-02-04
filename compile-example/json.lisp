@@ -77,11 +77,10 @@
 
 (def llist (seq-to-llist json-ch-seq))
 
-(def space (seq [#\Space]))
+(def space [#\Space])
 
 (fn always-true  (any) true)
 (fn always-false (any) false)
-
 
 (fn space? (ch) (contains space ch))
 (fn colon? (ch) (= #\: ch))
@@ -90,24 +89,30 @@
 (fn or-combiner  (p q)  (lambda (x) (or (p x) (q x))))
 (fn .or (p-seqs) (fold p-seqs always-false or-combiner))
 
-(fn parse-string (s) "")
+(fn parse-string (s) ["" s])
 (fn parse-number (s) [0 s])
 (fn parse-boolean (s) [false s])
 (fn parse-null (s) ["null" s])
 
-(fn parse-object-loop (acc s pv)
+(fn parse-object (acc s pv)
     (case ((nil? s) acc)
-          ((= (head s) #\{) [acc (tail s)])
+          ((= (head s) #\{) ($ acc (tail s) pv))
           ((= (head s) #\,) ($ acc (tail s) pv))
           ((= (head s) #\")
             (let ((key-remains (parse-string s))    ;;; ["SomeString" REMAINS]
+                  (ignore (println key-remains))
                   (key-name (head key-remains))     ;;; "SomeString"
+                  (ignore (println key-name))
                   (remains (drop-while colon? (head (tail key-remains)))) ;;; REMAINS
+                  (ignore (println remains))
                   (value-remains (pv remains))      ;;;
+                  (ignore (println value-remains))
                   (value (head value-remains))
+                  (ignore (println value))
                   (e (entry (key key-name) value))
+                  (ignore (println e))
                   (remains-2 (drop-while space? (head (tail value-remains)))))
-                 (parse-object-loop (+ acc e) remains-2 pv)))
+                 (parse-object (+ acc e) remains-2 pv)))
           default nil))
 
 (fn parse-array  (s) [[] s])
@@ -115,14 +120,12 @@
 (fn parse-value (json-str)
       (if (= 0 (len json-str)) ["" json-str]
       (let ((clean (drop-while space? json-str))
-            (ignore (printf "ITER: %s" [(str clean)]))
+            (ignore (printf "ITER: %s\n" [(str clean)]))
             (first (head clean))
-            (ignore (println ""))
-            (ignore (printf "ITER: %c" [first]))
-            (ignore (println ""))
+            (ignore (printf "ITER: %c\n" [first]))
            )
 
-           (case ((= #\{ first) (parse-object-loop {} (tail clean) $))
+           (case ((= #\{ first) (parse-object {} (tail clean) $))
                  ((= #\[ first) (parse-array  clean))
                  ((= #\" first) (parse-string clean))
                  ((contains (list "1234567890") first) (parse-number clean))
@@ -131,6 +134,6 @@
                  ((= #\n first) (parse-null clean))
                  default nil))))
 
-(printf "[ %s ]" [(str llist)])
+(printf "[%s]" [(str llist)])
 (println (str (drop-while space? llist)))
 (println (head (parse-value llist)))

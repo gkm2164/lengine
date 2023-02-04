@@ -206,11 +206,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     } else {
       itself
     }
-    f.body.tokenLocation.foreach(loc => {
-      val label = new Label()
-      mv.visitLabel(label)
-      mv.visitLineNumber(loc.line, label)
-    })
 
     mv.visitLispValue(f.body, ObjectClass, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))(
       newRuntimeEnvironment

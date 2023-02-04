@@ -31,6 +31,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
   }
 
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = {
+    mv.visitLineForValue(clause)
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
@@ -45,12 +46,16 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
               case (v, loc) =>
                 mv.visitLispValue(v, ObjectClass)
                 mv.visitAStore(loc + 1)
+                mv.visitLineForValue(v)
             }
             mv.visitGoto(label)
           case _ =>
             val argSize = operands.size
             mv.visitLispValue(value, LengineLambdaClass(argSize))
-            operands.foreach(v => mv.visitLispValue(v, ObjectClass))
+            operands.foreach(v => {
+              mv.visitLispValue(v, ObjectClass)
+              mv.visitLineForValue(v)
+            })
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),
               "invoke",

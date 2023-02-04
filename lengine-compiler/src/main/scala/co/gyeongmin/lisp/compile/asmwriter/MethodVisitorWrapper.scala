@@ -15,8 +15,12 @@ import org.objectweb.asm.Opcodes._
 import java.lang.reflect.Field
 
 class MethodVisitorWrapper(mv: MethodVisitor) {
-
-
+  def visitLineForValue(value: LispValue): Unit =
+    value.line.foreach(line => {
+      val label = new Label()
+      mv.visitLineNumber(line, label)
+      mv.visitLabel(label)
+    })
 
   val stackSizeTrace = new AtomicIntegerWrapper
 
@@ -189,7 +193,6 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
     mv.visitFieldInsn(PUTFIELD, owner, fieldName, Type.getType(descriptorClass).getDescriptor)
     stackSizeTrace.decrementAndGet()
   }
-
 
   private def visitGetStaticField(owner: Class[_], field: Field, descriptor: Class[_]): Unit =
     visitGetStaticField(owner, field.getName, descriptor)
