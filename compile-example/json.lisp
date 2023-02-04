@@ -90,10 +90,11 @@
 (fn join (xs str)
          (fold xs "" +))
 
-(fn parse-string (s) [
-    (join (take-while (not-p double-quote?) s) "")
-    (tail (drop-while (not-p double-quote?) s))
-])
+(fn parse-string (acc s)
+  (if (nil? s) [acc s]
+  (if (= (head s) #\") [acc (tail s)]
+  ($ (+ acc (head s)) (tail s)))))
+
 (fn parse-number (s) [0 (tail s)])
 (fn parse-boolean (s) [false (tail s)])
 (fn parse-null (s) [nil (drop 4 s)])
@@ -104,7 +105,7 @@
           ((= (head s) #\,) ($ acc (tail s) pv))
           ((= (head s) #\Space) ($ acc (tail s) pv))
           ((= (head s) #\")
-            (let ((key-remains (parse-string (tail s)))       ;;; ["SomeString" REMAINS]
+            (let ((key-remains (parse-string "" (tail s)))       ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))            ;;; "SomeString"
                   (after-key (head (tail key-remains)))
                   (remains (drop 1 after-key)) ;;; REMAINS
@@ -134,7 +135,7 @@
 
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
                  ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
-                 ((= #\" first) (parse-string (tail json-str)))
+                 ((= #\" first) (parse-string "" (tail json-str)))
                  ((contains (list "1234567890") first) (parse-number json-str))
                  ((= #\t first) (parse-boolean json-str))
                  ((= #\f first) (parse-boolean json-str))
