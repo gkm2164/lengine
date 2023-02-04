@@ -23,7 +23,7 @@ case class SpecialToken(body: String) extends LispValue {
   val NumberRegex: Regex =
     """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+(/([0-9a-zA-Z]+))?)""".r
   private val CharRegex: Regex =
-    """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|Quote|DoubleQuote|Colon|LBrace|RBrace|.?)""".r
+    """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.)""".r
 
   private val charNumMap: Map[Char, Int] =
     ('0' to '9').zipWithIndex.toMap ++
@@ -97,12 +97,6 @@ case class SpecialToken(body: String) extends LispValue {
         case "Page"        => Right(LispChar('\f'))
         case "Return"      => Right(LispChar('\r'))
         case "Rubout"      => Right(LispChar(0x08))
-        case "Space"       => Right(LispChar(' '))
-        case "Quote"       => Right(LispChar('\''))
-        case "DoubleQuote" => Right(LispChar('"'))
-        case "Colon"       => Right(LispChar(':'))
-        case "LBrace"      => Right(LispChar('{'))
-        case "RBrace"      => Right(LispChar('}'))
         case ch            => Right(LispChar(ch.head))
       }
     case v => Left(UnknownMacroError(v))

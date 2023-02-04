@@ -3,6 +3,7 @@ package co.gyeongmin.lisp.lexer
 import co.gyeongmin.lisp.errors.tokenizer.{ EOFError, TokenizeError, WrongEscapeError }
 import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
+import org.apache.commons.collections4.Trie
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.tailrec
@@ -20,9 +21,11 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case ('#', _) if escape =>
-          parseString(builder + "#", wrap)
-        case ('#', _) =>
+        case ('\\', _) if escape =>
+          parseString(builder + "\\", wrap)
+        case (ch, _) if escape =>
+          parseString(builder + s"\\$ch", wrap)
+        case ('\\', _) =>
           parseString(builder, wrap, escape = true)
         case (ch, _) if ch == wrap && escape =>
           parseString(builder + wrap, wrap)
@@ -40,9 +43,10 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case (' ' | '\t' | '\n', _)        => Right(Seq(acc))
-        case (ch @ ('(' | '[' | '{'), _) if acc._1.nonEmpty => Right(Seq((acc._1 + ch, acc._2)))
-        case (ch @ ('(' | '[' | '{'), loc) => Right(Seq((ch.toString, loc)))
+        case (' ' | '\t' | '\n', _)                                 => Right(Seq(acc))
+        case (ch, _) if "([{}])\";".contains(ch) && acc._1 == "#\\" => Right(Seq((acc._1 + ch, acc._2)))
+        case (ch @ ('(' | '[' | '{'), _) if acc._1.nonEmpty         => Right(Seq((acc._1 + ch, acc._2)))
+        case (ch @ ('(' | '[' | '{'), loc)                          => Right(Seq((ch.toString, loc)))
         case (ch @ (']' | ')' | '}'), loc) if acc._1.nonEmpty =>
           Right(Seq(acc, (ch.toString, loc)))
         case (ch @ (']' | ')' | '}'), tokenLoc) => Right(Seq((ch.toString, tokenLoc)))

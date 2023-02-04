@@ -19,7 +19,7 @@
     (join-recur (head strs) (tail strs) delim))
 
 ;;; Make str -> "str"
-(fn with-double-quotes (s) (format "#"%s#"" [s]))
+(fn with-double-quotes (s) (format "\"%s\"" [s]))
 
 (fn to-json-object (obj to-json)
                    (let ((ks (keys obj))
@@ -56,9 +56,8 @@
                        [(- (now) start) json-str])))
 
 (loop for x in result
-      (let ((fmt "%dms elapsed, and got result: [%s]"))
-           (do (printf fmt x)
-               return (println ""))))
+      (let ((fmt "%dms elapsed, and got result: [%s]\n"))
+           (printf fmt x)))
 
 (def json-file-stream (read-file-seq "./compile-example/json-example.json"))
 
@@ -85,7 +84,7 @@
 
 
 (fn space? (ch) (contains space ch))
-(fn colon? (ch) (= #\Colon ch))
+(fn colon? (ch) (= #\: ch))
 (fn and-combiner (p q) (lambda (x) (and (p x) (q x))))
 (fn .and (p-seqs) (fold p-seqs always-true and-combiner))
 (fn or-combiner  (p q)  (lambda (x) (or (p x) (q x))))
@@ -98,9 +97,9 @@
 
 (fn parse-object-loop (acc s pv)
     (case ((nil? s) acc)
-          ((= (head s) #\RBrace) [acc (tail s)])
+          ((= (head s) #\{) [acc (tail s)])
           ((= (head s) #\,) ($ acc (tail s) pv))
-          ((= (head s) #\DoubleQuote)
+          ((= (head s) #\")
             (let ((key-remains (parse-string s))    ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))     ;;; "SomeString"
                   (remains (drop-while colon? (head (tail key-remains)))) ;;; REMAINS
@@ -123,9 +122,9 @@
             (ignore (println ""))
            )
 
-           (case ((= #\LBrace first) (parse-object-loop {} (tail clean) $))
+           (case ((= #\{ first) (parse-object-loop {} (tail clean) $))
                  ((= #\[ first) (parse-array  clean))
-                 ((= #\DoubleQuote first) (parse-string clean))
+                 ((= #\" first) (parse-string clean))
                  ((contains (list "1234567890") first) (parse-number clean))
                  ((= #\t first) (parse-boolean clean))
                  ((= #\f first) (parse-boolean clean))

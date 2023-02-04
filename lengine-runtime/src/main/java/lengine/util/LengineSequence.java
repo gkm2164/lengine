@@ -10,55 +10,74 @@ import java.util.stream.Collectors;
  * Accessed with `seq`
  */
 public class LengineSequence implements CreateIterator {
-    private final LinkedList<Object> list = new LinkedList<>();
+  private final LinkedList<Object> list;
 
-    public static LengineSequence create(String str) {
-        char[] chs = str.toCharArray();
-        LengineSequence ret = new LengineSequence();
-        for (char ch : chs) {
-            ret.list.add(ch);
-        }
-        return ret;
+  private LengineSequence() {
+    this.list = new LinkedList<>();
+  }
+  private LengineSequence(LinkedList<Object> list) {
+    this.list = list;
+  }
+
+  public static LengineSequence create(String str) {
+    char[] chs = str.toCharArray();
+    LengineSequence ret = new LengineSequence();
+    for (char ch : chs) {
+      ret.list.add(ch);
     }
+    return ret;
+  }
 
-    public static LengineSequence create(CreateIterator o) {
-        LengineIterator it = o.iterator();
-        LengineSequence ret = new LengineSequence();
-        it.forEachRemaining(ret::add);
-        return ret;
-    }
+  public static LengineSequence create(CreateIterator o) {
+    LengineIterator it = o.iterator();
+    LengineSequence ret = new LengineSequence();
+    it.forEachRemaining(ret::add);
+    return ret;
+  }
 
-    @Override
-    public LengineIterator iterator() {
-        return new LengineSequenceIterator(list);
-    }
+  private static LengineSequence create(LinkedList<Object> origin) {
+    return new LengineSequence(origin);
+  }
 
-    @Override
-    public Long len() {
-        return (long) list.size();
-    }
+  public static LengineSequence create(LengineIterator it) {
+    LinkedList<Object> obj = new LinkedList<>();
+    it.forEachRemaining(obj::add);
+    return create(obj);
+  }
 
-    @Override
-    public String printable(boolean isFirst) {
-        return list.stream().map(Object::toString).collect(Collectors.joining(" ", "(seq ", ")"));
-    }
+  @Override
+  public LengineIterator iterator() {
+    return new LengineSequenceIterator(list);
+  }
 
-    public void add(Object o) {
-        list.add(o);
-    }
+  @Override
+  public Long len() {
+    return (long) list.size();
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof LengineSequence)) return false;
+  @Override
+  public String printable(boolean isFirst) {
+    return list.stream().map(Object::toString).collect(Collectors.joining(" ", "(seq ", ")"));
+  }
 
-        LengineSequence that = (LengineSequence) o;
+  public LengineSequence add(Object o) {
+    LinkedList<Object> newList = new LinkedList<>(list);
+    newList.add(o);
+    return create(newList);
+  }
 
-        return list.equals(that.list);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof LengineSequence)) return false;
 
-    @Override
-    public int hashCode() {
-        return list.hashCode();
-    }
+    LengineSequence that = (LengineSequence) o;
+
+    return list.equals(that.list);
+  }
+
+  @Override
+  public int hashCode() {
+    return list.hashCode();
+  }
 }

@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ ReservedKeywordFunctions, ReservedKeywordVars }
 import co.gyeongmin.lisp.lexer.Tokenizer
-import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
+import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import co.gyeongmin.lisp.parser.{appendForbiddenKeywords, parseValue}
+import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import co.gyeongmin.lisp.parser.{ appendForbiddenKeywords, parseValue }
 
 import java.io.FileOutputStream
 import scala.annotation.tailrec
@@ -18,8 +18,9 @@ object Main {
       case Stream.Empty => acc.toList
       case _ =>
         parseValue(tokenStream) match {
-          case Left(err)                  => throw new RuntimeException(s"Error while parse: ${err.message}")
-          case Right((lispValue, remain)) => compileLoop(acc :+ lispValue, remain)
+          case Right((lispValue, remain)) =>
+            compileLoop(acc :+ lispValue, remain)
+          case Left(err) => throw new RuntimeException(s"while parse: ${err.message}")
         }
     }
 

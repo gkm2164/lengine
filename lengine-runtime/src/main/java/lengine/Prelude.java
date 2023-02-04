@@ -278,9 +278,7 @@ public class Prelude {
     if (it instanceof LengineListIterator) {
       return ((LengineListIterator) it)._this();
     } else {
-      LengineSequence seqs = new LengineSequence();
-      it.forEachRemaining(seqs::add);
-      return seqs;
+      return LengineSequence.create(it);
     }
   };
 
@@ -456,8 +454,7 @@ public class Prelude {
       LengineList head = (LengineList) seq;
       return head.add(elem);
     } else if (seq instanceof LengineSequence) {
-      ((LengineSequence)seq).add(elem);
-      return seq;
+      return ((LengineSequence)seq).add(elem);
     }
 
     throw new RuntimeException("currently not supporting the operation");

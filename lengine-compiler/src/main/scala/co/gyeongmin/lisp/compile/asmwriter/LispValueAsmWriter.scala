@@ -74,7 +74,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
     case LispString(str) => // 1 stack
-      mv.visitLdcInsn(str)
+      mv.visitLdcInsn(str.replaceAll("\\\\n", "\n"))
     case LispList(body) =>
       declareSequence(body)
     case LispObject(kv) =>
