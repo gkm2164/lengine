@@ -72,10 +72,6 @@
 (fn fold-right (seq acc folder)
                 (fold seq acc (lambda (elem acc) (folder acc elem))))
 
-(println json-chs)
-(println json-ch-seq)
-(println "=====")
-
 (fn not-p (p) (lambda (x) (not (p x))))
 
 (fn join (xs str)
@@ -138,3 +134,12 @@
 (println parsed-value)
 (println (:header (:menu parsed-value)))
 (println (:items (:menu parsed-value)))
+
+(def result (loop for x in (=range 1 10)
+                  (let ((start (now))
+                        (json-obj (parse-value json-ch-seq)))
+                       [(- (now) start) json-obj])))
+
+(loop for x in result
+      (let ((fmt "%dms elapsed, and got result: [%s]\n"))
+           (printf fmt x)))
