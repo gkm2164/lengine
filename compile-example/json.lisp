@@ -117,12 +117,12 @@
             (let ((key-remains (parse-string (tail s)))       ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))            ;;; "SomeString"
                   (after-key (head (tail key-remains)))
-                  (remains (drop 1 (next after-key #\Space))) ;;; REMAINS
+                  (remains (drop 1 after-key)) ;;; REMAINS
                   (value-remains (pv remains))
                   (value (head value-remains))
                   (e (entry (key key-name) value))
-                  (remains-2 (head (tail value-remains))))
-                 ($ (+ acc e) remains-2 pv)))
+                  (remains (head (tail value-remains))))
+                 ($ (+ acc e) remains pv)))
           default [acc s]))
 
 (fn parse-array (acc s pv)
