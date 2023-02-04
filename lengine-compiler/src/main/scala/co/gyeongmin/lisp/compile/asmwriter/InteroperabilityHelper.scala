@@ -38,6 +38,7 @@ object InteroperabilityHelper {
     "or"      -> ExportSymbols.OR_FIELD,
     "not"     -> ExportSymbols.NOT_FIELD,
     "+"       -> ExportSymbols.ADD_FIELD,
+    "+:"      -> ExportSymbols.APPEND_ITEM_FIELD,
     "-"       -> ExportSymbols.SUB_FIELD,
     "*"       -> ExportSymbols.MULT_FIELD,
     "/"       -> ExportSymbols.DIV_FIELD,

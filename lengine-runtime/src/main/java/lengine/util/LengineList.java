@@ -70,4 +70,13 @@ public abstract class LengineList implements CreateIterator {
         Cons _this = (Cons)this;
         return new Cons(_this.item, _this.next);
     }
+
+    public Cons add(Object elem) {
+        if (this instanceof Cons) {
+            Cons _this = (Cons)this;
+            _this.setNext(_this.next.add(elem));
+            return _this;
+        }
+        return cons(elem, nil());
+    }
 }

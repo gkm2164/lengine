@@ -23,7 +23,7 @@ object LispToken {
   private val ObjectReferSymbolRegex: Regex =
     """:([.a-zA-Z\-+/*%<>=?][.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
   private val SymbolRegex: Regex =
-    """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
+    """([$.a-zA-Z\-+/*%<>=?:][$.a-zA-Z0-9\-+/*%<>=?:]*\*?)""".r
   private val LazySymbolRegex: Regex =
     """('[$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*)""".r
   private val ListSymbolRegex: Regex =

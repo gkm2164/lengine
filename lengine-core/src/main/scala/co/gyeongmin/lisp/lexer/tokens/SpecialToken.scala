@@ -2,17 +2,9 @@ package co.gyeongmin.lisp.lexer.tokens
 
 import cats.implicits.catsSyntaxEitherId
 import co.gyeongmin.lisp.errors.eval.EvalError
-import co.gyeongmin.lisp.errors.tokenizer.{
-  InvalidNumberTokenTypeError,
-  TokenizeError,
-  UnknownMacroError
-}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispValue}
-import co.gyeongmin.lisp.lexer.values.numbers.{
-  IntegerNumber,
-  LispNumber,
-  RatioNumber
-}
+import co.gyeongmin.lisp.errors.tokenizer.{ InvalidNumberTokenTypeError, TokenizeError, UnknownMacroError }
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispValue }
+import co.gyeongmin.lisp.lexer.values.numbers.{ IntegerNumber, LispNumber, RatioNumber }
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
@@ -30,8 +22,8 @@ case class SpecialToken(body: String) extends LispValue {
     */
   val NumberRegex: Regex =
     """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+(/([0-9a-zA-Z]+))?)""".r
-  val CharRegex: Regex =
-    """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.?)""".r
+  private val CharRegex: Regex =
+    """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|Quote|DoubleQuote|Colon|LBrace|RBrace|.?)""".r
 
   private val charNumMap: Map[Char, Int] =
     ('0' to '9').zipWithIndex.toMap ++
@@ -49,9 +41,9 @@ case class SpecialToken(body: String) extends LispValue {
 
   // need error handling
   def parseNumber(
-    base: Int,
-    sign: Int,
-    number: String
+      base: Int,
+      sign: Int,
+      number: String
   ): Either[TokenizeError, LispNumber] = {
     @tailrec
     def loop(acc: Long, remains: String): Either[TokenizeError, LispNumber] =
@@ -99,14 +91,19 @@ case class SpecialToken(body: String) extends LispValue {
       parseNumber(b, s, number)
     case CharRegex(char) =>
       char match {
-        case "Backspace" => Right(LispChar('\b'))
-        case "Tab"       => Right(LispChar('\t'))
-        case "Linefeed"  => Right(LispChar('\n'))
-        case "Page"      => Right(LispChar('\f'))
-        case "Return"    => Right(LispChar('\r'))
-        case "Rubout"    => Right(LispChar(0x08))
-        case "Space"     => Right(LispChar(' '))
-        case ch          => Right(LispChar(ch.head))
+        case "Backspace"   => Right(LispChar('\b'))
+        case "Tab"         => Right(LispChar('\t'))
+        case "Linefeed"    => Right(LispChar('\n'))
+        case "Page"        => Right(LispChar('\f'))
+        case "Return"      => Right(LispChar('\r'))
+        case "Rubout"      => Right(LispChar(0x08))
+        case "Space"       => Right(LispChar(' '))
+        case "Quote"       => Right(LispChar('\''))
+        case "DoubleQuote" => Right(LispChar('"'))
+        case "Colon"       => Right(LispChar(':'))
+        case "LBrace"      => Right(LispChar('{'))
+        case "RBrace"      => Right(LispChar('}'))
+        case ch            => Right(LispChar(ch.head))
       }
     case v => Left(UnknownMacroError(v))
   }

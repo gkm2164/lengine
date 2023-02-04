@@ -40,7 +40,7 @@ public class LengineSequence implements CreateIterator {
 
     @Override
     public String printable(boolean isFirst) {
-        return list.stream().map(Object::toString).collect(Collectors.joining(" ", "(list ", ")"));
+        return list.stream().map(Object::toString).collect(Collectors.joining(" ", "(seq ", ")"));
     }
 
     public void add(Object o) {

@@ -96,6 +96,9 @@ class MainTest extends FlatSpec with Matchers {
   "string test compile json.lisp" should "run and return" in {
     println("json.lisp")
     Main.main(Array(
+      "./compile-example/seq-module.lisp"
+    ))
+    Main.main(Array(
       "./compile-example/json.lisp",
     ))
   }

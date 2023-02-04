@@ -1,21 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{
-  LispCaseCondition,
-  LispCaseStmt,
-  LispDoStmt,
-  LispForStmt,
-  LispLetDecl,
-  LispLetDef,
-  LispLoopStmt,
-  LispValueDef
-}
-import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
+import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber }
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispValue }
+import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 
 object FunctionAnalyzer {
 
@@ -43,6 +34,7 @@ object FunctionAnalyzer {
 
     body match {
       case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() | LispFalse() =>
+      case LispObject(kv) => kv.values.foreach(v => captureUnknownVariables(captureVariables, v))
       case LispList(body) =>
         body.foreach(v => captureUnknownVariables(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)

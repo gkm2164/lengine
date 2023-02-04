@@ -356,7 +356,7 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
-  private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || _LEN.invoke(obj) == 0;
   private static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
   private static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
     File file = new File(path);
@@ -449,7 +449,19 @@ public class Prelude {
     }
   };
 
-  public static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
+  private static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
+
+  private static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (seq, elem) -> {
+    if (seq instanceof LengineList) {
+      LengineList head = (LengineList) seq;
+      return head.add(elem);
+    } else if (seq instanceof LengineSequence) {
+      ((LengineSequence)seq).add(elem);
+      return seq;
+    }
+
+    throw new RuntimeException("currently not supporting the operation");
+  };
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -510,6 +522,7 @@ public class Prelude {
   public static final LengineLambdaCommon READ_EOF = _READ_EOF;
   public static final LengineLambdaCommon READ_FILE = _READ_FILE;
   public static final LengineLambdaCommon READ_FILE_SEQ = _READ_FILE_SEQ;
+  public static final LengineLambdaCommon APPEND_ITEM = _APPEND_ITEM;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

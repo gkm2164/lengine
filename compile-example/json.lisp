@@ -1,7 +1,9 @@
 (module Json)
 
-(import Module.filter)
-(import Module.reverse)
+(import SeqModule.filter)
+(import SeqModule.take-while)
+(import SeqModule.drop-while)
+(import SeqModule.contains)
 
 ;;; Finally! reached to JSON related library
 
@@ -61,27 +63,75 @@
 (def json-file-stream (read-file-seq "./compile-example/json-example.json"))
 
 (def json-chs (fold json-file-stream "" +))
-(println json-chs)
 
 (def json-ch-seq (list json-chs))
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
 
-(fn whitespace? (ch) false)
 
 (fn fold-right (seq acc folder)
                 (fold seq acc (lambda (elem acc) (folder acc elem))))
 
 (fn seq-to-llist (xs)
-                 (fold-right xs nil cons))
+                 (fold xs (seq nil) +:))
 
-(println (str (reverse (seq-to-llist json-ch-seq))))
+(def llist (seq-to-llist json-ch-seq))
 
-(println (str (seq [1 2 3 4 5])))
+(def space (seq [#\Space]))
+
+(fn always-true  (any) true)
+(fn always-false (any) false)
 
 
-(fn json-obj (acc sequence)
-             (case (((empty? sequence) acc)
-                    ((whitespace? (head sequence)) ($ acc (tail sequence))))
-                   default acc))
+(fn space? (ch) (contains space ch))
+(fn colon? (ch) (= #\Colon ch))
+(fn and-combiner (p q) (lambda (x) (and (p x) (q x))))
+(fn .and (p-seqs) (fold p-seqs always-true and-combiner))
+(fn or-combiner  (p q)  (lambda (x) (or (p x) (q x))))
+(fn .or (p-seqs) (fold p-seqs always-false or-combiner))
+
+(fn parse-string (s) "")
+(fn parse-number (s) [0 s])
+(fn parse-boolean (s) [false s])
+(fn parse-null (s) ["null" s])
+
+(fn parse-object-loop (acc s pv)
+    (case ((nil? s) acc)
+          ((= (head s) #\RBrace) [acc (tail s)])
+          ((= (head s) #\,) ($ acc (tail s) pv))
+          ((= (head s) #\DoubleQuote)
+            (let ((key-remains (parse-string s))    ;;; ["SomeString" REMAINS]
+                  (key-name (head key-remains))     ;;; "SomeString"
+                  (remains (drop-while colon? (head (tail key-remains)))) ;;; REMAINS
+                  (value-remains (pv remains))      ;;;
+                  (value (head value-remains))
+                  (e (entry (key key-name) value))
+                  (remains-2 (drop-while space? (head (tail value-remains)))))
+                 (parse-object-loop (+ acc e) remains-2 pv)))
+          default nil))
+
+(fn parse-array  (s) [[] s])
+
+(fn parse-value (json-str)
+      (if (= 0 (len json-str)) ["" json-str]
+      (let ((clean (drop-while space? json-str))
+            (ignore (printf "ITER: %s" [(str clean)]))
+            (first (head clean))
+            (ignore (println ""))
+            (ignore (printf "ITER: %c" [first]))
+            (ignore (println ""))
+           )
+
+           (case ((= #\LBrace first) (parse-object-loop {} (tail clean) $))
+                 ((= #\[ first) (parse-array  clean))
+                 ((= #\DoubleQuote first) (parse-string clean))
+                 ((contains (list "1234567890") first) (parse-number clean))
+                 ((= #\t first) (parse-boolean clean))
+                 ((= #\f first) (parse-boolean clean))
+                 ((= #\n first) (parse-null clean))
+                 default nil))))
+
+(printf "[ %s ]" [(str llist)])
+(println (str (drop-while space? llist)))
+(println (head (parse-value llist)))
