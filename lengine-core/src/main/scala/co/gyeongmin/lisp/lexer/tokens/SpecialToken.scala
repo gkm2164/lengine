@@ -96,6 +96,7 @@ case class SpecialToken(body: String) extends LispValue {
         case "Linefeed"    => Right(LispChar('\n'))
         case "Page"        => Right(LispChar('\f'))
         case "Return"      => Right(LispChar('\r'))
+        case "Space"       => Right(LispChar(' '))
         case "Rubout"      => Right(LispChar(0x08))
         case ch            => Right(LispChar(ch.head))
       }
