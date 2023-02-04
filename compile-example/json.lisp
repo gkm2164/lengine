@@ -152,4 +152,7 @@
                  ((= #\Space first) ($ (tail json-str)))
                  default ["" json-str]))))
 
-(println (head (parse-value llist)))
+(def parsed-value (head (parse-value llist)))
+(println parsed-value)
+(println (:header (:menu parsed-value)))
+(println (:items (:menu parsed-value)))
