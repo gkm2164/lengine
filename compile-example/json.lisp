@@ -86,16 +86,6 @@
 (fn colon? (ch) (= #\: ch))
 (fn double-quote? (ch) (= #\" ch))
 (fn not-p (p) (lambda (x) (not (p x))))
-(fn and-combiner (p q) (lambda (x) (and (p x) (q x))))
-(fn .and (p-seqs) (fold p-seqs always-true and-combiner))
-(fn or-combiner  (p q)  (lambda (x) (or (p x) (q x))))
-(fn .or (p-seqs) (fold p-seqs always-false or-combiner))
-
-(fn next (s ch)
-         (let ((first (head s))
-               (last (tail s)))
-              (if (= first ch) s
-                  ($ last ch))))
 
 (fn join (xs str)
          (fold xs "" +))
