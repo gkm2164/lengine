@@ -105,10 +105,10 @@
           ((= (head s) #\,) ($ acc (tail s) pv))
           ((= (head s) #\Space) ($ acc (tail s) pv))
           ((= (head s) #\")
-            (let ((key-remains (parse-string "" (tail s)))       ;;; ["SomeString" REMAINS]
+            (let ((key-remains (parse-string "" (tail s))) ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))            ;;; "SomeString"
                   (after-key (head (tail key-remains)))
-                  (remains (drop 1 after-key)) ;;; REMAINS
+                  (remains (drop 1 after-key))             ;;; REMAINS
                   (value-remains (pv remains))
                   (value (head value-remains))
                   (e (entry (key key-name) value))
