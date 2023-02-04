@@ -97,52 +97,59 @@
               (if (= first ch) s
                   ($ last ch))))
 
-(fn parse-string (s) [(take-while (not-p double-quote?) s) (tail (drop-while (not-p double-quote?) s))])
-(fn parse-number (s) [0 (tail s)])
-(fn parse-boolean (s) [false (tail s)])
-(fn parse-null (s) ["null" (tail s)])
 (fn join (xs str)
          (fold xs "" +))
 
+(fn parse-string (s) [
+    (join (take-while (not-p double-quote?) s) "")
+    (tail (drop-while (not-p double-quote?) s))
+])
+(fn parse-number (s) [0 (tail s)])
+(fn parse-boolean (s) [false (tail s)])
+(fn parse-null (s) [nil (drop 4 s)])
+
 (fn parse-object (acc s pv)
-    (case ((nil? s) acc)
+    (case ((nil? s) [acc s])
+          ((= (head s) #\}) [acc (tail s)])
           ((= (head s) #\,) ($ acc (tail s) pv))
           ((= (head s) #\Space) ($ acc (tail s) pv))
           ((= (head s) #\")
-            (let ((key-remains (parse-string (tail s)))    ;;; ["SomeString" REMAINS]
-                  (key-name (join (head key-remains) ""))     ;;; "SomeString"
-                  (ignore (printf "KEY: %s\n" [key-name]))
+            (let ((key-remains (parse-string (tail s)))       ;;; ["SomeString" REMAINS]
+                  (key-name (head key-remains))            ;;; "SomeString"
                   (after-key (head (tail key-remains)))
                   (remains (drop 1 (next after-key #\Space))) ;;; REMAINS
-                  ;;; (ignore (printf "AFTER-COLON: %s\n" [remains]))
                   (value-remains (pv remains))
-                  (ignore (printf "VALUE-REMAIN: %s\n" [value-remains]))
                   (value (head value-remains))
-
-                  (ignore (println value))
                   (e (entry (key key-name) value))
-                  (ignore (str (println e)))
-                  (remains-2 (drop-while space? (head (tail value-remains)))))
-                 (parse-object (+ acc e) remains-2 pv)))
-          default nil))
+                  (remains-2 (head (tail value-remains))))
+                 ($ (+ acc e) remains-2 pv)))
+          default [acc s]))
 
-(fn parse-array  (s) [[] s])
+(fn parse-array (acc s pv)
+    (case ((nil? s) [acc s])
+          ((= (head s) #\Space) ($ acc (tail s) pv))
+          ((= (head s) #\,) ($ acc (tail s) pv))
+          ((= (head s) #\]) [acc (tail s)])
+          default (let
+            ((parsed (pv s))
+             (value (head parsed))
+             (remains (head (tail parsed))))
+            ($ (+: acc value) remains pv))))
 
 (fn parse-value (json-str)
       (if (= 0 (len json-str)) ["" json-str]
       (let (
             (first (head json-str))
-            (ignore (printf "PARSE-VALUE: %c\n" [first]))
            )
 
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
-                 ((= #\[ first) (parse-array  json-str))
+                 ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
                  ((= #\" first) (parse-string (tail json-str)))
                  ((contains (list "1234567890") first) (parse-number json-str))
                  ((= #\t first) (parse-boolean json-str))
                  ((= #\f first) (parse-boolean json-str))
                  ((= #\n first) (parse-null json-str))
                  ((= #\Space first) ($ (tail json-str)))
-                 default nil))))
+                 default ["" json-str]))))
 
 (println (head (parse-value llist)))

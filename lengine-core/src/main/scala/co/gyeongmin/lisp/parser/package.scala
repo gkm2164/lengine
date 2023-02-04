@@ -26,32 +26,35 @@ package object parser {
 
   def appendForbiddenKeywords(set: Set[String]): Unit = this.ForbiddenOverrides ++= set
 
-  def parseValue: LispTokenState[LispValue] = {
-    case Stream.Empty       => Left(EmptyTokenListError)
-    case LispNop() #:: tail => parseValue(tail)
-    case (t @ ListStartPar()) #:: tail =>
-      parseList(takeToken[RightPar])(tail).map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-    case (t @ LeftBracket()) #:: tail =>
-      parseList(takeToken[RightBracket])(tail)
-        .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-    case (t @ LeftBrace()) #:: tail =>
-      parseBrace(tail)
-        .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-    case (t @ CmplxNPar()) #:: tail =>
-      parseComplexNumber(tail)
-        .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-    case (t @ LeftPar()) #:: afterLeftPar =>
-      parseClause(afterLeftPar)
-        .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-    case (m: SpecialToken) #:: tail =>
-      m.realize
-        .leftMap(ParseTokenizeError)
-        .map((_, tail))
-        .map(_.mapValue(_.wrapLocation(m.tokenLocation)))
-    case (tk: LispValue) #:: tail =>
-      LispTokenState(tk)(tail)
-        .map(_.mapValue(_.wrapLocation(tk.tokenLocation)))
-    case token #:: _ => Left(UnexpectedTokenError(token))
+  def parseValue: LispTokenState[LispValue] = token => {
+    val result = token match {
+      case Stream.Empty       => Left(EmptyTokenListError)
+      case LispNop() #:: tail => parseValue(tail)
+      case (t @ ListStartPar()) #:: tail =>
+        parseList(takeToken[RightPar])(tail).map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ LeftBracket()) #:: tail =>
+        parseList(takeToken[RightBracket])(tail)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ LeftBrace()) #:: tail =>
+        parseBrace(tail)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ CmplxNPar()) #:: tail =>
+        parseComplexNumber(tail)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ LeftPar()) #:: afterLeftPar =>
+        parseClause(afterLeftPar)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (m: SpecialToken) #:: tail =>
+        m.realize
+          .leftMap(ParseTokenizeError)
+          .map((_, tail))
+          .map(_.mapValue(_.wrapLocation(m.tokenLocation)))
+      case (tk: LispValue) #:: tail =>
+        LispTokenState(tk)(tail)
+          .map(_.mapValue(_.wrapLocation(tk.tokenLocation)))
+      case token #:: _ => Left(UnexpectedTokenError(token))
+    }
+    result
   }
 
   private def parseBrace: LispTokenState[LispObject] =
