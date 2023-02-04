@@ -63,7 +63,7 @@
 
 (def json-chs (fold json-file-stream "" +))
 
-(def json-ch-seq (list json-chs))
+(def json-ch-seq (seq json-chs))
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
@@ -72,19 +72,10 @@
 (fn fold-right (seq acc folder)
                 (fold seq acc (lambda (elem acc) (folder acc elem))))
 
-(fn seq-to-llist (xs)
-                 (fold xs (seq nil) +:))
+(println json-chs)
+(println json-ch-seq)
+(println "=====")
 
-(def llist (seq-to-llist json-ch-seq))
-
-(def space [#\Space])
-
-(fn always-true  (any) true)
-(fn always-false (any) false)
-
-(fn space? (ch) (contains space ch))
-(fn colon? (ch) (= #\: ch))
-(fn double-quote? (ch) (= #\" ch))
 (fn not-p (p) (lambda (x) (not (p x))))
 
 (fn join (xs str)
@@ -143,7 +134,7 @@
                  ((= #\Space first) ($ (tail json-str)))
                  default ["" json-str]))))
 
-(def parsed-value (head (parse-value llist)))
+(def parsed-value (head (parse-value json-ch-seq)))
 (println parsed-value)
 (println (:header (:menu parsed-value)))
 (println (:items (:menu parsed-value)))
