@@ -116,10 +116,7 @@
 
 (fn parse-value (json-str)
       (if (= 0 (len json-str)) ["" json-str]
-      (let (
-            (first (head json-str))
-           )
-
+      (let ((first (head json-str)))
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
                  ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
                  ((= #\" first) (parse-string "" (tail json-str)))
@@ -131,6 +128,8 @@
                  default ["" json-str]))))
 
 (def parsed-value (head (parse-value json-ch-seq)))
+
+;;; Let's see whether the parsing is done well...
 (println parsed-value)
 (println (:header (:menu parsed-value)))
 (println (:items (:menu parsed-value)))
