@@ -27,7 +27,7 @@
 (export drop-while drop-while)
 (export contains (lambda (chs ch)
                          (if (nil? chs) false
-                                        (let ((h (head chs))
-                                              (t (tail chs)))
-                                             (if (= h ch) true
-                                                          ($ t ch))))))
+                            (let ((h (head chs))
+                                  (t (tail chs)))
+                                 (if (= h ch) true
+                                              ($ t ch))))))

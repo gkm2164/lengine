@@ -15,7 +15,10 @@ class MainTest extends FlatSpec with Matchers {
     val process = builder.start()
     val reader  = new BufferedReader(new InputStreamReader(process.getInputStream))
     assert(process.waitFor() == 0)
-    println("Result: " + reader.readLine())
+
+    while (reader.ready()) {
+      println(reader.readLine())
+    }
   }
 
   "compile examples" should "compile and no death!" in {

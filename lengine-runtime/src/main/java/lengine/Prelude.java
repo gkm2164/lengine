@@ -98,7 +98,7 @@ public class Prelude {
       return Double.parseDouble((String) from);
     }
 
-    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
+    throw new RuntimeException(format("unable to cast from %s to Double", from.getClass()));
   }
 
   private static String castString(Object from) {

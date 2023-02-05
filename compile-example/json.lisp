@@ -64,6 +64,7 @@
 (def json-chs (fold json-file-stream "" +))
 
 (def json-ch-seq (seq json-chs))
+(def json-ch-list (list json-chs))
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
@@ -82,8 +83,15 @@
   (if (= (head s) #\") [acc (tail s)]
   ($ (+ acc (head s)) (tail s)))))
 
-(fn parse-number (s) [0 (tail s)])
-(fn parse-boolean (s) [false (tail s)])
+(fn parse-number (acc s)
+    (case ((nil? s) [(double (join acc "")) nil])
+          ((contains (list ",]}) ") (head s)) [(double (join acc "")) s])
+          default ($ (+: acc (head s)) (tail s))))
+
+(fn parse-boolean (s)
+    (if (= #\t (head s)) [true (drop 4 s)]
+                         [false (drop 5 s)]))
+
 (fn parse-null (s) [nil (drop 4 s)])
 
 (fn parse-object (acc s pv)
@@ -101,12 +109,12 @@
                   (e (entry (key key-name) value))
                   (remains (head (tail value-remains))))
                  ($ (+ acc e) remains pv)))
-          default [acc s]))
+          default [nil nil]))
 
 (fn parse-array (acc s pv)
     (case ((nil? s) [acc s])
           ((= (head s) #\Space) ($ acc (tail s) pv))
-          ((= (head s) #\,) ($ acc (tail s) pv))
+          ((= (head s) #\,)  ($ acc (tail s) pv))
           ((= (head s) #\]) [acc (tail s)])
           default (let
             ((parsed (pv s))
@@ -114,13 +122,16 @@
              (remains (head (tail parsed))))
             ($ (+: acc value) remains pv))))
 
+(fn num? (ch)
+    (contains (seq "-0123456789") ch))
+
 (fn parse-value (json-str)
       (if (= 0 (len json-str)) ["" json-str]
       (let ((first (head json-str)))
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
                  ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
                  ((= #\" first) (parse-string "" (tail json-str)))
-                 ((contains (list "1234567890") first) (parse-number json-str))
+                 ((contains (list "-1234567890") first) (parse-number (seq nil) json-str))
                  ((= #\t first) (parse-boolean json-str))
                  ((= #\f first) (parse-boolean json-str))
                  ((= #\n first) (parse-null json-str))
@@ -136,8 +147,8 @@
 
 (def result (loop for x in (=range 1 10)
                   (let ((start (now))
-                        (json-obj (parse-value json-ch-seq)))
-                       [(- (now) start) json-obj])))
+                        (json-obj (parse-value json-ch-list)))
+                       [(- (now) start) (head json-obj)])))
 
 (loop for x in result
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
