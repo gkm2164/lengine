@@ -126,12 +126,12 @@
     (contains (seq "-0123456789") ch))
 
 (fn parse-value (json-str)
-      (if (= 0 (len json-str)) ["" json-str]
+      (if (nil? json-str) ["" json-str]
       (let ((first (head json-str)))
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
                  ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
                  ((= #\" first) (parse-string "" (tail json-str)))
-                 ((contains (list "-1234567890") first) (parse-number (seq nil) json-str))
+                 ((contains (list "-1234567890.") first) (parse-number (seq nil) json-str))
                  ((= #\t first) (parse-boolean json-str))
                  ((= #\f first) (parse-boolean json-str))
                  ((= #\n first) (parse-null json-str))
