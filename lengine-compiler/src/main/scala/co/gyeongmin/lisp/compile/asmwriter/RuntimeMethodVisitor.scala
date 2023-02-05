@@ -24,10 +24,10 @@ object RuntimeMethodVisitor {
     operation match {
       case EagerSymbol(op) =>
         op match {
-          case "export"        => visitExport(operands)
-          case "import"        => visitImport(operands)
-          case "if"            => visitIfStmt(operands, requestedType, tailRecReference)
-          case _               => new RuntimeException("Unsupported operation: " + op)
+          case "export" => visitExport(operands)
+          case "import" => visitImport(operands)
+          case "if"     => visitIfStmt(operands, requestedType, tailRecReference)
+          case _        => new RuntimeException("Unsupported operation: " + op)
         }
 
     }
@@ -65,18 +65,38 @@ object RuntimeMethodVisitor {
   }
 
   private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val symbol :: value :: Nil = operands
-    val nameOfSymbol           = symbol.asInstanceOf[LispSymbol].name
-    val mv                     = runtimeEnvironment.methodVisitor
-    mv.visitLdcInsn(nameOfSymbol)
-    mv.visitLispValue(value, ObjectClass)
-    mv.visitStaticMethodCall(
-      runtimeEnvironment.className,
-      "export",
-      VoidPrimitive,
-      StringClass,
-      ObjectClass
-    )
+    val symbol :: value = operands
+    val nameOfSymbol    = symbol.asInstanceOf[LispSymbol].name
+    val mv              = runtimeEnvironment.methodVisitor
+
+
+
+    if (value == Nil) {
+      mv.visitLdcInsn(nameOfSymbol)
+      mv.visitLispValue(symbol, ObjectClass)
+      mv.visitStaticMethodCall(
+        runtimeEnvironment.className,
+        "export",
+        VoidPrimitive,
+        StringClass,
+        ObjectClass
+      )
+    } else {
+      mv.visitLispValue(value.head, ObjectClass) // [V]
+      mv.visitDup() // [V V]
+      mv.visitLdcInsn(nameOfSymbol) // [V V S]
+      mv.visitSwap()                // [V S V]
+      mv.visitStaticMethodCall(        // [V]
+        runtimeEnvironment.className,
+        "export",
+        VoidPrimitive,
+        StringClass,
+        ObjectClass
+      )
+      val loc = runtimeEnvironment.allocateNextVar
+      mv.visitAStore(loc) // []
+      runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)
+    }
   }
 
   private def visitImport(operands: List[LispValue])(implicit runtimeMethodVisitor: LengineRuntimeEnvironment): Unit = {

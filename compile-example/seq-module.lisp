@@ -22,9 +22,9 @@
 (println (str (take-while lt-5 (seq [1 2 3 4 5]))))
 (println (str (drop-while lt-5 (seq [1 2 3 4 5]))))
 
-(export filter filter)
-(export take-while take-while)
-(export drop-while drop-while)
+(export filter)
+(export take-while)
+(export drop-while)
 (export contains (lambda (chs ch)
                          (if (nil? chs) false
                             (let ((h (head chs))

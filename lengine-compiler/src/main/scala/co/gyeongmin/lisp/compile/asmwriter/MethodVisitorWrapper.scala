@@ -280,6 +280,10 @@ class MethodVisitorWrapper(mv: MethodVisitor) {
     mv.visitInsn(Opcodes.DUP)
     stackSizeTrace.incrementAndGet()
   }
+
+  def visitSwap(): Unit = {
+    mv.visitInsn(Opcodes.SWAP)
+  }
 }
 
 object MethodVisitorWrapper {
