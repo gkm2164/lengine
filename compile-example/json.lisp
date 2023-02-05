@@ -138,6 +138,9 @@
                  ((= #\Space first) ($ (tail json-str)))
                  default ["" json-str]))))
 
+(fn from-json (json-str)
+    (head (parse-value (list json-str))))
+
 (def parsed-value (head (parse-value json-ch-seq)))
 
 ;;; Let's see whether the parsing is done well...
@@ -147,8 +150,8 @@
 
 (def result (loop for x in (=range 1 10)
                   (let ((start (now))
-                        (json-obj (parse-value json-ch-list)))
-                       [(- (now) start) (head json-obj)])))
+                        (json-obj (from-json json-chs)))
+                       [(- (now) start) json-obj])))
 
 (loop for x in result
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
