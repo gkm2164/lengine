@@ -1,5 +1,6 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 public class NonLeafSequence extends LengineSequence {
@@ -31,7 +32,7 @@ public class NonLeafSequence extends LengineSequence {
     }
 
     @Override
-    public LengineSequence append(LengineSequence seq) {
+    public LengineSequence append(CreateIterator seq) {
         this.right = this.right.append(seq);
         return this;
     }

@@ -40,6 +40,7 @@ object InteroperabilityHelper {
     "not"     -> ExportSymbols.NOT_FIELD,
     "+"       -> ExportSymbols.ADD_FIELD,
     "+:"      -> ExportSymbols.APPEND_ITEM_FIELD,
+    "++"      -> ExportSymbols.MERGE_FIELD,
     "-"       -> ExportSymbols.SUB_FIELD,
     "*"       -> ExportSymbols.MULT_FIELD,
     "/"       -> ExportSymbols.DIV_FIELD,

@@ -86,4 +86,6 @@ public abstract class LengineList implements CreateIterator {
         }
         return cons(elem, nil());
     }
+
+    public abstract LengineList append(CreateIterator ys);
 }

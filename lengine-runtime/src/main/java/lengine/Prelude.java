@@ -483,6 +483,26 @@ public class Prelude {
     throw new RuntimeException("currently not supporting the operation");
   };
 
+  private static final LengineLambda2<Object, Object, Object> _MERGE = (xs, ys) -> {
+    if (xs instanceof String) {
+      if (ys instanceof String) {
+        return xs + ((String)ys);
+      }
+
+      throw new RuntimeException("Unable to determine the 2nd parameter to be String");
+    } else if (xs instanceof LengineList) {
+      if (ys instanceof CreateIterator) {
+        return ((LengineList) xs).append((CreateIterator) ys);
+      }
+    } else if (xs instanceof LengineSequence) {
+      if (ys instanceof CreateIterator) {
+        return ((LengineSequence) xs).append((CreateIterator) ys);
+      }
+    }
+
+    throw new RuntimeException("merge operation not supported.");
+  };
+
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
   public static final LengineLambdaCommon MULT = _MULT;
@@ -546,6 +566,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_SET = _IS_SET;
   public static final LengineLambdaCommon CAST_SET = _CAST_SET;
   public static final LengineLambdaCommon DOES_HAVE = _DOES_HAVE;
+  public static final LengineLambdaCommon MERGE = _MERGE;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

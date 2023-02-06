@@ -53,7 +53,7 @@ public abstract class LengineSequence implements CreateIterator {
     return append(new LeafSequence(newList));
   }
 
-  public abstract LengineSequence append(LengineSequence seq);
+  public abstract LengineSequence append(CreateIterator seq);
   @Override
   public String toString() {
     return String.format("(seq %s)", printable(true));

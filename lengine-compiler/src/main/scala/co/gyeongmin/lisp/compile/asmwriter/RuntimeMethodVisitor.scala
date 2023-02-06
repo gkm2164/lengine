@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
@@ -69,7 +70,11 @@ object RuntimeMethodVisitor {
     val nameOfSymbol    = symbol.asInstanceOf[LispSymbol].name
     val mv              = runtimeEnvironment.methodVisitor
 
-
+    if (ReservedKeywordFunctions.contains(symbol.asInstanceOf[LispSymbol])) {
+      throw CompileException(s"You can't override function $nameOfSymbol",
+                             runtimeEnvironment.fileName,
+                             symbol.tokenLocation)
+    }
 
     if (value == Nil) {
       mv.visitLdcInsn(nameOfSymbol)
@@ -83,16 +88,15 @@ object RuntimeMethodVisitor {
       )
     } else {
       mv.visitLispValue(value.head, ObjectClass) // [V]
-      mv.visitDup() // [V V]
-      mv.visitLdcInsn(nameOfSymbol) // [V V S]
-      mv.visitSwap()                // [V S V]
-      mv.visitStaticMethodCall(        // [V]
-        runtimeEnvironment.className,
-        "export",
-        VoidPrimitive,
-        StringClass,
-        ObjectClass
-      )
+      mv.visitDup()                              // [V V]
+      mv.visitLdcInsn(nameOfSymbol)              // [V V S]
+      mv.visitSwap()                             // [V S V]
+      mv.visitStaticMethodCall( // [V]
+                               runtimeEnvironment.className,
+                               "export",
+                               VoidPrimitive,
+                               StringClass,
+                               ObjectClass)
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
       runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)

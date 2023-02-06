@@ -1,6 +1,9 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 public class Nil extends LengineList {
     private static Nil singleton = null;
@@ -31,5 +34,17 @@ public class Nil extends LengineList {
     @Override
     public String printable(boolean isFirst) {
         return "]";
+    }
+
+    @Override
+    public LengineList append(CreateIterator ys) {
+        if (ys instanceof LengineList) {
+            return (LengineList) ys;
+        }
+
+        AtomicReference<LengineList> ref = new AtomicReference<>(Nil.get());
+        ys.iterator().forEachRemaining(elem -> ref.set(ref.get().add(ys)));
+
+        return ref.get();
     }
 }

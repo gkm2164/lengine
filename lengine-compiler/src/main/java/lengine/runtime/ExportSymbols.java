@@ -69,6 +69,7 @@ public class ExportSymbols {
   public static final Field READ_FILE_SEQ_FIELD;
   public static final Field NIL_FIELD;
   public static final Field APPEND_ITEM_FIELD;
+  public static final Field MERGE_FIELD;
 
   static {
     try {
@@ -132,6 +133,7 @@ public class ExportSymbols {
       READ_FILE_FIELD = Prelude.class.getField("READ_FILE");
       READ_FILE_SEQ_FIELD = Prelude.class.getField("READ_FILE_SEQ");
       APPEND_ITEM_FIELD = Prelude.class.getField("APPEND_ITEM");
+      MERGE_FIELD = Prelude.class.getField("MERGE");
       NIL_FIELD = Prelude.class.getField("NIL");
       CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
       IS_SET_FIELD = Prelude.class.getField("IS_SET");

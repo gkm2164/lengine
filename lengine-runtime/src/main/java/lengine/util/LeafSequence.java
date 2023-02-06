@@ -1,5 +1,6 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.ArrayList;
@@ -48,8 +49,8 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
-  public LengineSequence append(LengineSequence seq) {
-    return new NonLeafSequence(this, seq);
+  public LengineSequence append(CreateIterator seq) {
+    return new NonLeafSequence(this, LeafSequence.create(seq));
   }
 
   @Override

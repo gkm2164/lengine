@@ -5,13 +5,6 @@
                              (if (p elem) (+: acc elem)
                                           acc))))
 
-(fn ++-loop (acc xs ys)
-  (case ((and (nil? xs) (nil? ys)) acc)
-        ((nil? xs) ($ acc ys nil))
-        default ($ (+: acc (head xs)) (tail xs) ys)))
-
-(export ++ (lambda (xs ys) (++-loop (seq nil) xs ys)))
-
 (fn take-while-loop (acc p xs)
                     (case ((nil? xs) acc)
                           ((p (head xs)) ($ (+: acc (head xs)) p (tail xs)))
