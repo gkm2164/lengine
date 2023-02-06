@@ -42,6 +42,7 @@ public class ExportSymbols {
   public static final Field CAST_CHARACTER_FIELD;
   public static final Field CAST_LIST_FIELD;
   public static final Field CAST_SEQ_FIELD;
+  public static final Field CAST_SET_FIELD;
   public static final Field IS_BOOL_FIELD;
   public static final Field IS_CHAR_FIELD;
   public static final Field IS_INT_FIELD;
@@ -52,6 +53,8 @@ public class ExportSymbols {
   public static final Field IS_OBJECT_FIELD;
   public static final Field IS_CONS_FIELD;
   public static final Field IS_NIL_FIELD;
+  public static final Field IS_SET_FIELD;
+  public static final Field DOES_HAVE_FIELD;
   public static final Field OPEN_FILE_FIELD;
   public static final Field NOW_FIELD;
   public static final Field CONS_FIELD;
@@ -130,6 +133,9 @@ public class ExportSymbols {
       READ_FILE_SEQ_FIELD = Prelude.class.getField("READ_FILE_SEQ");
       APPEND_ITEM_FIELD = Prelude.class.getField("APPEND_ITEM");
       NIL_FIELD = Prelude.class.getField("NIL");
+      CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
+      IS_SET_FIELD = Prelude.class.getField("IS_SET");
+      DOES_HAVE_FIELD = Prelude.class.getField("DOES_HAVE");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {

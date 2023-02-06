@@ -39,6 +39,7 @@ import lengine.util.LengineMapEntry;
 import lengine.util.LengineMapKey;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineSequence;
+import lengine.util.LengineSet;
 import lengine.util.Nil;
 import lengine.runtime.RangeSequence;
 
@@ -133,6 +134,18 @@ public class Prelude {
     }
 
     throw new LengineTypeMismatchException(o, LengineSequence.class);
+  }
+
+  private static LengineSet castSet(Object o) {
+    if (o instanceof String) {
+      return LengineSet.create(o.toString());
+    } else if (o instanceof LengineSet) {
+      return (LengineSet) o;
+    } else if (o instanceof CreateIterator) {
+      return LengineSet.create((CreateIterator) o);
+    }
+
+    throw new LengineTypeMismatchException(o, LengineSet.class);
   }
 
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
@@ -251,6 +264,8 @@ public class Prelude {
       return (long) ((String) obj).length();
     } else if (obj instanceof LengineMap) {
       return ((LengineMap) obj).len();
+    } else if (obj instanceof LengineSet) {
+      return ((LengineSet) obj).len();
     }
 
     throw new RuntimeException("unable to decide the size for " + obj);
@@ -267,7 +282,8 @@ public class Prelude {
   };
   private static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
     LengineIterator it = seq.iterator();
-    it.forEachN(x -> {}, n);
+    it.forEachN(x -> {
+    }, n);
     if (it instanceof LengineListIterator) {
       return ((LengineListIterator) it)._this();
     } else {
@@ -340,6 +356,7 @@ public class Prelude {
   private static final LengineLambda1<Character, Object> _CAST_CHARACTER = Prelude::castChar;
   private static final LengineLambda1<LengineList, Object> _CAST_LIST = Prelude::castList;
   private static final LengineLambda1<LengineSequence, Object> _CAST_SEQ = Prelude::castSeq;
+  private static final LengineLambda1<LengineSet, Object> _CAST_SET = Prelude::castSet;
   private static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
@@ -350,6 +367,17 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || _LEN.invoke(obj) == 0;
+  private static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
+
+  private static final LengineLambda2<Boolean, Object, Object> _DOES_HAVE = (set, obj) -> {
+    if (set instanceof LengineSet) {
+      return ((LengineSet) set).contains(obj);
+    } else if (set instanceof LengineMap && obj instanceof LengineMapKey) {
+      return ((LengineMap) set).contains(obj);
+    }
+
+    return false;
+  };
   private static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
   private static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
     File file = new File(path);
@@ -515,6 +543,9 @@ public class Prelude {
   public static final LengineLambdaCommon READ_FILE = _READ_FILE;
   public static final LengineLambdaCommon READ_FILE_SEQ = _READ_FILE_SEQ;
   public static final LengineLambdaCommon APPEND_ITEM = _APPEND_ITEM;
+  public static final LengineLambdaCommon IS_SET = _IS_SET;
+  public static final LengineLambdaCommon CAST_SET = _CAST_SET;
+  public static final LengineLambdaCommon DOES_HAVE = _DOES_HAVE;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

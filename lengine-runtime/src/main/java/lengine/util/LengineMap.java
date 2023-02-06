@@ -97,4 +97,8 @@ public class LengineMap {
   public Long len() {
     return (long) dictionary.size();
   }
+
+  public Boolean contains(Object set) {
+    return dictionary.containsKey(set);
+  }
 }
