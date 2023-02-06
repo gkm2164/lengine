@@ -15,6 +15,10 @@ public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
     return new LengineMapEntry(key, value);
   }
 
+  public static LengineMapEntry create(Map.Entry<LengineMapKey, Object> entry) {
+    return new LengineMapEntry(entry.getKey(), entry.getValue());
+  }
+
   @Override
   public LengineMapKey getKey() {
     return key;

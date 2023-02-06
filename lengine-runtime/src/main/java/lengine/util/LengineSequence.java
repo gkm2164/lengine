@@ -4,6 +4,7 @@ import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +43,12 @@ public class LengineSequence implements CreateIterator {
   public static LengineSequence create(LengineIterator it) {
     LinkedList<Object> obj = new LinkedList<>();
     it.forEachRemaining(obj::add);
+    return create(obj);
+  }
+
+  public static LengineSequence create(Set<?> set) {
+    LinkedList<Object> obj = new LinkedList<>();
+    set.iterator().forEachRemaining(obj::add);
     return create(obj);
   }
 

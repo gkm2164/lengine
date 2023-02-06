@@ -2,18 +2,14 @@ package lengine.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class LengineMap {
-  private final LengineMap delegateMap;
   private final Map<LengineMapKey, Object> dictionary;
-  private LengineMap() {
-    this(null);
-  }
 
-  private LengineMap(LengineMap delegateMap) {
-    this.delegateMap = delegateMap;
+  private LengineMap() {
     this.dictionary = new HashMap<>();
   }
 
@@ -26,9 +22,6 @@ public class LengineMap {
   }
 
   public Object get(LengineMapKey key) {
-    if (delegateMap != null && delegateMap.contains(key)) {
-      return delegateMap.get(key);
-    }
     return dictionary.get(key);
   }
 
@@ -40,12 +33,19 @@ public class LengineMap {
     return LengineList.create(dictionary.keySet());
   }
 
-  public LengineList entries() {
-    return LengineList.create(dictionary.entrySet());
+  public LengineSequence entries() {
+    LengineSequence sequence = LengineSequence.create(Nil.get());
+    dictionary.entrySet()
+        .stream()
+        .map(entry -> LengineMapEntry.create(entry.getKey(), entry.getValue()))
+        .forEach(sequence::add);
+
+    return sequence;
   }
 
   public LengineMap add(LengineMapEntry entry) {
-    LengineMap map = new LengineMap(this);
+    LengineMap map = new LengineMap();
+    dictionary.entrySet().stream().map(LengineMapEntry::create).forEach(map::putEntry);
     map.putEntry(entry);
     return map;
   }
@@ -54,27 +54,34 @@ public class LengineMap {
     return new LengineMap();
   }
 
-  public static LengineMap create(LengineMap delegateMap) {
-    return new LengineMap(delegateMap);
-  }
 
   public Stream<String> createStringEntry() {
-    final Stream<String> parent;
-    if (delegateMap != null) {
-      parent = delegateMap.createStringEntry();
-    } else {
-      parent = Stream.empty();
-    }
-
-    return Stream.concat(parent, dictionary.entrySet().stream().map(entry -> {
-      Object key = entry.getKey();
-      Object value = entry.getValue();
-      return String.format("%s => %s", key, value);
-    }));
+    return dictionary.entrySet()
+        .stream()
+        .map(entry -> {
+          Object key = entry.getKey();
+          Object value = entry.getValue();
+          return String.format("%s => %s", key, value);
+        });
   }
+
 
   @Override
   public String toString() {
     return this.createStringEntry().collect(Collectors.joining(", ", "{", "}"));
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    LengineMap that = (LengineMap) o;
+    return Objects.equals(dictionary, that.dictionary);
+  }
+
+  @Override
+  public int hashCode() {
+    return dictionary.hashCode();
   }
 }

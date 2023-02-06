@@ -154,3 +154,17 @@
 (loop for x in result
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
            (printf fmt x)))
+
+(def obj {
+  :id "Hello"
+  :age 33.0
+  :height 185.0
+  :male true
+  :logo #\,
+})
+
+(def json-str (to-json obj))
+(def re-obj (from-json json-str))
+
+(println json-str)
+(println re-obj)

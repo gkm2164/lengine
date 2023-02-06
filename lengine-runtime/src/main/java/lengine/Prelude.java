@@ -337,7 +337,13 @@ public class Prelude {
   private static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
   private static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_TRUE = Prelude::assertTrue;
   private static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
-  private static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> assertTrue(message, _EQUALS.invoke(a, b));
+  private static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> {
+    if (!_EQUALS.invoke(a, b)) {
+      throw new RuntimeException(a.toString() + " /= " + b.toString());
+    }
+
+    return UNIT;
+  };
   private static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
   private static final LengineLambda1<String, Object> _CAST_STR = Prelude::castString;
   private static final LengineLambda1<Long, Object> _CAST_INT = Prelude::castLong;
@@ -418,7 +424,7 @@ public class Prelude {
   private static final LengineLambda1<LengineMapKey, String> _KEY = LengineMapKey::create;
   private static final LengineLambda1<LengineList, LengineMap> _KEYS = LengineMap::keys;
   private static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
-  private static final LengineLambda1<LengineList, LengineMap> _ENTRIES = LengineMap::entries;
+  private static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
   private static final LengineLambda1<String, LengineMapKey> _GET = LengineMapKey::getKey;
 
   private static final LengineLambda0<String> _READ_LINE = () -> new Scanner(System.in).next("\n");
