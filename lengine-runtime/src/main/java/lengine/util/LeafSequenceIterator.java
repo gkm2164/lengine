@@ -3,11 +3,12 @@ package lengine.util;
 import lengine.runtime.LengineIterator;
 
 import java.util.LinkedList;
+import java.util.List;
 
-public class LengineSequenceIterator implements LengineIterator {
+public class LeafSequenceIterator implements LengineIterator {
     private final PeekingIterator<Object> listIterator;
 
-    public LengineSequenceIterator(LinkedList<Object> list) {
+    public LeafSequenceIterator(List<Object> list) {
         this.listIterator = PeekingIterator.peekingIterator(list.iterator());
     }
 

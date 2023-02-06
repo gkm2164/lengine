@@ -41,9 +41,8 @@
   (if (nil? xs) nil
       (let ((h (head xs))
             (t (tail xs)))
-           (do (println h)
-               return (if (seq? h) (++ ($ h) ($ t))
-               (++ (seq [h]) ($ t))))))))
+               (if (seq? h) (++ ($ h) ($ t))
+                   (++ (seq [h]) ($ t)))))))
 
 (println (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])]))
 
