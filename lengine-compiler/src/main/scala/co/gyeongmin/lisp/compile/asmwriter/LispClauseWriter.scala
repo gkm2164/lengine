@@ -1,5 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
@@ -46,7 +47,6 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
               case (v, loc) =>
                 mv.visitLispValue(v, ObjectClass)
                 mv.visitAStore(loc + 1)
-                mv.visitLineForValue(v)
             }
             mv.visitGoto(label)
           case _ =>
@@ -54,7 +54,6 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
             mv.visitLispValue(value, LengineLambdaClass(argSize))
             operands.foreach(v => {
               mv.visitLispValue(v, ObjectClass)
-              mv.visitLineForValue(v)
             })
             mv.visitInterfaceMethodCall(
               LengineLambdaClass(argSize),

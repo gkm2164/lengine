@@ -25,11 +25,9 @@
                    (let ((ks (keys obj))
                          (key-values (loop for k in ks
                                            (let ((value (k obj))
-                                                 (object-key (+ (with-double-quotes (get k)) ":")))
+                                                 (object-key (format "\"%s\":" [(get k)])))
                                                 (+ object-key (to-json value))))))
-                        (+ (+ "{"
-                              (join key-values #\,) )
-                           "}")))
+                        (format "{%s}" [(join key-values #\,)])))
 
 
 ;;; Actual logics
@@ -43,12 +41,12 @@
                    default "null")))
 
 (def obj {
-           :id "Hello"
-           :age 33
-           :height 185.0
-           :male true
-           :logo #\,
-         })
+  :id "Hello"
+  :age 33
+  :height 185.0
+  :male true
+  :logo #\,
+})
 
 (def result (loop for x in (=range 1 10)
                   (let ((start (now))
@@ -123,7 +121,7 @@
             ($ (+: acc value) remains pv))))
 
 (fn num? (ch)
-    (contains (seq "-0123456789") ch))
+    (contains (seq "-0123456789.") ch))
 
 (fn parse-value (json-str)
       (if (nil? json-str) ["" json-str]

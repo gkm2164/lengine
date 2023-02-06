@@ -1,8 +1,9 @@
 package co.gyeongmin.lisp
 
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{JavaHashMapClass, JavaMapClass, ObjectClass, StringArrayClass, StringClass, VoidPrimitive}
-import co.gyeongmin.lisp.compile.asmwriter.MethodVisitorWrapper.MethodVisitorWrapperExt
-import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter, MethodVisitorWrapper}
+import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import org.objectweb.asm.Opcodes._
@@ -13,7 +14,7 @@ import scala.collection.mutable
 package object compile {
 
   def writeClass(sourceFileName: String, clsName: String, statements: List[LispValue]): Array[Byte] = {
-    val cw = new ClassWriter(AsmHelper.GLOBAL_CONFIG)
+    val cw = new ClassWriter(AsmHelper.GlobalConfig)
     cw.visit(V1_8, ACC_PUBLIC, clsName, null, "java/lang/Object", null)
     cw.visitSource(sourceFileName, null)
     writeCsInitMethod(cw, clsName)
@@ -49,7 +50,6 @@ package object compile {
     statements.foreach(stmt => {
       val thisLabel = new Label
       mv.visitLabel(thisLabel)
-      stmt.tokenLocation.foreach(loc => mv.visitLineNumber(loc.line, thisLabel))
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
         case LispClause(EagerSymbol("export") :: _) =>

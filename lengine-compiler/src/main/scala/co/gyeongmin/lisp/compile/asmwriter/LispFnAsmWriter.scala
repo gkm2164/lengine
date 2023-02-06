@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LongClass, ObjectClass, VoidPrimitive}
-import co.gyeongmin.lisp.compile.asmwriter.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -65,7 +65,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                                 capturedVariables: LengineVarCapture,
                                 argsWithCapturedVars: Map[LispSymbol, (Int, Class[_])],
                                 isTailRec: Boolean): Unit = {
-    val lambdaClassWriter = new ClassWriter(AsmHelper.GLOBAL_CONFIG)
+    val lambdaClassWriter = new ClassWriter(AsmHelper.GlobalConfig)
     val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
 
     val thisLambdaClass = LengineLambdaClass(f.placeHolders.length)
