@@ -32,7 +32,7 @@ public class LengineSequence implements CreateIterator {
   public static LengineSequence create(CreateIterator o) {
     LengineIterator it = o.iterator();
     LengineSequence ret = new LengineSequence();
-    it.forEachRemaining(ret::add);
+    it.forEachRemaining(ret.list::add);
     return ret;
   }
 

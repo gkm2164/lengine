@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 
 import lengine.functions.LengineLambda0;
@@ -26,6 +27,7 @@ import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
+import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
@@ -47,7 +49,7 @@ public class Prelude {
 
   private final static LengineUnit UNIT = LengineUnit.create();
 
-  private static Object cast(Object from, Class<?> to) {
+  public static Object cast(Object from, Class<?> to) {
     if (to.equals(Character.class)) {
       return castChar(from);
     } else if (to.equals(Long.class)) {
@@ -58,7 +60,7 @@ public class Prelude {
       return castString(from);
     }
 
-    throw new RuntimeException("unable to cast");
+    throw new LengineTypeMismatchException(from, to);
   }
 
   private static Character castChar(Object from) {
@@ -70,7 +72,7 @@ public class Prelude {
       return (char) ((Double) from).intValue();
     }
 
-    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
+    throw new LengineTypeMismatchException(from, Character.class);
   }
 
   private static Long castLong(Object from) {
@@ -84,7 +86,7 @@ public class Prelude {
       return Long.parseLong((String) from);
     }
 
-    throw new RuntimeException(format("unable to cast from %s to Character", from.getClass()));
+    throw new LengineTypeMismatchException(from, Long.class);
   }
 
   private static Double castDouble(Object from) {
@@ -98,7 +100,7 @@ public class Prelude {
       return Double.parseDouble((String) from);
     }
 
-    throw new RuntimeException(format("unable to cast from %s to Double", from.getClass()));
+    throw new LengineTypeMismatchException(from, Double.class);
   }
 
   private static String castString(Object from) {
@@ -118,7 +120,7 @@ public class Prelude {
       return (LengineList) o;
     }
 
-    throw new RuntimeException(format("Unable to cast from %s to List", o.getClass()));
+    throw new LengineTypeMismatchException(o, LengineList.class);
   }
 
   private static LengineSequence castSeq(Object o) {
@@ -130,7 +132,7 @@ public class Prelude {
       return LengineSequence.create((CreateIterator) o);
     }
 
-    throw new RuntimeException(format("Unable to cast from %s to Sequence", o.getClass()));
+    throw new LengineTypeMismatchException(o, LengineSequence.class);
   }
 
   private static Class<?> getLargerType(Class<?> a, Class<?> b) {
@@ -247,34 +249,25 @@ public class Prelude {
       return ((CreateIterator) obj).len();
     } else if (obj instanceof String) {
       return (long) ((String) obj).length();
+    } else if (obj instanceof LengineMap) {
+      return ((LengineMap) obj).len();
     }
 
     throw new RuntimeException("unable to decide the size for " + obj);
   };
   private static final LengineLambda2<CreateIterator, Long, CreateIterator> _TAKE = (n, seq) -> {
-    if (seq.len() == 0) {
-      return Nil.get();
-    }
-    int i = 0;
     LengineIterator it = seq.iterator();
-    Cons head = LengineList.cons(it.next(), null);
-    Cons _this = head;
-    while (++i < n && it.hasNext()) {
-      Cons newCons = LengineList.cons(it.next(), null);
-      _this.setNext(newCons);
-      _this = newCons;
-    }
+    AtomicReference<LengineList> ret = new AtomicReference<>(Nil.get());
+    it.forEachN(elem -> {
+      LengineList _this = ret.get();
+      ret.set(_this.add(elem));
+    }, n);
 
-    _this.setNext(Nil.get());
-    return head;
+    return ret.get();
   };
   private static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
-    int i = 0;
     LengineIterator it = seq.iterator();
-    while (i++ < n && it.hasNext()) {
-      it.next();
-    }
-
+    it.forEachN(x -> {}, n);
     if (it instanceof LengineListIterator) {
       return ((LengineListIterator) it)._this();
     } else {
@@ -289,13 +282,9 @@ public class Prelude {
   private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().peek();
   private static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
   private static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
-    Object ret = acc;
-    LengineIterator it = seq.iterator();
-    while (it.hasNext()) {
-      ret = fn.invoke(ret, it.next());
-    }
-
-    return ret;
+    AtomicReference<Object> ret = new AtomicReference<>(acc);
+    seq.iterator().forEachRemaining(elem -> ret.set(fn.invoke(ret.get(), elem)));
+    return ret.get();
   };
   private static final LengineLambda2<Boolean, Object, Object> _LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
   private static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
@@ -460,7 +449,7 @@ public class Prelude {
       LengineList head = (LengineList) seq;
       return head.add(elem);
     } else if (seq instanceof LengineSequence) {
-      return ((LengineSequence)seq).add(elem);
+      return ((LengineSequence) seq).add(elem);
     }
 
     throw new RuntimeException("currently not supporting the operation");

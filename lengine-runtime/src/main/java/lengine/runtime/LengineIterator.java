@@ -7,6 +7,13 @@ public interface LengineIterator {
   Object peek();
   Object next();
 
+  default void forEachN(Consumer<Object> o, long n) {
+    int i = 0;
+    while (hasNext() && i++ < n) {
+      o.accept(next());
+    }
+  }
+
   default void forEachRemaining(Consumer<Object> o) {
     while (hasNext()) {
       o.accept(next());

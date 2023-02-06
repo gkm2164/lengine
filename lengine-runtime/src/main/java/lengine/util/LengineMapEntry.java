@@ -2,6 +2,8 @@ package lengine.util;
 
 import java.util.Map;
 
+import lengine.runtime.exceptions.LengineTypeMismatchException;
+
 public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
   private final LengineMapKey key;
   private final Object value;
@@ -17,6 +19,13 @@ public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
 
   public static LengineMapEntry create(Map.Entry<LengineMapKey, Object> entry) {
     return new LengineMapEntry(entry.getKey(), entry.getValue());
+  }
+
+  public static LengineMapEntry cast(Object elem) {
+    if (!(elem instanceof LengineMapEntry)) {
+      throw new LengineTypeMismatchException(elem, LengineMapEntry.class);
+    }
+    return (LengineMapEntry) elem;
   }
 
   @Override

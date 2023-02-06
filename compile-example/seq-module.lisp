@@ -5,6 +5,13 @@
                              (if (p elem) (+: acc elem)
                                           acc))))
 
+(fn ++-loop (acc xs ys)
+  (case ((and (nil? xs) (nil? ys)) acc)
+        ((nil? xs) ($ acc ys nil))
+        default ($ (+: acc (head xs)) (tail xs) ys)))
+
+(export ++ (lambda (xs ys) (++-loop (seq nil) xs ys)))
+
 (fn take-while-loop (acc p xs)
                     (case ((nil? xs) acc)
                           ((p (head xs)) ($ (+: acc (head xs)) p (tail xs)))
@@ -29,3 +36,15 @@
                              (if (= h ch)
                                  true
                                  ($ t ch))))))
+
+(export flatten (lambda (xs)
+  (if (nil? xs) nil
+      (let ((h (head xs))
+            (t (tail xs)))
+           (do (println h)
+               return (if (seq? h) (++ ($ h) ($ t))
+               (++ (seq [h]) ($ t))))))))
+
+(println (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])]))
+
+(println (flatten (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])])))

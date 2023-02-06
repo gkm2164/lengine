@@ -6,6 +6,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterator;
+
 public class LengineMap {
   private final Map<LengineMapKey, Object> dictionary;
 
@@ -54,6 +57,13 @@ public class LengineMap {
     return new LengineMap();
   }
 
+  public static LengineMap create(CreateIterator seq) {
+    LengineIterator it = seq.iterator();
+    LengineMap map = new LengineMap();
+    it.forEachRemaining(elem -> map.putEntry(LengineMapEntry.cast(elem)));
+    return map;
+  }
+
 
   public Stream<String> createStringEntry() {
     return dictionary.entrySet()
@@ -64,7 +74,6 @@ public class LengineMap {
           return String.format("%s => %s", key, value);
         });
   }
-
 
   @Override
   public String toString() {
@@ -83,5 +92,9 @@ public class LengineMap {
   @Override
   public int hashCode() {
     return dictionary.hashCode();
+  }
+
+  public Long len() {
+    return (long) dictionary.size();
   }
 }

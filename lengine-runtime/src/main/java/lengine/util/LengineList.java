@@ -7,6 +7,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.stream.Collectors;
 
+/**
+ * General single linked list.
+ *
+ * Consider to use when it is stack based accumulation.
+ * Fast at "head/tail", "cons(appending)" operation
+ */
+
 public abstract class LengineList implements CreateIterator {
     public static Cons cons(Object item, LengineList next) {
         return new Cons(item, next);
