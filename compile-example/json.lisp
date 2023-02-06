@@ -33,14 +33,14 @@
 
 
 ;;; Actual logics
-(fn to-json (obj)
+(export to-json (lambda (obj)
             (case ((bool? obj) (str obj))
                   ((char? obj) (with-double-quotes (str obj)))
                   ((int? obj) (str obj))
                   ((string? obj) (with-double-quotes obj))
                   ((double? obj) (str obj))
                   ((object? obj) (to-json-object obj $))
-                   default "null"))
+                   default "null")))
 
 (def obj {
            :id "Hello"

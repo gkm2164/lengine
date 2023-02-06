@@ -102,7 +102,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         null
       )
       .wrap()
-
     lambdaClassWriter.visitSource(runtimeEnvironment.fileName, null)
 
     lambdaConstructMv.visitALoad(0)
@@ -127,58 +126,75 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     lambdaConstructMv.visitMaxs()
     lambdaConstructMv.visitEnd()
 
-    val lambdaMv = lambdaClassWriter
-      .visitMethod(
-        Opcodes.ACC_PUBLIC,
-        "invoke",
-        Type.getMethodDescriptor(
-          Type.getType(ObjectClass),
-          f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
-        ),
-        null,
-        null
-      )
-      .wrap()
-
-    lambdaMv.visitALoad(0)
-
-    f.placeHolders.zipWithIndex.foreach {
-      case (_, idx) =>
-        lambdaMv.visitALoad(idx + 1)
-    }
-
-    capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
-      case (_, idx) =>
-        lambdaMv.visitALoad(0)
-        lambdaMv.visitGetField(lambdaClassName, s"var$idx", ObjectClass)
-    }
-
     val argsType = argsWithCapturedVars.map(_ => ObjectClass).toList
 
-    lambdaMv.visitMethodCall(
-      lambdaClassName,
-      "invokeActual",
-      ObjectClass,
-      argsType: _*
-    )
+    val mv = if (capturedVariables.getRequestedCaptures.isEmpty) {
+      lambdaClassWriter
+        .visitMethod(
+          Opcodes.ACC_PUBLIC,
+          "invoke",
+          Type.getMethodDescriptor(
+            Type.getType(ObjectClass),
+            f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
+          ),
+          null,
+          null
+        )
+        .wrap()
+    } else {
+      val lambdaMv = lambdaClassWriter
+        .visitMethod(
+          Opcodes.ACC_PUBLIC,
+          "invoke",
+          Type.getMethodDescriptor(
+            Type.getType(ObjectClass),
+            f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
+          ),
+          null,
+          null
+        )
+        .wrap()
 
-    lambdaMv.visitAReturn()
-    lambdaMv.visitMaxs()
-    lambdaMv.visitEnd()
+      lambdaMv.visitALoad(0)
 
-    val mv = lambdaClassWriter
-      .visitMethod(Opcodes.ACC_PUBLIC,
-                   "invokeActual",
-                   Type.getMethodDescriptor(
-                     Type.getType(ObjectClass),
-                     argsType.map(cls => Type.getType(cls)): _*
-                   ),
-                   null,
-                   null)
-      .wrap()
+      f.placeHolders.zipWithIndex.foreach {
+        case (_, idx) =>
+          lambdaMv.visitALoad(idx + 1)
+      }
+
+      capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
+        case (_, idx) =>
+          lambdaMv.visitALoad(0)
+          lambdaMv.visitGetField(lambdaClassName, s"var$idx", ObjectClass)
+      }
+
+
+      lambdaMv.visitMethodCall(
+        lambdaClassName,
+        "invokeActual",
+        ObjectClass,
+        argsType: _*
+      )
+
+      lambdaMv.visitAReturn()
+      lambdaMv.visitMaxs()
+      lambdaMv.visitEnd()
+
+      lambdaClassWriter
+        .visitMethod(Opcodes.ACC_PUBLIC,
+          "invokeActual",
+          Type.getMethodDescriptor(
+            Type.getType(ObjectClass),
+            argsType.map(cls => Type.getType(cls)): _*
+          ),
+          null,
+          null)
+        .wrap()
+    }
+
 
     val startLabel = new Label()
-    val endLabel   = new Label()
+    val endLabel = new Label()
 
     val initialArgMap: mutable.Map[LispSymbol, (Int, Class[_])] =
       itself
@@ -201,7 +217,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val newItSelf = if (isTailRec) {
       itself match {
         case Some(_) => itself
-        case None    => Some(EagerSymbol("$"))
+        case None => Some(EagerSymbol("$"))
       }
     } else {
       itself
@@ -217,11 +233,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitAReturn()
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
-                          Type.getType(LongClass).getDescriptor,
-                          null,
-                          startLabel,
-                          endLabel,
-                          newRuntimeEnvironment.getLastVarIdx)
+      Type.getType(LongClass).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      newRuntimeEnvironment.getLastVarIdx)
     mv.visitMaxs()
     mv.visitEnd()
 
