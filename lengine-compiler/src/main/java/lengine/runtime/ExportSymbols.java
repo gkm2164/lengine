@@ -77,6 +77,7 @@ public class ExportSymbols {
   public static final Field SEND_FIELD;
   public static final Field RECEIVE_FIELD;
   public static final Field CLOSE_FIELD;
+  public static final Field LISTEN_FIELD;
 
   static {
     try {
@@ -152,6 +153,7 @@ public class ExportSymbols {
       SEND_FIELD = Prelude.class.getField("SEND");
       RECEIVE_FIELD = Prelude.class.getField("RECEIVE");
       CLOSE_FIELD = Prelude.class.getField("CLOSE");
+      LISTEN_FIELD = Prelude.class.getField("LISTEN");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {

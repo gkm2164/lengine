@@ -2,11 +2,10 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanClass, JavaHashMapClass, JavaMapClass, ObjectClass, StringArrayClass, StringClass, VoidPrimitive}
-import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType._
+import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import lengine.concurrency.LengineFuture
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ClassWriter, Label, Type}
 
@@ -65,8 +64,13 @@ package object compile {
     mv.visitLabel(endLabel)
     mv.visitReturn()
     // Need to give hint to assembly generator for helping decide frame size
-    new LispValueDefWriter(EagerSymbol("__PADDING__"))
-      .writeValue(startLabel, endLabel, mainRuntimeEnv.getLastVarIdx)
+    mv.visitLocalVariable("__PADDING__",
+      Type.getType(ObjectClass).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      mainRuntimeEnv.getLastVarIdx
+    )
     mv.visitMaxs()
     mv.visitEnd()
   }
@@ -83,7 +87,7 @@ package object compile {
 
   private def writeCsInitMethod(cw: ClassWriter, className: String): Unit = {
     val fieldVisit = cw.visitField(
-      ACC_PUBLIC | ACC_STATIC,
+      ACC_PRIVATE | ACC_STATIC,
       "exportMap",
       Type.getType(JavaMapClass).getDescriptor,
       null,
@@ -123,7 +127,7 @@ package object compile {
   private def writeExportMethod(cw: ClassWriter, clsName: String): Unit = {
     val mv = cw
       .visitMethod(
-        ACC_PUBLIC | ACC_STATIC,
+        ACC_PRIVATE | ACC_STATIC,
         "export",
         Type.getMethodDescriptor(
           Type.getType(VoidPrimitive),

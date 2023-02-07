@@ -128,33 +128,22 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsType = argsWithCapturedVars.map(_ => ObjectClass).toList
 
-    val mv = if (capturedVariables.getRequestedCaptures.isEmpty) {
-      lambdaClassWriter
-        .visitMethod(
-          Opcodes.ACC_PUBLIC,
-          "invoke",
-          Type.getMethodDescriptor(
-            Type.getType(ObjectClass),
-            f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
-          ),
-          null,
-          null
-        )
-        .wrap()
-    } else {
-      val lambdaMv = lambdaClassWriter
-        .visitMethod(
-          Opcodes.ACC_PUBLIC,
-          "invoke",
-          Type.getMethodDescriptor(
-            Type.getType(ObjectClass),
-            f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
-          ),
-          null,
-          null
-        )
-        .wrap()
+    val methodSignature = lambdaClassWriter
+      .visitMethod(
+        Opcodes.ACC_PUBLIC,
+        "invoke",
+        Type.getMethodDescriptor(
+          Type.getType(ObjectClass),
+          f.placeHolders.map(_ => Type.getType(ObjectClass)): _*
+        ),
+        null,
+        null
+      ).wrap()
 
+    val mv = if (capturedVariables.getRequestedCaptures.isEmpty) {
+      methodSignature
+    } else {
+      val lambdaMv = methodSignature
       lambdaMv.visitALoad(0)
 
       f.placeHolders.zipWithIndex.foreach {
@@ -167,7 +156,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
           lambdaMv.visitALoad(0)
           lambdaMv.visitGetField(lambdaClassName, s"var$idx", ObjectClass)
       }
-
 
       lambdaMv.visitMethodCall(
         lambdaClassName,

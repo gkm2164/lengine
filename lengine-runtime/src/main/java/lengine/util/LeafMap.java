@@ -4,6 +4,7 @@ import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,13 +49,13 @@ public class LeafMap extends LengineMap {
   }
 
   public LengineSequence entries() {
-    LengineSequence sequence = LengineSequence.create(Nil.get());
+    LinkedList<Object> sequence = new LinkedList<>();
     dictionary.entrySet()
         .stream()
         .map(entry -> LengineMapEntry.create(entry.getKey(), entry.getValue()))
         .forEach(sequence::add);
 
-    return sequence;
+    return new LeafSequence(sequence);
   }
 
   public static LeafMap create() {

@@ -28,6 +28,7 @@ import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
+import lengine.https.HttpServerBuilder;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
@@ -615,6 +616,11 @@ public class Prelude {
   public static final LengineLambdaCommon SEND = _SEND;
   public static final LengineLambdaCommon RECEIVE = _RECEIVE;
   public static final LengineLambdaCommon CLOSE = _CLOSE;
+  private static final LengineLambda1<LengineUnit, LengineMap> _LISTEN = (config) -> {
+    HttpServerBuilder.listen(config);
+    return UNIT;
+  };
+  public static final LengineLambdaCommon LISTEN = _LISTEN;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
