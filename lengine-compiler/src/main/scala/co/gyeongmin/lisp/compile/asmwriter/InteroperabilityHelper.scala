@@ -45,6 +45,9 @@ object InteroperabilityHelper {
     "*"       -> ExportSymbols.MULT_FIELD,
     "/"       -> ExportSymbols.DIV_FIELD,
     "rem"     -> ExportSymbols.REM_FIELD,
+    "async"   -> ExportSymbols.ASYNC_FIELD,
+    "await"   -> ExportSymbols.AWAIT_FIELD,
+    "wait"    -> ExportSymbols.WAIT_FIELD,
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }

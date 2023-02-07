@@ -70,6 +70,9 @@ public class ExportSymbols {
   public static final Field NIL_FIELD;
   public static final Field APPEND_ITEM_FIELD;
   public static final Field MERGE_FIELD;
+  public static final Field ASYNC_FIELD;
+  public static final Field AWAIT_FIELD;
+  public static final Field WAIT_FIELD;
 
   static {
     try {
@@ -138,6 +141,9 @@ public class ExportSymbols {
       CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
       IS_SET_FIELD = Prelude.class.getField("IS_SET");
       DOES_HAVE_FIELD = Prelude.class.getField("DOES_HAVE");
+      ASYNC_FIELD = Prelude.class.getField("ASYNC");
+      AWAIT_FIELD = Prelude.class.getField("AWAIT");
+      WAIT_FIELD = Prelude.class.getField("WAIT");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {

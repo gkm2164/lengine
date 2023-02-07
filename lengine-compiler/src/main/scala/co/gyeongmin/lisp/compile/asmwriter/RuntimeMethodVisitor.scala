@@ -11,11 +11,31 @@ object RuntimeMethodVisitor {
     "export",
     "import",
     "if",
+    "exit",
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
     case EagerSymbol(op) => supportedOps.contains(op)
     case _               => false
+  }
+
+  private def visitQuit(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mv             = runtimeEnvironment.methodVisitor
+    val operand :: Nil = body
+
+    mv.visitLispValue(operand, LongClass)
+    mv.visitDup()
+    mv.visitMethodCall(
+      LongClass,
+      "intValue",
+      Integer.TYPE,
+    )
+    mv.visitStaticMethodCall(
+      classOf[System],
+      "exit",
+      VoidPrimitive,
+      Integer.TYPE
+    )
   }
 
   def handle(body: List[LispValue], requestedType: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
@@ -28,6 +48,7 @@ object RuntimeMethodVisitor {
           case "export" => visitExport(operands)
           case "import" => visitImport(operands)
           case "if"     => visitIfStmt(operands, requestedType, tailRecReference)
+          case "exit"   => visitQuit(operands)
           case _        => new RuntimeException("Unsupported operation: " + op)
         }
 

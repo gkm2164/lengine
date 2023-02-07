@@ -15,7 +15,7 @@
                          (rest (tail remains)))
                          (join-recur (+ (+ acc delim) elem) rest delim))))
 
-(fn join (strs delim)
+(fn join-string (strs delim)
     (join-recur (head strs) (tail strs) delim))
 
 ;;; Make str -> "str"
@@ -27,7 +27,7 @@
                                            (let ((value (k obj))
                                                  (object-key (format "\"%s\":" [(get k)])))
                                                 (+ object-key (to-json value))))))
-                        (format "{%s}" [(join key-values #\,)])))
+                        (format "{%s}" [(join-string key-values #\,)])))
 
 
 ;;; Actual logics
@@ -82,8 +82,8 @@
   ($ (+ acc (head s)) (tail s)))))
 
 (fn parse-number (acc s)
-    (case ((nil? s) [(double (join acc "")) nil])
-          ((contains (list ",]}) ") (head s)) [(double (join acc "")) s])
+    (case ((nil? s) [(double (join-string acc "")) nil])
+          ((contains (list ",]}) ") (head s)) [(double (join-string acc "")) s])
           default ($ (+: acc (head s)) (tail s))))
 
 (fn parse-boolean (s)
@@ -136,8 +136,8 @@
                  ((= #\Space first) ($ (tail json-str)))
                  default ["" json-str]))))
 
-(fn from-json (json-str)
-    (head (parse-value (list json-str))))
+(export from-json (lambda (json-str)
+    (head (parse-value (list json-str)))))
 
 (def parsed-value (head (parse-value json-ch-seq)))
 

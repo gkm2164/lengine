@@ -91,6 +91,29 @@ Integer + Double => (Double)Integer + Double
 Double + String => Double.toString() + String // At this point, actually it's not arithmatic calculation.
 ```
 
-### 3. Runtime library
+### 3. Collections
+
+All collections in Lengine are immutable.
+
+### 4. Runtime library
 
 TODO - need some description for how LengineRuntime is working, including Prelude.
+
+#### 4.1. Async/Await process
+
+For improving multi-threading, happily announce that this language can do async/await calls.
+Behind, Java's future is used under CachedThreadPool executor service.
+
+```lisp
+(fn run () (do (println "1234")
+               (wait 100) ;; 100ms
+               return (println "Finished!")))
+               
+(def future (async run))
+
+(println "Hello!")
+
+(await future)
+
+(exit 0) 
+```

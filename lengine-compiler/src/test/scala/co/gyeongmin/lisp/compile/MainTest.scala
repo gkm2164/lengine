@@ -35,5 +35,6 @@ class MainTest extends FlatSpec with Matchers {
     execute("seq-module.lisp", "SeqModule")
     execute("json.lisp", "Json")
     execute("set-test.lisp", "SetTest")
+    execute("json-async.lisp", "JsonAsyncModule")
   }
 }

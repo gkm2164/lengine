@@ -32,6 +32,7 @@ import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
+import lengine.util.LengineFuture;
 import lengine.util.LengineList;
 import lengine.util.LengineListIterator;
 import lengine.util.LengineMap;
@@ -503,6 +504,16 @@ public class Prelude {
 
     throw new RuntimeException("merge operation not supported.");
   };
+  private static final LengineLambda1<LengineFuture, LengineLambda0<?>> _ASYNC = LengineFuture::new;
+  private static final LengineLambda1<Object, LengineFuture> _AWAIT = LengineFuture::await;
+  private static final LengineLambda1<LengineUnit, Long> _WAIT = (milliseconds) -> {
+    try {
+      Thread.sleep(milliseconds);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    return UNIT;
+  };
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -568,6 +579,9 @@ public class Prelude {
   public static final LengineLambdaCommon CAST_SET = _CAST_SET;
   public static final LengineLambdaCommon DOES_HAVE = _DOES_HAVE;
   public static final LengineLambdaCommon MERGE = _MERGE;
+  public static final LengineLambdaCommon ASYNC = _ASYNC;
+  public static final LengineLambdaCommon AWAIT = _AWAIT;
+  public static final LengineLambdaCommon WAIT = _WAIT;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
