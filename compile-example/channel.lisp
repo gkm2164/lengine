@@ -15,7 +15,6 @@
 (def sender (async producer))
 (def receiver (async consumer))
 
-(await sender)
-(await receiver)
+(wait 10000)
 
 (exit 0)
