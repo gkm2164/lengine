@@ -146,22 +146,14 @@
 (println (:header (:menu parsed-value)))
 (println (:items (:menu parsed-value)))
 
-(def result (loop for x in (=range 1 10)
+(def result-2 (loop for x in (=range 1 10)
                   (let ((start (now))
                         (json-obj (from-json json-chs)))
                        [(- (now) start) json-obj])))
 
-(loop for x in result
+(loop for x in result-2
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
            (printf fmt x)))
-
-(def obj {
-  :id "Hello"
-  :age 33.0
-  :height 185.0
-  :male true
-  :logo #\,
-})
 
 (def json-str (to-json obj))
 (def re-obj (from-json json-str))

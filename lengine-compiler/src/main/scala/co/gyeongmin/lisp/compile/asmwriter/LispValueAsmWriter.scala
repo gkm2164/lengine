@@ -131,6 +131,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
     case l @ LispClause(_) =>
       new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
+    case ref @ LispValueDef(symbol, _) if runtimeEnv.hasVar(symbol) =>
+      throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
     case LispValueDef(symbol, value) =>
       mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
       mv.visitDup()

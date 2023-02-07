@@ -1,5 +1,6 @@
 (module HttpServerModule)
 
+(import Json.to-json)
 ;;; Now we do some fun with Lengine...
 
 ;;; Though, this backend implementation is Java, but, for now, this would be the interface.
@@ -23,7 +24,7 @@
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
-      ((:writer res) "{}")
+      ((:writer res) (to-json { :id "id-1234" :title "Hello" :message "Hello, Lengine!"}))
       return res))
 
 (fn about (req res)
