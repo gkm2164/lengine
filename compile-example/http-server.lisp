@@ -1,13 +1,25 @@
 (module HttpServerModule)
 
+;;; Now we do some fun with Lengine...
+
+;;; Though, this backend implementation is Java, but, for now, this would be the interface.
+
+;;; Let's define handler!
+;;; This is going to be used as "/" route, and especially GET method.
 (fn home (req res)
   (do (println "Process request / GET")
+      ;;; "res" object is Map type, and has entry with lambda function values.
+      ;;; Below is setting up status code
       ((:set-status-code res) 200)
+      ;;; What about headers?
       ((:set-headers res) { :Content-Type "text/html" })
+      ;;; And now write the values to the output stream.
       ((:writer res) "<html><h1>Welcome!</h1></html>")
+      ;;; This is nothing, but, just saying "Unit"
       return res))
 
 (fn home-post (req res)
+  ;;; Similar, but, processing POST.
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
@@ -15,6 +27,7 @@
       return res))
 
 (fn about (req res)
+  ;;; This will handler ALL methods.
   (do (println "Process request /about for ALL methods")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "text/html" })
@@ -25,16 +38,24 @@
   :host "127.0.0.1"
   :port 8080
   :handlers {
+    ;;; Here's how to define routes.
+    ;;; Each key hold context path
+    ;;; And inside, need to define map saying ":METHOD" => HANDLER mapping.
     :/                { :GET  home :POST home-post }
     :/about           { :POST about }
+    ;;; ALL is for define accepting all methods
     :/different-about { :ALL about }
   }
 }))
 
+;;; We need to hold manually, otherwise it will fall behind.
+;;; This is actually, converted into while loop.
 (fn recursion ()
     ($))
 
 (recursion)
 
+;;; Will never reach here, but, if reaches...
 (println "Closing server...")
+;;; here how we can close the server.
 (closer)
