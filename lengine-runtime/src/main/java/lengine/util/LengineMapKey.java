@@ -2,6 +2,8 @@ package lengine.util;
 
 import lengine.functions.LengineLambda1;
 
+import java.util.Optional;
+
 public class LengineMapKey implements LengineLambda1<Object, LengineMap> {
   private final String key;
 
@@ -39,6 +41,8 @@ public class LengineMapKey implements LengineLambda1<Object, LengineMap> {
 
   @Override
   public Object invoke(LengineMap map) {
-    return map.get(this);
+    return Optional
+            .ofNullable(map.get(this))
+            .orElseGet(Nil::get);
   }
 }

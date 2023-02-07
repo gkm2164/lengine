@@ -4,6 +4,7 @@ import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -22,7 +23,7 @@ public abstract class LengineSequence implements CreateIterator {
     return new LeafSequence(thisList);
   }
 
-  private static LengineSequence create(LinkedList<Object> origin) {
+  public static LengineSequence create(List<Object> origin) {
     return new LeafSequence(origin);
   }
 

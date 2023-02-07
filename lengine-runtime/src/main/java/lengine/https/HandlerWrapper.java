@@ -28,6 +28,7 @@ public class HandlerWrapper implements HttpHandler {
     public void handle(HttpExchange t) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ResponseBuilder responseBuilder = new ResponseBuilder(new PrintStream(outputStream));
+        RequestBuilder requestBuilder = new RequestBuilder(t);
         String method = t.getRequestMethod();
 
         final LengineLambda2<LengineUnit, LengineMap, LengineMap> handler;
@@ -40,7 +41,7 @@ public class HandlerWrapper implements HttpHandler {
             handler = this::nullHandler;
         }
 
-        handler.invoke(LengineMap.create(), responseBuilder.build());
+        handler.invoke(requestBuilder.build(), responseBuilder.build());
 
         t.sendResponseHeaders(responseBuilder.getStatusCode(), outputStream.size());
 

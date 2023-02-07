@@ -19,12 +19,28 @@
       ;;; This is nothing, but, just saying "Unit"
       return res))
 
+(fn debug (obj)
+    (do (println obj)
+        return obj))
+
+;;; Now, testing whether our to-json is working as expected.
+;;; It takes the user's headers and information retrieved from requests, and converting it to json responses.
 (fn home-post (req res)
   ;;; Similar, but, processing POST.
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
-      ((:writer res) (to-json { :id "id-1234" :title "Hello" :message "Hello, Lengine!"}))
+      ((:writer res) (debug (to-json {
+        :id "id-1234"
+        :title "Hello"
+        :message "Hello, Lengine!"
+        :request {
+          :headers (:headers req)
+          :path (:path req)
+          :query (:query req)
+          :method (:method req)
+        }
+       })))
       return res))
 
 (fn about (req res)
@@ -42,7 +58,7 @@
     ;;; Here's how to define routes.
     ;;; Each key hold context path
     ;;; And inside, need to define map saying ":METHOD" => HANDLER mapping.
-    :/                { :GET  home :POST home-post }
+    :/home            { :GET  home :POST home-post }
     :/about           { :POST about }
     ;;; ALL is for define accepting all methods
     :/different-about { :ALL about }

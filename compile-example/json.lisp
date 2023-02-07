@@ -4,6 +4,7 @@
 (import SeqModule.take-while)
 (import SeqModule.drop-while)
 (import SeqModule.contains)
+(import Module.map)
 
 ;;; Finally! reached to JSON related library
 
@@ -37,6 +38,7 @@
                   ((int? obj) (str obj))
                   ((string? obj) (with-double-quotes obj))
                   ((double? obj) (str obj))
+                  ((seq? obj) (format "[%s]" [(join-string (map $ obj) #\,)]))
                   ((object? obj) (to-json-object obj $))
                    default "null")))
 
@@ -46,6 +48,7 @@
   :height 185.0
   :male true
   :logo #\,
+  :arrs (seq [1 2 3 4 5])
 })
 
 (def result (loop for x in (=range 1 10)
