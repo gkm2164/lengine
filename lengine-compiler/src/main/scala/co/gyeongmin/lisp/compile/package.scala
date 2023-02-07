@@ -2,10 +2,11 @@ package co.gyeongmin.lisp
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{JavaHashMapClass, JavaMapClass, ObjectClass, StringArrayClass, StringClass, VoidPrimitive}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanClass, JavaHashMapClass, JavaMapClass, ObjectClass, StringArrayClass, StringClass, VoidPrimitive}
 import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter, LispValueDefWriter}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import lengine.concurrency.LengineFuture
 import org.objectweb.asm.Opcodes._
 import org.objectweb.asm.{ClassWriter, Label, Type}
 

@@ -2,19 +2,26 @@
 
 (def channel (chan))
 
-(fn producer ()
-    (do (send channel "Hello")
-        (wait 1000)
-        return ($)))
+(fn producer (n)
+    (if (<= n 0) nil
+        (do (send channel "Hello")
+            (wait 200)
+            return ($ (- n 1)))))
 
 (fn consumer ()
     (let ((message (receive channel)))
-         (do (println message)
-             return ($))))
+      (if (nil? message) nil
+          (do (println message)
+              return ($)))))
 
-(def sender (async producer))
+(def sender (async (lambda () (producer 10))))
+
 (def receiver (async consumer))
 
-(wait 10000)
+(await sender)
+(println "Closed sender")
+(close channel)
+(await receiver)
+(println "Received finished since the channel was closed")
 
 (exit 0)

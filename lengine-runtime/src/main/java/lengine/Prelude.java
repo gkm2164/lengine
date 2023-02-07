@@ -535,6 +535,15 @@ public class Prelude {
     }
   };
 
+  private static final LengineLambda1<Object, LengineChannel> _CLOSE = (channel) -> {
+    try {
+      channel.close();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    return UNIT;
+  };
+
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
   public static final LengineLambdaCommon MULT = _MULT;
@@ -605,6 +614,7 @@ public class Prelude {
   public static final LengineLambdaCommon CHANNEL = _CHANNEL;
   public static final LengineLambdaCommon SEND = _SEND;
   public static final LengineLambdaCommon RECEIVE = _RECEIVE;
+  public static final LengineLambdaCommon CLOSE = _CLOSE;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

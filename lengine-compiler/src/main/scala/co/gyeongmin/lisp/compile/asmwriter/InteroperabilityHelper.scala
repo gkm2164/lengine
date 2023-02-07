@@ -51,6 +51,7 @@ object InteroperabilityHelper {
     "chan"    -> ExportSymbols.CHANNEL_FIELD,
     "send"    -> ExportSymbols.SEND_FIELD,
     "receive" -> ExportSymbols.RECEIVE_FIELD,
+    "close"   -> ExportSymbols.CLOSE_FIELD,
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }
