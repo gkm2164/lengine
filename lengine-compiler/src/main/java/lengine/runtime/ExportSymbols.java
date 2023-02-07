@@ -73,6 +73,9 @@ public class ExportSymbols {
   public static final Field ASYNC_FIELD;
   public static final Field AWAIT_FIELD;
   public static final Field WAIT_FIELD;
+  public static final Field CHANNEL_FIELD;
+  public static final Field SEND_FIELD;
+  public static final Field RECEIVE_FIELD;
 
   static {
     try {
@@ -144,6 +147,9 @@ public class ExportSymbols {
       ASYNC_FIELD = Prelude.class.getField("ASYNC");
       AWAIT_FIELD = Prelude.class.getField("AWAIT");
       WAIT_FIELD = Prelude.class.getField("WAIT");
+      CHANNEL_FIELD = Prelude.class.getField("CHANNEL");
+      SEND_FIELD = Prelude.class.getField("SEND");
+      RECEIVE_FIELD = Prelude.class.getField("RECEIVE");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {

@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 
+import lengine.concurrency.LengineChannel;
 import lengine.functions.LengineLambda0;
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
@@ -32,7 +33,7 @@ import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
-import lengine.util.LengineFuture;
+import lengine.concurrency.LengineFuture;
 import lengine.util.LengineList;
 import lengine.util.LengineListIterator;
 import lengine.util.LengineMap;
@@ -514,6 +515,25 @@ public class Prelude {
     }
     return UNIT;
   };
+  private static final LengineLambda0<LengineChannel> _CHANNEL = LengineChannel::create;
+
+  private static final LengineLambda2<LengineUnit, LengineChannel, Object> _SEND = (channel, msg) -> {
+    try {
+      channel.sendMessage(msg);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    return UNIT;
+  };
+
+  private static final LengineLambda1<Object, LengineChannel> _RECEIVE = (channel) -> {
+    try {
+      return channel.receiveMessage();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  };
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -582,6 +602,9 @@ public class Prelude {
   public static final LengineLambdaCommon ASYNC = _ASYNC;
   public static final LengineLambdaCommon AWAIT = _AWAIT;
   public static final LengineLambdaCommon WAIT = _WAIT;
+  public static final LengineLambdaCommon CHANNEL = _CHANNEL;
+  public static final LengineLambdaCommon SEND = _SEND;
+  public static final LengineLambdaCommon RECEIVE = _RECEIVE;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

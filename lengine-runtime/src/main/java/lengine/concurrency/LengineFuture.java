@@ -1,4 +1,4 @@
-package lengine.util;
+package lengine.concurrency;
 
 import lengine.functions.LengineLambda0;
 
