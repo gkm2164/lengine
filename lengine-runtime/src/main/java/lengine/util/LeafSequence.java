@@ -77,7 +77,7 @@ public class LeafSequence extends LengineSequence {
     if (this.list.size() >= n) {
       return new LeafSequence(this.list.subList((int)n, this.list.size()));
     }
-    return null;
+    return new LeafSequence();
   }
 
   @Override
