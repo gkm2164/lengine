@@ -106,9 +106,9 @@ public class Prelude {
 
   private static String castString(Object from) {
     if (from instanceof LengineList) {
-      return ((LengineList) from).printable(true);
+      return from.toString();
     } else if (from instanceof LengineSequence) {
-      return ((LengineSequence) from).printable(true);
+      return from.toString();
     }
 
     return from.toString();
@@ -177,10 +177,6 @@ public class Prelude {
   }
 
   private static final LengineLambda2<Object, Object, Object> _ADD = (a, b) -> {
-    if (a instanceof LengineMap && b instanceof LengineMapEntry) {
-      return ((LengineMap) a).add((LengineMapEntry) b);
-    }
-
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -373,7 +369,7 @@ public class Prelude {
     if (set instanceof LengineSet) {
       return ((LengineSet) set).contains(obj);
     } else if (set instanceof LengineMap && obj instanceof LengineMapKey) {
-      return ((LengineMap) set).contains(obj);
+      return ((LengineMap) set).contains((LengineMapKey) obj);
     }
 
     return false;
@@ -429,17 +425,12 @@ public class Prelude {
       public Long len() {
         return lengthOfFile;
       }
-
-      @Override
-      public String printable(boolean isFirst) {
-        return format("[<file handle for %s>]", path);
-      }
     };
   };
   private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
 
   private static final LengineLambda1<LengineMapKey, String> _KEY = LengineMapKey::create;
-  private static final LengineLambda1<LengineList, LengineMap> _KEYS = LengineMap::keys;
+  private static final LengineLambda1<LengineSet, LengineMap> _KEYS = LengineMap::keys;
   private static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
   private static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
   private static final LengineLambda1<String, LengineMapKey> _GET = LengineMapKey::getKey;
@@ -472,12 +463,16 @@ public class Prelude {
 
   private static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
 
-  private static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (seq, elem) -> {
-    if (seq instanceof LengineList) {
-      LengineList head = (LengineList) seq;
+  private static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
+    if (coll instanceof LengineList) {
+      LengineList head = (LengineList) coll;
       return head.add(elem);
-    } else if (seq instanceof LengineSequence) {
-      return ((LengineSequence) seq).add(elem);
+    } else if (coll instanceof LengineSequence) {
+      return ((LengineSequence) coll).add(elem);
+    } else if (coll instanceof LengineMap) {
+      return ((LengineMap)coll).putEntry((LengineMapEntry) elem);
+    } else if (coll instanceof LengineSet) {
+      return ((LengineSet)coll).add(elem);
     }
 
     throw new RuntimeException("currently not supporting the operation");
@@ -497,6 +492,12 @@ public class Prelude {
     } else if (xs instanceof LengineSequence) {
       if (ys instanceof CreateIterator) {
         return ((LengineSequence) xs).append((CreateIterator) ys);
+      }
+    } else if (xs instanceof LengineSet) {
+      if (ys instanceof LengineSet) {
+        return ((LengineSet)xs).append((LengineSet)ys);
+      } else if (ys instanceof CreateIterator) {
+        return ((LengineSet)xs).append(LengineSet.create((CreateIterator) ys));
       }
     }
 

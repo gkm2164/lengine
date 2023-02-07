@@ -31,10 +31,6 @@ public class Nil extends LengineList {
         return "nil";
     }
 
-    @Override
-    public String printable(boolean isFirst) {
-        return "]";
-    }
 
     @Override
     public LengineList append(CreateIterator ys) {

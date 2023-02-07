@@ -5,7 +5,7 @@ import lengine.runtime.LengineIterator;
 
 public class NonLeafSequence extends LengineSequence {
     private final LengineSequence left;
-    private LengineSequence right;
+    private final LengineSequence right;
 
     protected NonLeafSequence(
             final LengineSequence left,
@@ -33,8 +33,7 @@ public class NonLeafSequence extends LengineSequence {
 
     @Override
     public LengineSequence append(CreateIterator seq) {
-        this.right = this.right.append(seq);
-        return this;
+      return new NonLeafSequence(this.left, this.right.append(seq));
     }
 
     @Override

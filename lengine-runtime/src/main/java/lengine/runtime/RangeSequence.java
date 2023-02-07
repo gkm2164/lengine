@@ -20,7 +20,7 @@ public class RangeSequence implements CreateIterator {
 
   @Override
   public String toString() {
-    return "Ranged sequence from " + from + " to " + to;
+    return "[Ranged sequence from " + from + " to " + to + "]";
   }
 
   @Override
@@ -31,10 +31,5 @@ public class RangeSequence implements CreateIterator {
   @Override
   public Long len() {
     return (long)Math.abs(to - from);
-  }
-
-  @Override
-  public String printable(boolean isFirst) {
-    return String.format("[range class %d %d]", from, to - 1);
   }
 }

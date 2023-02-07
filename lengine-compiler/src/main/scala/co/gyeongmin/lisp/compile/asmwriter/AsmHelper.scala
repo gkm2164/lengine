@@ -50,8 +50,6 @@ object AsmHelper {
 
     def visitReturn(): Unit = mv.visitInsn(RETURN)
 
-    def visitLineNumber(line: Int, thisLabel: Label): Unit = mv.visitLineNumber(line, thisLabel)
-
     def visitCode(): Unit = mv.visitCode()
 
     def visitIfNe(tLabel: Label): Unit = {

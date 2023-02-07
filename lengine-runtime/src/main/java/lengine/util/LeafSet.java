@@ -1,6 +1,8 @@
 package lengine.util;
 
-import java.util.Arrays;
+import lengine.runtime.LengineIterator;
+
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -9,10 +11,12 @@ class LeafSet extends LengineSet {
   private final Set<Object> set;
 
   protected LeafSet() {
+    super(false);
     this.set = new HashSet<>();
   }
 
   public LeafSet(Set<Object> elems) {
+    super(false);
     this.set = elems;
   }
 
@@ -22,8 +26,21 @@ class LeafSet extends LengineSet {
   }
 
   @Override
+  public LengineSet add(Object object) {
+    if (set.contains(object)) {
+      return this;
+    }
+    return new NonLeafSet(super.lately, this, new LeafSet(Collections.singleton(object)));
+  }
+
+  @Override
   public LengineSet remove(Object elem) {
-    return new LeafSet(set.stream().filter(x -> x.equals(elem)).collect(Collectors.toSet()));
+    return new LeafSet(set.stream().filter(x -> !x.equals(elem)).collect(Collectors.toSet()));
+  }
+
+  @Override
+  public LengineIterator iterator() {
+    return new LeafSetIterator(set);
   }
 
   @Override

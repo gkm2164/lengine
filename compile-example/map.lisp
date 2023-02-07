@@ -18,7 +18,7 @@
 
 ;;; Map object is immutable. You can't make a change on map.
 (println obj)
-(def new-obj (+ obj (entry :new-id "new value")))
+(def new-obj (+: obj (entry :new-id "new value")))
 (println new-obj)
 
  ;;; This should print null.
@@ -31,7 +31,7 @@
 (println (:name obj))
 (println (:age obj))
 
-(println (:new-entry (+ obj (entry :new-entry "new value"))))
+(println (:new-entry (+: obj (entry :new-entry "new value"))))
 
 (println (keys obj))
 

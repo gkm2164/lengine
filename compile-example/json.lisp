@@ -106,7 +106,7 @@
                   (value (head value-remains))
                   (e (entry (key key-name) value))
                   (remains (head (tail value-remains))))
-                 ($ (+ acc e) remains pv)))
+                 ($ (+: acc e) remains pv)))
           default [nil nil]))
 
 (fn parse-array (acc s pv)

@@ -24,13 +24,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     )
     map.foreach {
       case (symbol, value) =>
-        mv.visitDup()
         mv.visitLispValue(symbol, LengineMapKeyClass)
         mv.visitLispValue(value, ObjectClass)
         mv.visitMethodCall(
           LengineMapClass,
           "put",
-          VoidPrimitive,
+          LengineMapClass,
           LengineMapKeyClass,
           ObjectClass
         )
@@ -79,12 +78,10 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLdcInsn(n)
       mv.visitBoxing(LongClass, LongPrimitive)
       mv.visitLineForValue(value)
-
     case FloatNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
       mv.visitLineForValue(value)
-
     case LispString(str) => // 1 stack
       mv.visitLdcInsn(unescapeString(str))
       mv.visitLineForValue(value)

@@ -33,17 +33,6 @@ public class Cons extends LengineList {
     }
 
     @Override
-    public String printable(boolean isFirst) {
-        String ret = "";
-        if (isFirst) {
-            ret += "[" + item.toString();
-        } else {
-            ret += " " + item.toString();
-        }
-        return ret + next.printable(false);
-    }
-
-    @Override
     public String toString() {
         return String.format("(cons %s %s)", item.toString(), next.toString());
     }

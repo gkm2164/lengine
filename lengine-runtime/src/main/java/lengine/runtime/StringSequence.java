@@ -74,8 +74,4 @@ public class StringSequence implements CreateIterator {
     return (long) str.length();
   }
 
-  @Override
-  public String printable(boolean isFirst) {
-    return str;
-  }
 }

@@ -22,7 +22,7 @@ public class FileSequence implements CreateIterator {
   }
 
   @Override
-  public String printable(boolean isFirst) {
+  public String toString() {
     return "[<file-sequence>]";
   }
 }
