@@ -527,7 +527,6 @@ public class Prelude {
 
     return UNIT;
   };
-
   private static final LengineLambda1<Object, LengineChannel> _RECEIVE = (channel) -> {
     try {
       return channel.receiveMessage();
@@ -535,7 +534,6 @@ public class Prelude {
       throw new RuntimeException(e);
     }
   };
-
   private static final LengineLambda1<Object, LengineChannel> _CLOSE = (channel) -> {
     try {
       channel.close();
@@ -544,6 +542,7 @@ public class Prelude {
     }
     return UNIT;
   };
+  private static final LengineLambda1<LengineLambda0<LengineUnit>, LengineMap> _LISTEN = HttpServerBuilder::listen;
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -616,10 +615,6 @@ public class Prelude {
   public static final LengineLambdaCommon SEND = _SEND;
   public static final LengineLambdaCommon RECEIVE = _RECEIVE;
   public static final LengineLambdaCommon CLOSE = _CLOSE;
-  private static final LengineLambda1<LengineUnit, LengineMap> _LISTEN = (config) -> {
-    HttpServerBuilder.listen(config);
-    return UNIT;
-  };
   public static final LengineLambdaCommon LISTEN = _LISTEN;
   public static final Object NIL = Nil.get();
 
