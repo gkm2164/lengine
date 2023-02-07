@@ -1,8 +1,13 @@
 (module Tree)
 
-(fn node (v l r) [l v r])
+(import SeqModule.flatten)
 
-(fn leaf (v) (node v nil nil))
+(fn node (v l r) (seq [l v r]))
+(fn leaf (v) (node v (seq nil) (seq nil)))
+
+(fn left-tree (n) (head n))
+(fn right-tree (n) (head (drop 2 n)))
+(fn node-value (n) (head (tail n)))
 
 ;;;
 ;;;         3
@@ -16,15 +21,12 @@
 (println some-tree)
 
 (fn dfs-visit (acc tree)
-    (let ((left (head tree))
-          (v (head (drop 1 tree)))
-          (right (head (drop 2 tree)))
-          (left-result (if (nil? left)
-                           nil
-                           (dfs-visit acc left)))
-          (right-result (if (nil? right)
-                            nil
-                            (dfs-visit acc right))))
-         (++ (+: (++ acc left-result) v) right-result)))
+    (if (nil? tree) acc
+        (let ((v (node-value tree))
+              (left ($ acc (left-tree tree)))
+              (right ($ acc (right-tree tree))))
+             (++ (+: (++ acc left) v) right))))
 
-(println (dfs-visit (seq nil) some-tree))
+(println (flatten some-tree))
+
+(assert-equals "Visit sequence should be" (flatten (dfs-visit (seq nil) some-tree)) (seq [1 2 3 4 5 6 7]))
