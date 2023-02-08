@@ -26,12 +26,14 @@
 
 (fn escape (stream)
     (fold stream "" (lambda (ret ch)
-        (case ((= ch #\") (+ (+ ret #\\) #\"))
-              ((= ch #\Return) (+ (+ ret #\\) #\r))
-              ((= ch #\Linefeed) (+ (+ ret #\\) #\n))
+        (case ((= ch #\") (+ ret "\\\""))
+              ((= ch #\Return) (+ ret "\\\\r"))
+              ((= ch #\Linefeed) (+ ret "\\\\n"))
               default (+ ret ch)))))
 
 (debug (escape (seq "abcdefg\" \n")))
+
+(println "\\\n\n")
 
 ;;; Now, testing whether our to-json is working as expected.
 ;;; It takes the user's headers and information retrieved from requests, and converting it to json responses.

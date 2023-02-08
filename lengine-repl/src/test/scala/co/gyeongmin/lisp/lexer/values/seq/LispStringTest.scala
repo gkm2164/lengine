@@ -22,4 +22,9 @@ class LispStringTest extends FlatSpec with Matchers {
     (lispString ++ LispUnit) should matchPattern { case Left(_) => }
     (LispUnit :: lispString) should matchPattern { case Left(_) => }
   }
+
+  it should "escape" in {
+    LispString("abcdefg\\n").applyEscape() should be("abcdefg\n")
+    LispString("abcdefg\\\\n").applyEscape() should be ("abcdefg\\n")
+  }
 }

@@ -60,9 +60,6 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       declareCaseStmt(tail, fallback, exitLabel, tailRecReference)
   }
 
-  private def unescapeString(str: String): String =
-    "tnfbr\"".zip("\t\n\f\b\r\"").foldLeft(str)((acc, cur) => acc.replaceAllLiterally(s"\\${cur._1}", cur._2.toString))
-
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
     case LispTrue() => // 1 stack
       mv.visitIConst1()
@@ -88,8 +85,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
       mv.visitLineForValue(value)
-    case LispString(str) => // 1 stack
-      mv.visitLdcInsn(unescapeString(str))
+    case s@LispString(_) => // 1 stack
+      mv.visitLdcInsn(s.applyEscape())
       mv.visitLineForValue(value)
     case LispList(body) =>
       declareSequence(body)
