@@ -1,5 +1,8 @@
 package lengine.util;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,4 +78,21 @@ public abstract class LengineMap implements CreateIterator {
   }
 
   protected abstract String printable();
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private final List<LengineMapEntry> list = new LinkedList<>();
+
+    public Builder put(LengineMapKey key, Object value) {
+      list.add(LengineMapEntry.create(key, value));
+      return this;
+    }
+
+    public LengineMap build() {
+      return new LeafMap(list);
+    }
+  }
 }

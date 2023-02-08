@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
-import lengine.util.{Cons, LengineList, LengineMap, LengineMapKey}
+import lengine.util.{ Cons, LengineList, LengineMap, LengineMapKey }
 
 object LengineType {
   val VoidPrimitive: Class[Void]                       = java.lang.Void.TYPE
@@ -44,4 +44,5 @@ object LengineType {
   val LengineList: Class[LengineList]                      = classOf[LengineList]
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
   val LengineIteratorClass: Class[LengineIterator]         = classOf[LengineIterator]
+  val LengineMapBuilderClass: Class[LengineMap.Builder]    = classOf[LengineMap.Builder]
 }

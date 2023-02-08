@@ -5,6 +5,7 @@ import lengine.runtime.LengineIterator;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +31,11 @@ public class LeafMap extends LengineMap {
     for (LengineMapEntry entry : entries) {
       dictionary.put(entry.getKey(), entry.getValue());
     }
+  }
+
+  LeafMap(List<LengineMapEntry> list) {
+    this();
+    list.forEach(entry -> dictionary.put(entry.getKey(), entry.getValue()));
   }
 
   public LengineMap putEntry(LengineMapEntry entry) {

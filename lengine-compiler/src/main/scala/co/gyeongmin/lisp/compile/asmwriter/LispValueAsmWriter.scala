@@ -19,21 +19,27 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
     mv.visitStaticMethodCall(
       LengineMapClass,
-      "create",
-      LengineMapClass
+      "builder",
+      LengineMapBuilderClass
     )
     map.foreach {
       case (symbol, value) =>
         mv.visitLispValue(symbol, LengineMapKeyClass)
         mv.visitLispValue(value, ObjectClass)
         mv.visitMethodCall(
-          LengineMapClass,
+          LengineMapBuilderClass,
           "put",
-          LengineMapClass,
+          LengineMapBuilderClass,
           LengineMapKeyClass,
           ObjectClass
         )
     }
+
+    mv.visitMethodCall(
+      LengineMapBuilderClass,
+      "build",
+      LengineMapClass
+    )
   }
 
   @tailrec
