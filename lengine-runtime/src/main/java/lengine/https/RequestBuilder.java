@@ -6,12 +6,20 @@ import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
 import lengine.util.LengineMapKey;
 import lengine.util.LengineSequence;
+import lengine.util.Nil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.AbstractMap;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class RequestBuilder {
     private final String path;
@@ -32,7 +40,7 @@ public class RequestBuilder {
             String key = listEntry.getKey();
             List<Object> values = listEntry.getValue()
                     .stream()
-                    .map(x -> (Object)x).collect(Collectors.toList());
+                    .map(x -> (Object)x).collect(toList());
 
             LengineSequence seq = LeafSequence.create(values);
             map = map.putEntry(entry(key, seq));
@@ -50,10 +58,35 @@ public class RequestBuilder {
     public LengineMap build() {
         return LengineMap.create()
                 .putEntry(entry("path", path))
-                .putEntry(entry("query", query))
+                .putEntry(entry("query", parseQuery(query)))
                 .putEntry(entry("method", method))
                 .putEntry(entry("headers", headers))
                 .putEntry(entry("request-body", new StreamReaderWrapper(requestBody, bodyLength)));
+    }
+
+    private Object parseQuery(String query) {
+        if (query == null || query.length() == 0) {
+            return Nil.get();
+        }
+
+        Set<Map.Entry<String, List<Object>>> queryParams = Arrays.stream(query.split("&"))
+            .map(str -> {
+                String[] keyValue = str.split("=");
+                String key = keyValue[0];
+                Object value = keyValue.length > 1 ? keyValue[1] : true;
+                return new AbstractMap.SimpleEntry<>(key, value);
+            })
+            .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
+                    Collectors.mapping(AbstractMap.SimpleEntry::getValue, toList())))
+                .entrySet();
+
+        LengineMap ret = LengineMap.create();
+
+        for (Map.Entry<String, List<Object>> queryParam : queryParams) {
+            ret = ret.putEntry(entry(queryParam.getKey(), LengineSequence.create(queryParam.getValue())));
+        }
+
+        return ret;
     }
 
     private <T> LengineMapEntry entry(String key, T value) {

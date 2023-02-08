@@ -23,6 +23,9 @@
     (do (println obj)
         return obj))
 
+(fn print-body (stream)
+    (fold stream "" +))
+
 ;;; Now, testing whether our to-json is working as expected.
 ;;; It takes the user's headers and information retrieved from requests, and converting it to json responses.
 (fn home-post (req res)
@@ -30,6 +33,7 @@
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
+      (println (print-body (:request-body req)))
       ((:writer res) (debug (to-json {
         :id "id-1234"
         :title "Hello"
