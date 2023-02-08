@@ -25,4 +25,9 @@ public class StreamReaderWrapper implements CreateIterator {
     public Long len() {
         return bodyLength;
     }
+
+  @Override
+  public Object head() {
+    throw new RuntimeException("Unsupported operation");
+  }
 }

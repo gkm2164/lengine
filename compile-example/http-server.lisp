@@ -41,8 +41,8 @@
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
-      (let ((body-txt (:request-body req))
-            (body (from-json (fold body-txt "" +))))
+      (let ((body-stream (:request-body req))
+            (body (from-json (fold body-stream "" +))))
           ((:writer res) (debug (to-json {
             :id "id-1234"
             :title "Hello"

@@ -72,6 +72,11 @@ class NonLeafMap extends LengineMap {
     return this.left.len() + this.right.len();
   }
 
+  @Override
+  public Object head() {
+    return this.left.head();
+  }
+
   protected String printable() {
     return this.createStringEntry().collect(Collectors.joining(", "));
   }

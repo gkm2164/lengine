@@ -45,6 +45,11 @@ public class NonLeafSet extends LengineSet {
     return this.left.len() + this.right.len();
   }
 
+  @Override
+  public Object head() {
+    return this.left.head();
+  }
+
   protected String printable() {
     String[] result = {this.left.printable(), this.right.printable()};
     return String.join(" ", result);

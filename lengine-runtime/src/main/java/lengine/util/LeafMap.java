@@ -107,6 +107,15 @@ public class LeafMap extends LengineMap {
   }
 
   @Override
+  public LengineMapEntry head() {
+    return dictionary.entrySet()
+        .stream()
+        .findFirst()
+        .map(x -> LengineMapEntry.create(x.getKey(), x.getValue()))
+        .get();
+  }
+
+  @Override
   public String printable() {
     return this.createStringEntry().collect(Collectors.joining(", "));
   }

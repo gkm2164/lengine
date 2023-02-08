@@ -294,7 +294,7 @@ public class Prelude {
     return cls.isInstance(value);
   }
 
-  private static final LengineLambda1<Object, CreateIterator> _HEAD = (seq) -> seq.iterator().peek();
+  private static final LengineLambda1<Object, CreateIterator> _HEAD = CreateIterator::head;
   private static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
   private static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
     AtomicReference<Object> ret = new AtomicReference<>(acc);
@@ -427,6 +427,11 @@ public class Prelude {
       @Override
       public Long len() {
         return lengthOfFile;
+      }
+
+      @Override
+      public Object head() {
+        throw new RuntimeException("unsupported operation");
       }
     };
   };

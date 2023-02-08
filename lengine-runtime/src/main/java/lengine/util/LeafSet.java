@@ -49,6 +49,11 @@ class LeafSet extends LengineSet {
   }
 
   @Override
+  public Object head() {
+    return this.set.stream().findFirst().get();
+  }
+
+  @Override
   protected String printable() {
     return this.set.stream().map(Object::toString).collect(Collectors.joining(" "));
   }

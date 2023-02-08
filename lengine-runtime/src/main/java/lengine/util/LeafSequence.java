@@ -44,12 +44,22 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
+  public Object head() {
+    return this.list.get(0);
+  }
+
+  @Override
   public String printable(boolean isFirst) {
     return list.stream().map(Object::toString).collect(Collectors.joining(" "));
   }
 
   @Override
   public LengineSequence append(CreateIterator seq) {
+    if (this.len() == 0) {
+      List<Object> lst = new LinkedList<>();
+      seq.iterator().forEachRemaining(lst::add);
+      return new LeafSequence(lst);
+    }
     return new NonLeafSequence(this, LeafSequence.create(seq));
   }
 
