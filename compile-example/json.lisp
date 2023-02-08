@@ -100,6 +100,7 @@
           ((= (head s) #\}) [acc (tail s)])
           ((= (head s) #\,) ($ acc (tail s) pv))
           ((= (head s) #\Space) ($ acc (tail s) pv))
+          ((= (head s) #\Linefeed) ($ acc (tail s) pv))
           ((= (head s) #\")
             (let ((key-remains (parse-string "" (tail s))) ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))            ;;; "SomeString"
@@ -137,7 +138,11 @@
                  ((= #\f first) (parse-boolean json-str))
                  ((= #\n first) (parse-null json-str))
                  ((= #\Space first) ($ (tail json-str)))
-                 default ["" json-str]))))
+                 ((= #\Linefeed first) ($ (tail json-str)))
+                 ((= #\Return first) ($ (tail json-str)))
+                 ((= #\Tab first) ($ (tail json-str)))
+                 default (do (println (+ "Unknown char: " first))
+                             return ["" json-str])))))
 
 (export from-json (lambda (json-str)
     (head (parse-value (list json-str)))))

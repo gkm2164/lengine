@@ -34,6 +34,7 @@ public class HttpServerBuilder {
                 return LengineUnit.create();
             };
         } catch (IOException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

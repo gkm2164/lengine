@@ -117,3 +117,7 @@ Behind, Java's future is used under CachedThreadPool executor service.
 
 (exit 0) 
 ```
+
+#### 4.2 HTTP Server
+
+![img](https://images.gben.me/images/d1b40b7f-a8e0-4262-8cba-bb31b6e2fa06)

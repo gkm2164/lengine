@@ -1,6 +1,7 @@
 (module HttpServerModule)
 
 (import Json.to-json)
+(import Json.from-json)
 ;;; Now we do some fun with Lengine...
 
 ;;; Though, this backend implementation is Java, but, for now, this would be the interface.
@@ -20,31 +21,40 @@
       return res))
 
 (fn debug (obj)
-    (do (println obj)
+    (do (printf "[%s]\n" [obj])
         return obj))
 
-(fn print-body (stream)
-    (fold stream "" +))
+(fn escape (stream)
+    (fold stream "" (lambda (ret ch)
+        (case ((= ch #\") (+ (+ ret #\\) #\"))
+              ((= ch #\Return) (+ (+ ret #\\) #\r))
+              ((= ch #\Linefeed) (+ (+ ret #\\) #\n))
+              default (+ ret ch)))))
+
+(debug (escape (seq "abcdefg\" \n")))
 
 ;;; Now, testing whether our to-json is working as expected.
 ;;; It takes the user's headers and information retrieved from requests, and converting it to json responses.
+;;; Send payload here with {"name": "Your name"}
 (fn home-post (req res)
   ;;; Similar, but, processing POST.
   (do (println "Process request / POST")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "application/json" })
-      (println (print-body (:request-body req)))
-      ((:writer res) (debug (to-json {
-        :id "id-1234"
-        :title "Hello"
-        :message "Hello, Lengine!"
-        :request {
-          :headers (:headers req)
-          :path (:path req)
-          :query (:query req)
-          :method (:method req)
-        }
-       })))
+      (let ((body-txt (:request-body req))
+            (body (from-json (fold body-txt "" +))))
+          ((:writer res) (debug (to-json {
+            :id "id-1234"
+            :title "Hello"
+            :message (format "Hello, %s!" [(:name body)])
+            :request {
+              :headers (:headers req)
+              :path (:path req)
+              :query (:query req)
+              :method (:method req)
+              :body body
+            }
+           }))))
       return res))
 
 (fn about (req res)
