@@ -50,7 +50,7 @@
       return res))
 
 (fn about (req res)
-  ;;; This will handler ALL methods.
+  ;;; This will handle ALL methods.
   (do (println "Process request /about for ALL methods")
       ((:set-status-code res) 200)
       ((:set-headers res) { :Content-Type "text/html" })

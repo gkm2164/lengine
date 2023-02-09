@@ -8,7 +8,7 @@
 (def line (read-line))
 (println line)
 (println (list line))
-(def trimmed (to-string (filter (list line) (lambda (ch) (/= ch #\Space)))))
+(def trimmed (to-string (filter (list line) (^ (ch) (/= ch #\Space)))))
 (println trimmed)
 (def splitted (split trimmed #\,))
 (println splitted)

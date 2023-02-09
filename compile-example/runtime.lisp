@@ -20,14 +20,17 @@
 
 (export fold fold)
 
-(export to-string (lambda (xs)
-                          (fold xs "" (lambda (acc elem) (+ acc elem)))))
+(export to-string (^ (xs)
+                     (fold xs
+                           ""
+                           (^ (acc elem)
+                              (+ acc elem)))))
 
-(export split (lambda (s delim)
-                      (if (= 0 (len s))
-                      []
-                      (let ((delim-check (lambda (ch) (= ch delim)))
-                            (splitted (split-at delim-check s))
-                            (first (head splitted))
-                            (last (head (tail splitted))))
-                           (+ [first] ($ last delim))))))
+(export split (^ (s delim)
+                 (if (= 0 (len s))
+                     []
+                     (let ((delim-check (lambda (ch) (= ch delim)))
+                           (splitted (split-at delim-check s))
+                           (first (head splitted))
+                           (last (head (tail splitted))))
+                          (+ [first] ($ last delim))))))

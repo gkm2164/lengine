@@ -8,15 +8,16 @@
 (def file-sequence (read-file-seq "./102521_membrane_GC_cell_lines.csv"))
 
 ;;; Now the sequence type can be folded.
-(def head-values (fold file-sequence nil (lambda (acc elem)
+(def head-values (fold file-sequence nil (^ (acc elem)
                                                 (let ((commas (split elem #\,)))
                                                      (+: acc (head commas))))))
 
-(def numbers (map (lambda (x) (double x))
-                              (filter (drop 1 head-values)
-                                      (lambda (x) (and (/= x "NaN") (/= x "EOF"))))))
+(def numbers (map (^ (x) (double x))
+                  (filter (drop 1 head-values)
+                          (^ (x) (and (/= x "NaN") (/= x "EOF"))))))
 
 (println numbers)
+
 (def sum (fold numbers
                0.0
                (lambda (acc elem)
