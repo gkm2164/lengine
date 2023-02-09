@@ -23,8 +23,17 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       codeIterator.next() match {
         case ('\\', _) if escape =>
           parseString(builder + "\\", wrap)
-        case (ch, _) if escape =>
-          parseString(builder + s"\\$ch", wrap)
+        case ('t', _) if escape =>
+          parseString(builder + '\t', wrap)
+        case ('n', _) if escape =>
+          parseString(builder + '\n', wrap)
+        case ('b', _) if escape =>
+          parseString(builder + '\b', wrap)
+        case ('r', _) if escape =>
+          parseString(builder + '\r', wrap)
+        case ('\"', _) if escape =>
+          parseString(builder + '\"', wrap)
+        case (ch, _) if escape => Left(WrongEscapeError)
         case ('\\', _) =>
           parseString(builder, wrap, escape = true)
         case (ch, _) if ch == wrap && escape =>

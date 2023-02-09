@@ -30,13 +30,19 @@
                                                 (+ object-key (to-json value))))))
                         (format "{%s}" [(join-string key-values #\,)])))
 
+(fn escape (stream)
+    (fold stream "" (lambda (ret ch)
+        (case ((= ch #\") (+ ret "\\\""))
+              ((= ch #\Return) (+ ret "\\r"))
+              ((= ch #\Linefeed) (+ ret "\\n"))
+              default (+ ret ch)))))
 
 ;;; Actual logics
 (export to-json (lambda (obj)
             (case ((bool? obj) (str obj))
                   ((char? obj) (with-double-quotes (str obj)))
                   ((int? obj) (str obj))
-                  ((string? obj) (with-double-quotes obj))
+                  ((string? obj) (with-double-quotes (escape (seq obj))))
                   ((double? obj) (str obj))
                   ((seq? obj) (format "[%s]" [(join-string (map $ obj) #\,)]))
                   ((object? obj) (to-json-object obj $))

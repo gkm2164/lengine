@@ -29,23 +29,4 @@ case class LispString(value: String) extends LispSeq {
     case LispChar(chs) => Right(LispString(chs + value))
     case v             => Left(InvalidTypeError(v, "Char"))
   }
-
-  def applyEscape(): String = {
-    @tailrec
-    def loop(acc: Vector[Char], current: List[Char], escape: Boolean = false): String = current match {
-      case Nil                     => acc.mkString("")
-      case '\\' :: tail if !escape => loop(acc, tail, escape = true)
-      case '\\' :: tail if escape  => loop(acc :+ '\\', tail)
-      case 't' :: tail if escape   => loop(acc :+ '\t', tail)
-      case 'n' :: tail if escape   => loop(acc :+ '\n', tail)
-      case 'b' :: tail if escape   => loop(acc :+ '\b', tail)
-      case 'r' :: tail if escape   => loop(acc :+ '\r', tail)
-      case '\"' :: tail if escape  => loop(acc :+ '\"', tail)
-      case ch :: tail if escape    => loop(acc :+ '\\' :+ ch, tail)
-      case ch :: tail              => loop(acc :+ ch, tail)
-    }
-
-    loop(Vector(), value.toList)
-  }
-
 }

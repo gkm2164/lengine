@@ -1,19 +1,19 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors.tokenizer.{RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError}
+import co.gyeongmin.lisp.errors.tokenizer.{ RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError }
 import co.gyeongmin.lisp.lexer.TokenLocation
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber, RatioNumber}
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
+import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber, RatioNumber }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
 
 import scala.util.matching.Regex
 
 trait LispToken {
-  var tokenLocation: Option[TokenLocation] = None
+  var tokenLocation: Option[TokenLocation]                 = None
   def setTokenLocation(tokenLocation: TokenLocation): Unit = this.tokenLocation = Some(tokenLocation)
 
-  def line: Option[Int] = tokenLocation.map(_.line)
+  def line: Option[Int]   = tokenLocation.map(_.line)
   def column: Option[Int] = tokenLocation.map(_.column)
 
 }
@@ -33,7 +33,6 @@ object LispToken {
   private val RatioRegex: Regex        = """([+\-]?)(\d+)/(\d+)""".r
   private val FloatingPointRegex: Regex =
     """([+\-])?(\d+)(\.\d*)?([esfdlESFDL]([+\-]?\d+))?""".r
-  private val StringRegex: Regex = """^"(.*)""".r
 
   private def mapToken(code: String, location: TokenLocation): Either[TokenizeError, LispToken] = code match {
     case ""                      => Right(LispNop())
@@ -45,6 +44,7 @@ object LispToken {
     case "]"                     => Right(RightBracket())
     case "{"                     => Right(LeftBrace())
     case "}"                     => Right(RightBrace())
+    case "^"                     => Right(LispLambda())
     case "def"                   => Right(LispDef())
     case "fn"                    => Right(LispFn())
     case "let"                   => Right(LispLet())
@@ -69,12 +69,12 @@ object LispToken {
       val u = parseInteger("", under)
       if (u == 0) Left(RatioUnderZeroNotAllowedError)
       else Right(RatioNumber(o, u))
-    case ObjectReferSymbolRegex(name) => Right(ObjectReferSymbol(name))
-    case LazySymbolRegex(name)        => Right(LazySymbol(name))
-    case ListSymbolRegex(name)        => Right(ListSymbol(name))
-    case SymbolRegex(name)            => Right(EagerSymbol(name))
-    case StringRegex(str)             => Right(LispString(str.init))
-    case str                          => Left(UnknownTokenError(s"what is it? [$str]: (line: ${location.line}, column: ${location.column})"))
+    case ObjectReferSymbolRegex(name)                                   => Right(ObjectReferSymbol(name))
+    case LazySymbolRegex(name)                                          => Right(LazySymbol(name))
+    case ListSymbolRegex(name)                                          => Right(ListSymbol(name))
+    case SymbolRegex(name)                                              => Right(EagerSymbol(name))
+    case str if str.length >= 2 && str.head == '\"' && str.last == '\"' => Right(LispString(str.tail.init))
+    case str                                                            => Left(UnknownTokenError(s"what is it? [$str]: (line: ${location.line}, column: ${location.column})"))
   }
 
   def apply(code: String, location: TokenLocation): Either[TokenizeError, LispToken] =

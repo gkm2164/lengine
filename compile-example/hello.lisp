@@ -98,3 +98,7 @@
 (println (rem 10 3))
 
 (printf "Hello%n" [])
+
+(def lambda-test (^ (a b) (+ a b)))
+
+(println (lambda-test 3 5))

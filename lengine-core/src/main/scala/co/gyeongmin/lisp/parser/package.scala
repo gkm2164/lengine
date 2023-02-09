@@ -22,8 +22,6 @@ import scala.reflect.ClassTag
 package object parser {
   private val ForbiddenOverrides: mutable.Set[String] = mutable.Set("fn", "def", "let", "do", "loop", "for", "in")
 
-  val ParserLineNumberMap: mutable.Map[String, Int] = mutable.Map()
-
   def appendForbiddenKeywords(set: Set[String]): Unit = this.ForbiddenOverrides ++= set
 
   def parseValue: LispTokenState[LispValue] = token => {
