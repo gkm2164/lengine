@@ -4,9 +4,9 @@
         (loop for x in xs
               (f x)))
 
-(export map (lambda (f xs)
-                    (loop for x in xs
-                          (f x))))
+(export map (^ (f xs)
+               (loop for x in xs
+                     (f x))))
 
 (fn split-at-loop (p xs l r)
                   (if (nil? xs) (cons l (cons r nil))
@@ -20,7 +20,8 @@
              (split-at-loop p xs nil nil))
 
 (fn split-real (chs delim)
-    (if (nil? chs) nil
+    (if (nil? chs)
+        nil
         (let ((delim-check (lambda (ch) (= ch delim)))
               (splitted (split-at delim-check chs))
               (first (head splitted))
@@ -28,39 +29,47 @@
              (cons first ($ last delim)))))
 
 (fn to-string (xs)
-    (fold xs "" (lambda (acc elem) (+ acc elem))))
+    (fold xs "" +))
 
-(export to-string to-string)
+(export to-string)
 
-(fn reverse (xs)
-    (fold xs nil (lambda (acc elem) (cons elem acc))))
+(export fold-right (^ (xs init f)
+                      (fold xs
+                            init
+                            (^ (acc elem)
+                               (f elem acc)))))
 
-(export reverse reverse)
+(fn reverse (xs) (fold-right xs nil cons))
 
-(export split (lambda (s delim)
-                      (reverse (map (lambda (x) (to-string (reverse x)))
-                               (split-real (list s) delim)))))
+(export reverse)
 
-(export compose (lambda (f g)
-                        (lambda (x) (f (g x)))))
+(export split (^ (s delim)
+              (reverse (map (^ (x) (to-string (reverse x)))
+                       (split-real (list s) delim)))))
 
-(export fact (lambda (n)
+(export compose (^ (f g)
+                   (^ (x) (f (g x)))))
+
+(export fact (^ (n)
                 (if (> n 1)
                     (* n ($ (- n 1)))
                     1)))
 
 (fn append (xs elem)
-           (if (nil? xs) (cons elem nil)
+           (if (nil? xs)
+               (cons elem nil)
                ($ (tail xs) elem)))
-(export append append)
+(export append)
 
-(export filter (lambda (xs p)
-        (fold xs nil (lambda (acc elem)
-                             (if (p elem)
-                                 (cons elem acc)
-                                 acc)))))
+(export filter (^ (xs p)
+                  (fold xs
+                        nil
+                        (^ (acc elem)
+                           (if (p elem)
+                               (cons elem acc)
+                               acc)))))
 
-(export fold-custom (lambda (seq acc f)
-                            (let ((elem (head seq))
-                                  (next-acc (f acc elem)))
-                                 ($ (tail seq) next-acc f))))
+(export fold-custom (^ (seq acc f)
+                       (let ((elem (head seq))
+                             (next-acc (f acc elem)))
+                            ($ (tail seq) next-acc f))))

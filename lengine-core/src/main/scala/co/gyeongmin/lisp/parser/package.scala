@@ -74,7 +74,7 @@ package object parser {
   private def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty                                                 => Left(EmptyTokenListError)
     case LispNop() #:: tail                                           => parseDef(tail)
-    case EagerSymbol(name) #:: _ if ForbiddenOverrides.contains(name) => Left(DeniedKeywordError(name))
+    case EagerSymbol(name) #:: _ if ForbiddenOverrides.contains(name) => Left(DeniedKeywordError(name, "parseDef"))
     case (x: LispSymbol) #:: tail                                     => parseValue.map(v => LispValueDef(x, v))(tail)
     case token #:: _                                                  => Left(UnexpectedTokenError(token))
   }
@@ -94,9 +94,9 @@ package object parser {
 
   private def denySymbolIfContains[A <: LispSymbol](
       values: mutable.Set[String]
-  )(implicit ct: ClassTag[A]): LispTokenState[A] = {
+  )(context: String)(implicit ct: ClassTag[A]): LispTokenState[A] = {
     case Stream.Empty                                   => Left(EmptyTokenListError)
-    case EagerSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str))
+    case EagerSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str, context))
     case LispNop() #:: tail                             => takeToken[A](ct)(tail)
     case (tk: A) #:: tail                               => LispTokenState(tk)(tail)
     case token #:: _                                    => Left(UnexpectedTokenError(token))
@@ -117,7 +117,7 @@ package object parser {
 
   private def parseFunc: LispTokenState[LispFuncDef] =
     for {
-      symbol <- denySymbolIfContains[LispSymbol](ForbiddenOverrides)
+      symbol <- denySymbolIfContains[LispSymbol](ForbiddenOverrides)("parseFunc")
       lambda <- parseLambda
     } yield LispFuncDef(symbol, lambda)
 
@@ -148,7 +148,7 @@ package object parser {
       _ <- takeToken[LeftPar]
       decls <- many(for {
         _     <- takeToken[LeftPar]
-        name  <- denySymbolIfContains[LispSymbol](ForbiddenOverrides)
+        name  <- denySymbolIfContains[LispSymbol](ForbiddenOverrides)("parseLetClause")
         value <- parseValue
         _     <- takeToken[RightPar]
       } yield LispLetDecl(name, value))

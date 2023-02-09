@@ -8,4 +8,4 @@
 (assert-true  "Should have abc in the set" (has? string-set "abc"))
 (assert-false "Should not have abc in the set" (has? string-set "abcde"))
 
-(assert-equals "SHould be same set" (++ string-set string-set-2) (set ["abc" "def" "ghi" "jkl" "mno"]))
+(assert-equals "Should be same set" (++ string-set string-set-2) (set ["abc" "def" "ghi" "jkl" "mno"]))

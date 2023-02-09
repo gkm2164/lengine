@@ -25,6 +25,7 @@ class MainTest extends FlatSpec with Matchers {
   "compile examples" should "compile and no death!" in {
     execute("hello.lisp", "Hello")
     execute("boolean.lisp", "Boolean")
+    execute("runtime.lisp", "Runtime")
     execute("map.lisp", "MapTest")
     execute("math.lisp", "Math")
     execute("module.lisp", "Module")
