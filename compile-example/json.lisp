@@ -31,14 +31,14 @@
                         (format "{%s}" [(join-string key-values #\,)])))
 
 (fn escape (stream)
-    (fold stream "" (lambda (ret ch)
+    (fold stream "" (^ (ret ch)
         (case ((= ch #\") (+ ret "\\\""))
               ((= ch #\Return) (+ ret "\\r"))
               ((= ch #\Linefeed) (+ ret "\\n"))
               default (+ ret ch)))))
 
 ;;; Actual logics
-(export to-json (lambda (obj)
+(export to-json (^ (obj)
             (case ((bool? obj) (str obj))
                   ((char? obj) (with-double-quotes (str obj)))
                   ((int? obj) (str obj))
@@ -78,9 +78,9 @@
 
 
 (fn fold-right (seq acc folder)
-                (fold seq acc (lambda (elem acc) (folder acc elem))))
+                (fold seq acc (^ (elem acc) (folder acc elem))))
 
-(fn not-p (p) (lambda (x) (not (p x))))
+(fn not-p (p) (^ (x) (not (p x))))
 
 (fn join (xs str)
          (fold xs "" +))
@@ -150,7 +150,7 @@
                  default (do (println (+ "Unknown char: " first))
                              return ["" json-str])))))
 
-(export from-json (lambda (json-str)
+(export from-json (^ (json-str)
     (head (parse-value (list json-str)))))
 
 (def parsed-value (head (parse-value json-ch-seq)))

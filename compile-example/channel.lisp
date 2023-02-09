@@ -14,7 +14,7 @@
           (do (println message)
               return ($)))))
 
-(def sender (async (lambda () (producer 10))))
+(def sender (async (^ () (producer 10))))
 
 (def receiver (async consumer))
 
