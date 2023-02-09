@@ -22,7 +22,7 @@
 (fn split-real (chs delim)
     (if (nil? chs)
         nil
-        (let ((delim-check (lambda (ch) (= ch delim)))
+        (let ((delim-check (^ (ch) (= ch delim)))
               (splitted (split-at delim-check chs))
               (first (head splitted))
               (last (head (tail splitted))))
