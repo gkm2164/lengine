@@ -1,13 +1,17 @@
 package lengine.runtime;
 
 import lengine.util.LengineMapKey;
+import lengine.util.LengineSequence;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static lengine.Prelude._ADD;
 import static lengine.Prelude._DIV;
 import static lengine.Prelude._MULT;
 import static lengine.Prelude._SUB;
 
-public class ComplexNumber implements LengineObjectType {
+public class ComplexNumber implements LengineObjectWithHelp {
   private final Number real;
   private final Number imagine;
 
@@ -15,6 +19,25 @@ public class ComplexNumber implements LengineObjectType {
                        final Number imagine) {
     this.real = real;
     this.imagine = imagine;
+  }
+
+  @Override
+  public LengineSequence help() {
+    return LengineSequence.create(Stream.of("real", "imagine")
+            .map(LengineMapKey::create)
+            .collect(Collectors.toList()));
+  }
+
+  @Override
+  public String help(LengineMapKey key) {
+    switch (key.getKey()) {
+      case "real":
+        return "Get real part number";
+      case "imagine":
+        return "Get imagine part number";
+    }
+
+    return "unknown operation: " + key.getKey();
   }
 
   @Override

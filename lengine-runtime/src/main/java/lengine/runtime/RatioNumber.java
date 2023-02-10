@@ -1,8 +1,12 @@
 package lengine.runtime;
 
 import lengine.util.LengineMapKey;
+import lengine.util.LengineSequence;
 
-public class RatioNumber extends Number implements LengineObjectType {
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class RatioNumber extends Number implements LengineObjectWithHelp {
   private final long over;
   private final long under;
 
@@ -87,12 +91,35 @@ public class RatioNumber extends Number implements LengineObjectType {
   }
 
   @Override
+  public LengineSequence help() {
+    return LengineSequence.create(
+            Stream.of("over", "under", "norm").map(LengineMapKey::create).collect(Collectors.toList())
+    );
+  }
+
+  @Override
+  public String help(LengineMapKey key) {
+    switch (key.getKey()) {
+      case "over":
+        return "return a in a/b";
+      case "under":
+        return "return b in a/b";
+      case "norm":
+        return "return normalized number";
+      default:
+        return "unknown operation: " + key.getKey();
+    }
+  }
+
+  @Override
   public Object get(LengineMapKey key) {
     switch(key.getKey()) {
       case "over":
         return this.over;
       case "under":
         return this.under;
+      case "norm":
+        return this.normalize();
       default:
         throw new RuntimeException("unknown accessor to rational number: " + key);
     }

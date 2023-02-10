@@ -30,6 +30,8 @@ import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
+import lengine.runtime.LengineObjectHasHelp;
+import lengine.runtime.LengineObjectWithHelp;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
@@ -603,6 +605,9 @@ public class Prelude {
     }
     return UNIT;
   };
+
+  private static final LengineLambda1<LengineSequence, LengineObjectHasHelp> _HELP = LengineObjectHasHelp::help;
+  private static final LengineLambda2<String, LengineObjectHasHelp, LengineMapKey> _HELP_KEYWORD = LengineObjectHasHelp::help;
   private static final LengineLambda1<LengineLambda0<LengineUnit>, LengineMap> _LISTEN = HttpServerBuilder::listen;
 
   public static final LengineLambdaCommon ADD = _ADD;
@@ -678,6 +683,8 @@ public class Prelude {
   public static final LengineLambdaCommon RECEIVE = _RECEIVE;
   public static final LengineLambdaCommon CLOSE = _CLOSE;
   public static final LengineLambdaCommon LISTEN = _LISTEN;
+  public static final LengineLambdaCommon HELP = _HELP;
+  public static final LengineLambdaCommon HELP_KEYWORD = _HELP_KEYWORD;
   public static final Object NIL = Nil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {

@@ -2,6 +2,7 @@ package lengine.https;
 
 import com.sun.net.httpserver.HttpExchange;
 import lengine.runtime.LengineObjectType;
+import lengine.runtime.LengineObjectWithHelp;
 import lengine.util.LeafSequence;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -39,7 +41,7 @@ public class RequestBuilder {
             String key = listEntry.getKey();
             List<Object> values = listEntry.getValue()
                     .stream()
-                    .map(x -> (Object)x).collect(toList());
+                    .map(x -> (Object) x).collect(toList());
 
             LengineSequence seq = LeafSequence.create(values);
             map = map.putEntry(entry(key, seq));
@@ -55,20 +57,46 @@ public class RequestBuilder {
     }
 
     public LengineObjectType build() {
-        return key -> {
-            switch (key.getKey()) {
-                case "path":
-                    return path;
-                case "query":
-                    return parseQuery(query);
-                case "method":
-                    return method;
-                case "headers":
-                    return headers;
-                case "request-body":
-                    return new StreamReaderWrapper(requestBody, bodyLength);
-                default:
-                    throw new RuntimeException("Unsupported accessor: " + key.getKey());
+        return new LengineObjectWithHelp() {
+            @Override
+            public LengineSequence help() {
+                return LengineSequence.create(Stream.of("path", "query", "method", "headers", "request-body")
+                        .map(LengineMapKey::create)
+                        .collect(toList()));
+            }
+
+            @Override
+            public String help(LengineMapKey key) {
+                switch (key.getKey()) {
+                    case "path":
+                        return "get requested path";
+                    case "query":
+                        return "get requested query with parsed";
+                    case "headers":
+                        return "get headers from request";
+                    case "request-body":
+                        return "get request body in stream - note that only can be read once.";
+                    default:
+                        return "unknown operation: " + key.getKey();
+                }
+            }
+
+            @Override
+            public Object get(LengineMapKey key) {
+                switch (key.getKey()) {
+                    case "path":
+                        return path;
+                    case "query":
+                        return parseQuery(query);
+                    case "method":
+                        return method;
+                    case "headers":
+                        return headers;
+                    case "request-body":
+                        return new StreamReaderWrapper(requestBody, bodyLength);
+                    default:
+                        throw new RuntimeException("Unsupported accessor: " + key.getKey());
+                }
             }
         };
     }
@@ -79,14 +107,14 @@ public class RequestBuilder {
         }
 
         Set<Map.Entry<String, List<Object>>> queryParams = Arrays.stream(query.split("&"))
-            .map(str -> {
-                String[] keyValue = str.split("=");
-                String key = keyValue[0];
-                Object value = keyValue.length > 1 ? keyValue[1] : true;
-                return new AbstractMap.SimpleEntry<>(key, value);
-            })
-            .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
-                    Collectors.mapping(AbstractMap.SimpleEntry::getValue, toList())))
+                .map(str -> {
+                    String[] keyValue = str.split("=");
+                    String key = keyValue[0];
+                    Object value = keyValue.length > 1 ? keyValue[1] : true;
+                    return new AbstractMap.SimpleEntry<>(key, value);
+                })
+                .collect(Collectors.groupingBy(AbstractMap.SimpleEntry::getKey,
+                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, toList())))
                 .entrySet();
 
         LengineMap ret = LengineMap.create();
