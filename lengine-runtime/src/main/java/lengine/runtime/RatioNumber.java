@@ -1,43 +1,55 @@
 package lengine.runtime;
 
 public class RatioNumber extends Number {
-  private final int above;
-  private final int under;
+  private final long over;
+  private final long under;
 
-  public RatioNumber(final int above, final int under) {
+  public RatioNumber(final long over, final long under) {
     if (under == 0) {
       throw new IllegalArgumentException("under cannot be 0");
     }
-    this.above = above;
+    this.over = over;
     this.under = under;
   }
 
   public String toString() {
-    return String.format("%d/%d", above, under);
+    return String.format("%d/%d", over, under);
   }
 
   @Override
   public int intValue() {
-    return above / under;
+    return (int) (over / under);
   }
 
   @Override
   public long longValue() {
-    return (long)above / under;
+    return over / under;
   }
 
   @Override
   public float floatValue() {
-    return (float)above / under;
+    return (float) over / under;
   }
 
   @Override
   public double doubleValue() {
-    return (double)above / under;
+    return (double) over / under;
   }
 
   public RatioNumber add(RatioNumber other) {
 
-    return new RatioNumber(above * other.under + under * other.above, other.under * under);
+    return new RatioNumber(over * other.under + under * other.over, other.under * under);
+  }
+
+  public RatioNumber mult(RatioNumber other) {
+    return new RatioNumber(over * other.over, under * other.under);
+  }
+
+  public RatioNumber inverse() {
+    return new RatioNumber(under, over);
+  }
+
+  public static RatioNumber create(long over, long under) {
+    return new RatioNumber(over, under);
   }
 }

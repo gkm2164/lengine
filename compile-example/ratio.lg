@@ -1,0 +1,5 @@
+(module RatioNumberModule)
+
+(def num 3/5)
+
+(println num)

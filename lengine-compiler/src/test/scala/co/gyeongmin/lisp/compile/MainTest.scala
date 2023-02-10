@@ -38,5 +38,6 @@ class MainTest extends FlatSpec with Matchers {
     execute("set-test.lg", "SetTest")
     execute("json-async.lg", "JsonAsyncModule")
     execute("channel.lg", "ChannelModule")
+    execute("ratio.lg", "RatioNumberModule")
   }
 }
