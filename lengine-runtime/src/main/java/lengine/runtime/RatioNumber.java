@@ -41,9 +41,22 @@ public class RatioNumber extends Number {
     return new RatioNumber(over * other.under + under * other.over, other.under * under);
   }
 
+  public RatioNumber neg() {
+    return new RatioNumber(-over, under);
+  }
+
+  public RatioNumber sub(RatioNumber other) {
+    return this.add(other.neg());
+  }
+
   public RatioNumber mult(RatioNumber other) {
     return new RatioNumber(over * other.over, under * other.under);
   }
+
+  public RatioNumber div(RatioNumber other) {
+    return this.mult(other.inverse());
+  }
+
 
   public RatioNumber inverse() {
     return new RatioNumber(under, over);

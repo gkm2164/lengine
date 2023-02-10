@@ -29,6 +29,7 @@ import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
+import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
@@ -58,6 +59,8 @@ public class Prelude {
       return castChar(from);
     } else if (to.equals(Long.class)) {
       return castLong(from);
+    } else if (to.equals(RatioNumber.class)) {
+      return castRatioNumber(from);
     } else if (to.equals(Double.class)) {
       return castDouble(from);
     } else if (to.equals(String.class)) {
@@ -98,6 +101,8 @@ public class Prelude {
       return (double) (Character) from;
     } else if (from instanceof Long) {
       return ((Long) from).doubleValue();
+    } else if (from instanceof RatioNumber) {
+      return ((RatioNumber) from).doubleValue();
     } else if (from instanceof Double) {
       return (Double) from;
     } else if (from instanceof String) {
@@ -105,6 +110,18 @@ public class Prelude {
     }
 
     throw new LengineTypeMismatchException(from, Double.class);
+  }
+
+  private static RatioNumber castRatioNumber(Object from) {
+    if (from instanceof Character) {
+      return RatioNumber.create((Character) from, 1L);
+    } else if (from instanceof Long) {
+      return RatioNumber.create((Long) from, 1L);
+    } else if (from instanceof RatioNumber) {
+      return (RatioNumber) from;
+    }
+
+    throw new LengineTypeMismatchException(from, RatioNumber.class);
   }
 
   private static String castString(Object from) {
@@ -160,12 +177,14 @@ public class Prelude {
       return 0;
     } else if (a.equals(Long.class)) {
       return 1;
-    } else if (a.equals(Double.class)) {
+    } else if (a.equals(RatioNumber.class)) {
       return 2;
-    } else if (a.equals(String.class)) {
+    } else if (a.equals(Double.class)) {
       return 3;
-    } else if (a.equals(CreateIterator.class)) {
+    } else if (a.equals(String.class)) {
       return 4;
+    } else if (a.equals(CreateIterator.class)) {
+      return 5;
     }
 
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
@@ -188,6 +207,8 @@ public class Prelude {
       return (Character) x + (Character) y;
     } else if (x instanceof Long) {
       return (Long) x + (Long) y;
+    } else if (x instanceof RatioNumber) {
+      return ((RatioNumber) x).add((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x + (Double) y;
     } else if (x instanceof String) {
@@ -205,6 +226,8 @@ public class Prelude {
       return (Character) x - (Character) y;
     } else if (x instanceof Long) {
       return (Long) x - (Long) y;
+    } else if (x instanceof RatioNumber) {
+      return ((RatioNumber) x).sub((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x - (Double) y;
     }
@@ -220,6 +243,8 @@ public class Prelude {
       return (Character) x * (Character) y;
     } else if (x instanceof Long) {
       return (Long) x * (Long) y;
+    } else if (x instanceof RatioNumber) {
+      return ((RatioNumber)x).mult((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x * (Double) y;
     }
@@ -235,6 +260,8 @@ public class Prelude {
       return (Character) x / (Character) y;
     } else if (x instanceof Long) {
       return (Long) x / (Long) y;
+    } else if (x instanceof RatioNumber) {
+      return ((RatioNumber)x).div((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x / (Double) y;
     }
@@ -478,9 +505,9 @@ public class Prelude {
     } else if (coll instanceof LengineSequence) {
       return ((LengineSequence) coll).add(elem);
     } else if (coll instanceof LengineMap) {
-      return ((LengineMap)coll).putEntry((LengineMapEntry) elem);
+      return ((LengineMap) coll).putEntry((LengineMapEntry) elem);
     } else if (coll instanceof LengineSet) {
-      return ((LengineSet)coll).add(elem);
+      return ((LengineSet) coll).add(elem);
     }
 
     throw new RuntimeException("currently not supporting the operation");
@@ -489,7 +516,7 @@ public class Prelude {
   private static final LengineLambda2<Object, Object, Object> _MERGE = (xs, ys) -> {
     if (xs instanceof String) {
       if (ys instanceof String) {
-        return xs + ((String)ys);
+        return xs + ((String) ys);
       }
 
       throw new RuntimeException("Unable to determine the 2nd parameter to be String");
@@ -503,9 +530,9 @@ public class Prelude {
       }
     } else if (xs instanceof LengineSet) {
       if (ys instanceof LengineSet) {
-        return ((LengineSet)xs).append((LengineSet)ys);
+        return ((LengineSet) xs).append((LengineSet) ys);
       } else if (ys instanceof CreateIterator) {
-        return ((LengineSet)xs).append(LengineSet.create((CreateIterator) ys));
+        return ((LengineSet) xs).append(LengineSet.create((CreateIterator) ys));
       }
     }
 
