@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpHandler;
 
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
+import lengine.runtime.LengineObjectType;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
@@ -32,7 +33,7 @@ public class HandlerWrapper implements HttpHandler {
       RequestBuilder requestBuilder = new RequestBuilder(t);
       String method = t.getRequestMethod();
 
-      final LengineLambda2<LengineUnit, LengineMap, LengineMap> handler;
+      final LengineLambda2<LengineUnit, LengineObjectType, LengineObjectType> handler;
 
       if (this.lambdaMethodMapping.contains(LengineMapKey.create("ALL"))) {
         handler = UNSAFE_cast(this.lambdaMethodMapping.get(LengineMapKey.create("ALL")));
@@ -65,14 +66,13 @@ public class HandlerWrapper implements HttpHandler {
     }
   }
 
-  private LengineUnit nullHandler(LengineMap req, LengineMap res) {
-    LengineLambda1<LengineUnit, Long> setStatusCode = UNSAFE_cast(res.get(LengineMapKey.create("set-status-code")));
+  private LengineUnit nullHandler(LengineObjectType req, LengineObjectType res) {
+    LengineLambda1<LengineUnit, Long> setStatusCode = UNSAFE_cast(LengineMapKey.create("set-status-code").invoke(res));
     setStatusCode.invoke(404L);
-    LengineLambda1<LengineUnit, LengineMap> setHeaders = UNSAFE_cast(res.get(LengineMapKey.create("set-headers")));
+    LengineLambda1<LengineUnit, LengineMap> setHeaders = UNSAFE_cast(LengineMapKey.create("set-headers").invoke(res));
     setHeaders.invoke(LengineMap.create()
         .putEntry(LengineMapEntry.create(LengineMapKey.create("Content-Type"), "text/html")));
-
-    LengineLambda1<LengineUnit, String> writer = UNSAFE_cast(res.get(LengineMapKey.create("writer")));
+    LengineLambda1<LengineUnit, String> writer = UNSAFE_cast(LengineMapKey.create("writer").invoke(res));
     writer.invoke("<h1>No handler setup</h1>");
     return LengineUnit.create();
   }

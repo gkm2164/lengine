@@ -1,6 +1,7 @@
 package lengine.https;
 
 import com.sun.net.httpserver.HttpExchange;
+import lengine.runtime.LengineObjectType;
 import lengine.util.LeafSequence;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
@@ -10,10 +11,8 @@ import lengine.util.Nil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.AbstractMap;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,13 +54,23 @@ public class RequestBuilder {
         }
     }
 
-    public LengineMap build() {
-        return LengineMap.create()
-                .putEntry(entry("path", path))
-                .putEntry(entry("query", parseQuery(query)))
-                .putEntry(entry("method", method))
-                .putEntry(entry("headers", headers))
-                .putEntry(entry("request-body", new StreamReaderWrapper(requestBody, bodyLength)));
+    public LengineObjectType build() {
+        return key -> {
+            switch (key.getKey()) {
+                case "path":
+                    return path;
+                case "query":
+                    return parseQuery(query);
+                case "method":
+                    return method;
+                case "headers":
+                    return headers;
+                case "request-body":
+                    return new StreamReaderWrapper(requestBody, bodyLength);
+                default:
+                    throw new RuntimeException("Unsupported accessor: " + key.getKey());
+            }
+        };
     }
 
     private Object parseQuery(String query) {

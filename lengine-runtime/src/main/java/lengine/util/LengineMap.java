@@ -8,8 +8,9 @@ import java.util.stream.Stream;
 
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineObjectType;
 
-public abstract class LengineMap implements CreateIterator {
+public abstract class LengineMap implements CreateIterator, LengineObjectType {
   protected final boolean lately;
 
   protected LengineMap(boolean lately) {
@@ -22,8 +23,8 @@ public abstract class LengineMap implements CreateIterator {
     return this.putEntry(LengineMapEntry.create(key, obj));
   }
 
+  @Override
   public abstract Object get(LengineMapKey key);
-
 
   public abstract LengineSet keys();
 

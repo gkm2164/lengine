@@ -5,6 +5,14 @@
 
 (println num)
 (println (+ num num2))
+(println (norm (+ num num2)))
 (println (- num num2))
+(println (norm (- num num2)))
 (println (* num num2))
+(println (norm (* num num2)))
 (println (/ num num2))
+(println (norm (/ num num2)))
+
+(println (norm 2/10))
+
+(printf "Over: %d, Under: %d\n" [(:over num) (:under num)])

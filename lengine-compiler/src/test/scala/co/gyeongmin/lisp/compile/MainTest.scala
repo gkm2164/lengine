@@ -23,6 +23,7 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile and no death!" in {
+    execute("complex.lg", "ComplexNumberModule")
     execute("hello.lg", "Hello")
     execute("boolean.lg", "Boolean")
     execute("runtime.lg", "Runtime")

@@ -10,6 +10,7 @@ public class ExportSymbols {
   public static final Field MULT_FIELD;
   public static final Field DIV_FIELD;
   public static final Field REM_FIELD;
+  public static final Field NORM_FIELD;
   public static final Field LEN_FIELD;
   public static final Field TAKE_FIELD;
   public static final Field DROP_FIELD;
@@ -86,6 +87,7 @@ public class ExportSymbols {
       MULT_FIELD = Prelude.class.getField("MULT");
       DIV_FIELD = Prelude.class.getField("DIV");
       REM_FIELD = Prelude.class.getField("REM");
+      NORM_FIELD = Prelude.class.getField("NORM");
       LEN_FIELD = Prelude.class.getField("LEN");
       TAKE_FIELD = Prelude.class.getField("TAKE");
       DROP_FIELD = Prelude.class.getField("DROP");

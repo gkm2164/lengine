@@ -1,10 +1,11 @@
 package lengine.util;
 
 import lengine.functions.LengineLambda1;
+import lengine.runtime.LengineObjectType;
 
 import java.util.Optional;
 
-public class LengineMapKey implements LengineLambda1<Object, LengineMap> {
+public class LengineMapKey implements LengineLambda1<Object, LengineObjectType> {
   private final String key;
 
   private LengineMapKey(String key) {
@@ -40,7 +41,7 @@ public class LengineMapKey implements LengineLambda1<Object, LengineMap> {
   }
 
   @Override
-  public Object invoke(LengineMap map) {
+  public Object invoke(LengineObjectType map) {
     return Optional
             .ofNullable(map.get(this))
             .orElseGet(Nil::get);

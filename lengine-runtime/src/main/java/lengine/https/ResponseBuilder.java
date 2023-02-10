@@ -1,15 +1,13 @@
 package lengine.https;
 
 import lengine.functions.LengineLambda1;
+import lengine.runtime.LengineObjectType;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineMap;
-import lengine.util.LengineMapEntry;
-import lengine.util.LengineMapKey;
 
 import java.io.PrintStream;
 
 public class ResponseBuilder {
-    private LengineMap thisMap;
     private int statusCode;
     private LengineMap headers;
 
@@ -29,7 +27,7 @@ public class ResponseBuilder {
         return this;
     }
 
-    public LengineMap build() {
+    public LengineObjectType build() {
         LengineLambda1<LengineUnit, Long> SET_STATUS_CODE = (code) -> {
             this.setStatusCode(code.intValue());
             return LengineUnit.create();
@@ -40,16 +38,23 @@ public class ResponseBuilder {
             return LengineUnit.create();
         };
 
-
         LengineLambda1<LengineUnit, String> WRITER = (msg) -> {
             this.out.print(msg);
             return LengineUnit.create();
         };
 
-        return LengineMap.create()
-                .putEntry(LengineMapEntry.create(LengineMapKey.create("set-status-code"), SET_STATUS_CODE))
-                .putEntry(LengineMapEntry.create(LengineMapKey.create("set-headers"), SET_HEADERS))
-                .putEntry(LengineMapEntry.create(LengineMapKey.create("writer"), WRITER));
+        return (key) -> {
+            switch (key.getKey()) {
+                case "set-status-code":
+                    return SET_STATUS_CODE;
+                case "set-headers":
+                    return SET_HEADERS;
+                case "writer":
+                    return WRITER;
+                default:
+                    throw new RuntimeException("Unknown accessor");
+            }
+        };
     }
 
     public int getStatusCode() {

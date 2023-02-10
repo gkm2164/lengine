@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber, RatioNumber}
+import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
@@ -90,6 +90,16 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         RatioNumberClass,
         LongPrimitive,
         LongPrimitive
+      )
+    case ComplexNumber(real, imagine) =>
+      mv.visitLispValue(real, typeToBe = NumberClass)
+      mv.visitLispValue(imagine, typeToBe = NumberClass)
+      mv.visitStaticMethodCall(
+        ComplexNumberClass,
+        "create",
+        ComplexNumberClass,
+        NumberClass,
+        NumberClass
       )
     case FloatNumber(n) => // 1 stack
       mv.visitLdcInsn(n)

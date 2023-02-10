@@ -29,6 +29,7 @@ import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
+import lengine.runtime.ComplexNumber;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
@@ -63,6 +64,8 @@ public class Prelude {
       return castRatioNumber(from);
     } else if (to.equals(Double.class)) {
       return castDouble(from);
+    } else if (to.equals(ComplexNumber.class)) {
+      return castComplexNumber(from);
     } else if (to.equals(String.class)) {
       return castString(from);
     }
@@ -124,6 +127,20 @@ public class Prelude {
     throw new LengineTypeMismatchException(from, RatioNumber.class);
   }
 
+  private static ComplexNumber castComplexNumber(Object from) {
+    if (from instanceof Character) {
+      return ComplexNumber.create((long) (Character) from, 1L);
+    } else if (from instanceof Long) {
+      return ComplexNumber.create((Long) from, 1L);
+    } else if (from instanceof RatioNumber) {
+      return ComplexNumber.create((RatioNumber) from, 1L);
+    } else if (from instanceof ComplexNumber) {
+      return (ComplexNumber) from;
+    }
+
+    throw new LengineTypeMismatchException(from, ComplexNumber.class);
+  }
+
   private static String castString(Object from) {
     if (from instanceof LengineList) {
       return from.toString();
@@ -181,10 +198,12 @@ public class Prelude {
       return 2;
     } else if (a.equals(Double.class)) {
       return 3;
-    } else if (a.equals(String.class)) {
+    } else if (a.equals(ComplexNumber.class)) {
       return 4;
-    } else if (a.equals(CreateIterator.class)) {
+    } else if (a.equals(String.class)) {
       return 5;
+    } else if (a.equals(CreateIterator.class)) {
+      return 6;
     }
 
     throw new RuntimeException("Unable to decide rank for type: " + a.getName());
@@ -198,7 +217,7 @@ public class Prelude {
     return UNIT;
   }
 
-  private static final LengineLambda2<Object, Object, Object> _ADD = (a, b) -> {
+  public static final LengineLambda2<Object, Object, Object> _ADD = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -211,13 +230,15 @@ public class Prelude {
       return ((RatioNumber) x).add((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x + (Double) y;
+    } else if (x instanceof ComplexNumber) {
+      return ((ComplexNumber) x).add((ComplexNumber)y);
     } else if (x instanceof String) {
       return x + (String) y;
     }
 
     throw new RuntimeException("Can't add");
   };
-  private static final LengineLambda2<Object, Object, Object> _SUB = (a, b) -> {
+  public static final LengineLambda2<Object, Object, Object> _SUB = (a, b) -> {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
     Object x = cast(a, largerType);
     Object y = cast(b, largerType);
@@ -230,6 +251,8 @@ public class Prelude {
       return ((RatioNumber) x).sub((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x - (Double) y;
+    } else if (x instanceof ComplexNumber) {
+      return ((ComplexNumber) x).sub((ComplexNumber)y);
     }
 
     throw new RuntimeException("Can't subtract");
@@ -247,6 +270,8 @@ public class Prelude {
       return ((RatioNumber)x).mult((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x * (Double) y;
+    } else if (x instanceof ComplexNumber) {
+      return ((ComplexNumber) x).mult((ComplexNumber)y);
     }
 
     throw new RuntimeException("Can't multiply");
@@ -264,6 +289,8 @@ public class Prelude {
       return ((RatioNumber)x).div((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x / (Double) y;
+    } else if (x instanceof ComplexNumber) {
+      return ((ComplexNumber) x).div((ComplexNumber)y);
     }
 
     throw new RuntimeException("Can't divide");
@@ -283,6 +310,8 @@ public class Prelude {
 
     throw new RuntimeException("Can't divide");
   };
+
+  private static final LengineLambda1<RatioNumber, RatioNumber> _NORM = RatioNumber::normalize;
   private static final LengineLambda1<Long, Object> _LEN = (obj) -> {
     if (obj instanceof CreateIterator) {
       return ((CreateIterator) obj).len();
@@ -581,6 +610,7 @@ public class Prelude {
   public static final LengineLambdaCommon MULT = _MULT;
   public static final LengineLambdaCommon DIV = _DIV;
   public static final LengineLambdaCommon REM = _REM;
+  public static final LengineLambdaCommon NORM = _NORM;
   public static final LengineLambdaCommon LEN = _LEN;
   public static final LengineLambdaCommon TAKE = _TAKE;
   public static final LengineLambdaCommon DROP = _DROP;

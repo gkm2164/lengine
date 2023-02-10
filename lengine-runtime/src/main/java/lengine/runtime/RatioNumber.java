@@ -1,6 +1,8 @@
 package lengine.runtime;
 
-public class RatioNumber extends Number {
+import lengine.util.LengineMapKey;
+
+public class RatioNumber extends Number implements LengineObjectType {
   private final long over;
   private final long under;
 
@@ -10,6 +12,24 @@ public class RatioNumber extends Number {
     }
     this.over = over;
     this.under = under;
+  }
+
+  public RatioNumber normalize() {
+    long div = 2;
+    long newOver = over;
+    long newUnder = under;
+
+    // Find GCD
+    while (div <= Math.min(newOver, newUnder)) {
+      if (newOver % div == 0 && newUnder % div == 0) {
+        newOver /= div;
+        newUnder /= div;
+      } else {
+        div++;
+      }
+    }
+
+    return new RatioNumber(newOver, newUnder);
   }
 
   public String toString() {
@@ -64,5 +84,17 @@ public class RatioNumber extends Number {
 
   public static RatioNumber create(long over, long under) {
     return new RatioNumber(over, under);
+  }
+
+  @Override
+  public Object get(LengineMapKey key) {
+    switch(key.getKey()) {
+      case "over":
+        return this.over;
+      case "under":
+        return this.under;
+      default:
+        throw new RuntimeException("unknown accessor to rational number: " + key);
+    }
   }
 }
