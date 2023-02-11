@@ -1,23 +1,23 @@
 (module gben.tests.LazySymbolModule)
 
-(def 'x1 (now))
-(def  x2 (now))
+(def x1 (lazy (now)))
+(def x2 (now))
 
 (wait 200)
 
-(def x3 'x1)
+(def x3 (force x1))
 
-(println 'x1)
+(println (force x1))
 (println x2)
 (println x3)
 
-(assert "Will print first now, but, will show this time" (> 'x1 x2))
+(assert "Will print first now, but, will show this time" (> (force x1) x2))
 
-(fn lazy-test ('x y)
-    (+ 'x y))
+(fn lazy-test (x y)
+    (+ (force x) y))
 
-(def x 'x1)
+(def x (force x1))
 (wait 100)
-(def y 'x1)
+(def y (force x1))
 
 (assert-equals "Should be equal" x y)

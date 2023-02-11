@@ -3,6 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
 import org.objectweb.asm.Label
 
@@ -12,6 +13,8 @@ object RuntimeMethodVisitor {
     "import",
     "if",
     "exit",
+    "lazy",
+    "force",
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
@@ -49,6 +52,8 @@ object RuntimeMethodVisitor {
           case "import" => visitImport(operands)
           case "if"     => visitIfStmt(operands, requestedType, tailRecReference)
           case "exit"   => visitQuit(operands)
+          case "lazy"   => visitLazy(operands)
+          case "force"  => visitForce(operands)
           case _        => new RuntimeException("Unsupported operation: " + op)
         }
 
@@ -153,5 +158,29 @@ object RuntimeMethodVisitor {
     mv.visitAStore(varLoc)
 
     runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc, ObjectClass)
+  }
+
+  private def visitLazy(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val body :: Nil = values
+    val mv          = runtimeEnvironment.methodVisitor
+
+    mv.visitLispValue(GeneralLispFunc(Nil, body), typeToBe = LengineLambdaClass.head)
+    mv.visitStaticMethodCall(
+      LengineLazyValueClass,
+      "create",
+      LengineLazyValueClass,
+      LengineLambdaClass.head
+    )
+  }
+
+  private def visitForce(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val symbol :: Nil = values
+    val mv            = runtimeEnvironment.methodVisitor
+    mv.visitLispValue(symbol, typeToBe = LengineLazyValueClass)
+    mv.visitMethodCall(
+      LengineLazyValueClass,
+      "force",
+      ObjectClass,
+    )
   }
 }

@@ -10,6 +10,10 @@ public class LengineLazyValue implements LengineLambda0<Object> {
         this.resolver = resolver;
     }
 
+    public Object force() {
+      return invoke();
+    }
+
     @Override
     public Object invoke() {
         if (value != null) {
