@@ -43,6 +43,7 @@ object LengineType {
     classOf[LengineLambda9[_, _, _, _, _, _, _, _, _, _]],
     classOf[LengineLambda10[_, _, _, _, _, _, _, _, _, _, _]],
   )
+  val LengineLazyValueClass: Class[LengineLazyValue]       = classOf[LengineLazyValue]
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
   val LengineList: Class[LengineList]                      = classOf[LengineList]
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]

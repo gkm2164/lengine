@@ -134,6 +134,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
               new LispValueAsmWriter(value, ObjectClass).visitForValue()
             case LazySymbol(_) =>
               new LispValueAsmWriter(GeneralLispFunc(Nil, value), LengineLambdaClass.head)
+              mv.visitStaticMethodCall(
+                LengineLazyValueClass,
+                "create",
+                LengineLazyValueClass,
+                LengineLambdaClass.head
+              )
           }
           mv.visitAStore(idx)
           runtimeEnv.registerVariable(symbol, idx, ObjectClass)
@@ -155,7 +161,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       visitDoBody(doStmt, tailRecReference = tailRecReference)
     case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
       ref match {
-        case EagerSymbol(_) => mv.visitLoadVariable(ref, typeToBe)
+        case EagerSymbol(_) =>
+          mv.visitLoadVariable(ref, typeToBe)
         case LazySymbol(_) =>
           mv.visitLoadVariable(ref, LengineLambdaClass.head)
           mv.visitInterfaceMethodCall(
@@ -180,6 +187,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
           mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
         case LazySymbol(_) =>
           mv.visitLispValue(GeneralLispFunc(Nil, value), typeToBe = LengineLambdaClass.head)
+          mv.visitStaticMethodCall(
+            LengineLazyValueClass,
+            "create",
+            LengineLazyValueClass,
+            LengineLambdaClass.head
+          )
       }
       mv.visitDup()
       mv.visitAStore(varIdx)

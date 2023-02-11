@@ -31,7 +31,6 @@ import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
 import lengine.runtime.LengineObjectHasHelp;
-import lengine.runtime.LengineObjectWithHelp;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
