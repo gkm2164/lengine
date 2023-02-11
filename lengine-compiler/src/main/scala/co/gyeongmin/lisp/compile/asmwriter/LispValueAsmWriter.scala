@@ -3,12 +3,12 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, FloatNumber, IntegerNumber, RatioNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
 import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
@@ -127,11 +127,16 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispLetDef(decls, body) =>
       mv.visitLabel(new Label())
       decls.foreach {
-        case LispLetDecl(name, value) =>
+        case LispLetDecl(symbol, value) =>
           val idx = runtimeEnv.allocateNextVar
-          new LispValueAsmWriter(value, ObjectClass).visitForValue()
+          symbol match {
+            case EagerSymbol(_) =>
+              new LispValueAsmWriter(value, ObjectClass).visitForValue()
+            case LazySymbol(_) =>
+              new LispValueAsmWriter(GeneralLispFunc(Nil, value), LengineLambdaClass.head)
+          }
           mv.visitAStore(idx)
-          runtimeEnv.registerVariable(name, idx, ObjectClass)
+          runtimeEnv.registerVariable(symbol, idx, ObjectClass)
       }
       new LispValueAsmWriter(body, ObjectClass)
         .visitForValue(tailRecReference = tailRecReference)
@@ -149,7 +154,19 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case doStmt: LispDoStmt =>
       visitDoBody(doStmt, tailRecReference = tailRecReference)
     case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
-      mv.visitLoadVariable(ref, typeToBe)
+      ref match {
+        case EagerSymbol(_) => mv.visitLoadVariable(ref, typeToBe)
+        case LazySymbol(_) =>
+          mv.visitLoadVariable(ref, LengineLambdaClass.head)
+          mv.visitInterfaceMethodCall(
+            LengineLambdaClass.head,
+            "invoke",
+            ObjectClass
+          )
+          if (typeToBe != ObjectClass) {
+            mv.visitCheckCast(typeToBe)
+          }
+      }
     case ref: LispSymbol =>
       throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
     case l @ LispClause(_) =>
@@ -157,9 +174,14 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case ref @ LispValueDef(symbol, _) if runtimeEnv.hasVar(symbol) =>
       throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
     case LispValueDef(symbol, value) =>
-      mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
-      mv.visitDup()
       val varIdx = runtimeEnv.allocateNextVar
+      symbol match {
+        case EagerSymbol(_) =>
+          mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
+        case LazySymbol(_) =>
+          mv.visitLispValue(GeneralLispFunc(Nil, value), typeToBe = LengineLambdaClass.head)
+      }
+      mv.visitDup()
       mv.visitAStore(varIdx)
       runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
     case LispFuncDef(symbol, funcDef) =>

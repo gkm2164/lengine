@@ -1,0 +1,8 @@
+(module gben.tests.LazySymbolModule)
+
+(def 'x1 (now))
+(def  x2 (now))
+
+(wait 200)
+
+(assert "Will print first now, but, will show this time" (> 'x1 x2))
