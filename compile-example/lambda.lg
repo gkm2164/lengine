@@ -1,4 +1,4 @@
-(module Lambda)
+(module gben.tests.Lambda)
 
 (def f (^ (x y) (+ x y)))
 
@@ -33,7 +33,7 @@
 
 (println (((f-3depth 1) 2) 3))
 
-(import Math.fact)
+(import gben.libs.Math.fact)
 
 (println (fact 5))
 

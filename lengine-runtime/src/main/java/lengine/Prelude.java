@@ -703,7 +703,7 @@ public class Prelude {
   public static void loadClass(String clsName) {
     try {
       if (!alreadyLoadedClass.contains(clsName)) {
-        Class<?> cls = ClassLoader.getSystemClassLoader().loadClass(clsName);
+        Class<?> cls = Prelude.class.getClassLoader().loadClass(clsName);
         Optional<Method> foundMethod = Arrays.stream(cls.getMethods())
             .filter(x -> x.getName().equals("main")).findFirst();
         if (!foundMethod.isPresent()) {

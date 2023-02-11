@@ -1,7 +1,7 @@
-(module HttpServerModule)
+(module gben.nets.HttpServerModule)
 
-(import Json.to-json)
-(import Json.from-json)
+(import gben.libs.Json.to-json)
+(import gben.libs.Json.from-json)
 ;;; Now we do some fun with Lengine...
 
 ;;; Though, this backend implementation is Java, but, for now, this would be the interface.

@@ -1,4 +1,4 @@
-(module ComplexNumberModule)
+(module gben.tests.ComplexNumberModule)
 
 (def num #C(3 5))
 (def num2 #C(4.2 7.6))

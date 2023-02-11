@@ -13,15 +13,20 @@ import scala.collection.mutable
 
 package object compile {
 
-  def writeClass(sourceFileName: String, clsName: String, statements: List[LispValue]): Array[Byte] = {
+  def writeClass(sourceFileName: String, pkgName: String, clsName: String, statements: List[LispValue]): Array[Byte] = {
     val cw = new ClassWriter(AsmHelper.GlobalConfig)
-    cw.visit(V1_8, ACC_PUBLIC, clsName, null, "java/lang/Object", null)
+    val qualifiedName = if (pkgName.nonEmpty) {
+      s"${pkgName.replaceAllLiterally(".", "/")}/$clsName"
+    } else {
+      clsName
+    }
+    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null, "java/lang/Object", null)
     cw.visitSource(sourceFileName, null)
-    writeCsInitMethod(cw, clsName)
+    writeCsInitMethod(cw, qualifiedName)
     writeInitMethod(cw)
-    writeMain(sourceFileName, cw, statements, clsName)
-    writeExportMethod(cw, clsName)
-    writeImportMethod(cw, clsName)
+    writeMain(sourceFileName, cw, statements, qualifiedName)
+    writeExportMethod(cw, qualifiedName)
+    writeImportMethod(cw, qualifiedName)
 
     cw.toByteArray
   }

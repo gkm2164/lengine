@@ -1,4 +1,4 @@
-(module MapTest)
+(module gben.tests.MapTest)
 
 ;;; Object is defined with brace.
 ;;; Each key is mapped to value

@@ -1,4 +1,4 @@
-(module Module)
+(module gben.libs.Module)
 
 (fn map (f xs)
         (loop for x in xs

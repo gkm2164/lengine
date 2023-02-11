@@ -1,7 +1,7 @@
-(module StringModule)
+(module gben.tests.StringModule)
 
-(import Module.map)
-(import Module.split)
+(import gben.libs.Module.map)
+(import gben.libs.Module.split)
 
 (def xs (let ((x "33"))
              (+ x 234)))

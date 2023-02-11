@@ -1,4 +1,4 @@
-(module SeqModule)
+(module gben.libs.SeqModule)
 
 (fn filter (xs p)
         (fold xs nil (lambda (acc elem)

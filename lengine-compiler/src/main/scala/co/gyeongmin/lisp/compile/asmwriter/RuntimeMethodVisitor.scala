@@ -130,10 +130,10 @@ object RuntimeMethodVisitor {
     val mv                      = runtimeMethodVisitor.methodVisitor
     val symbolNameComb          = importNameSymbol.asInstanceOf[LispSymbol]
     val separated               = symbolNameComb.name.split("\\.").toList
-    val clsName                 = separated.dropRight(1).mkString(".")
+    val clsName                 = separated.dropRight(1)
     val importName              = separated.last
 
-    mv.visitLdcInsn(clsName)
+    mv.visitLdcInsn(clsName.mkString("."))
     mv.visitStaticMethodCall(
       PreludeClass,
       "loadClass",
@@ -143,7 +143,7 @@ object RuntimeMethodVisitor {
 
     mv.visitLdcInsn(importName)
     mv.visitStaticMethodCall(
-      clsName,
+      clsName.mkString("/"),
       "importSymbol",
       ObjectClass,
       StringClass

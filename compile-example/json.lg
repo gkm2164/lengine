@@ -1,10 +1,10 @@
-(module Json)
+(module gben.libs.Json)
 
-(import SeqModule.filter)
-(import SeqModule.take-while)
-(import SeqModule.drop-while)
-(import SeqModule.contains)
-(import Module.map)
+(import gben.libs.SeqModule.filter)
+(import gben.libs.SeqModule.take-while)
+(import gben.libs.SeqModule.drop-while)
+(import gben.libs.SeqModule.contains)
+(import gben.libs.Module.map)
 
 ;;; Finally! reached to JSON related library
 

@@ -1,13 +1,14 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ ReservedKeywordFunctions, ReservedKeywordVars }
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
 import co.gyeongmin.lisp.lexer.Tokenizer
-import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
+import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
-import co.gyeongmin.lisp.parser.{ appendForbiddenKeywords, parseValue }
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.parser.{appendForbiddenKeywords, parseValue}
 
 import java.io.FileOutputStream
+import java.nio.file.{Files, Path}
 import scala.annotation.tailrec
 import scala.io.Source
 
@@ -57,15 +58,22 @@ object Main {
       tokenizer.getTokenStream
         .map(tokenStream => compileLoop(Vector(), tokenStream))
         .foreach(lispValues => {
-          val clsName = lispValues.head match {
-            case LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) => clsName
+          val (pkgName, clsName) = lispValues.head match {
+            case LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) =>
+              val qualifiedNames = clsName.split('.')
+              val pkg = qualifiedNames.init.mkString(".")
+              val cls = qualifiedNames.last
+              (pkg, cls)
             case _ =>
               throw new RuntimeException(
                 "unable to determine module's name. Please declare with (module <name>) clause on the first line of your code."
               )
           }
-          val ret = writeClass(compileOps.sourceFile, clsName, lispValues.tail)
-          val fos = new FileOutputStream(s"$clsName.class")
+          if (pkgName.nonEmpty) {
+            Files.createDirectories(Path.of(pkgName.replaceAllLiterally(".", "/")))
+          }
+          val ret = writeClass(compileOps.sourceFile, pkgName, clsName, lispValues.tail)
+          val fos = new FileOutputStream(s"./${pkgName.replaceAllLiterally(".", "/")}/$clsName.class")
           fos.write(ret)
           fos.close()
         })
