@@ -36,7 +36,7 @@ class MainTest extends FlatSpec with Matchers {
     execute("string.lg", "gben.tests.StringModule")
     execute("seq-module.lg", "gben.libs.SeqModule")
     execute("json.lg", "gben.libs.Json")
-    execute("set-test.lg", "SetTest")
+    execute("set-test.lg", "gben.tests.SetTest")
     execute("json-async.lg", "gben.tests.JsonAsyncModule")
     execute("channel.lg", "gben.concurrency.ChannelModule")
     execute("ratio.lg", "gben.tests.RatioNumberModule")

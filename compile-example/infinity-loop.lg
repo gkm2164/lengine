@@ -1,8 +1,6 @@
-(module InfinityLoop)
+(module gben.tests.InfinityLoop)
 
 ;;; Testing tail-recursion
-(fn recursion ()
-    (do (println "Run forever!")
-        return ($)))
+(fn recursion () ($))
 
 (recursion)

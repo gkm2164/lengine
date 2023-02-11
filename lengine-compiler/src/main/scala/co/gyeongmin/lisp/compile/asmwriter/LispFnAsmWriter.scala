@@ -79,6 +79,20 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       Array(Type.getType(thisLambdaClass).getInternalName)
     )
 
+    runtimeEnvironment.classWriter
+      .visitInnerClass(s"${runtimeEnvironment.className}$$$fnName",
+        runtimeEnvironment.className,
+        fnName,
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+
+    lambdaClassWriter.visitInnerClass(
+      s"${runtimeEnvironment.className}$$$fnName",
+      runtimeEnvironment.className,
+      fnName,
+      Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
+    )
+
+
     capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
       case (_, idx) =>
         lambdaClassWriter.visitField(

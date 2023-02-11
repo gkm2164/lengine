@@ -8,7 +8,7 @@ import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.parser.{appendForbiddenKeywords, parseValue}
 
 import java.io.FileOutputStream
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 import scala.io.Source
 
@@ -70,7 +70,7 @@ object Main {
               )
           }
           if (pkgName.nonEmpty) {
-            Files.createDirectories(Path.of(pkgName.replaceAllLiterally(".", "/")))
+            Files.createDirectories(Paths.get(pkgName.replaceAllLiterally(".", "/")))
           }
           val ret = writeClass(compileOps.sourceFile, pkgName, clsName, lispValues.tail)
           val fos = new FileOutputStream(s"./${pkgName.replaceAllLiterally(".", "/")}/$clsName.class")
