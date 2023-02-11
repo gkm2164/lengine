@@ -21,3 +21,20 @@
 (def y (force x1))
 
 (assert-equals "Should be equal" x y)
+
+(fn lazy-cons (x xs)
+    (lazy (cons x (cons (force xs) nil))))
+
+
+(fn inf-stream (n)
+    (lazy-cons n (lazy (inf-stream (+ n 1)))))
+
+(fn inf-take (n xs)
+    (case ((= n 0) nil)
+          default (let ((forced (force xs))
+                        (h (head forced))
+                        (t (head (tail forced))))
+                       (cons h (inf-take (- n 1) t)))))
+
+
+(println (inf-take 10 (inf-stream 0)))
