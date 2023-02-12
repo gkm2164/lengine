@@ -129,10 +129,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       decls.foreach {
         case LispLetDecl(symbol, value) =>
           val idx = runtimeEnv.allocateNextVar
-          symbol match {
-            case EagerSymbol(_) =>
-              new LispValueAsmWriter(value, ObjectClass).visitForValue()
-          }
+          new LispValueAsmWriter(value, ObjectClass).visitForValue()
           mv.visitAStore(idx)
           runtimeEnv.registerVariable(symbol, idx, ObjectClass)
       }
@@ -152,10 +149,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case doStmt: LispDoStmt =>
       visitDoBody(doStmt, tailRecReference = tailRecReference)
     case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
-      ref match {
-        case EagerSymbol(_) =>
-          mv.visitLoadVariable(ref, typeToBe)
-      }
+      mv.visitLoadVariable(ref, typeToBe)
     case ref: LispSymbol =>
       throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
     case l @ LispClause(_) =>
@@ -164,18 +158,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
     case LispValueDef(symbol, value) =>
       val varIdx = runtimeEnv.allocateNextVar
-      symbol match {
-        case EagerSymbol(_) =>
-          mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
-        case LazySymbol(_) =>
-          mv.visitLispValue(GeneralLispFunc(Nil, value), typeToBe = LengineLambdaClass.head)
-          mv.visitStaticMethodCall(
-            LengineLazyValueClass,
-            "create",
-            LengineLazyValueClass,
-            LengineLambdaClass.head
-          )
-      }
+      mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
       mv.visitDup()
       mv.visitAStore(varIdx)
       runtimeEnv.registerVariable(symbol, varIdx, typeToBe)

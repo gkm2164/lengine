@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol }
 import lengine.runtime.ExportSymbols
 
 import java.lang.reflect.Field
@@ -93,20 +93,26 @@ object InteroperabilityHelper {
     "object?"           -> ExportSymbols.IS_OBJECT_FIELD,
     "set?"              -> ExportSymbols.IS_SET_FIELD,
     "has?"              -> ExportSymbols.DOES_HAVE_FIELD,
+    "'cons?"            -> ExportSymbols.IS_STREAM_CONS_FIELD,
+    "'nil?"             -> ExportSymbols.IS_STREAM_NIL_FIELD,
     "cons"              -> ExportSymbols.CONS_FIELD,
+    "'cons"             -> ExportSymbols.STREAM_CONS_FIELD,
     "read-line"         -> ExportSymbols.READ_LINE_FIELD,
     "read-eof"          -> ExportSymbols.READ_EOF_FIELD,
     "read-file"         -> ExportSymbols.READ_FILE_FIELD,
     "read-file-seq"     -> ExportSymbols.READ_FILE_SEQ_FIELD,
     "listen"            -> ExportSymbols.LISTEN_FIELD,
   ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
+    case (key, value)                        => EagerSymbol(key) -> value
   } ++ ReservedKeywordFunctions
 
   val ReservedKeywordVars: Map[LispSymbol, Field] = Map(
-    "nil" -> ExportSymbols.NIL_FIELD,
+    "nil"  -> ExportSymbols.NIL_FIELD,
+    "'nil" -> ExportSymbols.STREAM_NIL_FIELD,
   ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
+    case (key, value)                        => EagerSymbol(key) -> value
   }
 
   val SupportedVars: Map[LispSymbol, Field] = Map[String, Field](

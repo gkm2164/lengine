@@ -59,6 +59,7 @@ public class ExportSymbols {
   public static final Field OPEN_FILE_FIELD;
   public static final Field NOW_FIELD;
   public static final Field CONS_FIELD;
+  public static final Field STREAM_CONS_FIELD;
   public static final Field KEY_FIELD;
   public static final Field KEYS_FIELD;
   public static final Field ENTRY_FIELD;
@@ -69,6 +70,9 @@ public class ExportSymbols {
   public static final Field READ_FILE_FIELD;
   public static final Field READ_FILE_SEQ_FIELD;
   public static final Field NIL_FIELD;
+  public static final Field STREAM_NIL_FIELD;
+  public static final Field IS_STREAM_CONS_FIELD;
+  public static final Field IS_STREAM_NIL_FIELD;
   public static final Field APPEND_ITEM_FIELD;
   public static final Field MERGE_FIELD;
   public static final Field ASYNC_FIELD;
@@ -131,9 +135,12 @@ public class ExportSymbols {
       IS_OBJECT_FIELD = Prelude.class.getField("IS_OBJECT");
       IS_CONS_FIELD = Prelude.class.getField("IS_CONS");
       IS_NIL_FIELD = Prelude.class.getField("IS_NIL");
+      IS_STREAM_CONS_FIELD = Prelude.class.getField("IS_STREAM_CONS");
+      IS_STREAM_NIL_FIELD = Prelude.class.getField("IS_STREAM_NIL");
       OPEN_FILE_FIELD = Prelude.class.getField("OPEN_FILE");
       NOW_FIELD = Prelude.class.getField("NOW");
       CONS_FIELD = Prelude.class.getField("CONS");
+      STREAM_CONS_FIELD = Prelude.class.getField("STREAM_CONS");
       KEY_FIELD = Prelude.class.getField("KEY");
       KEYS_FIELD = Prelude.class.getField("KEYS");
       ENTRY_FIELD = Prelude.class.getField("ENTRY");
@@ -146,6 +153,7 @@ public class ExportSymbols {
       APPEND_ITEM_FIELD = Prelude.class.getField("APPEND_ITEM");
       MERGE_FIELD = Prelude.class.getField("MERGE");
       NIL_FIELD = Prelude.class.getField("NIL");
+      STREAM_NIL_FIELD = Prelude.class.getField("STREAM_NIL");
       CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
       IS_SET_FIELD = Prelude.class.getField("IS_SET");
       DOES_HAVE_FIELD = Prelude.class.getField("DOES_HAVE");

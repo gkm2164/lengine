@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, ObjectClass, StringClass}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Label
 
@@ -40,7 +40,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
         RuntimeMethodVisitor.handle(clause.body, requestedType, tailRecReference)
       case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
         throw CompileException(s"unable to find the symbol definition: [$s]", runtimeEnvironment.fileName, s.tokenLocation)
-      case value @ (EagerSymbol(_) | LispClause(_)) =>
+      case value @ (EagerSymbol(_) | LazySymbol(_) | LispClause(_)) =>
         tailRecReference match {
           case Some((reference, label)) if reference == operation || operation == EagerSymbol("$") =>
             operands.zipWithIndex.foreach {

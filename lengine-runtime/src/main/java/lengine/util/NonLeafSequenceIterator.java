@@ -1,9 +1,10 @@
 package lengine.util;
 
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineSequenceIterator;
 import lengine.runtime.exceptions.LengineRuntimeException;
 
-public class NonLeafSequenceIterator implements LengineIterator {
+public class NonLeafSequenceIterator implements LengineSequenceIterator {
     private final LengineIterator leftIt;
     private final LengineIterator rightIt;
 

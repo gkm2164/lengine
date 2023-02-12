@@ -1,11 +1,12 @@
 package lengine.util;
 
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineSequenceIterator;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class LeafSequenceIterator implements LengineIterator {
+public class LeafSequenceIterator implements LengineSequenceIterator {
     private final PeekingIterator<Object> listIterator;
 
     public LeafSequenceIterator(List<Object> list) {

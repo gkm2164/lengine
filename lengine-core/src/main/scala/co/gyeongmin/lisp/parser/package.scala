@@ -42,6 +42,9 @@ package object parser {
       case (t @ LeftPar()) #:: afterLeftPar =>
         parseClause(afterLeftPar)
           .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ LeftPar()) #:: afterLeftPar =>
+        parseClause(afterLeftPar)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation).setLazy(true)))
       case (m: SpecialToken) #:: tail =>
         m.realize
           .leftMap(ParseTokenizeError)

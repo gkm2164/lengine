@@ -21,6 +21,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
+import java.util.stream.Stream;
 
 import lengine.concurrency.LengineChannel;
 import lengine.functions.LengineLambda0;
@@ -30,7 +31,10 @@ import lengine.functions.LengineLambda3;
 import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
+import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineObjectHasHelp;
+import lengine.runtime.LengineSequenceIterator;
+import lengine.runtime.LengineStreamIterator;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.util.Cons;
@@ -46,8 +50,12 @@ import lengine.util.LengineMapKey;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineSequence;
 import lengine.util.LengineSet;
+import lengine.util.LengineStream;
 import lengine.util.Nil;
 import lengine.runtime.RangeSequence;
+import lengine.util.StreamCons;
+import lengine.util.StreamNil;
+import lengine.util.UnresolvedStream;
 
 import static java.lang.String.format;
 
@@ -232,7 +240,7 @@ public class Prelude {
     } else if (x instanceof Double) {
       return (Double) x + (Double) y;
     } else if (x instanceof ComplexNumber) {
-      return ((ComplexNumber) x).add((ComplexNumber)y);
+      return ((ComplexNumber) x).add((ComplexNumber) y);
     } else if (x instanceof String) {
       return x + (String) y;
     }
@@ -253,7 +261,7 @@ public class Prelude {
     } else if (x instanceof Double) {
       return (Double) x - (Double) y;
     } else if (x instanceof ComplexNumber) {
-      return ((ComplexNumber) x).sub((ComplexNumber)y);
+      return ((ComplexNumber) x).sub((ComplexNumber) y);
     }
 
     throw new RuntimeException("Can't subtract");
@@ -268,11 +276,11 @@ public class Prelude {
     } else if (x instanceof Long) {
       return (Long) x * (Long) y;
     } else if (x instanceof RatioNumber) {
-      return ((RatioNumber)x).mult((RatioNumber) y);
+      return ((RatioNumber) x).mult((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x * (Double) y;
     } else if (x instanceof ComplexNumber) {
-      return ((ComplexNumber) x).mult((ComplexNumber)y);
+      return ((ComplexNumber) x).mult((ComplexNumber) y);
     }
 
     throw new RuntimeException("Can't multiply");
@@ -287,11 +295,11 @@ public class Prelude {
     } else if (x instanceof Long) {
       return (Long) x / (Long) y;
     } else if (x instanceof RatioNumber) {
-      return ((RatioNumber)x).div((RatioNumber) y);
+      return ((RatioNumber) x).div((RatioNumber) y);
     } else if (x instanceof Double) {
       return (Double) x / (Double) y;
     } else if (x instanceof ComplexNumber) {
-      return ((ComplexNumber) x).div((ComplexNumber)y);
+      return ((ComplexNumber) x).div((ComplexNumber) y);
     }
 
     throw new RuntimeException("Can't divide");
@@ -342,9 +350,13 @@ public class Prelude {
     }, n);
     if (it instanceof LengineListIterator) {
       return ((LengineListIterator) it)._this();
-    } else {
+    } else if (it instanceof LengineSequenceIterator) {
       return LengineSequence.create(it);
+    } else if (it instanceof LengineStreamIterator) {
+      return ((LengineStreamIterator) it)._this();
     }
+
+    throw new RuntimeException("Unsupported");
   };
 
   private static <T> Boolean isInstanceOf(Class<T> cls, Object value) {
@@ -423,6 +435,8 @@ public class Prelude {
   private static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || _LEN.invoke(obj) == 0;
+  private static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
+  private static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
   private static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
 
   private static final LengineLambda2<Boolean, Object, Object> _DOES_HAVE = (set, obj) -> {
@@ -493,7 +507,17 @@ public class Prelude {
     };
   };
   private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
+  private static final LengineLambda2<LengineStream, Object, Object> _STREAM_CONS = (value, tail) -> {
+    if (tail instanceof LengineLazyValue) {
+      return LengineStream.cons(value, UnresolvedStream.create((LengineLazyValue) tail));
+    } else if (tail instanceof StreamCons) {
+      return LengineStream.cons(value, (StreamCons) tail);
+    } else if (tail instanceof StreamNil) {
+      return LengineStream.cons(value, (StreamNil) tail);
+    }
 
+    throw new RuntimeException("Unable to concatenate to stream:" + tail);
+  };
   private static final LengineLambda1<LengineMapKey, String> _KEY = LengineMapKey::create;
   private static final LengineLambda1<LengineSet, LengineMap> _KEYS = LengineMap::keys;
   private static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
@@ -657,9 +681,12 @@ public class Prelude {
   public static final LengineLambdaCommon IS_OBJECT = _IS_OBJECT;
   public static final LengineLambdaCommon IS_CONS = _IS_CONS;
   public static final LengineLambdaCommon IS_NIL = _IS_NIL;
+  public static final LengineLambdaCommon IS_STREAM_NIL = _IS_STREAM_NIL;
+  public static final LengineLambdaCommon IS_STREAM_CONS = _IS_STREAM_CONS;
   public static final LengineLambdaCommon OPEN_FILE = _OPEN_FILE;
   public static final LengineLambdaCommon NOW = _NOW;
   public static final LengineLambdaCommon CONS = _CONS;
+  public static final LengineLambdaCommon STREAM_CONS = _STREAM_CONS;
   public static final LengineLambdaCommon KEY = _KEY;
   public static final LengineLambdaCommon KEYS = _KEYS;
   public static final LengineLambdaCommon ENTRY = _ENTRY;
@@ -685,6 +712,7 @@ public class Prelude {
   public static final LengineLambdaCommon HELP = _HELP;
   public static final LengineLambdaCommon HELP_KEYWORD = _HELP_KEYWORD;
   public static final Object NIL = Nil.get();
+  public static final Object STREAM_NIL = StreamNil.get();
 
   private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
