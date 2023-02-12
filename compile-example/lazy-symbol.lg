@@ -1,6 +1,6 @@
 (module gben.tests.LazySymbolModule)
 
-(def x1 (lazy (now)))
+(def x1 #(now))
 (def x2 (now))
 
 (wait 200)
