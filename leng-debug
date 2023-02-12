@@ -1,9 +1,4 @@
 #!/bin/sh
 
 # Need this for testing. Prelude can be referred without packaging
-
-if [ -f lengine-runtime.jar ]; then
-  CLASSPATH=$CLASSPATH:./lengine-runtime/target/scala-2.12/classes java $@
-else
-  echo 'Lengine is not compiled. run "./install.sh"'
-fi
+CLASSPATH=$CLASSPATH:./lengine-runtime/target/scala-2.12/classes java $@
