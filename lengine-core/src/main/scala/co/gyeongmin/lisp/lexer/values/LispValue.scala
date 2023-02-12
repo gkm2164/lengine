@@ -12,12 +12,6 @@ import java.util.UUID
 import scala.reflect.ClassTag
 
 trait LispValue extends LispToken {
-  private var isLazy: Boolean = false
-  def setLazy(isLazy: Boolean): LispValue = {
-    this.isLazy = isLazy
-    this
-  }
-
   val tokenId: String = UUID.randomUUID().toString
 
   def wrapLocation(location: Option[TokenLocation]): LispValue = {

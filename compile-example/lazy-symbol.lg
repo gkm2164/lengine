@@ -23,12 +23,12 @@
 (assert-equals "Should be equal" x y)
 
 (fn inf-stream (n)
-    ('cons n (lazy (inf-stream (+ n 1)))))
+    ('cons n #(inf-stream (+ n 1))))
 
 ;;; 0 # 1 # 1 # 2 # 3 # 5 #
 
 (fn fib-stream (this next)
-    ('cons this (lazy (fib-stream next (+ this next)))))
+    ('cons this #(fib-stream next (+ this next))))
 
 (fn inf-take (n xs)
     (case ((= n 0) nil)

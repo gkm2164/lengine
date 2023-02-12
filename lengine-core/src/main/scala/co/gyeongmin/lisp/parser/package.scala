@@ -1,20 +1,15 @@
 package co.gyeongmin.lisp
 
 import cats.implicits._
-import co.gyeongmin.lisp.errors.parser.{
-  DeniedKeywordError,
-  EmptyTokenListError,
-  ParseTokenizeError,
-  UnexpectedTokenError
-}
+import co.gyeongmin.lisp.errors.parser.{DeniedKeywordError, EmptyTokenListError, ParseTokenizeError, UnexpectedTokenError}
 import co.gyeongmin.lisp.lexer.statements._
 import co.gyeongmin.lisp.monad._
 import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, LispNumber }
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
-import lexer.values.{ LispClause, LispObject, LispUnit, LispValue, _ }
+import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import lexer.values.{LispClause, LispObject, LispUnit, LispValue, _}
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -42,9 +37,11 @@ package object parser {
       case (t @ LeftPar()) #:: afterLeftPar =>
         parseClause(afterLeftPar)
           .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
-      case (t @ LeftPar()) #:: afterLeftPar =>
+      case (t @ LeftLazyPar()) #:: afterLeftPar =>
         parseClause(afterLeftPar)
-          .map(_.mapValue(_.wrapLocation(t.tokenLocation).setLazy(true)))
+          .map(clause => clause
+            .mapValue(_.wrapLocation(t.tokenLocation))
+            .mapValue(c => LispClause(List(EagerSymbol("lazy"), c))))
       case (m: SpecialToken) #:: tail =>
         m.realize
           .leftMap(ParseTokenizeError)

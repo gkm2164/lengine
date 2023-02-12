@@ -7,7 +7,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, FloatNumber, IntegerNumber, RatioNumber }
 import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
 import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
 import org.objectweb.asm.Label
 
