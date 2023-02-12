@@ -1,5 +1,6 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.stream.Collectors;
@@ -75,6 +76,19 @@ class NonLeafMap extends LengineMap {
   @Override
   public Object head() {
     return this.left.head();
+  }
+
+  @Override
+  public CreateIterator tail() {
+    if (this.left.len() == 0) {
+      return this.right.tail();
+    }
+
+    if (this.left.len() == 1) {
+      return this.right;
+    }
+
+    return new NonLeafMap(super.lately, (LengineMap) this.left.tail(), this.right);
   }
 
   protected String printable() {

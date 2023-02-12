@@ -1,6 +1,8 @@
 package lengine.util;
 
 
+import lengine.runtime.CreateIterator;
+
 public class StreamNil extends LengineStream {
   private static final StreamNil singleton = new StreamNil();
 
@@ -10,11 +12,16 @@ public class StreamNil extends LengineStream {
 
   @Override
   public Long len() {
-    return null;
+    return 0L;
   }
 
   @Override
   public Object head() {
-    return null;
+    throw new RuntimeException("no more items left on the stream");
+  }
+
+  @Override
+  public CreateIterator tail() {
+    return singleton;
   }
 }

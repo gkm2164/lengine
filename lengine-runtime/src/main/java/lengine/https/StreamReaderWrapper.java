@@ -30,4 +30,9 @@ public class StreamReaderWrapper implements CreateIterator {
   public Object head() {
     throw new RuntimeException("Unsupported operation");
   }
+
+  @Override
+  public CreateIterator tail() {
+    throw new RuntimeException("Unsupported operation");
+  }
 }

@@ -49,6 +49,11 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
+  public CreateIterator tail() {
+    return new LeafSequence(list.subList(1, list.size()));
+  }
+
+  @Override
   public String printable(boolean isFirst) {
     return list.stream().map(Object::toString).collect(Collectors.joining(" "));
   }

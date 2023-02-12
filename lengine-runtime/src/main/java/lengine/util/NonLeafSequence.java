@@ -31,6 +31,19 @@ public class NonLeafSequence extends LengineSequence {
   }
 
   @Override
+  public CreateIterator tail() {
+    if (this.left.len() == 1) {
+      return this.right;
+    }
+
+    if (this.left.len() == 0) {
+      return this.right.tail();
+    }
+
+    return new NonLeafSequence((LeafSequence) this.left.tail(), this.right);
+  }
+
+  @Override
   public String printable(boolean isFirst) {
     String[] res = {left.printable(true), right.printable(false)};
     return String.join(" ", res);

@@ -27,6 +27,11 @@ public class FileSequence implements CreateIterator {
   }
 
   @Override
+  public CreateIterator tail() {
+    throw new RuntimeException("Unsupported operation");
+  }
+
+  @Override
   public String toString() {
     return "[<file-sequence>]";
   }

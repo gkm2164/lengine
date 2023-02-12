@@ -503,6 +503,11 @@ public class Prelude {
       public Object head() {
         throw new RuntimeException("unsupported operation");
       }
+
+      @Override
+      public CreateIterator tail() {
+        return null;
+      }
     };
   };
   private static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;

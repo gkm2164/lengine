@@ -1,5 +1,6 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 public class NonLeafSet extends LengineSet {
@@ -49,6 +50,20 @@ public class NonLeafSet extends LengineSet {
   public Object head() {
     return this.left.head();
   }
+
+  @Override
+  public CreateIterator tail() {
+    if (this.left.len() == 0) {
+      return this.right.tail();
+    }
+
+    if (this.left.len() == 1) {
+      return this.right;
+    }
+
+    return new NonLeafSet(super.lately, (LengineSet) this.left.tail(), this.right);
+  }
+
 
   protected String printable() {
     String[] result = {this.left.printable(), this.right.printable()};

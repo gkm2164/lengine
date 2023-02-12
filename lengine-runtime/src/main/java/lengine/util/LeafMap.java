@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -113,6 +114,18 @@ public class LeafMap extends LengineMap {
         .findFirst()
         .map(x -> LengineMapEntry.create(x.getKey(), x.getValue()))
         .get();
+  }
+
+  @Override
+  public CreateIterator tail() {
+    LengineMap.Builder builder = LengineMap.builder();
+
+    dictionary.entrySet()
+        .stream()
+        .filter(entry -> !Objects.equals(entry, head()))
+        .forEach(entry -> builder.put(entry.getKey(), entry.getValue()));
+
+    return builder.build();
   }
 
   @Override

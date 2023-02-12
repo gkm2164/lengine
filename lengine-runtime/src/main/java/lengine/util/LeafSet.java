@@ -1,9 +1,11 @@
 package lengine.util;
 
+import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,11 @@ class LeafSet extends LengineSet {
   @Override
   public Object head() {
     return this.set.stream().findFirst().get();
+  }
+
+  @Override
+  public CreateIterator tail() {
+    return new LeafSet(this.set.stream().filter(x -> Objects.equals(x, head())).collect(Collectors.toSet()));
   }
 
   @Override

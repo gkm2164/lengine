@@ -37,4 +37,9 @@ public class RangeSequence implements CreateIterator {
   public Object head() {
     return from;
   }
+
+  @Override
+  public CreateIterator tail() {
+    return new RangeSequence(from + 1, to);
+  }
 }
