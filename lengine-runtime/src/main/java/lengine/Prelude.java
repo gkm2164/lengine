@@ -326,10 +326,6 @@ public class Prelude {
       return ((CreateIterator) obj).len();
     } else if (obj instanceof String) {
       return (long) ((String) obj).length();
-    } else if (obj instanceof LengineMap) {
-      return ((LengineMap) obj).len();
-    } else if (obj instanceof LengineSet) {
-      return ((LengineSet) obj).len();
     }
 
     throw new RuntimeException("unable to decide the size for " + obj);
@@ -709,17 +705,24 @@ public class Prelude {
   public static final Object NIL = Nil.get();
   public static final Object STREAM_NIL = StreamNil.get();
 
-  private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable, Comparable> predicate) {
+  private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable<Object>, Comparable<Object>> predicate) {
     Class<?> largerType = getLargerType(a.getClass(), b.getClass());
 
-    Object aobj = cast(a, largerType);
-    Object bobj = cast(b, largerType);
+    Object _a = cast(a, largerType);
+    Object _b = cast(b, largerType);
 
-    if (!(aobj instanceof Comparable) || !(bobj instanceof Comparable)) {
+    if (!(_a instanceof Comparable)) {
       throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
     }
 
-    return predicate.test((Comparable) a, (Comparable) b);
+    if (!(_b instanceof Comparable)) {
+      throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
+    }
+
+    Comparable<Object> _aComp = (Comparable<Object>) _a;
+    Comparable<Object> _bComp = (Comparable<Object>) _b;
+
+    return predicate.test(_aComp, _bComp);
   }
 
   public static void loadClass(String clsName) {

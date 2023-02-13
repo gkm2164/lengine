@@ -3,7 +3,6 @@ package co.gyeongmin.lisp.lexer
 import co.gyeongmin.lisp.errors.tokenizer.{ EOFError, TokenizeError, WrongEscapeError }
 import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
-import org.apache.commons.collections4.Trie
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.annotation.tailrec
@@ -33,7 +32,6 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
           parseString(builder + '\r', wrap)
         case ('\"', _) if escape =>
           parseString(builder + '\"', wrap)
-        case (ch, _) if escape => Left(WrongEscapeError)
         case ('\\', _) =>
           parseString(builder, wrap, escape = true)
         case (ch, _) if ch == wrap && escape =>

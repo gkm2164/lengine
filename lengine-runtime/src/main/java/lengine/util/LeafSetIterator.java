@@ -6,10 +6,10 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class LeafSetIterator implements LengineIterator {
-    private final PeekingIterator<Object> thisIterator;
+    private final Iterator<Object> thisIterator;
 
     public LeafSetIterator(Set<Object> set) {
-        this.thisIterator = PeekingIterator.peekingIterator(set.iterator());
+        this.thisIterator = set.iterator();
     }
 
     @Override

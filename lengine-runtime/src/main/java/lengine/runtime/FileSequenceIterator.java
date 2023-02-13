@@ -1,20 +1,19 @@
 package lengine.runtime;
 
-import lengine.util.PeekingIterator;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 public class FileSequenceIterator implements LengineIterator, AutoCloseable {
 
   private final Stream<String> thisStream;
-  private final PeekingIterator<String> thisIterator;
+  private final Iterator<String> thisIterator;
   public FileSequenceIterator(String fis) {
     try {
       thisStream = Files.lines(Paths.get(fis));
-      thisIterator = PeekingIterator.peekingIterator(thisStream.iterator());
+      thisIterator = thisStream.iterator();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
