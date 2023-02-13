@@ -30,6 +30,9 @@
 (fn fib-stream (this next)
     ('cons this #(fib-stream next (+ this next))))
 
+(fn fact-stream (n acc)
+    ('cons acc #(fact-stream (+ n 1) (* acc n))))
+
 (fn inf-take (n xs)
     (case ((= n 0) nil)
           (('nil? xs) 'nil)
@@ -39,9 +42,15 @@
 
 (def fibs (fib-stream 0 1))
 
-(println (inf-take 10 fibs))
+(def facts (fact-stream 1 1))
+
+(println (inf-take 20 fibs))
 
 ;;; Show until resolved values
 (println fibs)
 
 (println (inf-take 10 (inf-stream 0)))
+
+(println (inf-take 15 facts))
+
+(println facts)
