@@ -104,24 +104,36 @@ object RuntimeMethodVisitor {
 
     if (value == Nil) {
       mv.visitLdcInsn(nameOfSymbol)
+      mv.visitStaticMethodCall(
+        LengineStringClass,
+        "create",
+        LengineStringClass,
+        StringClass
+      )
       mv.visitLispValue(symbol, ObjectClass)
       mv.visitStaticMethodCall(
         runtimeEnvironment.className,
         "export",
         VoidPrimitive,
-        StringClass,
+        LengineStringClass,
         ObjectClass
       )
     } else {
       mv.visitLispValue(value.head, ObjectClass) // [V]
       mv.visitDup()                              // [V V]
       mv.visitLdcInsn(nameOfSymbol)              // [V V S]
+      mv.visitStaticMethodCall(
+        LengineStringClass,
+        "create",
+        LengineStringClass,
+        StringClass
+      )
       mv.visitSwap()                             // [V S V]
       mv.visitStaticMethodCall( // [V]
                                runtimeEnvironment.className,
                                "export",
                                VoidPrimitive,
-                               StringClass,
+                               LengineStringClass,
                                ObjectClass)
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
@@ -137,10 +149,16 @@ object RuntimeMethodVisitor {
 
     mv.visitLdcInsn(symbolNameComb.name)
     mv.visitStaticMethodCall(
+      LengineStringClass,
+      "create",
+      LengineStringClass,
+      StringClass
+    )
+    mv.visitStaticMethodCall(
       LengineClassLoaderClass,
       "importSymbol",
       ObjectClass,
-      StringClass
+      LengineStringClass
     )
     mv.visitDup()
     val varLoc = runtimeMethodVisitor.allocateNextVar

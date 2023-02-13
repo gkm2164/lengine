@@ -15,6 +15,8 @@ import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineObjectHasHelp;
 import lengine.runtime.LengineSequenceIterator;
 import lengine.runtime.LengineStreamIterator;
+import lengine.runtime.LengineString;
+import lengine.runtime.LengineStringIterator;
 import lengine.runtime.LengineUnit;
 import lengine.runtime.RangeSequence;
 import lengine.runtime.RatioNumber;
@@ -70,8 +72,8 @@ public class PreludeImpl {
             return (Double) x + (Double) y;
         } else if (x instanceof ComplexNumber) {
             return ((ComplexNumber) x).add((ComplexNumber) y);
-        } else if (x instanceof String) {
-            return x + (String) y;
+        } else if (x instanceof LengineString) {
+            return ((LengineString)x).add(y);
         }
 
         throw new RuntimeException("Can't add");
@@ -153,8 +155,6 @@ public class PreludeImpl {
     public static final LengineLambda1<Long, Object> _LEN = (obj) -> {
         if (obj instanceof CreateIterator) {
             return ((CreateIterator) obj).len();
-        } else if (obj instanceof String) {
-            return (long) ((String) obj).length();
         }
 
         throw new RuntimeException("unable to decide the size for " + obj);
@@ -179,6 +179,8 @@ public class PreludeImpl {
             return LengineSequence.create(it);
         } else if (it instanceof LengineStreamIterator) {
             return ((LengineStreamIterator) it)._this();
+        } else if (it instanceof LengineStringIterator) {
+            return ((LengineStringIterator)it)._remains();
         }
 
         throw new RuntimeException("Unsupported");
@@ -212,38 +214,38 @@ public class PreludeImpl {
         System.out.print(str);
         return UNIT;
     };
-    public static final LengineLambda2<LengineUnit, String, CreateIterator> _PRINTF = (fmt, args) -> {
+    public static final LengineLambda2<LengineUnit, LengineString, CreateIterator> _PRINTF = (fmt, args) -> {
         final LinkedList<Object> items = new LinkedList<>();
         LengineIterator argsIt = args.iterator();
         while (argsIt.hasNext()) {
             items.add(argsIt.next());
         }
 
-        System.out.printf(fmt, items.toArray());
+        System.out.printf(fmt.toString(), items.toArray());
         return UNIT;
     };
-    public static final LengineLambda2<String, String, CreateIterator> _FORMAT = (fmt, args) -> {
+    public static final LengineLambda2<LengineString, LengineString, CreateIterator> _FORMAT = (fmt, args) -> {
         final LinkedList<Object> items = new LinkedList<>();
         LengineIterator argsIt = args.iterator();
         while (argsIt.hasNext()) {
             items.add(argsIt.next());
         }
 
-        return format(fmt, items.toArray());
+        return LengineString.create(format(fmt.toString(), items.toArray()));
     };
     public static final LengineLambda2<RangeSequence, Long, Long> _RANGE = RangeSequence::createRange;
     public static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
-    public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_TRUE = PreludeImpl::assertTrue;
-    public static final LengineLambda2<LengineUnit, String, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
-    public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_EQUALS = (message, a, b) -> {
+    public static final LengineLambda2<LengineUnit, LengineString, Boolean> _ASSERT_TRUE = PreludeImpl::assertTrue;
+    public static final LengineLambda2<LengineUnit, LengineString, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
+    public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_EQUALS = (message, a, b) -> {
         if (!_EQUALS.invoke(a, b)) {
             throw new RuntimeException(a.toString() + " /= " + b.toString());
         }
 
         return UNIT;
     };
-    public static final LengineLambda3<LengineUnit, String, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
-    public static final LengineLambda1<String, Object> _CAST_STR = PreludeImpl::castString;
+    public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
+    public static final LengineLambda1<LengineString, Object> _CAST_STR = PreludeImpl::castString;
     public static final LengineLambda1<Long, Object> _CAST_INT = PreludeImpl::castLong;
     public static final LengineLambda1<Double, Object> _CAST_DOUBLE = PreludeImpl::castDouble;
     public static final LengineLambda1<Character, Object> _CAST_CHARACTER = PreludeImpl::castChar;
@@ -254,7 +256,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_DOUBLE = (obj) -> isInstanceOf(Double.class, obj);
-    public static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(String.class, obj);
+    public static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(LengineString.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_LIST = (obj) -> isInstanceOf(LengineList.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
@@ -274,8 +276,8 @@ public class PreludeImpl {
         return false;
     };
     public static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
-    public static final LengineLambda1<CreateIterator, String> _OPEN_FILE = (path) -> {
-        File file = new File(path);
+    public static final LengineLambda1<CreateIterator, LengineString> _OPEN_FILE = (path) -> {
+        File file = new File(path.toString());
         final long lengthOfFile = file.length();
         final BufferedReader reader;
         try {
@@ -336,15 +338,15 @@ public class PreludeImpl {
 
         throw new RuntimeException("Unable to concatenate to stream:" + tail);
     };
-    public static final LengineLambda1<LengineMapKey, String> _KEY = LengineMapKey::create;
+    public static final LengineLambda1<LengineMapKey, LengineString> _KEY = LengineMapKey::create;
     public static final LengineLambda1<LengineSet, LengineMap> _KEYS = LengineMap::keys;
     public static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
     public static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
-    public static final LengineLambda1<String, LengineMapKey> _GET = LengineMapKey::getKey;
+    public static final LengineLambda1<LengineString, LengineMapKey> _GET = LengineMapKey::getKey;
 
-    public static final LengineLambda0<String> _READ_LINE = () -> new Scanner(System.in).next("\n");
+    public static final LengineLambda0<LengineString> _READ_LINE = () -> LengineString.create(new Scanner(System.in).next("\n"));
 
-    public static final LengineLambda0<String> _READ_EOF = () -> {
+    public static final LengineLambda0<LengineString> _READ_EOF = () -> {
         Reader sr = new InputStreamReader(System.in);
         StringBuilder ret = new StringBuilder();
         int ch;
@@ -357,19 +359,19 @@ public class PreludeImpl {
             ret.append((char) ch);
         }
 
-        return ret.toString();
+        return LengineString.create(ret.toString());
     };
 
 
-    public static final LengineLambda1<String, String> _READ_FILE = (fileName) -> {
+    public static final LengineLambda1<LengineString, LengineString> _READ_FILE = (fileName) -> {
         try {
-            return new String(Files.readAllBytes(Paths.get(fileName)), StandardCharsets.UTF_8);
+            return new LengineString(new String(Files.readAllBytes(Paths.get(fileName.toString())), StandardCharsets.UTF_8));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     };
 
-    public static final LengineLambda1<FileSequence, String> _READ_FILE_SEQ = FileSequence::create;
+    public static final LengineLambda1<FileSequence, LengineString> _READ_FILE_SEQ = FileSequence::create;
 
     public static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof LengineList) {
@@ -387,12 +389,12 @@ public class PreludeImpl {
     };
 
     public static final LengineLambda2<Object, Object, Object> _MERGE = (xs, ys) -> {
-        if (xs instanceof String) {
-            if (ys instanceof String) {
-                return xs + ((String) ys);
+        if (xs instanceof LengineString) {
+            if (ys instanceof LengineString) {
+                return ((LengineString)xs).add((LengineString) ys);
             }
 
-            throw new RuntimeException("Unable to determine the 2nd parameter to be String");
+            throw new RuntimeException("Unable to determine the 2nd parameter to be LengineString");
         } else if (xs instanceof LengineList) {
             if (ys instanceof CreateIterator) {
                 return ((LengineList) xs).append((CreateIterator) ys);
@@ -449,9 +451,9 @@ public class PreludeImpl {
     };
 
     static final LengineLambda1<LengineSequence, LengineObjectHasHelp> _HELP = LengineObjectHasHelp::help;
-    static final LengineLambda2<String, LengineObjectHasHelp, LengineMapKey> _HELP_KEYWORD = LengineObjectHasHelp::help;
+    static final LengineLambda2<LengineString, LengineObjectHasHelp, LengineMapKey> _HELP_KEYWORD = LengineObjectHasHelp::help;
     static final LengineLambda1<LengineLambda0<LengineUnit>, LengineMap> _LISTEN = HttpServerBuilder::listen;
-    static final LengineLambda3<LengineMap, String, String, String> _DB_CONN = DBConn::connect;
+    static final LengineLambda3<LengineMap, LengineString, LengineString, LengineString> _DB_CONN = DBConn::connect;
 
 
 
@@ -466,7 +468,7 @@ public class PreludeImpl {
             return castDouble(from);
         } else if (to.equals(ComplexNumber.class)) {
             return castComplexNumber(from);
-        } else if (to.equals(String.class)) {
+        } else if (to.equals(LengineString.class)) {
             return castString(from);
         }
 
@@ -492,8 +494,8 @@ public class PreludeImpl {
             return (Long) from;
         } else if (from instanceof Double) {
             return ((Double) from).longValue();
-        } else if (from instanceof String) {
-            return Long.parseLong((String) from);
+        } else if (from instanceof LengineString) {
+            return Long.parseLong(from.toString());
         }
 
         throw new LengineTypeMismatchException(from, Long.class);
@@ -508,8 +510,8 @@ public class PreludeImpl {
             return ((RatioNumber) from).doubleValue();
         } else if (from instanceof Double) {
             return (Double) from;
-        } else if (from instanceof String) {
-            return Double.parseDouble((String) from);
+        } else if (from instanceof LengineString) {
+            return Double.parseDouble(from.toString());
         }
 
         throw new LengineTypeMismatchException(from, Double.class);
@@ -541,18 +543,12 @@ public class PreludeImpl {
         throw new LengineTypeMismatchException(from, ComplexNumber.class);
     }
 
-    private static String castString(Object from) {
-        if (from instanceof LengineList) {
-            return from.toString();
-        } else if (from instanceof LengineSequence) {
-            return from.toString();
-        }
-
-        return from.toString();
+    private static LengineString castString(Object from) {
+        return LengineString.create(from.toString());
     }
 
     private static LengineList castList(Object o) {
-        if (o instanceof String) {
+        if (o instanceof LengineString) {
             return LengineList.create(o.toString());
         } else if (o instanceof LengineList) {
             return (LengineList) o;
@@ -562,7 +558,7 @@ public class PreludeImpl {
     }
 
     private static LengineSequence castSeq(Object o) {
-        if (o instanceof String) {
+        if (o instanceof LengineString) {
             return LengineSequence.create(o.toString());
         } else if (o instanceof LengineSequence) {
             return (LengineSequence) o;
@@ -574,7 +570,7 @@ public class PreludeImpl {
     }
 
     private static LengineSet castSet(Object o) {
-        if (o instanceof String) {
+        if (o instanceof LengineString) {
             return LengineSet.create(o.toString());
         } else if (o instanceof LengineSet) {
             return (LengineSet) o;
@@ -600,7 +596,7 @@ public class PreludeImpl {
             return 3;
         } else if (a.equals(ComplexNumber.class)) {
             return 4;
-        } else if (a.equals(String.class)) {
+        } else if (a.equals(LengineString.class)) {
             return 5;
         } else if (a.equals(CreateIterator.class)) {
             return 6;
@@ -609,7 +605,7 @@ public class PreludeImpl {
         throw new RuntimeException("Unable to decide rank for type: " + a.getName());
     }
 
-    private static LengineUnit assertTrue(String message, Boolean value) {
+    private static LengineUnit assertTrue(LengineString message, Boolean value) {
         if (!value) {
             throw new RuntimeException("Failed to assert: " + message);
         }

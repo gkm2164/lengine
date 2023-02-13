@@ -3,6 +3,7 @@ package lengine.https;
 import lengine.functions.LengineLambda1;
 import lengine.runtime.LengineObjectType;
 import lengine.runtime.LengineObjectWithHelp;
+import lengine.runtime.LengineString;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapKey;
@@ -52,26 +53,28 @@ public class ResponseBuilder {
             @Override
             public LengineSequence help() {
                 return LengineSequence.create(Stream.of("set-status-code", "set-headers", "writer")
+                        .map(LengineString::create)
                         .map(LengineMapKey::create)
                         .collect(Collectors.toList()));
             }
 
             @Override
-            public String help(LengineMapKey key) {
-                switch (key.getKey()) {
+            public LengineString help(LengineMapKey key) {
+                switch (key.getKey().toString()) {
                     case "set-status-code":
-                        return "set status code for response";
+                        return LengineString.create("set status code for response");
                     case "set-headers":
-                        return "set header code for response";
+                        return LengineString.create("set header code for response");
                     case "writer":
-                        return "get response body writer";
+                        return LengineString.create("get response body writer");
                     default:
                         throw new RuntimeException("Unknown accessor");
-                }            }
+                }
+            }
 
             @Override
             public Object get(LengineMapKey key) {
-                switch (key.getKey()) {
+                switch (key.getKey().toString()) {
                     case "set-status-code":
                         return SET_STATUS_CODE;
                     case "set-headers":

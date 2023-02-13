@@ -19,6 +19,7 @@ object LengineType {
   val DoublePrimitive: Class[java.lang.Double]                 = java.lang.Double.TYPE
   val StringClass: Class[java.lang.String]                     = classOf[java.lang.String]
   val StringArrayClass: Class[Array[java.lang.String]]         = classOf[Array[java.lang.String]]
+  val LengineStringClass: Class[LengineString]                 = classOf[LengineString]
   val ObjectClass: Class[Object]                               = classOf[Object]
   val JavaMapClass: Class[java.util.Map[_, _]]                 = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]]         = classOf[java.util.HashMap[_, _]]

@@ -163,7 +163,7 @@
                              return ["" json-str])))))
 
 (export from-json (^ (json-str)
-    (head (parse-value (list json-str)))))
+    (head (parse-value json-str))))
 
 (def parsed-value (head (parse-value json-ch-seq)))
 

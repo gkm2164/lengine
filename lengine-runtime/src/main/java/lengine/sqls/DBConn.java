@@ -13,6 +13,7 @@ import java.util.Properties;
 import lengine.functions.LengineLambda2;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
+import lengine.runtime.LengineString;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapKey;
 import lengine.util.LengineSequence;
@@ -80,9 +81,9 @@ public class DBConn {
   }
 
   public static LengineMap connect(
-      String connString,
-      String username,
-      String password
+      LengineString connString,
+      LengineString username,
+      LengineString password
   ) {
     if (!initOnce) {
       // Load driver
@@ -91,14 +92,15 @@ public class DBConn {
       } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
+      initOnce = true;
     }
 
     Properties props = new Properties();
-    props.put("user", username);
-    props.put("password", password);
+    props.put("user", username.toString());
+    props.put("password", password.toString());
     try {
       Connection conn = DriverManager.getConnection(
-          connString,
+          connString.toString(),
           props
       );
       DBConn thisConn = new DBConn(
@@ -131,6 +133,6 @@ public class DBConn {
   }
 
   private static LengineMapKey key(String keyName) {
-    return LengineMapKey.create(keyName);
+    return LengineMapKey.create(LengineString.create(keyName));
   }
 }

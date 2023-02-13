@@ -3,6 +3,7 @@ package lengine.https;
 import com.sun.net.httpserver.HttpExchange;
 import lengine.runtime.LengineObjectType;
 import lengine.runtime.LengineObjectWithHelp;
+import lengine.runtime.LengineString;
 import lengine.util.LeafSequence;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
@@ -61,29 +62,30 @@ public class RequestBuilder {
             @Override
             public LengineSequence help() {
                 return LengineSequence.create(Stream.of("path", "query", "method", "headers", "request-body")
+                        .map(LengineString::create)
                         .map(LengineMapKey::create)
                         .collect(toList()));
             }
 
             @Override
-            public String help(LengineMapKey key) {
-                switch (key.getKey()) {
+            public LengineString help(LengineMapKey key) {
+                switch (key.getKey().toString()) {
                     case "path":
-                        return "get requested path";
+                        return LengineString.create("get requested path");
                     case "query":
-                        return "get requested query with parsed";
+                        return LengineString.create("get requested query with parsed");
                     case "headers":
-                        return "get headers from request";
+                        return LengineString.create("get headers from request");
                     case "request-body":
-                        return "get request body in stream - note that only can be read once.";
+                        return LengineString.create("get request body in stream - note that only can be read once.");
                     default:
-                        return "unknown operation: " + key.getKey();
+                        return LengineString.create("unknown operation: " + key.getKey());
                 }
             }
 
             @Override
             public Object get(LengineMapKey key) {
-                switch (key.getKey()) {
+                switch (key.getKey().toString()) {
                     case "path":
                         return path;
                     case "query":
@@ -127,6 +129,6 @@ public class RequestBuilder {
     }
 
     private <T> LengineMapEntry entry(String key, T value) {
-        return LengineMapEntry.create(LengineMapKey.create(key), value);
+        return LengineMapEntry.create(LengineMapKey.create(LengineString.create(key)), value);
     }
 }

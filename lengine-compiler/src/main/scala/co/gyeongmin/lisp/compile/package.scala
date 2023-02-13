@@ -136,7 +136,7 @@ package object compile {
         "export",
         Type.getMethodDescriptor(
           Type.getType(VoidPrimitive),
-          Type.getType(StringClass),
+          Type.getType(LengineStringClass),
           Type.getType(ObjectClass)
         ),
         null,
@@ -166,7 +166,7 @@ package object compile {
         "importSymbol",
         Type.getMethodDescriptor(
           Type.getType(ObjectClass),
-          Type.getType(StringClass)
+          Type.getType(LengineStringClass)
         ),
         null,
         null

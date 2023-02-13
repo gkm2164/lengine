@@ -22,8 +22,8 @@ public class LengineClassLoader {
         return new String[]{String.join(".", moduleName), symbolName};
     }
 
-    public static Object importSymbol(String qualifiedName) {
-        String[] classAndSymbolName = split(qualifiedName);
+    public static Object importSymbol(LengineString qualifiedName) {
+        String[] classAndSymbolName = split(qualifiedName.toString());
         String className = classAndSymbolName[0];
         String symbolName = classAndSymbolName[1];
 
@@ -49,7 +49,7 @@ public class LengineClassLoader {
                 throw new RuntimeException("Not a lengine class.");
             } else {
                 Method importSymbol = foundMethodOptional.get();
-                return importSymbol.invoke(null, symbolName);
+                return importSymbol.invoke(null, LengineString.create(symbolName));
             }
         } catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException e) {
             throw new RuntimeException(e);

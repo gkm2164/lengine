@@ -26,7 +26,7 @@ public class FileSequenceIterator implements LengineIterator, AutoCloseable {
 
   @Override
   public Object next() {
-    return thisIterator.next();
+    return LengineString.create(thisIterator.next());
   }
 
   @Override

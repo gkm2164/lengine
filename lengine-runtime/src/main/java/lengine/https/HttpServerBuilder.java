@@ -5,6 +5,7 @@ import static java.lang.String.format;
 import com.sun.net.httpserver.HttpServer;
 
 import lengine.functions.LengineLambda0;
+import lengine.runtime.LengineString;
 import lengine.runtime.LengineUnit;
 import lengine.util.LengineMap;
 import lengine.util.LengineMapEntry;
@@ -18,9 +19,9 @@ public class HttpServerBuilder {
   private static final Logger LOG = Logger.getLogger(HttpServerBuilder.class.getName());
 
   public static LengineLambda0<LengineUnit> listen(LengineMap obj) {
-    String address = (String) obj.get(LengineMapKey.create("host"));
-    Long port = (Long) obj.get(LengineMapKey.create("port"));
-    LengineMap handlers = (LengineMap) obj.get(LengineMapKey.create("handlers"));
+    String address = (String) obj.get(LengineMapKey.create(LengineString.create("host")));
+    Long port = (Long) obj.get(LengineMapKey.create(LengineString.create("port")));
+    LengineMap handlers = (LengineMap) obj.get(LengineMapKey.create(LengineString.create("handlers")));
 
     try {
       HttpServer server = HttpServer.create(new InetSocketAddress(address, port.intValue()), 0);
@@ -28,7 +29,7 @@ public class HttpServerBuilder {
         final LengineMapEntry entry = (LengineMapEntry) _entry;
         final LengineMap handler = UNSAFE_cast(entry.getValue());
         LOG.info(format("created context on %s", entry.getKey().getKey()));
-        server.createContext(entry.getKey().getKey(), new HandlerWrapper(handler));
+        server.createContext(entry.getKey().getKey().toString(), new HandlerWrapper(handler));
       });
       server.setExecutor(null);
       server.start();

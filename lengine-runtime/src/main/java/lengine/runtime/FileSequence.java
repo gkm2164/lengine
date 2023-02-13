@@ -7,8 +7,8 @@ public class FileSequence implements CreateIterator {
     this.fileName = fileName;
   }
 
-  public static FileSequence create(String fileName) {
-    return new FileSequence(fileName);
+  public static FileSequence create(LengineString fileName) {
+    return new FileSequence(fileName.toString());
   }
 
   @Override

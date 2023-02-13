@@ -24,25 +24,26 @@ public class ComplexNumber implements LengineObjectWithHelp {
   @Override
   public LengineSequence help() {
     return LengineSequence.create(Stream.of("real", "imagine")
+            .map(LengineString::create)
             .map(LengineMapKey::create)
             .collect(Collectors.toList()));
   }
 
   @Override
-  public String help(LengineMapKey key) {
-    switch (key.getKey()) {
+  public LengineString help(LengineMapKey key) {
+    switch (key.getKey().toString()) {
       case "real":
-        return "Get real part number";
+        return LengineString.create("Get real part number");
       case "imagine":
-        return "Get imagine part number";
+        return LengineString.create("Get imagine part number");
     }
 
-    return "unknown operation: " + key.getKey();
+    return LengineString.create("unknown operation: " + key.getKey());
   }
 
   @Override
   public Object get(LengineMapKey key) {
-    switch (key.getKey()) {
+    switch (key.getKey().toString()) {
       case "real":
         return this.real;
       case "imagine":

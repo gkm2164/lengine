@@ -2,21 +2,22 @@ package lengine.util;
 
 import lengine.functions.LengineLambda1;
 import lengine.runtime.LengineObjectType;
+import lengine.runtime.LengineString;
 
 import java.util.Optional;
 
 public class LengineMapKey implements LengineLambda1<Object, LengineObjectType> {
-  private final String key;
+  private final LengineString key;
 
-  private LengineMapKey(String key) {
+  private LengineMapKey(LengineString key) {
     this.key = key;
   }
 
-  public String getKey() {
+  public LengineString getKey() {
     return key;
   }
 
-  public static LengineMapKey create(String key) {
+  public static LengineMapKey create(LengineString key) {
     return new LengineMapKey(key);
   }
 

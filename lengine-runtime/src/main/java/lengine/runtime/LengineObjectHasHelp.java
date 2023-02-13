@@ -5,5 +5,5 @@ import lengine.util.LengineSequence;
 
 public interface LengineObjectHasHelp {
     LengineSequence help();
-    String help(LengineMapKey key);
+    LengineString help(LengineMapKey key);
 }

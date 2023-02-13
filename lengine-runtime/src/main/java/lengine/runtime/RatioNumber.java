@@ -93,27 +93,30 @@ public class RatioNumber extends Number implements LengineObjectWithHelp {
   @Override
   public LengineSequence help() {
     return LengineSequence.create(
-            Stream.of("over", "under", "norm").map(LengineMapKey::create).collect(Collectors.toList())
+            Stream.of("over", "under", "norm")
+                    .map(LengineString::create)
+                    .map(LengineMapKey::create)
+                    .collect(Collectors.toList())
     );
   }
 
   @Override
-  public String help(LengineMapKey key) {
-    switch (key.getKey()) {
+  public LengineString help(LengineMapKey key) {
+    switch (key.getKey().toString()) {
       case "over":
-        return "return a in a/b";
+        return LengineString.create("return a in a/b");
       case "under":
-        return "return b in a/b";
+        return LengineString.create("return b in a/b");
       case "norm":
-        return "return normalized number";
+        return LengineString.create("return normalized number");
       default:
-        return "unknown operation: " + key.getKey();
+        return LengineString.create("unknown operation: " + key.getKey());
     }
   }
 
   @Override
   public Object get(LengineMapKey key) {
-    switch(key.getKey()) {
+    switch(key.getKey().toString()) {
       case "over":
         return this.over;
       case "under":
