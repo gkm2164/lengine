@@ -32,12 +32,10 @@
 
 (fn inf-take (n xs)
     (case ((= n 0) nil)
-          (('nil? xs) nil)
-          (('cons? xs) (cons (head xs) (inf-take (- n 1) (tail xs))))
-          default (let ((forced (force xs))
-                        (h (head forced))
-                        (t (head (tail forced))))
-                       (cons h (inf-take (- n 1) t)))))
+          (('nil? xs) 'nil)
+          default (let ((h (head xs))
+                        (t (tail xs)))
+                       (cons h ($ (- n 1) t)))))
 
 (def fibs (fib-stream 0 1))
 
