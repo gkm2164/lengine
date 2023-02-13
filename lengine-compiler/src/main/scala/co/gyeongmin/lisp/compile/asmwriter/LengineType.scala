@@ -49,4 +49,5 @@ object LengineType {
   val CreateIteratorClass: Class[CreateIterator]           = classOf[CreateIterator]
   val LengineIteratorClass: Class[LengineIterator]         = classOf[LengineIterator]
   val LengineMapBuilderClass: Class[LengineMap.Builder]    = classOf[LengineMap.Builder]
+  val LengineClassLoaderClass: Class[LengineClassLoader]   = classOf[LengineClassLoader]
 }

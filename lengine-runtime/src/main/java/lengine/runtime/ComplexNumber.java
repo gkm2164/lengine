@@ -6,10 +6,10 @@ import lengine.util.LengineSequence;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static lengine.Prelude._ADD;
-import static lengine.Prelude._DIV;
-import static lengine.Prelude._MULT;
-import static lengine.Prelude._SUB;
+import static lengine.PreludeImpl._ADD;
+import static lengine.PreludeImpl._DIV;
+import static lengine.PreludeImpl._MULT;
+import static lengine.PreludeImpl._SUB;
 
 public class ComplexNumber implements LengineObjectWithHelp {
   private final Number real;

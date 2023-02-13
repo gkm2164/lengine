@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywor
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 object RuntimeMethodVisitor {
@@ -134,21 +134,10 @@ object RuntimeMethodVisitor {
     val importNameSymbol :: Nil = operands
     val mv                      = runtimeMethodVisitor.methodVisitor
     val symbolNameComb          = importNameSymbol.asInstanceOf[LispSymbol]
-    val separated               = symbolNameComb.name.split("\\.").toList
-    val clsName                 = separated.dropRight(1)
-    val importName              = separated.last
 
-    mv.visitLdcInsn(clsName.mkString("."))
+    mv.visitLdcInsn(symbolNameComb.name)
     mv.visitStaticMethodCall(
-      PreludeClass,
-      "loadClass",
-      VoidPrimitive,
-      StringClass,
-    )
-
-    mv.visitLdcInsn(importName)
-    mv.visitStaticMethodCall(
-      clsName.mkString("/"),
+      LengineClassLoaderClass,
       "importSymbol",
       ObjectClass,
       StringClass
@@ -157,7 +146,7 @@ object RuntimeMethodVisitor {
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 
-    runtimeMethodVisitor.registerVariable(EagerSymbol(importName), varLoc, ObjectClass)
+    runtimeMethodVisitor.registerVariable(EagerSymbol(symbolNameComb.name.split('.').last), varLoc, ObjectClass)
   }
 
   private def visitLazy(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
