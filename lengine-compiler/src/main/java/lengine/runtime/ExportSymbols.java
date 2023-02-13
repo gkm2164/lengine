@@ -85,6 +85,8 @@ public class ExportSymbols {
   public static final Field LISTEN_FIELD;
   public static final Field HELP_FIELD;
   public static final Field HELP_KEYWORD_FIELD;
+  public static final Field DB_CONN_FIELD;
+
   static {
     try {
       ADD_FIELD = Prelude.class.getField("ADD");
@@ -167,6 +169,7 @@ public class ExportSymbols {
       LISTEN_FIELD = Prelude.class.getField("LISTEN");
       HELP_FIELD = Prelude.class.getField("HELP");
       HELP_KEYWORD_FIELD = Prelude.class.getField("HELP_KEYWORD");
+      DB_CONN_FIELD = Prelude.class.getField("DB_CONN");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {

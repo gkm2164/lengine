@@ -36,6 +36,7 @@ import lengine.runtime.LengineSequenceIterator;
 import lengine.runtime.LengineStreamIterator;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
+import lengine.sqls.DBConn;
 import lengine.util.Cons;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.FileSequence;
@@ -636,6 +637,7 @@ public class Prelude {
   private static final LengineLambda1<LengineSequence, LengineObjectHasHelp> _HELP = LengineObjectHasHelp::help;
   private static final LengineLambda2<String, LengineObjectHasHelp, LengineMapKey> _HELP_KEYWORD = LengineObjectHasHelp::help;
   private static final LengineLambda1<LengineLambda0<LengineUnit>, LengineMap> _LISTEN = HttpServerBuilder::listen;
+  private static final LengineLambda3<LengineMap, String, String, String> _DB_CONN = DBConn::connect;
 
   public static final LengineLambdaCommon ADD = _ADD;
   public static final LengineLambdaCommon SUB = _SUB;
@@ -715,6 +717,7 @@ public class Prelude {
   public static final LengineLambdaCommon LISTEN = _LISTEN;
   public static final LengineLambdaCommon HELP = _HELP;
   public static final LengineLambdaCommon HELP_KEYWORD = _HELP_KEYWORD;
+  public static final LengineLambdaCommon DB_CONN = _DB_CONN;
   public static final Object NIL = Nil.get();
   public static final Object STREAM_NIL = StreamNil.get();
 

@@ -1,0 +1,19 @@
+(module gben.tests.SqlModule)
+
+(def sql-handler (db-conn "jdbc:mysql://localhost:3306/test_lengine" "lengine" "lengine"))
+
+(def insert-result ((:exec-update sql-handler) "INSERT TEST_LENGINE VALUES (?, ?, ?)" ["a1" "Laptop" 10]))
+
+(def query-result ((:exec-select sql-handler) "SELECT * FROM TEST_LENGINE" nil))
+
+(loop for row in query-result
+      (println row))
+
+(def update-result ((:exec-update sql-handler) "UPDATE TEST_LENGINE SET price = ? WHERE id = ?" [30 "a1"]))
+
+(def query-result-2nd ((:exec-select sql-handler) "SELECT * FROM TEST_LENGINE" nil))
+
+(def queyr-result-3rd ((:exec-update sql-handler) "DELETE FROM TEST_LENGINE WHERE id = ?" ["a1"]))
+
+(loop for row in query-result-2nd
+      (println row))

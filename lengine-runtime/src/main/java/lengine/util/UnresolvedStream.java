@@ -32,4 +32,13 @@ public class UnresolvedStream extends LengineStream {
   public CreateIterator tail() {
     return force().tail();
   }
+
+  @Override
+  public String toString() {
+    if (provider.isResolved()) {
+      return provider.invoke().toString();
+    } else {
+      return "...";
+    }
+  }
 }

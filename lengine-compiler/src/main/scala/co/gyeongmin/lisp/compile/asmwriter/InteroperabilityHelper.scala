@@ -55,6 +55,7 @@ object InteroperabilityHelper {
     "close"        -> ExportSymbols.CLOSE_FIELD,
     "help"         -> ExportSymbols.HELP_FIELD,
     "help-keyword" -> ExportSymbols.HELP_KEYWORD_FIELD,
+    "db-conn"      -> ExportSymbols.DB_CONN_FIELD,
   ).map {
     case (key, value) => EagerSymbol(key) -> value
   }

@@ -24,6 +24,10 @@ public class LengineLazyValue implements LengineLambda0<Object> {
         return value;
     }
 
+    public boolean isResolved() {
+      return value != null;
+    }
+
     public static LengineLazyValue create(LengineLambda0<Object> resolver) {
         return new LengineLazyValue(resolver);
     }

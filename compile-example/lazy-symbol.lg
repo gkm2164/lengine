@@ -39,7 +39,9 @@
                         (t (head (tail forced))))
                        (cons h (inf-take (- n 1) t)))))
 
-(println (inf-take 20 (fib-stream 0 1)))
+(def fibs (fib-stream 0 1))
+
+(println (head (tail (tail (tail fibs)))))
+(println fibs)
 
 (println (inf-take 10 (inf-stream 0)))
-

@@ -24,4 +24,9 @@ public class StreamNil extends LengineStream {
   public CreateIterator tail() {
     return singleton;
   }
+
+  @Override
+  public String toString() {
+    return "'nil";
+  }
 }

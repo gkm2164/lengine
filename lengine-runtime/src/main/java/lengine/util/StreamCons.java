@@ -33,4 +33,8 @@ public class StreamCons extends LengineStream {
   public LengineStream getNext() {
     return this.next;
   }
+
+  public String toString() {
+    return "('cons " + value.toString() + " " + next.toString() + ")";
+  }
 }
