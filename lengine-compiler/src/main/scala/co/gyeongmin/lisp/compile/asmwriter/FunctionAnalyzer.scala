@@ -45,7 +45,7 @@ object FunctionAnalyzer {
         body.foreach(v => captureUnknownVariables(captureVariables, v))
       case LispValueDef(symbol, body) =>
         captureUnknownVariables(captureVariables, body)
-        captureVariables.requestCapture(symbol)
+        captureVariables.ignoreCapture(symbol)
       case GeneralLispFunc(placeholders, body) =>
         val childCapture = new LengineVarCapture(captureVariables)
         placeholders.foreach {
