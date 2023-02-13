@@ -1,8 +1,8 @@
 (module ProcessMembrane2)
 
-(import Module.split)
-(import Module.map)
-(import Module.filter)
+(import gben.libs.Module.split)
+(import gben.libs.Module.map)
+(import gben.libs.Module.filter)
 
 ;;; Read file in Sequence type
 (def file-sequence (read-file-seq "./102521_membrane_GC_cell_lines.csv"))
@@ -18,12 +18,7 @@
 
 (println numbers)
 
-(def sum (fold numbers
-               0.0
-               (lambda (acc elem)
-                       (do (println elem)
-                           return (+ acc elem)))))
-
+(def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))
 
 (println sum)

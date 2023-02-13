@@ -1,10 +1,13 @@
 package lengine.util;
 
 import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterator;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +72,13 @@ public abstract class LengineList implements CreateIterator {
         return ((Cons)this).next;
     }
 
+    @Override
+    public final Long len() {
+      AtomicInteger length = new AtomicInteger();
+      iterator().forEachRemaining(it -> length.incrementAndGet());
+      return (long)length.get();
+    }
+
     public LengineList copy() {
         if (this instanceof Nil) {
             return Nil.get();
@@ -88,4 +98,20 @@ public abstract class LengineList implements CreateIterator {
     }
 
     public abstract LengineList append(CreateIterator ys);
+
+
+  @Override
+  public final String toString() {
+    LengineIterator it = this.iterator();
+    StringBuilder sb = new StringBuilder();
+    StringBuilder pars = new StringBuilder();
+
+    it.forEachRemaining(elem -> {
+      sb.append(" (cons ");
+      sb.append(elem);
+      pars.append(")");
+    });
+
+    return sb.append("nil").substring(1) + pars;
+  }
 }

@@ -12,59 +12,53 @@ import scala.util.matching.Regex
 trait LispToken {
   var tokenLocation: Option[TokenLocation]                 = None
   def setTokenLocation(tokenLocation: TokenLocation): Unit = this.tokenLocation = Some(tokenLocation)
-
-  def line: Option[Int]   = tokenLocation.map(_.line)
-  def column: Option[Int] = tokenLocation.map(_.column)
+  def line: Option[Int]                                    = tokenLocation.map(_.line)
+  def column: Option[Int]                                  = tokenLocation.map(_.column)
 
 }
 
 object LispToken {
-  private val digitMap: Map[Char, Int] = mapFor('0' to '9', x => x -> (x - '0'))
-  private val ObjectReferSymbolRegex: Regex =
-    """:([.a-zA-Z\-+/*%<>=?][.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
-  private val SymbolRegex: Regex =
-    """([$.a-zA-Z\-+/*%<>=?:][$.a-zA-Z0-9\-+/*%<>=?:]*\*?)""".r
-  private val LazySymbolRegex: Regex =
-    """('[$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*)""".r
-  private val ListSymbolRegex: Regex =
-    """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
-  private val SpecialValueRegex: Regex = """#(.+)""".r
-  private val NumberRegex: Regex       = """([+\-])?(\d+)""".r
-  private val RatioRegex: Regex        = """([+\-]?)(\d+)/(\d+)""".r
-  private val FloatingPointRegex: Regex =
-    """([+\-])?(\d+)(\.\d*)?([esfdlESFDL]([+\-]?\d+))?""".r
+  private val digitMap: Map[Char, Int]      = mapFor('0' to '9', x => x -> (x - '0'))
+  private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z\-+/*%<>=?][.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
+  private val SymbolRegex: Regex            = """([$.a-zA-Z\-+/*%<>=?:][$.a-zA-Z0-9\-+/*%<>=?:]*\*?)""".r
+  private val LazySymbolRegex: Regex        = """('[$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*)""".r
+  private val ListSymbolRegex: Regex        = """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
+  private val SpecialValueRegex: Regex      = """#(.+)""".r
+  private val NumberRegex: Regex            = """([+\-])?(\d+)""".r
+  private val RatioRegex: Regex             = """([+\-]?)(\d+)/(\d+)""".r
+  private val FloatingPointRegex: Regex     = """([+\-])?(\d+)(\.\d*)?([esfdlESFDL]([+\-]?\d+))?""".r
 
   private def mapToken(code: String, location: TokenLocation): Either[TokenizeError, LispToken] = code match {
-    case ""                      => Right(LispNop())
-    case "("                     => Right(LeftPar())
-    case ")"                     => Right(RightPar())
-    case "#("                    => Right(LeftLazyPar())
-    case "#C("                   => Right(CmplxNPar())
-    case "'("                    => Right(ListStartPar())
-    case "["                     => Right(LeftBracket())
-    case "]"                     => Right(RightBracket())
-    case "{"                     => Right(LeftBrace())
-    case "}"                     => Right(RightBrace())
-    case "^"                     => Right(LispLambda())
-    case "def"                   => Right(LispDef())
-    case "fn"                    => Right(LispFn())
-    case "let"                   => Right(LispLet())
-    case "ns"                    => Right(LispNs())
-    case "lambda"                => Right(LispLambda())
-    case "import"                => Right(LispImport())
-    case "loop"                  => Right(LispLoop())
-    case "for"                   => Right(LispFor())
-    case "in"                    => Right(LispIn())
-    case "true"                  => Right(LispTrue())
-    case "false"                 => Right(LispFalse())
-    case "do"                    => Right(LispDo())
-    case "return"                => Right(LispReturn())
-    case "case"                  => Right(LispCase())
-    case "default"               => Right(LispDefault())
-    case SpecialValueRegex(body) => Right(SpecialToken(body))
-    case NumberRegex(sign, num)  => Right(IntegerNumber(parseInteger(sign, num)))
-    case v @ FloatingPointRegex(_, _, _, _, _) =>
-      Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
+    case ""                                    => Right(LispNop())
+    case "("                                   => Right(LeftPar())
+    case ")"                                   => Right(RightPar())
+    case "#("                                  => Right(LeftLazyPar())
+    case "!("                                  => Right(LeftForcePar())
+    case "#C("                                 => Right(CmplxNPar())
+    case "'("                                  => Right(ListStartPar())
+    case "["                                   => Right(LeftBracket())
+    case "]"                                   => Right(RightBracket())
+    case "{"                                   => Right(LeftBrace())
+    case "}"                                   => Right(RightBrace())
+    case "^"                                   => Right(LispLambda())
+    case "def"                                 => Right(LispDef())
+    case "fn"                                  => Right(LispFn())
+    case "let"                                 => Right(LispLet())
+    case "ns"                                  => Right(LispNs())
+    case "lambda"                              => Right(LispLambda())
+    case "import"                              => Right(LispImport())
+    case "loop"                                => Right(LispLoop())
+    case "for"                                 => Right(LispFor())
+    case "in"                                  => Right(LispIn())
+    case "true"                                => Right(LispTrue())
+    case "false"                               => Right(LispFalse())
+    case "do"                                  => Right(LispDo())
+    case "return"                              => Right(LispReturn())
+    case "case"                                => Right(LispCase())
+    case "default"                             => Right(LispDefault())
+    case SpecialValueRegex(body)               => Right(SpecialToken(body))
+    case NumberRegex(sign, num)                => Right(IntegerNumber(parseInteger(sign, num)))
+    case v @ FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case RatioRegex(overSign, over, under) =>
       val o = parseInteger(overSign, over)
       val u = parseInteger("", under)

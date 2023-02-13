@@ -28,16 +28,6 @@ public class Cons extends LengineList {
     }
 
     @Override
-    public Long len() {
-        return 1 + next.len();
-    }
-
-    @Override
-    public String toString() {
-        return String.format("(cons %s %s)", item.toString(), next.toString());
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Cons)) return false;

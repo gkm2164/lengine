@@ -1,9 +1,9 @@
 (module ProcessMembrane)
 
-(import Module.split)
-(import Module.map)
-(import Module.filter)
-(import Module.reverse)
+(import gben.libs.Module.split)
+(import gben.libs.Module.map)
+(import gben.libs.Module.filter)
+(import gben.libs.Module.reverse)
 
 (def all-data (read-file "./102521_membrane_GC_cell_lines.csv"))
 
@@ -17,9 +17,7 @@
                   (filter (drop 1 first-values)
                           (^ (x) (and (/= x "NaN") (/= x "EOF"))))))
 
-(def sum (fold numbers
-               0.0
-               (^ (acc elem) (+ acc elem))))
+(def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))
 
 (println sum)

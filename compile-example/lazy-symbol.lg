@@ -5,20 +5,20 @@
 
 (wait 200)
 
-(def x3 (force x1))
+(def x3 !(x1))
 
-(println (force x1))
+(println !(x1))
 (println x2)
 (println x3)
 
-(assert "Will print first now, but, will show this time" (> (force x1) x2))
+(assert "Will print first now, but, will show this time" (> !(x1) x2))
 
 (fn lazy-test (x y)
-    (+ (force x) y))
+    (+ !(x) y))
 
-(def x (force x1))
+(def x !(x1))
 (wait 100)
-(def y (force x1))
+(def y !(x1))
 
 (assert-equals "Should be equal" x y)
 
@@ -39,7 +39,9 @@
 
 (def fibs (fib-stream 0 1))
 
-(println (head (tail (tail (tail fibs)))))
+(println (inf-take 10 fibs))
+
+;;; Show until resolved values
 (println fibs)
 
 (println (inf-take 10 (inf-stream 0)))

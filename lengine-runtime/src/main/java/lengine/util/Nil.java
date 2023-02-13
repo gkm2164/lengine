@@ -22,17 +22,6 @@ public class Nil extends LengineList {
     }
 
     @Override
-    public Long len() {
-        return 0L;
-    }
-
-    @Override
-    public String toString() {
-        return "nil";
-    }
-
-
-    @Override
     public LengineList append(CreateIterator ys) {
         if (ys instanceof LengineList) {
             return (LengineList) ys;

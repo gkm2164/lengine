@@ -3,17 +3,17 @@
 The purpose of this Lengine project to have dedicated compiler along with the engine.
 Target machine is JVM.
 For now, it's experimental, as it is under development.
-So far, all the implements allowed are in `hello.lisp` file.
+So far, all the implements allowed are in `hello.lg` file.
 
 ## How to test?
 
-Create your own `lisp` file.
+Create your own `lg` file. 
 Refer `./test/scala/co/gyeongmin/lisp/compile/MainTest.scala` to see how to run.
 
 From the project root(`../`), compile the lengine with below commands.
 
 `$ ./install.sh`
-`$ ./lenginec hello.lisp`
+`$ ./lenginec hello.lg`
 `$ ./leng Hello`
 
 To build entire compiler-examples(located in [../compiler-example](https://github.com/gkm2164/lengine/tree/master/compile-example))
@@ -59,16 +59,17 @@ Since the JVM is dealing with both primitive types, and object types, here's how
 JVM.
 
 ```
-#\n     ;;; char ch = '\n';     // Also known as java.lang.Character
-3       ;;; long lng = 3;       // Also known as java.lang.Long
-10.0    ;;; double dbl = 10.0;  // Also known as java.lang.Double
-"Str"   ;;; String str = "Str"; // Also known as java.lang.String
+#\n        ;;; char ch = 'n';      // Also known as java.lang.Character
+#\Linefeed ;;; char ch = '\n';
+3          ;;; long lng = 3;       // Also known as java.lang.Long
+10.0       ;;; double dbl = 10.0;  // Also known as java.lang.Double
+"Str"      ;;; String str = "Str"; // Also known as java.lang.String
 ```
 
-Will support below types with object type.
-
+Also support for following types
 ```
 #C(10 30) ;;; ComplexNumber cn = new ComplexNumber(10, 30);
+5/3       ;;; RatioNumber rn = new RatioNumber(5L, 3L);
 ```
 
 The compiler will decide a variable's type with resolving value's type without actual calculation.
