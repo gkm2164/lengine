@@ -37,11 +37,6 @@ public class JvmTest {
       }
 
       @Override
-      public Object peek() {
-        return null;
-      }
-
-      @Override
       public Object next() {
         return null;
       }

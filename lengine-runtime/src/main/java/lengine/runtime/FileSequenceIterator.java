@@ -26,11 +26,6 @@ public class FileSequenceIterator implements LengineIterator, AutoCloseable {
   }
 
   @Override
-  public Object peek() {
-    return thisIterator.peek();
-  }
-
-  @Override
   public Object next() {
     return thisIterator.next();
   }

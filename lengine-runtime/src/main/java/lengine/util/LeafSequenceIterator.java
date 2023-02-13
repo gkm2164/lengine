@@ -1,9 +1,7 @@
 package lengine.util;
 
-import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineSequenceIterator;
 
-import java.util.LinkedList;
 import java.util.List;
 
 public class LeafSequenceIterator implements LengineSequenceIterator {
@@ -16,11 +14,6 @@ public class LeafSequenceIterator implements LengineSequenceIterator {
     @Override
     public boolean hasNext() {
         return listIterator.hasNext();
-    }
-
-    @Override
-    public Object peek() {
-        return listIterator.peek();
     }
 
     @Override

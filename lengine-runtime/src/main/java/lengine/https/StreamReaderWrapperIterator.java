@@ -22,11 +22,6 @@ public class StreamReaderWrapperIterator implements LengineIterator {
     }
 
     @Override
-    public Object peek() {
-        throw new RuntimeException("unsupported operation");
-    }
-
-    @Override
     public Object next() {
         try {
             return (char) stream.read();

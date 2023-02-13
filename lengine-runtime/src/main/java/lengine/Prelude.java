@@ -473,18 +473,6 @@ public class Prelude {
           }
 
           @Override
-          public Object peek() {
-            try {
-              reader.mark(1);
-              char read = (char) reader.read();
-              reader.reset();
-              return read;
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
-
-          @Override
           public Object next() {
             try {
               return (char) reader.read();

@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 public interface LengineIterator {
   boolean hasNext();
-  Object peek();
   Object next();
 
   default void forEachN(Consumer<Object> o, long n) {

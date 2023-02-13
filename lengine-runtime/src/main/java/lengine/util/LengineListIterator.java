@@ -19,11 +19,6 @@ public class LengineListIterator implements LengineIterator {
   }
 
   @Override
-  public Object peek() {
-    return current.head();
-  }
-
-  @Override
   public Object next() {
     LengineList ret = current;
     if (current instanceof Nil) {

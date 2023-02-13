@@ -17,17 +17,6 @@ public class NonLeafSetIterator implements LengineIterator {
     }
 
     @Override
-    public Object peek() {
-        if (leftIterator.hasNext()) {
-            return leftIterator.peek();
-        } else if (rightIterator.hasNext()) {
-            return rightIterator.peek();
-        }
-
-        throw new RuntimeException("peeking on empty set");
-    }
-
-    @Override
     public Object next() {
         if (leftIterator.hasNext()) {
             return leftIterator.next();

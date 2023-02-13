@@ -19,17 +19,6 @@ public class NonLeafSequenceIterator implements LengineSequenceIterator {
     }
 
     @Override
-    public Object peek() {
-        if (leftIt.hasNext()) {
-            return leftIt.peek();
-        } else if (rightIt.hasNext()) {
-            return rightIt.peek();
-        }
-
-        throw new LengineRuntimeException("No more items to consume.");
-    }
-
-    @Override
     public Object next() {
         if (leftIt.hasNext()) {
             return leftIt.next();

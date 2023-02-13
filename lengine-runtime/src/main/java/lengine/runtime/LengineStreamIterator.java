@@ -16,16 +16,11 @@ public class LengineStreamIterator implements LengineIterator {
     if (_this instanceof StreamCons) {
       return true;
     } else if (_this instanceof UnresolvedStream) {
-      _this = (LengineStream) ((UnresolvedStream)_this).force();
+      _this = ((UnresolvedStream)_this).force();
       return _this instanceof StreamCons;
     }
 
     return false;
-  }
-
-  @Override
-  public Object peek() {
-    return ((StreamCons)_this).getValue();
   }
 
   @Override

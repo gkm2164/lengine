@@ -18,11 +18,6 @@ public class LeafSetIterator implements LengineIterator {
     }
 
     @Override
-    public Object peek() {
-        return thisIterator.peek();
-    }
-
-    @Override
     public Object next() {
         return thisIterator.next();
     }
