@@ -19,7 +19,7 @@ public class HttpServerBuilder {
   private static final Logger LOG = Logger.getLogger(HttpServerBuilder.class.getName());
 
   public static LengineLambda0<LengineUnit> listen(LengineMap obj) {
-    String address = (String) obj.get(LengineMapKey.create(LengineString.create("host")));
+    String address = obj.get(LengineMapKey.create(LengineString.create("host"))).toString();
     Long port = (Long) obj.get(LengineMapKey.create(LengineString.create("port")));
     LengineMap handlers = (LengineMap) obj.get(LengineMapKey.create(LengineString.create("handlers")));
 

@@ -39,10 +39,10 @@ public class RequestBuilder {
 
         LengineMap map = LengineMap.create();
         for (Map.Entry<String, List<String>> listEntry : t.getRequestHeaders().entrySet()) {
-            String key = listEntry.getKey();
+            LengineString key = LengineString.create(listEntry.getKey());
             List<Object> values = listEntry.getValue()
                     .stream()
-                    .map(x -> (Object) x).collect(toList());
+                    .map(LengineString::create).collect(toList());
 
             LengineSequence seq = LeafSequence.create(values);
             map = map.putEntry(entry(key, seq));
@@ -87,11 +87,11 @@ public class RequestBuilder {
             public Object get(LengineMapKey key) {
                 switch (key.getKey().toString()) {
                     case "path":
-                        return path;
+                        return LengineString.create(path);
                     case "query":
                         return parseQuery(query);
                     case "method":
-                        return method;
+                        return LengineString.create(method);
                     case "headers":
                         return headers;
                     case "request-body":
@@ -108,10 +108,10 @@ public class RequestBuilder {
             return Nil.get();
         }
 
-        Set<Map.Entry<String, List<Object>>> queryParams = Arrays.stream(query.split("&"))
+        Set<Map.Entry<LengineString, List<Object>>> queryParams = Arrays.stream(query.split("&"))
                 .map(str -> {
                     String[] keyValue = str.split("=");
-                    String key = keyValue[0];
+                    LengineString key = LengineString.create(keyValue[0]);
                     Object value = keyValue.length > 1 ? keyValue[1] : true;
                     return new AbstractMap.SimpleEntry<>(key, value);
                 })
@@ -121,14 +121,14 @@ public class RequestBuilder {
 
         LengineMap ret = LengineMap.create();
 
-        for (Map.Entry<String, List<Object>> queryParam : queryParams) {
+        for (Map.Entry<LengineString, List<Object>> queryParam : queryParams) {
             ret = ret.putEntry(entry(queryParam.getKey(), LengineSequence.create(queryParam.getValue())));
         }
 
         return ret;
     }
 
-    private <T> LengineMapEntry entry(String key, T value) {
-        return LengineMapEntry.create(LengineMapKey.create(LengineString.create(key)), value);
+    private <T> LengineMapEntry entry(LengineString key, T value) {
+        return LengineMapEntry.create(LengineMapKey.create(key), value);
     }
 }

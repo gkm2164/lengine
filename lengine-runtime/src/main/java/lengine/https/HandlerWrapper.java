@@ -52,7 +52,7 @@ public class HandlerWrapper implements HttpHandler {
       responseBuilder.getHeaders().entries().iterator().forEachRemaining(_entry -> {
         LengineMapEntry entry = (LengineMapEntry) _entry;
         String header = entry.getKey().getKey().toString();
-        String value = (String) entry.getValue();
+        String value = entry.getValue().toString();
 
         responseHeaders.add(header, value);
       });
@@ -72,9 +72,9 @@ public class HandlerWrapper implements HttpHandler {
     setStatusCode.invoke(404L);
     LengineLambda1<LengineUnit, LengineMap> setHeaders = UNSAFE_cast(LengineMapKey.create(LengineString.create("set-headers")).invoke(res));
     setHeaders.invoke(LengineMap.create()
-        .putEntry(LengineMapEntry.create(LengineMapKey.create(LengineString.create("Content-Type")), "text/html")));
-    LengineLambda1<LengineUnit, String> writer = UNSAFE_cast(LengineMapKey.create(LengineString.create("writer")).invoke(res));
-    writer.invoke("<h1>No handler setup</h1>");
+        .putEntry(LengineMapEntry.create(LengineMapKey.create(LengineString.create("Content-Type")), LengineString.create("text/html"))));
+    LengineLambda1<LengineUnit, LengineString> writer = UNSAFE_cast(LengineMapKey.create(LengineString.create("writer")).invoke(res));
+    writer.invoke(LengineString.create("<h1>No handler setup</h1>"));
     return LengineUnit.create();
   }
 }

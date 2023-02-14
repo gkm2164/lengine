@@ -44,8 +44,8 @@ public class ResponseBuilder {
             return LengineUnit.create();
         };
 
-        LengineLambda1<LengineUnit, String> WRITER = (msg) -> {
-            this.out.print(msg);
+        LengineLambda1<LengineUnit, LengineString> WRITER = (msg) -> {
+            this.out.print(msg.toString());
             return LengineUnit.create();
         };
 
