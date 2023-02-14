@@ -70,6 +70,7 @@ public class Prelude {
   public static final LengineLambdaCommon READ_FILE_SEQ = PreludeImpl._READ_FILE_SEQ;
   public static final LengineLambdaCommon APPEND_ITEM = PreludeImpl._APPEND_ITEM;
   public static final LengineLambdaCommon IS_SET = PreludeImpl._IS_SET;
+  public static final LengineLambdaCommon GET_NIL = PreludeImpl._GET_NIL;
   public static final LengineLambdaCommon CAST_SET = PreludeImpl._CAST_SET;
   public static final LengineLambdaCommon DOES_HAVE = PreludeImpl._DOES_HAVE;
   public static final LengineLambdaCommon MERGE = PreludeImpl._MERGE;

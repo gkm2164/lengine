@@ -24,6 +24,7 @@ object InteroperabilityHelper {
     "object?"      -> ExportSymbols.IS_OBJECT_FIELD,
     "cons?"        -> ExportSymbols.IS_CONS_FIELD,
     "nil?"         -> ExportSymbols.IS_NIL_FIELD,
+    "nil>"         -> ExportSymbols.GET_NIL_FIELD,
     "key"          -> ExportSymbols.KEY_FIELD,
     "keys"         -> ExportSymbols.KEYS_FIELD,
     "entry"        -> ExportSymbols.ENTRY_FIELD,

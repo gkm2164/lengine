@@ -39,9 +39,7 @@
                             (^ (acc elem)
                                (f elem acc)))))
 
-(fn reverse (xs) (fold-right xs nil cons))
-
-(export reverse)
+(export reverse (^ (xs) (fold xs (nil> xs) +:)))
 
 (export split (^ (s delim)
               (reverse (map (^ (x) (to-string (reverse x)))
@@ -61,15 +59,10 @@
                ($ (tail xs) elem)))
 (export append)
 
-(export filter (^ (xs p)
-                  (fold xs
-                        nil
-                        (^ (acc elem)
-                           (if (p elem)
-                               (cons elem acc)
-                               acc)))))
+(export reduce (^ (xs f)
+    (fold xs (nil> xs) f)))
 
-(export fold-custom (^ (seq acc f)
-                       (let ((elem (head seq))
-                             (next-acc (f acc elem)))
-                            ($ (tail seq) next-acc f))))
+(export filter
+    (^ (xs p)
+       (reduce xs (^ (acc elem)
+                     (if (p elem) (+: acc elem) acc)))))

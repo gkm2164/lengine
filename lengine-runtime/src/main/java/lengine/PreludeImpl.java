@@ -272,7 +272,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
-
+    public static final LengineLambda1<CreateIterator, Nillable<?>> _GET_NIL = Nillable::NIL;
     public static final LengineLambda2<Boolean, Object, Object> _DOES_HAVE = (set, obj) -> {
         if (set instanceof LengineSet) {
             return ((LengineSet) set).contains(obj);
@@ -351,7 +351,10 @@ public class PreludeImpl {
     public static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
     public static final LengineLambda1<LengineString, LengineMapKey> _GET = LengineMapKey::getKey;
 
-    public static final LengineLambda0<LengineString> _READ_LINE = () -> LengineString.create(new Scanner(System.in).next("\n"));
+    public static final LengineLambda0<LengineString> _READ_LINE = () -> {
+        Scanner scanner = new Scanner(System.in).useDelimiter("\n");
+        return LengineString.create(scanner.next());
+    };
 
     public static final LengineLambda0<LengineString> _READ_EOF = () -> {
         Reader sr = new InputStreamReader(System.in);
@@ -390,6 +393,8 @@ public class PreludeImpl {
             return ((LengineMap) coll).putEntry((LengineMapEntry) elem);
         } else if (coll instanceof LengineSet) {
             return ((LengineSet) coll).add(elem);
+        } else if (coll instanceof LengineString) {
+            return ((LengineString)coll).add(elem);
         }
 
         throw new RuntimeException("currently not supporting the operation");

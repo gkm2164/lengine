@@ -55,6 +55,7 @@ public class ExportSymbols {
   public static final Field IS_CONS_FIELD;
   public static final Field IS_NIL_FIELD;
   public static final Field IS_SET_FIELD;
+  public static final Field GET_NIL_FIELD;
   public static final Field DOES_HAVE_FIELD;
   public static final Field OPEN_FILE_FIELD;
   public static final Field NOW_FIELD;
@@ -158,6 +159,7 @@ public class ExportSymbols {
       STREAM_NIL_FIELD = Prelude.class.getField("STREAM_NIL");
       CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
       IS_SET_FIELD = Prelude.class.getField("IS_SET");
+      GET_NIL_FIELD = Prelude.class.getField("GET_NIL");
       DOES_HAVE_FIELD = Prelude.class.getField("DOES_HAVE");
       ASYNC_FIELD = Prelude.class.getField("ASYNC");
       AWAIT_FIELD = Prelude.class.getField("AWAIT");

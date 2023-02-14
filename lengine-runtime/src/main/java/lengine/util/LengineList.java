@@ -121,6 +121,6 @@ public abstract class LengineList implements CreateIterator, Addable<LengineList
       pars.append(")");
     });
 
-    return (sb.append(" nil").substring(1) + pars).substring(1);
+    return (sb.append(" nil").substring(1).trim() + pars);
   }
 }
