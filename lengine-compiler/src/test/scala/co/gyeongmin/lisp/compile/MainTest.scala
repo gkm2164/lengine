@@ -12,14 +12,13 @@ class MainTest extends FlatSpec with Matchers {
     )
 
     val builder = new ProcessBuilder("/bin/bash", "./leng-debug", className)
+
+    val startTime = System.currentTimeMillis()
+
     val process = builder.start()
-    val reader  = new BufferedReader(new InputStreamReader(process.getInputStream))
-
-    while (reader.ready()) {
-      println(reader.readLine())
-    }
-
     assert(process.waitFor() == 0)
+
+    println(s"${System.currentTimeMillis() - startTime}ms elapsed to run")
   }
 
   "compile examples" should "compile and no death!" in {

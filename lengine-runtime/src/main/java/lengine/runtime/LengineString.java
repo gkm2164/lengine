@@ -1,8 +1,11 @@
 package lengine.runtime;
 
+import lengine.util.Addable;
+import lengine.util.Nillable;
+
 import java.util.Objects;
 
-public class LengineString implements CreateIterator {
+public class LengineString implements CreateIterator, Nillable<LengineString>, Addable<LengineString> {
     private final String value;
 
     public LengineString(String value) {
@@ -55,5 +58,15 @@ public class LengineString implements CreateIterator {
 
     public LengineString add(Object ys) {
         return create(value + ys.toString());
+    }
+
+    @Override
+    public LengineString ADD(Object item) {
+        return this.add(item);
+    }
+
+    @Override
+    public LengineString NIL() {
+        return LengineString.create("");
     }
 }

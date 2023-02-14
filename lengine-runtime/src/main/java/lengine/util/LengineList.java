@@ -16,7 +16,17 @@ import java.util.stream.Collectors;
  * Fast at "head/tail", "cons(appending)" operation
  */
 
-public abstract class LengineList implements CreateIterator {
+public abstract class LengineList implements CreateIterator, Addable<LengineList>, Nillable<LengineList> {
+    @Override
+    public LengineList ADD(Object item) {
+        return this.add(item);
+    }
+
+    @Override
+    public LengineList NIL() {
+        return Nil.get();
+    }
+
     public static Cons cons(Object item, LengineList next) {
         return new Cons(item, next);
     }

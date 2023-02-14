@@ -22,6 +22,7 @@ import lengine.runtime.RangeSequence;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.sqls.DBConn;
+import lengine.util.Addable;
 import lengine.util.Cons;
 import lengine.util.LengineList;
 import lengine.util.LengineListIterator;
@@ -32,6 +33,7 @@ import lengine.util.LengineSequence;
 import lengine.util.LengineSet;
 import lengine.util.LengineStream;
 import lengine.util.Nil;
+import lengine.util.Nillable;
 import lengine.util.StreamCons;
 import lengine.util.StreamNil;
 import lengine.util.UnresolvedStream;
@@ -161,10 +163,15 @@ public class PreludeImpl {
     };
     public static final LengineLambda2<CreateIterator, Long, CreateIterator> _TAKE = (n, seq) -> {
         LengineIterator it = seq.iterator();
-        AtomicReference<LengineList> ret = new AtomicReference<>(Nil.get());
+
+        if (!(seq instanceof Nillable<?>) || !(seq instanceof Addable<?>)) {
+            throw new RuntimeException("can't run take operation");
+        }
+
+        AtomicReference<CreateIterator> ret = new AtomicReference<>(((Nillable<?>)seq).NIL());
         it.forEachN(elem -> {
-            LengineList _this = ret.get();
-            ret.set(_this.add(elem));
+            Addable<?> _this = (Addable<?>) ret.get();
+            ret.set(_this.ADD(elem));
         }, n);
 
         return ret.get();

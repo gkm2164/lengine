@@ -11,7 +11,14 @@ import java.util.Set;
 /**
  * Accessed with `seq`
  */
-public abstract class LengineSequence implements CreateIterator {
+public abstract class LengineSequence implements Nillable<LengineSequence>, Addable<LengineSequence>, CreateIterator {
+  public LengineSequence NIL() {
+    return new LeafSequence();
+  }
+
+  public LengineSequence ADD(Object elem) {
+    return this.add(elem);
+  }
 
   public static LengineSequence create(String str) {
     return new LeafSequence(str);
