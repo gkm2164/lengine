@@ -188,9 +188,13 @@ public class PreludeImpl {
             return ((LengineStreamIterator) it)._this();
         } else if (it instanceof LengineStringIterator) {
             return ((LengineStringIterator)it)._remains();
+        } else {
+          CreateIterator current = ((Nillable<?>)seq).NIL();
+          while (it.hasNext()) {
+            current = ((Addable<?>)current).ADD(it.next());
+          }
+          return current;
         }
-
-        throw new RuntimeException("Unsupported");
     };
 
     public static <T> Boolean isInstanceOf(Class<T> cls, Object value) {

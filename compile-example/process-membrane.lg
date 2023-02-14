@@ -9,9 +9,13 @@
 
 (def splitted (split all-data #\Linefeed))
 
-(def first-values (reverse (loop for x in splitted
-                                 (let ((line (split x #\,)))
-                                 (head line)))))
+(println splitted)
+
+(def first-values (loop for x in splitted
+                         (let ((line (split x #\,)))
+                              (head line))))
+
+(println first-values)
 
 (def numbers (map (^ (x) (double x))
                   (filter (drop 1 first-values)

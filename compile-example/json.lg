@@ -22,13 +22,17 @@
 ;;; Make str -> "str"
 (fn with-double-quotes (s) (format "\"%s\"" [s]))
 
+(fn debug (s)
+    (do (println s)
+        return s))
+
 (fn to-json-object (obj to-json)
                    (let ((ks (keys obj))
                          (key-values (loop for k in ks
                                            (let ((value (k obj))
                                                  (object-key (format "\"%s\":" [(get k)])))
                                                 (+ object-key (to-json value))))))
-                        (format "{%s}" [(join-string key-values #\,)])))
+                        (debug (format "{%s}" [(join-string (debug key-values) #\,)]))))
 
 (fn escape (stream)
     (fold stream "" (^ (ret ch)

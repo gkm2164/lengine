@@ -32,6 +32,11 @@ class LeafSet extends LengineSet {
     if (set.contains(object)) {
       return this;
     }
+
+    if (set.isEmpty()) {
+      return new LeafSet(Collections.singleton(object));
+    }
+
     return new NonLeafSet(super.lately, this, new LeafSet(Collections.singleton(object)));
   }
 

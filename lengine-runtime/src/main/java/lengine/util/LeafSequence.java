@@ -27,6 +27,11 @@ public class LeafSequence extends LengineSequence {
       this.list.add(ch);
     }
   }
+
+  public static LeafSequence create() {
+    return new LeafSequence();
+  }
+
   public static LeafSequence create(Set<?> set) {
     LinkedList<Object> obj = new LinkedList<>();
     set.iterator().forEachRemaining(obj::add);

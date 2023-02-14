@@ -3,6 +3,7 @@ package lengine.util;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -11,13 +12,21 @@ import java.util.Set;
 /**
  * Accessed with `seq`
  */
-public abstract class LengineSequence implements Nillable<LengineSequence>, Addable<LengineSequence>, CreateIterator {
+public abstract class LengineSequence implements Singleton<LengineSequence>, Nillable<LengineSequence>, Addable<LengineSequence>, CreateIterator {
+
+  @Override
   public LengineSequence NIL() {
     return new LeafSequence();
   }
 
+  @Override
   public LengineSequence ADD(Object elem) {
     return this.add(elem);
+  }
+
+  @Override
+  public LengineSequence PURE(Object elem) {
+    return LeafSequence.create(Collections.singletonList(elem));
   }
 
   public static LengineSequence create(String str) {

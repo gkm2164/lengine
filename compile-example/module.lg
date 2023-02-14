@@ -41,9 +41,17 @@
 
 (export reverse (^ (xs) (fold xs (nil> xs) +:)))
 
+(fn split-loop (acc buf xs delim)
+  (if (= 0 (len xs))
+        (+: acc buf)
+        (let ((h (head xs))
+              (t (tail xs)))
+             (if (/= h delim)
+                   ($ acc (+ buf h) t delim)
+                   ($ (+: acc buf) "" t delim)))))
+
 (export split (^ (s delim)
-              (reverse (map (^ (x) (to-string (reverse x)))
-                       (split-real (list s) delim)))))
+                 (split-loop (seq nil) "" s delim)))
 
 (export compose (^ (f g)
                    (^ (x) (f (g x)))))

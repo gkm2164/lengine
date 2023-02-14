@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Fast at "head/tail", "cons(appending)" operation
  */
 
-public abstract class LengineList implements CreateIterator, Addable<LengineList>, Nillable<LengineList> {
+public abstract class LengineList implements CreateIterator, Addable<LengineList>, Nillable<LengineList>, Singleton<LengineList> {
     @Override
     public LengineList ADD(Object item) {
         return this.add(item);
@@ -88,15 +88,6 @@ public abstract class LengineList implements CreateIterator, Addable<LengineList
       return (long)length.get();
     }
 
-    public LengineList copy() {
-        if (this instanceof Nil) {
-            return Nil.get();
-        }
-
-        Cons _this = (Cons)this;
-        return new Cons(_this.item, _this.next);
-    }
-
     public Cons add(Object elem) {
         if (this instanceof Cons) {
             Cons _this = (Cons)this;
@@ -122,5 +113,10 @@ public abstract class LengineList implements CreateIterator, Addable<LengineList
     });
 
     return (sb.append(" nil").substring(1).trim() + pars);
+  }
+
+  @Override
+  public LengineList PURE(Object elem) {
+    return cons(elem, NIL());
   }
 }

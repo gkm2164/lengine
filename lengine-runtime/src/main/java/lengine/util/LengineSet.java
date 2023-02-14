@@ -1,5 +1,6 @@
 package lengine.util;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -8,7 +9,7 @@ import java.util.stream.Collectors;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
-public abstract class LengineSet implements CreateIterator {
+public abstract class LengineSet implements CreateIterator, Nillable<LengineSet>, Addable<LengineSet>, Singleton<LengineSet> {
   protected final boolean lately;
 
   protected LengineSet(boolean lately) {
@@ -79,5 +80,20 @@ public abstract class LengineSet implements CreateIterator {
     thatIt.forEachRemaining(thatSet::add);
 
     return Objects.equals(thisSet, thatSet);
+  }
+
+  @Override
+  public LengineSet NIL() {
+    return new LeafSet();
+  }
+
+  @Override
+  public LengineSet ADD(Object item) {
+    return this.add(item);
+  }
+
+  @Override
+  public LengineSet PURE(Object elem) {
+    return new LeafSet(Collections.singleton(elem));
   }
 }

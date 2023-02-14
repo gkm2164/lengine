@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
@@ -29,14 +29,14 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         throw CompileException("unable to determine returning sequence.", env.fileName, body.tokenLocation)
       case Nil =>
         val mv = env.methodVisitor
-        mv.visitLispValue(body, requestedType, tailRecReference) // [E']
-        mv.visitALoad(retAddr.get)                               // [E' S']
-        mv.visitStaticMethodCall(
-          LengineListClass,
-          "cons",
-          ConsClass,
-          ObjectClass,
-          LengineListClass
+        mv.visitALoad(retAddr.get) // [S']
+        mv.visitCheckCast(AddableClass) // [S']
+        mv.visitLispValue(body, requestedType, tailRecReference) // [S' E']
+        mv.visitInterfaceMethodCall(
+          AddableClass,
+          "ADD",
+          CreateIteratorClass,
+          ObjectClass
         ) // [S'']
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
@@ -46,18 +46,19 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         val startLoop = new Label()
         val endLoop   = new Label()
 
-        val mv = env.methodVisitor
-        val newSeqLoc = retAddr match {
-          case Some(value) => value
-          case None =>
-            val nextVar = env.allocateNextVar
-            declareSequence()
-            // [S']
-            mv.visitAStore(nextVar)
-            nextVar
-        } // []
+        val accLoc = env.allocateNextVar
 
+        val mv = env.methodVisitor
         mv.visitLispValue(seq, CreateIteratorClass) // [S]
+        mv.visitDup() // [S S]
+        mv.visitCheckCast(NillableClass)
+        mv.visitInterfaceMethodCall(
+          NillableClass,
+          "NIL",
+          CreateIteratorClass
+        )  // [S S(Nil)]
+        mv.visitAStore(accLoc) // [S], [S(Nil)]
+
         mv.visitInterfaceMethodCall(
           CreateIteratorClass,
           "iterator",
@@ -84,10 +85,10 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitAStore(varIdx)
         // [I<S>]
 
-        visitForStmt(tail, body, Some(newSeqLoc))
+        visitForStmt(tail, body, Some(accLoc))
         // [I<S> S'']
 
-        mv.visitAStore(newSeqLoc)
+        mv.visitAStore(accLoc)
         // [I<S>]
 
         env.deregisterVariable(symbol)
@@ -96,6 +97,6 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitPop()
         // []
 
-        mv.visitALoad(newSeqLoc)
+        mv.visitALoad(accLoc)
     }
 }

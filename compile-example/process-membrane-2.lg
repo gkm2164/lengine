@@ -9,8 +9,8 @@
 
 ;;; Now the sequence type can be folded.
 (def head-values (fold file-sequence nil (^ (acc elem)
-                                                (let ((commas (split elem #\,)))
-                                                     (+: acc (head commas))))))
+                                            (let ((commas (split elem #\,)))
+                                                 (+: acc (head commas))))))
 
 (def numbers (map (^ (x) (double x))
                   (filter (drop 1 head-values)
