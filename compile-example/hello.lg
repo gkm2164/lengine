@@ -97,8 +97,12 @@
 
 (println (rem 10 3))
 
-(printf "Hello%n" [])
+(printf "Hello\n" [])
 
 (def lambda-test (^ (a b) (+ a b)))
 
 (println (lambda-test 3 5))
+
+(println (loop for x in (range 0 10)
+      (loop for y in (=range 0 x)
+            (seq [x y]))))

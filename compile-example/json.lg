@@ -9,22 +9,11 @@
 ;;; Finally! reached to JSON related library
 
 ;;; Below is actually, "Reduce" operation.
-(fn join-recur (acc remains delim)
-               (if (= (len remains) 0)
-                   acc
-                   (let ((elem (head remains))
-                         (rest (tail remains)))
-                         (join-recur (+ (+ acc delim) elem) rest delim))))
-
 (fn join-string (strs delim)
-    (join-recur (head strs) (tail strs) delim))
+   (fold (tail strs) (head strs) (^ (acc next) (format "%s%s%s" [acc delim next]))))
 
 ;;; Make str -> "str"
 (fn with-double-quotes (s) (format "\"%s\"" [s]))
-
-(fn debug (s)
-    (do (println s)
-        return s))
 
 (fn to-json-object (obj to-json)
                    (let ((ks (keys obj))
@@ -32,7 +21,7 @@
                                            (let ((value (k obj))
                                                  (object-key (format "\"%s\":" [(get k)])))
                                                 (+ object-key (to-json value))))))
-                        (debug (format "{%s}" [(join-string (debug key-values) #\,)]))))
+                         (format "{%s}" [(join-string key-values ",")])))
 
 (fn escape (stream)
     (fold stream "" (^ (ret ch)
@@ -48,7 +37,7 @@
                   ((int? obj) (str obj))
                   ((string? obj) (with-double-quotes (escape (seq obj))))
                   ((double? obj) (str obj))
-                  ((seq? obj) (format "[%s]" [(join-string (map $ obj) #\,)]))
+                  ((seq? obj) (format "[%s]" [(join-string (map $ obj) ",")]))
                   ((object? obj) (to-json-object obj $))
                    default "null")))
 
