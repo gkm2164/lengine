@@ -108,3 +108,10 @@
     #('cons (read-char) (stdin-stream-maker)))
 
 (export stdin-stream (stream (stdin-stream-maker)))
+
+(fn file-stream-reader (reader)
+    #(let ((ch (reader)))
+        (if (= ch -1) 'nil
+            ('cons ch (file-stream-reader reader)))))
+
+(export file-ch-stream ^((filename) (stream (file-stream-reader (read-file-char filename)))))

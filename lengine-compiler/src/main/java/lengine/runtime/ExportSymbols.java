@@ -70,6 +70,7 @@ public class ExportSymbols {
   public static final Field READ_CHAR_FIELD;
   public static final Field READ_LINE_FIELD;
   public static final Field READ_EOF_FIELD;
+  public static final Field READ_FILE_CHAR_FIELD;
   public static final Field READ_FILE_FIELD;
   public static final Field READ_FILE_SEQ_FIELD;
   public static final Field NIL_FIELD;
@@ -154,6 +155,7 @@ public class ExportSymbols {
       READ_CHAR_FIELD = Prelude.class.getField("READ_CHAR");
       READ_LINE_FIELD = Prelude.class.getField("READ_LINE");
       READ_EOF_FIELD = Prelude.class.getField("READ_EOF");
+      READ_FILE_CHAR_FIELD = Prelude.class.getField("READ_FILE_CHAR");
       READ_FILE_FIELD = Prelude.class.getField("READ_FILE");
       READ_FILE_SEQ_FIELD = Prelude.class.getField("READ_FILE_SEQ");
       APPEND_ITEM_FIELD = Prelude.class.getField("APPEND_ITEM");

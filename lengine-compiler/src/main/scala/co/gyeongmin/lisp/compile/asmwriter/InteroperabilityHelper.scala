@@ -103,6 +103,7 @@ object InteroperabilityHelper {
     "read-char"         -> ExportSymbols.READ_CHAR_FIELD,
     "read-line"         -> ExportSymbols.READ_LINE_FIELD,
     "read-eof"          -> ExportSymbols.READ_EOF_FIELD,
+    "read-file-char"    -> ExportSymbols.READ_FILE_CHAR_FIELD,
     "read-file"         -> ExportSymbols.READ_FILE_FIELD,
     "read-file-seq"     -> ExportSymbols.READ_FILE_SEQ_FIELD,
     "listen"            -> ExportSymbols.LISTEN_FIELD,

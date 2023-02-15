@@ -43,6 +43,7 @@ import lengine.util.Wrap;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -399,6 +400,27 @@ public class PreludeImpl {
     };
 
     public static final LengineLambda1<FileSequence, LengineString> _READ_FILE_SEQ = FileSequence::create;
+
+    public static final LengineLambda1<LengineLambda0<Object>, LengineString> _READ_FILE_CHAR = (filename) -> {
+        try {
+            FileInputStream inputStream = new FileInputStream(filename.toString());
+            return () -> {
+                try {
+                    int read = inputStream.read();
+                    if (read == -1) {
+                        inputStream.close();
+                    }
+
+                    return (char) read;
+
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    };
 
     public static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof LengineList) {
