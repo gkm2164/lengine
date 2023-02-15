@@ -268,7 +268,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
-    public static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || _LEN.invoke(obj) == 0;
+    public static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || isInstanceOf(StreamNil.class, obj) || _LEN.invoke(obj) == 0;
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj);
@@ -323,6 +323,8 @@ public class PreludeImpl {
             return ((LengineSet) coll).add(elem);
         } else if (coll instanceof LengineString) {
             return ((LengineString)coll).add(elem);
+        } else if (coll instanceof LengineStream) {
+            return ((LengineStream)coll).ADD(elem);
         }
 
         throw new RuntimeException("currently not supporting the operation");

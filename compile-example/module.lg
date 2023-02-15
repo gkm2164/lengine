@@ -75,7 +75,7 @@
 (fn stdin-stream-maker ()
     #('cons (read-char) (stdin-stream-maker)))
 
-(export stdin-stream (stream (stdin-stream-maker)))
+(export stdin-stream ^(() (stream (stdin-stream-maker))))
 
 (fn file-stream-reader (handle)
     #(let ((ch ((:read handle))))
@@ -94,3 +94,11 @@
 (export read-through ^((chs)
     (read-through-loop "" chs)))
 
+(export take-while ^((p xs)
+    (^((acc p xs)
+       (if (nil? xs) (nil> xs)
+           (let ((h (head xs)))
+                (if (p h) ($ (+: acc h) p (tail xs)) acc))))
+     (nil> xs) p xs)))
+
+(export read-line ^(() (to-string (take-while ^((ch) (/= ch #\Linefeed)) (stdin-stream)))))

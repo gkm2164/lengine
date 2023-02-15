@@ -4,8 +4,9 @@
 (import gben.libs.Module.map)
 (import gben.libs.Module.filter)
 (import gben.libs.Module.reverse)
+(import gben.libs.Module.read-through)
 
-(def all-data (read-file "./102521_membrane_GC_cell_lines.csv"))
+(def all-data (read-through (read-file "./102521_membrane_GC_cell_lines.csv")))
 
 (def splitted (split all-data #\Linefeed))
 

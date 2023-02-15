@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, LengineStringClass, ObjectClass}
+import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Label
@@ -36,6 +37,16 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
     val operation :: operands = clause.body
     operation match {
       case ObjectReferSymbol(key) => declareObjectRefer(key, operands)
+      case f: LispFunc =>
+        mv.visitLispValue(f, LengineLambdaClass(operands.length))
+        operands.foreach(v => mv.visitLispValue(v, ObjectClass))
+        mv.visitInterfaceMethodCall(
+          LengineLambdaClass(operands.size),
+          "invoke",
+          ObjectClass,
+          operands.map(_ => ObjectClass): _*
+        )
+        mv.visitCheckCast(requestedType)
       case s if RuntimeMethodVisitor.supportOperation(s) =>
         RuntimeMethodVisitor.handle(clause.body, requestedType, tailRecReference)
       case s: EagerSymbol if !runtimeEnvironment.hasVar(s) =>
