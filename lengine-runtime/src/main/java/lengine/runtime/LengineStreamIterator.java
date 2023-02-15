@@ -32,7 +32,7 @@ public class LengineStreamIterator implements LengineIterator {
     return result;
   }
 
-  public CreateIterator _this() {
+  public LengineIterable _this() {
     return _this;
   }
 }

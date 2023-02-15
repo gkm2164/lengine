@@ -8,7 +8,7 @@ import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineObjectHasHelp;
@@ -149,27 +149,27 @@ public class PreludeImpl {
 
     public static final LengineLambda1<RatioNumber, RatioNumber> _NORM = RatioNumber::normalize;
     public static final LengineLambda1<Long, Object> _LEN = (obj) -> {
-        if (obj instanceof CreateIterator) {
-            return ((CreateIterator) obj).len();
+        if (obj instanceof LengineIterable) {
+            return ((LengineIterable) obj).len();
         }
 
         throw new RuntimeException("unable to decide the size for " + obj);
     };
-    public static final LengineLambda2<CreateIterator, Long, CreateIterator> _TAKE = (n, seq) -> {
+    public static final LengineLambda2<LengineIterable, Long, LengineIterable> _TAKE = (n, seq) -> {
         LengineIterator it = seq.iterator();
 
         if (!(seq instanceof Nillable<?>) || !(seq instanceof Addable<?>)) {
             throw new RuntimeException("can't run take operation");
         }
 
-        AtomicReference<CreateIterator> ret = new AtomicReference<>(((Nillable<?>)seq).NIL());
+        AtomicReference<LengineIterable> ret = new AtomicReference<>(((Nillable<?>)seq).NIL());
         Buildable<?, ?> builder = (Buildable<?, ?>) ret.get();
         CollectionBuilder<?> collectionBuilder = builder.BUILDER();
         it.forEachN(collectionBuilder::ADD, n);
 
         return collectionBuilder.BUILD();
     };
-    public static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
+    public static final LengineLambda2<LengineIterable, Long, LengineIterable> _DROP = (n, seq) -> {
         LengineIterator it = seq.iterator();
         it.forEachN(x -> {}, n);
         if (it instanceof LengineListIterator) {
@@ -181,7 +181,7 @@ public class PreludeImpl {
         } else if (it instanceof LengineStringIterator) {
             return ((LengineStringIterator)it)._remains();
         } else {
-          CreateIterator current = ((Nillable<?>)seq).NIL();
+          LengineIterable current = ((Nillable<?>)seq).NIL();
           while (it.hasNext()) {
             current = ((Addable<?>)current).ADD(it.next());
             current = ((Wrap<?>)current).WRAP();
@@ -194,9 +194,9 @@ public class PreludeImpl {
         return cls.isInstance(value);
     }
 
-    public static final LengineLambda1<Object, CreateIterator> _HEAD = CreateIterator::head;
-    public static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
-    public static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
+    public static final LengineLambda1<Object, LengineIterable> _HEAD = LengineIterable::head;
+    public static final LengineLambda1<LengineIterable, LengineIterable> _TAIL = (seq) -> _DROP.invoke(1L, seq);
+    public static final LengineLambda3<Object, LengineIterable, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
         LengineIterator it = seq.iterator();
         while (it.hasNext()) {
             acc = fn.invoke(acc, it.next());
@@ -220,7 +220,7 @@ public class PreludeImpl {
         System.out.print(str);
         return UNIT;
     };
-    public static final LengineLambda2<LengineUnit, LengineString, CreateIterator> _PRINTF = (fmt, args) -> {
+    public static final LengineLambda2<LengineUnit, LengineString, LengineIterable> _PRINTF = (fmt, args) -> {
         final LinkedList<Object> items = new LinkedList<>();
         LengineIterator argsIt = args.iterator();
         while (argsIt.hasNext()) {
@@ -230,7 +230,7 @@ public class PreludeImpl {
         System.out.printf(fmt.toString(), items.toArray());
         return UNIT;
     };
-    public static final LengineLambda2<LengineString, LengineString, CreateIterator> _FORMAT = (fmt, args) -> {
+    public static final LengineLambda2<LengineString, LengineString, LengineIterable> _FORMAT = (fmt, args) -> {
         final LinkedList<Object> items = new LinkedList<>();
         LengineIterator argsIt = args.iterator();
         while (argsIt.hasNext()) {
@@ -274,7 +274,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM = (obj) -> isInstanceOf(LengineStream.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
-    public static final LengineLambda1<CreateIterator, Nillable<?>> _GET_NIL = Nillable::NIL;
+    public static final LengineLambda1<LengineIterable, Nillable<?>> _GET_NIL = Nillable::NIL;
     public static final LengineLambda2<Boolean, Object, Object> _DOES_HAVE = (set, obj) -> {
         if (set instanceof LengineSet) {
             return ((LengineSet) set).contains(obj);
@@ -311,7 +311,7 @@ public class PreludeImpl {
 
     public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE = LengineFileReader::createFileReader;
 
-    public static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
+    public static final LengineLambda2<LengineIterable, LengineIterable, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof LengineList) {
             LengineList head = (LengineList) coll;
             return head.add(elem);
@@ -336,18 +336,18 @@ public class PreludeImpl {
 
             throw new RuntimeException("Unable to determine the 2nd parameter to be LengineString");
         } else if (xs instanceof LengineList) {
-            if (ys instanceof CreateIterator) {
-                return ((LengineList) xs).append((CreateIterator) ys);
+            if (ys instanceof LengineIterable) {
+                return ((LengineList) xs).append((LengineIterable) ys);
             }
         } else if (xs instanceof LengineSequence) {
-            if (ys instanceof CreateIterator) {
-                return ((LengineSequence) xs).append((CreateIterator) ys);
+            if (ys instanceof LengineIterable) {
+                return ((LengineSequence) xs).append((LengineIterable) ys);
             }
         } else if (xs instanceof LengineSet) {
             if (ys instanceof LengineSet) {
                 return ((LengineSet) xs).append((LengineSet) ys);
-            } else if (ys instanceof CreateIterator) {
-                return ((LengineSet) xs).append(LengineSet.create((CreateIterator) ys));
+            } else if (ys instanceof LengineIterable) {
+                return ((LengineSet) xs).append(LengineSet.create((LengineIterable) ys));
             }
         }
 
@@ -502,8 +502,8 @@ public class PreludeImpl {
             return LengineSequence.create(o.toString());
         } else if (o instanceof LengineSequence) {
             return (LengineSequence) o;
-        } else if (o instanceof CreateIterator) {
-            return LengineSequence.create((CreateIterator) o);
+        } else if (o instanceof LengineIterable) {
+            return LengineSequence.create((LengineIterable) o);
         }
 
         throw new LengineTypeMismatchException(o, LengineSequence.class);
@@ -514,8 +514,8 @@ public class PreludeImpl {
             return LengineSet.create(o.toString());
         } else if (o instanceof LengineSet) {
             return (LengineSet) o;
-        } else if (o instanceof CreateIterator) {
-            return LengineSet.create((CreateIterator) o);
+        } else if (o instanceof LengineIterable) {
+            return LengineSet.create((LengineIterable) o);
         }
 
         throw new LengineTypeMismatchException(o, LengineSet.class);
@@ -538,7 +538,7 @@ public class PreludeImpl {
             return 4;
         } else if (a.equals(LengineString.class)) {
             return 5;
-        } else if (a.equals(CreateIterator.class)) {
+        } else if (a.equals(LengineIterable.class)) {
             return 6;
         }
 

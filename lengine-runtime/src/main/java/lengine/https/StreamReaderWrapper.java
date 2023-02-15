@@ -1,13 +1,13 @@
 package lengine.https;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class StreamReaderWrapper implements CreateIterator {
+public class StreamReaderWrapper implements LengineIterable {
     private final BufferedReader stream;
     private final long bodyLength;
 
@@ -32,7 +32,7 @@ public class StreamReaderWrapper implements CreateIterator {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     throw new RuntimeException("Unsupported operation");
   }
 }

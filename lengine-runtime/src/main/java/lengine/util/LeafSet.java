@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.Collections;
@@ -61,7 +61,7 @@ class LeafSet extends LengineSet {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     return new LeafSet(this.set.stream().filter(x -> Objects.equals(x, head())).collect(Collectors.toSet()));
   }
 

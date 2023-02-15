@@ -1,7 +1,7 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 
-public interface Buildable<T extends CreateIterator, U extends CollectionBuilder<T>> {
+public interface Buildable<T extends LengineIterable, U extends CollectionBuilder<T>> {
     U BUILDER();
 }

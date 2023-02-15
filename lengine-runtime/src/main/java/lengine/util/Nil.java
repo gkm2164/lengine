@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,7 +22,7 @@ public class Nil extends LengineList {
     }
 
     @Override
-    public LengineList append(CreateIterator ys) {
+    public LengineList append(LengineIterable ys) {
         if (ys instanceof LengineList) {
             return (LengineList) ys;
         }

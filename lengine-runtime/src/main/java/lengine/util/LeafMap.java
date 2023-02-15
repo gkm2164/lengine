@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.HashMap;
@@ -19,7 +19,7 @@ public class LeafMap extends LengineMap {
     this.dictionary = new HashMap<>();
   }
 
-  LeafMap(CreateIterator it) {
+  LeafMap(LengineIterable it) {
     this();
     it.iterator().forEachRemaining(entry -> {
       LengineMapEntry e = (LengineMapEntry) entry;
@@ -69,7 +69,7 @@ public class LeafMap extends LengineMap {
     return new LeafMap();
   }
 
-  public static LeafMap create(CreateIterator seq) {
+  public static LeafMap create(LengineIterable seq) {
     LengineIterator it = seq.iterator();
     LeafMap map = new LeafMap();
     it.forEachRemaining(elem -> map.putEntry(LengineMapEntry.cast(elem)));
@@ -117,7 +117,7 @@ public class LeafMap extends LengineMap {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     LengineMap.Builder builder = LengineMap.builder();
 
     dictionary.entrySet()

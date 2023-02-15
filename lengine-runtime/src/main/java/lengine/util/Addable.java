@@ -1,7 +1,7 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 
-public interface Addable<T extends CreateIterator> {
+public interface Addable<T extends LengineIterable> {
     T ADD(Object item);
 }

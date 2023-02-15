@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.Collections;
@@ -12,7 +12,7 @@ import java.util.Set;
 /**
  * Accessed with `seq`
  */
-public abstract class LengineSequence implements CreateIterator,
+public abstract class LengineSequence implements LengineIterable,
         Singleton<LengineSequence>,
         Nillable<LengineSequence>,
         Addable<LengineSequence>,
@@ -38,7 +38,7 @@ public abstract class LengineSequence implements CreateIterator,
     return new LeafSequence(str);
   }
 
-  public static LengineSequence create(CreateIterator o) {
+  public static LengineSequence create(LengineIterable o) {
     LinkedList<Object> thisList = new LinkedList<>();
     o.iterator().forEachRemaining(thisList::add);
     return new LeafSequence(thisList);
@@ -75,7 +75,7 @@ public abstract class LengineSequence implements CreateIterator,
     return append(new LeafSequence(newList));
   }
 
-  public abstract LengineSequence append(CreateIterator seq);
+  public abstract LengineSequence append(LengineIterable seq);
   @Override
   public String toString() {
     return String.format("(seq %s)", printable(true));

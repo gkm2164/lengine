@@ -18,7 +18,7 @@ public class LengineStringIterator implements LengineIterator {
         return value.charAt(idx++);
     }
 
-    public CreateIterator _remains() {
+    public LengineIterable _remains() {
         return LengineString.create(value.substring(idx));
     }
 }

@@ -1,13 +1,13 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineStreamIterator;
 
 import java.util.List;
 
-public abstract class LengineStream implements CreateIterator, Nillable<LengineStream>, Addable<LengineStream>, Buildable<LengineStream, LengineStreamBuilder> {
+public abstract class LengineStream implements LengineIterable, Nillable<LengineStream>, Addable<LengineStream>, Buildable<LengineStream, LengineStreamBuilder> {
   public static LengineStream cons(Object o, LengineStream lengineStream) {
     return new StreamCons(o, lengineStream);
   }

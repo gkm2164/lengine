@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 public class NonLeafSet extends LengineSet {
@@ -52,7 +52,7 @@ public class NonLeafSet extends LengineSet {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     if (this.left.len() == 0) {
       return this.right.tail();
     }

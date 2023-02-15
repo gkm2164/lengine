@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     return new LeafSequence(list.subList(1, list.size()));
   }
 
@@ -64,7 +64,7 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
-  public LengineSequence append(CreateIterator seq) {
+  public LengineSequence append(LengineIterable seq) {
     if (this.len() == 0) {
       List<Object> lst = new LinkedList<>();
       seq.iterator().forEachRemaining(lst::add);

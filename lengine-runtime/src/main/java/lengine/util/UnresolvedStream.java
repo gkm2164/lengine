@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineLazyValue;
 
 public class UnresolvedStream extends LengineStream {
@@ -29,7 +29,7 @@ public class UnresolvedStream extends LengineStream {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     return force().tail();
   }
 

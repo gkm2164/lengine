@@ -1,7 +1,7 @@
 package lengine.util;
 
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 
 public class StreamNil extends LengineStream {
   private static final StreamNil singleton = new StreamNil();
@@ -21,7 +21,7 @@ public class StreamNil extends LengineStream {
   }
 
   @Override
-  public CreateIterator tail() {
+  public LengineIterable tail() {
     return singleton;
   }
 

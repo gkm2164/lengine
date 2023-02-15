@@ -1,13 +1,11 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -18,7 +16,7 @@ import java.util.stream.Collectors;
  * Fast at "head/tail", "cons(appending)" operation
  */
 
-public abstract class LengineList implements CreateIterator,
+public abstract class LengineList implements LengineIterable,
         Addable<LengineList>,
         Nillable<LengineList>,
         Singleton<LengineList>,
@@ -104,7 +102,7 @@ public abstract class LengineList implements CreateIterator,
         return cons(elem, nil());
     }
 
-    public abstract LengineList append(CreateIterator ys);
+    public abstract LengineList append(LengineIterable ys);
 
 
   @Override

@@ -7,7 +7,6 @@
 
 (export take ^((n xs) (take-loop (nil> xs) n xs)))
 
-
 (export drop ^((n xs)
                (case ((nil? xs) xs)
                      ((= 0 n) xs)
@@ -16,26 +15,6 @@
 (export map ^((f xs)
               (loop for x in xs
                     (f x))))
-
-(fn split-at-loop (p xs l r)
-                  (if (nil? xs) (cons l (cons r nil))
-                      (let ((h (head xs))
-                            (t (tail xs)))
-                           (if (not (p h))
-                               ($ p t (cons h l) r)
-                               (cons l (cons t nil))))))
-
-(fn split-at (p xs)
-             (split-at-loop p xs nil nil))
-
-(fn split-real (chs delim)
-    (if (nil? chs)
-        nil
-        (let ((delim-check ^((ch) (= ch delim)))
-              (splitted (split-at delim-check chs))
-              (first (head splitted))
-              (last (head (tail splitted))))
-             (cons first ($ last delim)))))
 
 (export to-string ^((xs) (fold xs "" +)))
 

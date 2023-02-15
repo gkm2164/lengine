@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, BuildableClass, CollectionBuilderClass, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass, VoidPrimitive, WrapClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, BuildableClass, CollectionBuilderClass, ConsClass, LengineIterableClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass, VoidPrimitive, WrapClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
@@ -37,7 +37,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         val endLoop   = new Label()
 
         val mv = env.methodVisitor
-        mv.visitLispValue(seq, CreateIteratorClass) // [S]
+        mv.visitLispValue(seq, LengineIterableClass) // [S]
 
         mv.visitDup() // [S S]
         mv.visitCheckCast(BuildableClass)
@@ -50,7 +50,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitAStore(accLoc) // [S], [S(Nil)]
 
         mv.visitInterfaceMethodCall(
-          CreateIteratorClass,
+          LengineIterableClass,
           "iterator",
           LengineIteratorClass
         ) // [I<S>]
@@ -92,7 +92,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         mv.visitInterfaceMethodCall(
           CollectionBuilderClass,
           "BUILD",
-          CreateIteratorClass
+          LengineIterableClass
         )
         if (retAddr.isDefined) {
           mv.visitInterfaceMethodCall(

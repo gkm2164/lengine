@@ -1,8 +1,8 @@
 package lengine.runtime;
 
-public interface CreateIterator {
+public interface LengineIterable {
   LengineIterator iterator();
   Long len();
   Object head();
-  CreateIterator tail();
+  LengineIterable tail();
 }

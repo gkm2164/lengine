@@ -6,11 +6,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineObjectType;
 
-public abstract class LengineMap implements CreateIterator, LengineObjectType, Wrap<LengineMap> {
+public abstract class LengineMap implements LengineIterable, LengineObjectType, Wrap<LengineMap> {
   protected final boolean lately;
 
   protected LengineMap(boolean lately) {
@@ -30,7 +30,7 @@ public abstract class LengineMap implements CreateIterator, LengineObjectType, W
     return new LeafMap();
   }
 
-  public static LengineMap create(CreateIterator seq) {
+  public static LengineMap create(LengineIterable seq) {
     return new LeafMap(seq);
   }
 

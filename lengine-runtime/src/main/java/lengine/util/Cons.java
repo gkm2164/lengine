@@ -1,6 +1,6 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.util.Objects;
@@ -46,7 +46,7 @@ public class Cons extends LengineList {
     }
 
     @Override
-    public LengineList append(CreateIterator ys) {
+    public LengineList append(LengineIterable ys) {
         return cons(item, this.next.append(ys));
     }
 }

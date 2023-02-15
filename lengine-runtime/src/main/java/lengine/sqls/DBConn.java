@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 import lengine.functions.LengineLambda2;
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineString;
 import lengine.util.LengineMap;
@@ -26,7 +26,7 @@ public class DBConn {
     this.conn = conn;
   }
 
-  void setPreparedStatementsParams(PreparedStatement ps, CreateIterator args) throws SQLException {
+  void setPreparedStatementsParams(PreparedStatement ps, LengineIterable args) throws SQLException {
     LengineIterator it = args.iterator();
 
     int i = 1;
@@ -49,7 +49,7 @@ public class DBConn {
     }
   }
 
-  public LengineSequence execSelect(String query, CreateIterator args) throws SQLException {
+  public LengineSequence execSelect(String query, LengineIterable args) throws SQLException {
     List<Object> results = new LinkedList<>();
     try (PreparedStatement ps = conn.prepareStatement(query)) {
       setPreparedStatementsParams(ps, args);
@@ -73,7 +73,7 @@ public class DBConn {
     return LengineSequence.create(results);
   }
 
-  public Long execUpdate(String query, CreateIterator args) throws SQLException {
+  public Long execUpdate(String query, LengineIterable args) throws SQLException {
     try (PreparedStatement ps = conn.prepareStatement(query)) {
       setPreparedStatementsParams(ps, args);
       return (long) ps.executeUpdate();
@@ -107,7 +107,7 @@ public class DBConn {
           conn
       );
 
-      LengineLambda2<LengineSequence, String, CreateIterator> EXEC_SELECT = (query, args) -> {
+      LengineLambda2<LengineSequence, String, LengineIterable> EXEC_SELECT = (query, args) -> {
         try {
           return thisConn.execSelect(query, args);
         } catch (SQLException e) {
@@ -115,7 +115,7 @@ public class DBConn {
         }
       };
 
-      LengineLambda2<Long, String, CreateIterator> EXEC_UPDATE = (query, args) -> {
+      LengineLambda2<Long, String, LengineIterable> EXEC_UPDATE = (query, args) -> {
         try {
           return thisConn.execUpdate(query, args);
         } catch (SQLException e) {

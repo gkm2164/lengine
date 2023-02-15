@@ -1,7 +1,7 @@
 package lengine.util;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 
-public interface Nillable<T extends CreateIterator> {
+public interface Nillable<T extends LengineIterable> {
     T NIL();
 }

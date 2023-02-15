@@ -5,7 +5,7 @@ import lengine.util.Nillable;
 
 import java.util.Objects;
 
-public class LengineString implements CreateIterator, Nillable<LengineString>, Addable<LengineString> {
+public class LengineString implements LengineIterable, Nillable<LengineString>, Addable<LengineString> {
     private final String value;
 
     public LengineString(String value) {
@@ -28,7 +28,7 @@ public class LengineString implements CreateIterator, Nillable<LengineString>, A
     }
 
     @Override
-    public CreateIterator tail() {
+    public LengineIterable tail() {
         return create(value.substring(1));
     }
 

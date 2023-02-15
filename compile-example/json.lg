@@ -66,18 +66,6 @@
 
 (println json-chs)
 
-(fn empty? (sequence)
-           (= 0 (len sequence)))
-
-
-(fn fold-right (seq acc folder)
-                (fold seq acc (^ (elem acc) (folder acc elem))))
-
-(fn not-p (p) (^ (x) (not (p x))))
-
-(fn join (xs str)
-         (fold xs "" +))
-
 (fn parse-string (acc s)
   (if (nil? s) [acc s]
   (if (= (head s) #\") [acc (tail s)]

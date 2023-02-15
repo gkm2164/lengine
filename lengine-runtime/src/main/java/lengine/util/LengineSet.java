@@ -6,10 +6,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lengine.runtime.CreateIterator;
+import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
-public abstract class LengineSet implements CreateIterator,
+public abstract class LengineSet implements LengineIterable,
         Nillable<LengineSet>,
         Addable<LengineSet>,
         Singleton<LengineSet>,
@@ -29,7 +29,7 @@ public abstract class LengineSet implements CreateIterator,
     return new LeafSet(hashSet);
   }
 
-  public static LengineSet create(CreateIterator o) {
+  public static LengineSet create(LengineIterable o) {
     Set<Object> hashSet = new HashSet<>();
     o.iterator().forEachRemaining(hashSet::add);
     return new LeafSet(hashSet);
