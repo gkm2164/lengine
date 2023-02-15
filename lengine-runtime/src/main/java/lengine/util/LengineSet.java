@@ -9,7 +9,12 @@ import java.util.stream.Collectors;
 import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 
-public abstract class LengineSet implements CreateIterator, Nillable<LengineSet>, Addable<LengineSet>, Singleton<LengineSet> {
+public abstract class LengineSet implements CreateIterator,
+        Nillable<LengineSet>,
+        Addable<LengineSet>,
+        Singleton<LengineSet>,
+        Buildable<LengineSet, LengineSetBuilder>,
+        Wrap<LengineSet> {
   protected final boolean lately;
 
   protected LengineSet(boolean lately) {
@@ -95,5 +100,17 @@ public abstract class LengineSet implements CreateIterator, Nillable<LengineSet>
   @Override
   public LengineSet PURE(Object elem) {
     return new LeafSet(Collections.singleton(elem));
+  }
+
+  @Override
+  public LengineSetBuilder BUILDER() {
+    return new LengineSetBuilder();
+  }
+
+  @Override
+  public LengineSet WRAP() {
+    Set<Object> set = new HashSet<>();
+    iterator().forEachRemaining(set::add);
+    return new LeafSet(set);
   }
 }

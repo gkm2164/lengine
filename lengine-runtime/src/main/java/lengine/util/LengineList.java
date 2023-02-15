@@ -6,6 +6,8 @@ import lengine.runtime.LengineIterator;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -16,7 +18,12 @@ import java.util.stream.Collectors;
  * Fast at "head/tail", "cons(appending)" operation
  */
 
-public abstract class LengineList implements CreateIterator, Addable<LengineList>, Nillable<LengineList>, Singleton<LengineList> {
+public abstract class LengineList implements CreateIterator,
+        Addable<LengineList>,
+        Nillable<LengineList>,
+        Singleton<LengineList>,
+        Buildable<LengineList, LengineListBuilder>,
+        Wrap<LengineList> {
     @Override
     public LengineList ADD(Object item) {
         return this.add(item);
@@ -118,5 +125,15 @@ public abstract class LengineList implements CreateIterator, Addable<LengineList
   @Override
   public LengineList PURE(Object elem) {
     return cons(elem, NIL());
+  }
+
+  @Override
+  public LengineListBuilder BUILDER() {
+    return new LengineListBuilder();
+  }
+
+  @Override
+  public LengineList WRAP() {
+      return this;
   }
 }

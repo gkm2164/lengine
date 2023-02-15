@@ -12,7 +12,12 @@ import java.util.Set;
 /**
  * Accessed with `seq`
  */
-public abstract class LengineSequence implements Singleton<LengineSequence>, Nillable<LengineSequence>, Addable<LengineSequence>, CreateIterator {
+public abstract class LengineSequence implements CreateIterator,
+        Singleton<LengineSequence>,
+        Nillable<LengineSequence>,
+        Addable<LengineSequence>,
+        Buildable<LengineSequence, LengineSequenceBuilder>,
+        Wrap<LengineSequence> {
 
   @Override
   public LengineSequence NIL() {
@@ -106,4 +111,16 @@ public abstract class LengineSequence implements Singleton<LengineSequence>, Nil
   public abstract LengineSequence drop(long n);
 
   public abstract int hashCode();
+
+  @Override
+  public LengineSequenceBuilder BUILDER() {
+    return new LengineSequenceBuilder();
+  }
+
+  @Override
+  public LengineSequence WRAP() {
+    final List<Object> list = new LinkedList<>();
+    iterator().forEachRemaining(list::add);
+    return new LeafSequence(list);
+  }
 }

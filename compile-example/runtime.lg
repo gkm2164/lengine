@@ -7,19 +7,36 @@
                (loop for x in xs
                      (f x))))
 
-(fn empty? (seq)
-           (= 0 (len seq)))
+(export to-string (^ (xs) (fold xs "" +)))
 
-(export empty? empty?)
+(fn take-loop (acc n xs)
+    (case ((nil? xs) acc)
+              ((= 0 n) acc)
+              default ($ (+: acc (head xs)) (- n 1) (tail xs))))
 
-(export fold (^ (xs acc f)
-                (if (empty? xs) acc
-                    (let ((elem (head xs))
-                          (next-acc (f acc elem)))
-                         ($ (tail xs) next-acc f)))))
+(export take (^ (n xs)
+    (take-loop (nil> xs) n xs)))
 
-(export to-string (^ (xs)
-                     (fold xs
-                           ""
-                           (^ (acc elem)
-                              (+ acc elem)))))
+
+(export drop (^ (n xs)
+    (case ((nil? xs) xs)
+          ((= 0 n) xs)
+          default ($ (- n 1) (tail xs)))))
+
+(fn take-while-loop (acc p xs)
+    (case ((nil? xs) acc)
+          ((not (p (head xs))) acc)
+          default ($ (+: acc (head xs)) p (tail xs))))
+
+(export take-while (^ (p xs)
+    (take-while-loop (nil> xs) p xs)))
+
+(export drop-while (^ (p xs)
+    (case ((nil? xs) xs)
+          ((p (head xs)) ($ p (tail xs)))
+          default xs)))
+
+(println (take 3 (seq [1 2 3 4 5])))
+(println (drop 3 (seq [1 2 3 4 5])))
+(println (take-while (^ (x) (<= x 3)) (seq [1 2 3 4 5])))
+(println (drop-while (^ (x) (<= x 3)) (seq [1 2 3 4 5])))

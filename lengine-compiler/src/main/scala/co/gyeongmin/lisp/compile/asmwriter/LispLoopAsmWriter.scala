@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, ConsClass, CreateIteratorClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass, WrapClass}
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
@@ -98,5 +98,11 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         // []
 
         mv.visitALoad(accLoc)
+        mv.visitCheckCast(WrapClass)
+        mv.visitInterfaceMethodCall(
+          WrapClass,
+          "WRAP",
+          CreateIteratorClass
+        )
     }
 }

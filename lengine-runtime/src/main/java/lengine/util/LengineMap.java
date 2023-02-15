@@ -1,7 +1,9 @@
 package lengine.util;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,7 +12,7 @@ import lengine.runtime.CreateIterator;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineObjectType;
 
-public abstract class LengineMap implements CreateIterator, LengineObjectType {
+public abstract class LengineMap implements CreateIterator, LengineObjectType, Wrap<LengineMap> {
   protected final boolean lately;
 
   protected LengineMap(boolean lately) {
@@ -94,5 +96,14 @@ public abstract class LengineMap implements CreateIterator, LengineObjectType {
     public LengineMap build() {
       return new LeafMap(list);
     }
+  }
+
+  @Override
+  public LengineMap WRAP() {
+    List<LengineMapEntry> list = new LinkedList<>();
+    entries().iterator().forEachRemaining(_entry ->
+      list.add((LengineMapEntry)_entry)
+    );
+    return new LeafMap(list);
   }
 }

@@ -1,10 +1,17 @@
 package lengine.runtime;
 
+import lengine.util.Buildable;
 import lengine.util.LeafSequence;
+import lengine.util.LengineList;
+import lengine.util.LengineListBuilder;
 import lengine.util.LengineSequence;
+import lengine.util.LengineSequenceBuilder;
 import lengine.util.Nillable;
 
-public class RangeSequence implements CreateIterator, Nillable<LengineSequence> {
+public class RangeSequence implements
+        CreateIterator,
+        Nillable<LengineSequence>,
+        Buildable<LengineSequence, LengineSequenceBuilder> {
   private final int from;
   private final int to;
 
@@ -50,5 +57,10 @@ public class RangeSequence implements CreateIterator, Nillable<LengineSequence> 
   @Override
   public LengineSequence NIL() {
     return LeafSequence.create();
+  }
+
+  @Override
+  public LengineSequenceBuilder BUILDER() {
+    return new LengineSequenceBuilder();
   }
 }

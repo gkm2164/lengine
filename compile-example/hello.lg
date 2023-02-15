@@ -105,4 +105,4 @@
 
 (println (loop for x in (range 0 10)
       (loop for y in (=range 0 x)
-            (seq [x y]))))
+            (+ x y))))
