@@ -30,6 +30,7 @@ class MainTest extends FlatSpec with Matchers {
     execute("map.lg", "gben.tests.MapTest")
     execute("math.lg", "gben.libs.Math")
     execute("module.lg", "gben.libs.Module")
+    execute("read-file-char.lg", "gben.tests.ReadFileChar")
     execute("lambda.lg", "gben.tests.Lambda")
     execute("import-module.lg", "gben.tests.ImportModule")
     execute("seq-test.lg", "gben.tests.SeqTest")

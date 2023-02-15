@@ -1,13 +1,6 @@
 (module ReadCharModule)
 
 (import gben.libs.Module.stdin-stream)
-(import gben.libs.Module.file-ch-stream)
 
 (println (head stdin-stream))
 (println (head (tail stdin-stream)))
-
-(fn read (filename)
-    (let ((chs (file-ch-stream filename)))
-         (head (tail (tail chs)))))
-
-(println (read "./compile-example/readchar.lg"))
