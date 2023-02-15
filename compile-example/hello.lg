@@ -108,7 +108,7 @@
                        (seq [x y])))
 
 (fn zip (xs ys)
-    (let ((this-loop (^ (acc xs ys)
+    (let ((this-loop ^((acc xs ys)
                        (case ((nil? xs) acc)
                              ((nil? ys) acc)
                              default (let ((h-xs (head xs))
@@ -117,6 +117,5 @@
          (this-loop (nil> xs) xs ys)))
 
 (loop for row in combination
-      (do (print row)
-          (print " ")
+      (do (printf "%s " [row])
           return (println "")))

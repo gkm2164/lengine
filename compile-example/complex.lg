@@ -11,6 +11,9 @@
 (println (* num num2))
 (println (/ num num2))
 
-(println (* num num3))
+(def mult-result (* num num3))
+(println mult-result)
+(println (norm (:real mult-result)))
+(println (norm (:imagine mult-result)))
 
 (printf "Real: %d, Imagine: %d\n" [(:real num) (:imagine num)])
