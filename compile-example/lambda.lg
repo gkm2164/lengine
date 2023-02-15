@@ -1,11 +1,10 @@
 (module gben.tests.Lambda)
 
-(def f (^ (x y) (+ x y)))
+(import gben.libs.Module.map)
 
-(def f-currying
-  (^ (x)
-    (^ (y)
-      (+ x y))))
+(def f ^((x y) (+ x y)))
+
+(def f-currying ^((x) ^((y) (+ x y))))
 
 (println f)
 (println (f 3 5))
@@ -16,26 +15,16 @@
 
 (println (curried 5))
 
-(fn map (f xs)
-  (loop for x in xs
-    (f x)))
-
-(def m-f (^ (x) (+ x 1)))
+(def m-f ^((x) (+ x 1)))
 
 (println (map m-f [1 2 3 4 5]))
 
 (def v 9)
 
-(def f-3depth (^ (x)
-                (^ (y)
-                  (^ (z)
-                    (+ (+ (+ x y) z) v)))))
+(def f-3depth ^((x) ^((y) ^((z) (+ (+ (+ x y) z) v)))))
 
-(println (((f-3depth 1) 2) 3))
+(assert-equals "Should be same as" (((f-3depth 1) 2) 3) 15)
 
 (import gben.libs.Math.fact)
 
-(println (fact 5))
-
-(export map)
-(export fact)
+(assert-equals "should 120 for 5 factorial" (fact 5) 120)

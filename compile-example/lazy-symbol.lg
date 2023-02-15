@@ -35,7 +35,7 @@
 
 (fn inf-take (n xs)
     (case ((= n 0) nil)
-          (('nil? xs) 'nil)
+          ((nil? xs) nil)
           default (let ((h (head xs))
                         (t (tail xs)))
                        (cons h ($ (- n 1) t)))))
