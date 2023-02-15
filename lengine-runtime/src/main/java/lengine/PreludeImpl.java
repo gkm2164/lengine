@@ -13,6 +13,7 @@ import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineObjectHasHelp;
+import lengine.runtime.LengineObjectType;
 import lengine.runtime.LengineSequenceIterator;
 import lengine.runtime.LengineStreamIterator;
 import lengine.runtime.LengineString;
@@ -55,6 +56,7 @@ import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 
@@ -401,21 +403,37 @@ public class PreludeImpl {
 
     public static final LengineLambda1<FileSequence, LengineString> _READ_FILE_SEQ = FileSequence::create;
 
-    public static final LengineLambda1<LengineLambda0<Object>, LengineString> _READ_FILE_CHAR = (filename) -> {
+    public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE_CHAR = (filename) -> {
         try {
             FileInputStream inputStream = new FileInputStream(filename.toString());
-            return () -> {
-                try {
+            AtomicBoolean isClosed = new AtomicBoolean(false);
+            return (LengineObjectType) key -> {
+              switch (key.getKey().toString()) {
+                case "close":
+                  try {
+                    inputStream.close();
+                    isClosed.set(true);
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                case "read":
+                  try {
+                    if (isClosed.get()) {
+                      return -1;
+                    }
+
                     int read = inputStream.read();
                     if (read == -1) {
-                        inputStream.close();
+                      inputStream.close();
                     }
 
                     return (char) read;
-
-                } catch (IOException e) {
+                  } catch (IOException e) {
                     throw new RuntimeException(e);
-                }
+                  }
+                default:
+                  throw new RuntimeException("unknown command");
+              }
             };
         } catch (IOException e) {
             throw new RuntimeException(e);

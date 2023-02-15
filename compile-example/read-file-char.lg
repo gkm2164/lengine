@@ -1,9 +1,17 @@
 (module gben.tests.ReadFileChar)
 
+(import gben.libs.Module.take-while)
 (import gben.libs.Module.file-ch-stream)
+
+(def eof (char -1))
+
+(fn read-through (acc chs)
+    (let ((h (head chs)))
+         (if (= h eof) acc
+             ($ (+ acc h) (tail chs)))))
 
 (fn read (filename)
     (let ((chs (file-ch-stream filename)))
-         (take 10 chs)))
+         (read-through "" chs)))
 
 (println (read "./compile-example/read-file-char.lg"))
