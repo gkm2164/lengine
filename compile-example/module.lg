@@ -110,8 +110,20 @@
 (export stdin-stream (stream (stdin-stream-maker)))
 
 (fn file-stream-reader (handle)
-    #(let ((ch (:read handle)))
+    #(let ((ch ((:read handle))))
         (if (= ch -1) 'nil
             ('cons ch (file-stream-reader handle)))))
 
 (export file-ch-stream ^((filename) (stream (file-stream-reader (read-file-char filename)))))
+
+
+(def eof (char -1))
+
+(fn read-through-loop (acc chs)
+  (let ((h (head chs)))
+       (if (= h eof) acc
+           ($ (+ acc h) (tail chs)))))
+
+(export read-through ^((chs)
+    (read-through-loop "" chs)))
+

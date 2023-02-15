@@ -27,6 +27,7 @@ import lengine.util.Addable;
 import lengine.util.Buildable;
 import lengine.util.CollectionBuilder;
 import lengine.util.Cons;
+import lengine.util.LengineFileReader;
 import lengine.util.LengineList;
 import lengine.util.LengineListIterator;
 import lengine.util.LengineMap;
@@ -403,42 +404,7 @@ public class PreludeImpl {
 
     public static final LengineLambda1<FileSequence, LengineString> _READ_FILE_SEQ = FileSequence::create;
 
-    public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE_CHAR = (filename) -> {
-        try {
-            FileInputStream inputStream = new FileInputStream(filename.toString());
-            AtomicBoolean isClosed = new AtomicBoolean(false);
-            return (LengineObjectType) key -> {
-              switch (key.getKey().toString()) {
-                case "close":
-                  try {
-                    inputStream.close();
-                    isClosed.set(true);
-                  } catch (IOException e) {
-                    throw new RuntimeException(e);
-                  }
-                case "read":
-                  try {
-                    if (isClosed.get()) {
-                      return -1;
-                    }
-
-                    int read = inputStream.read();
-                    if (read == -1) {
-                      inputStream.close();
-                    }
-
-                    return (char) read;
-                  } catch (IOException e) {
-                    throw new RuntimeException(e);
-                  }
-                default:
-                  throw new RuntimeException("unknown command");
-              }
-            };
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    };
+    public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE_CHAR = LengineFileReader::createFileReader;
 
     public static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof LengineList) {

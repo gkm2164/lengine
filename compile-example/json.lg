@@ -5,6 +5,8 @@
 (import gben.libs.Module.drop-while)
 (import gben.libs.Module.contains)
 (import gben.libs.Module.map)
+(import gben.libs.Module.file-ch-stream)
+(import gben.libs.Module.read-through)
 
 ;;; Finally! reached to JSON related library
 
@@ -59,12 +61,10 @@
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
            (printf fmt x)))
 
-(def json-file-stream (read-file-seq "./compile-example/json-example.json"))
+(def json-file-stream (file-ch-stream "./compile-example/json-example.json"))
+(def json-chs (read-through json-file-stream))
 
-(def json-chs (fold json-file-stream "" +))
-
-(def json-ch-seq (seq json-chs))
-(def json-ch-list (list json-chs))
+(println json-chs)
 
 (fn empty? (sequence)
            (= 0 (len sequence)))
@@ -116,6 +116,7 @@
     (case ((nil? s) [acc s])
           ((= (head s) #\Space) ($ acc (tail s) pv))
           ((= (head s) #\,)  ($ acc (tail s) pv))
+          ((= (head s) #\Linefeed) ($ acc (tail s) pv))
           ((= (head s) #\]) [acc (tail s)])
           default (let
             ((parsed (pv s))
@@ -158,7 +159,7 @@
 (export from-json (^ (json-str)
     (head (parse-value json-str))))
 
-(def parsed-value (head (parse-value json-ch-seq)))
+(def parsed-value (head (parse-value json-chs)))
 
 ;;; Let's see whether the parsing is done well...
 (println parsed-value)
