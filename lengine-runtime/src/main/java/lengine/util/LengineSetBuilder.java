@@ -9,9 +9,8 @@ public class LengineSetBuilder implements CollectionBuilder<LengineSet> {
   private final Set<Object> set = new HashSet<>();
 
   @Override
-  public LengineSetBuilder ADD(Object elem) {
+  public void ADD(Object elem) {
     set.add(elem);
-    return this;
   }
 
   @Override

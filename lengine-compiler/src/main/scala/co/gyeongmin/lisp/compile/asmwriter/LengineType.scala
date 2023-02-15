@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
-import lengine.util.{Addable, Cons, LengineList, LengineMap, LengineMapKey, Nillable, Wrap}
+import lengine.util.{Addable, Buildable, CollectionBuilder, Cons, LengineList, LengineMap, LengineMapKey, Nillable, Wrap}
 
 object LengineType {
   val VoidPrimitive: Class[Void]                               = java.lang.Void.TYPE
@@ -53,5 +53,7 @@ object LengineType {
   val LengineClassLoaderClass: Class[LengineClassLoader]   = classOf[LengineClassLoader]
   val NillableClass: Class[Nillable[_]]                    = classOf[Nillable[_]]
   val AddableClass: Class[Addable[_]]                      = classOf[Addable[_]]
+  val BuildableClass: Class[Buildable[_, _]]               = classOf[Buildable[_, _]]
+  val CollectionBuilderClass: Class[CollectionBuilder[_]]  = classOf[CollectionBuilder[_]]
   val WrapClass: Class[Wrap[_]]                            = classOf[Wrap[_]]
 }

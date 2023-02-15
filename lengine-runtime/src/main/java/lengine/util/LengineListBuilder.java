@@ -7,9 +7,8 @@ public class LengineListBuilder implements CollectionBuilder<LengineList> {
   private final List<Object> list = new LinkedList<>();
 
   @Override
-  public LengineListBuilder ADD(Object elem) {
+  public void ADD(Object elem) {
     list.add(elem);
-    return this;
   }
 
   @Override
