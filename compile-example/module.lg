@@ -14,13 +14,6 @@
           ((= 0 n) xs)
           default ($ (- n 1) (tail xs)))))
 
-(println (take 3 (seq [1 2 3 4 5])))
-(println (drop 3 (seq [1 2 3 4 5])))
-
-(fn map (f xs)
-        (loop for x in xs
-              (f x)))
-
 (export map (^ (f xs)
                (loop for x in xs
                      (f x))))
@@ -91,3 +84,24 @@
     (^ (xs p)
        (reduce xs (^ (acc elem)
                      (if (p elem) (+: acc elem) acc)))))
+
+
+(export contains (^ (chs ch)
+                    (if (nil? chs)
+                          false
+                          (let ((h (head chs))
+                                (t (tail chs)))
+                               (if (= h ch)
+                                     true
+                                     ($ t ch))))))
+
+(export flatten (lambda (xs)
+  (if (nil? xs) (nil> xs)
+      (let ((h (head xs))
+            (t (tail xs)))
+               (if (seq? h) (++ ($ h) ($ t))
+                   (++ (seq [h]) ($ t)))))))
+
+(println (take 3 (seq [1 2 3 4 5])))
+(println (drop 3 (seq [1 2 3 4 5])))
+(println (flatten (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])])))

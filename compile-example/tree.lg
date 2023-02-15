@@ -1,6 +1,6 @@
 (module Tree)
 
-(import SeqModule.flatten)
+(import gben.libs.Module.flatten)
 
 (fn node (v l r) (seq [l v r]))
 (fn leaf (v) (node v (seq nil) (seq nil)))

@@ -1,9 +1,7 @@
 package lengine.util;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,10 +18,6 @@ public abstract class LengineMap implements CreateIterator, LengineObjectType, W
   }
 
   public abstract LengineMap putEntry(LengineMapEntry entry);
-
-  public final LengineMap put(LengineMapKey key, Object obj) {
-    return this.putEntry(LengineMapEntry.create(key, obj));
-  }
 
   @Override
   public abstract Object get(LengineMapKey key);
@@ -56,7 +50,7 @@ public abstract class LengineMap implements CreateIterator, LengineObjectType, W
   @Override
   public final boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || !(o instanceof LengineMap)) return false;
+    if (!(o instanceof LengineMap)) return false;
 
     LengineSet thisKey = this.keys();
     LengineSet otherKey = ((LengineMap)o).keys();
