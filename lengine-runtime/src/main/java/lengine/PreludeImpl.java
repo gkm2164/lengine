@@ -23,6 +23,8 @@ import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.sqls.DBConn;
 import lengine.util.Addable;
+import lengine.util.Buildable;
+import lengine.util.CollectionBuilder;
 import lengine.util.Cons;
 import lengine.util.LengineList;
 import lengine.util.LengineListIterator;
@@ -37,6 +39,7 @@ import lengine.util.Nillable;
 import lengine.util.StreamCons;
 import lengine.util.StreamNil;
 import lengine.util.UnresolvedStream;
+import lengine.util.Wrap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -169,17 +172,15 @@ public class PreludeImpl {
         }
 
         AtomicReference<CreateIterator> ret = new AtomicReference<>(((Nillable<?>)seq).NIL());
-        it.forEachN(elem -> {
-            Addable<?> _this = (Addable<?>) ret.get();
-            ret.set(_this.ADD(elem));
-        }, n);
+        Buildable<?, ?> builder = (Buildable<?, ?>) ret.get();
+        CollectionBuilder<?> collectionBuilder = builder.BUILDER();
+        it.forEachN(collectionBuilder::ADD, n);
 
-        return ret.get();
+        return collectionBuilder.BUILD();
     };
     public static final LengineLambda2<CreateIterator, Long, CreateIterator> _DROP = (n, seq) -> {
         LengineIterator it = seq.iterator();
-        it.forEachN(x -> {
-        }, n);
+        it.forEachN(x -> {}, n);
         if (it instanceof LengineListIterator) {
             return ((LengineListIterator) it)._this();
         } else if (it instanceof LengineSequenceIterator) {
@@ -192,6 +193,7 @@ public class PreludeImpl {
           CreateIterator current = ((Nillable<?>)seq).NIL();
           while (it.hasNext()) {
             current = ((Addable<?>)current).ADD(it.next());
+            current = ((Wrap<?>)current).WRAP();
           }
           return current;
         }
@@ -204,9 +206,11 @@ public class PreludeImpl {
     public static final LengineLambda1<Object, CreateIterator> _HEAD = CreateIterator::head;
     public static final LengineLambda1<CreateIterator, CreateIterator> _TAIL = (seq) -> _DROP.invoke(1L, seq);
     public static final LengineLambda3<Object, CreateIterator, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
-        AtomicReference<Object> ret = new AtomicReference<>(acc);
-        seq.iterator().forEachRemaining(elem -> ret.set(fn.invoke(ret.get(), elem)));
-        return ret.get();
+        LengineIterator it = seq.iterator();
+        while (it.hasNext()) {
+            acc = fn.invoke(acc, it.next());
+        }
+        return acc;
     };
     public static final LengineLambda2<Boolean, Object, Object> _LESS_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) < 0);
     public static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
