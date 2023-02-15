@@ -58,7 +58,6 @@ public class ExportSymbols {
   public static final Field IS_SET_FIELD;
   public static final Field GET_NIL_FIELD;
   public static final Field DOES_HAVE_FIELD;
-  public static final Field OPEN_FILE_FIELD;
   public static final Field NOW_FIELD;
   public static final Field CONS_FIELD;
   public static final Field STREAM_CONS_FIELD;
@@ -68,15 +67,14 @@ public class ExportSymbols {
   public static final Field ENTRIES_FIELD;
   public static final Field GET_FIELD;
   public static final Field READ_CHAR_FIELD;
-  public static final Field READ_LINE_FIELD;
-  public static final Field READ_EOF_FIELD;
   public static final Field READ_FILE_CHAR_FIELD;
   public static final Field READ_FILE_FIELD;
-  public static final Field READ_FILE_SEQ_FIELD;
   public static final Field NIL_FIELD;
   public static final Field STREAM_NIL_FIELD;
   public static final Field IS_STREAM_CONS_FIELD;
   public static final Field IS_STREAM_NIL_FIELD;
+  public static final Field IS_STREAM_FIELD;
+  public static final Field IS_STREAM_UNRESOLVED_FIELD;
   public static final Field APPEND_ITEM_FIELD;
   public static final Field MERGE_FIELD;
   public static final Field ASYNC_FIELD;
@@ -143,7 +141,8 @@ public class ExportSymbols {
       IS_NIL_FIELD = Prelude.class.getField("IS_NIL");
       IS_STREAM_CONS_FIELD = Prelude.class.getField("IS_STREAM_CONS");
       IS_STREAM_NIL_FIELD = Prelude.class.getField("IS_STREAM_NIL");
-      OPEN_FILE_FIELD = Prelude.class.getField("OPEN_FILE");
+      IS_STREAM_FIELD = Prelude.class.getField("IS_STREAM");
+      IS_STREAM_UNRESOLVED_FIELD = Prelude.class.getField("IS_STREAM_UNRESOLVED");
       NOW_FIELD = Prelude.class.getField("NOW");
       CONS_FIELD = Prelude.class.getField("CONS");
       STREAM_CONS_FIELD = Prelude.class.getField("STREAM_CONS");
@@ -153,11 +152,8 @@ public class ExportSymbols {
       ENTRIES_FIELD = Prelude.class.getField("ENTRIES");
       GET_FIELD = Prelude.class.getField("GET");
       READ_CHAR_FIELD = Prelude.class.getField("READ_CHAR");
-      READ_LINE_FIELD = Prelude.class.getField("READ_LINE");
-      READ_EOF_FIELD = Prelude.class.getField("READ_EOF");
-      READ_FILE_CHAR_FIELD = Prelude.class.getField("READ_FILE_CHAR");
+      READ_FILE_CHAR_FIELD = Prelude.class.getField("READ_FILE");
       READ_FILE_FIELD = Prelude.class.getField("READ_FILE");
-      READ_FILE_SEQ_FIELD = Prelude.class.getField("READ_FILE_SEQ");
       APPEND_ITEM_FIELD = Prelude.class.getField("APPEND_ITEM");
       MERGE_FIELD = Prelude.class.getField("MERGE");
       NIL_FIELD = Prelude.class.getField("NIL");

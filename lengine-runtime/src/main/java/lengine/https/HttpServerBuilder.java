@@ -1,6 +1,7 @@
 package lengine.https;
 
 import static java.lang.String.format;
+import static lengine.util.Utils.UNSAFE_cast;
 
 import com.sun.net.httpserver.HttpServer;
 
@@ -43,9 +44,5 @@ public class HttpServerBuilder {
       e.printStackTrace();
       throw new RuntimeException(e);
     }
-  }
-
-  static <T> T UNSAFE_cast(Object object) {
-    return (T) object;
   }
 }

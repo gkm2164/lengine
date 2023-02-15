@@ -5,18 +5,17 @@
               ((= 0 n) acc)
               default ($ (+: acc (head xs)) (- n 1) (tail xs))))
 
-(export take (^ (n xs)
-    (take-loop (nil> xs) n xs)))
+(export take ^((n xs) (take-loop (nil> xs) n xs)))
 
 
-(export drop (^ (n xs)
-    (case ((nil? xs) xs)
-          ((= 0 n) xs)
-          default ($ (- n 1) (tail xs)))))
+(export drop ^((n xs)
+               (case ((nil? xs) xs)
+                     ((= 0 n) xs)
+                     default ($ (- n 1) (tail xs)))))
 
-(export map (^ (f xs)
-               (loop for x in xs
-                     (f x))))
+(export map ^((f xs)
+              (loop for x in xs
+                    (f x))))
 
 (fn split-at-loop (p xs l r)
                   (if (nil? xs) (cons l (cons r nil))
@@ -32,24 +31,21 @@
 (fn split-real (chs delim)
     (if (nil? chs)
         nil
-        (let ((delim-check (^ (ch) (= ch delim)))
+        (let ((delim-check ^((ch) (= ch delim)))
               (splitted (split-at delim-check chs))
               (first (head splitted))
               (last (head (tail splitted))))
              (cons first ($ last delim)))))
 
-(fn to-string (xs)
-    (fold xs "" +))
+(export to-string ^((xs) (fold xs "" +)))
 
-(export to-string)
+(export fold-right ^((xs init f)
+                     (fold xs
+                           init
+                           ^((acc elem)
+                             (f elem acc)))))
 
-(export fold-right (^ (xs init f)
-                      (fold xs
-                            init
-                            (^ (acc elem)
-                               (f elem acc)))))
-
-(export reverse (^ (xs) (fold xs (nil> xs) +:)))
+(export reverse ^((xs) (fold xs (nil> xs) +:)))
 
 (fn split-loop (acc buf xs delim)
   (if (= 0 (len xs))
@@ -60,39 +56,32 @@
                    ($ acc (+ buf h) t delim)
                    ($ (+: acc buf) "" t delim)))))
 
-(export split (^ (s delim)
-                 (split-loop (seq nil) "" s delim)))
+(export split ^((s delim)
+                (split-loop (seq nil) "" s delim)))
 
-(export compose (^ (f g)
-                   (^ (x) (f (g x)))))
+(export compose ^((f g)
+                  ^((x) (f (g x)))))
 
-(export fact (^ (n)
-                (if (> n 1)
-                    (* n ($ (- n 1)))
-                    1)))
+(export fact ^((n)
+               (if (> n 1)
+                   (* n ($ (- n 1)))
+                   1)))
 
-(fn append (xs elem)
-           (if (nil? xs)
-               (cons elem nil)
-               ($ (tail xs) elem)))
-(export append)
-
-(export reduce (^ (xs f)
-    (fold xs (nil> xs) f)))
+(export reduce ^((xs f) (fold (tail xs) (+: (nil> xs) (head xs)) f)))
 
 (export filter
-    (^ (xs p)
-       (reduce xs (^ (acc elem)
-                     (if (p elem) (+: acc elem) acc)))))
+    ^((xs p)
+      (reduce xs ^((acc elem)
+                   (if (p elem) (+: acc elem) acc)))))
 
-(export contains (^ (chs ch)
-                    (if (nil? chs)
-                          false
-                          (let ((h (head chs))
-                                (t (tail chs)))
-                               (if (= h ch)
-                                     true
-                                     ($ t ch))))))
+(export contains ^((chs ch)
+                   (if (nil? chs)
+                       false
+                       (let ((h (head chs))
+                             (t (tail chs)))
+                            (if (= h ch)
+                                true
+                                ($ t ch))))))
 
 (export flatten (lambda (xs)
   (if (nil? xs) (nil> xs)
@@ -114,8 +103,7 @@
         (if (= ch -1) 'nil
             ('cons ch (file-stream-reader handle)))))
 
-(export file-ch-stream ^((filename) (stream (file-stream-reader (read-file-char filename)))))
-
+(export file-ch-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
 
 (def eof (char -1))
 

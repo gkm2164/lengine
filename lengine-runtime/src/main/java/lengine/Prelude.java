@@ -55,7 +55,8 @@ public class Prelude {
   public static final LengineLambdaCommon IS_NIL = PreludeImpl._IS_NIL;
   public static final LengineLambdaCommon IS_STREAM_NIL = PreludeImpl._IS_STREAM_NIL;
   public static final LengineLambdaCommon IS_STREAM_CONS = PreludeImpl._IS_STREAM_CONS;
-  public static final LengineLambdaCommon OPEN_FILE = PreludeImpl._OPEN_FILE;
+  public static final LengineLambdaCommon IS_STREAM_UNRESOLVED = PreludeImpl._IS_STREAM_UNRESOLVED;
+  public static final LengineLambdaCommon IS_STREAM = PreludeImpl._IS_STREAM;
   public static final LengineLambdaCommon NOW = PreludeImpl._NOW;
   public static final LengineLambdaCommon CONS = PreludeImpl._CONS;
   public static final LengineLambdaCommon STREAM_CONS = PreludeImpl._STREAM_CONS;
@@ -65,11 +66,7 @@ public class Prelude {
   public static final LengineLambdaCommon ENTRIES = PreludeImpl._ENTRIES;
   public static final LengineLambdaCommon GET = PreludeImpl._GET;
   public static final LengineLambdaCommon READ_CHAR = PreludeImpl._READ_CHAR;
-  public static final LengineLambdaCommon READ_LINE = PreludeImpl._READ_LINE;
-  public static final LengineLambdaCommon READ_EOF = PreludeImpl._READ_EOF;
   public static final LengineLambdaCommon READ_FILE = PreludeImpl._READ_FILE;
-  public static final LengineLambdaCommon READ_FILE_SEQ = PreludeImpl._READ_FILE_SEQ;
-  public static final LengineLambdaCommon READ_FILE_CHAR = PreludeImpl._READ_FILE_CHAR;
   public static final LengineLambdaCommon APPEND_ITEM = PreludeImpl._APPEND_ITEM;
   public static final LengineLambdaCommon IS_SET = PreludeImpl._IS_SET;
   public static final LengineLambdaCommon GET_NIL = PreludeImpl._GET_NIL;

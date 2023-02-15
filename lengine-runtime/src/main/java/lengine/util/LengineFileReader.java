@@ -8,20 +8,27 @@ import lengine.runtime.LengineUnit;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class LengineFileReader implements LengineObjectType {
-    private final String filename;
-    private final FileInputStream inputStream;
+    private final InputStream inputStream;
     private boolean isClosed = false;
 
     public LengineFileReader(final String filename) {
-        this.filename = filename;
         try {
             this.inputStream = new FileInputStream(filename);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    public LengineFileReader(InputStream is) {
+        this.inputStream = is;
+    }
+
+    public static LengineObjectType createFileReader(InputStream is) {
+        return new LengineFileReader(is);
     }
 
     public static LengineObjectType createFileReader(LengineString filename) {

@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
-import static lengine.https.HttpServerBuilder.UNSAFE_cast;
+import static lengine.util.Utils.UNSAFE_cast;
 
 public class HandlerWrapper implements HttpHandler {
   private final LengineMap lambdaMethodMapping;

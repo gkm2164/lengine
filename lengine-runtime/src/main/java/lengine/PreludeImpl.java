@@ -9,7 +9,6 @@ import lengine.functions.LengineLambda3;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
 import lengine.runtime.CreateIterator;
-import lengine.runtime.FileSequence;
 import lengine.runtime.LengineIterator;
 import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineObjectHasHelp;
@@ -43,25 +42,13 @@ import lengine.util.StreamNil;
 import lengine.util.UnresolvedStream;
 import lengine.util.Wrap;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.Objects;
-import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiPredicate;
 
 import static java.lang.String.format;
+import static lengine.util.Utils.UNSAFE_cast;
 
 public class PreludeImpl {
     private final static LengineUnit UNIT = LengineUnit.create();
@@ -284,6 +271,8 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || _LEN.invoke(obj) == 0;
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
+    public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj);
+    public static final LengineLambda1<Boolean, Object> _IS_STREAM = (obj) -> isInstanceOf(LengineStream.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
     public static final LengineLambda1<CreateIterator, Nillable<?>> _GET_NIL = Nillable::NIL;
     public static final LengineLambda2<Boolean, Object, Object> _DOES_HAVE = (set, obj) -> {
@@ -296,56 +285,6 @@ public class PreludeImpl {
         return false;
     };
     public static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
-    public static final LengineLambda1<CreateIterator, LengineString> _OPEN_FILE = (path) -> {
-        File file = new File(path.toString());
-        final long lengthOfFile = file.length();
-        final BufferedReader reader;
-        try {
-            reader = new BufferedReader(new FileReader(file));
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-
-        return new CreateIterator() {
-            @Override
-            public LengineIterator iterator() {
-                return new LengineIterator() {
-                    @Override
-                    public boolean hasNext() {
-                        try {
-                            return reader.ready();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-
-                    @Override
-                    public Object next() {
-                        try {
-                            return (char) reader.read();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                };
-            }
-
-            @Override
-            public Long len() {
-                return lengthOfFile;
-            }
-
-            @Override
-            public Object head() {
-                throw new RuntimeException("unsupported operation");
-            }
-
-            @Override
-            public CreateIterator tail() {
-                return null;
-            }
-        };
-    };
     public static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
     public static final LengineLambda2<LengineStream, Object, Object> _STREAM_CONS = (value, tail) -> {
         if (tail instanceof LengineLazyValue) {
@@ -365,46 +304,12 @@ public class PreludeImpl {
     public static final LengineLambda1<LengineString, LengineMapKey> _GET = LengineMapKey::getKey;
 
     public static final LengineLambda0<Character> _READ_CHAR = () -> {
-      try {
-        return (char) System.in.read();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+        LengineObjectType fr = LengineFileReader.createFileReader(System.in);
+        LengineLambda0<Character> reader = UNSAFE_cast(fr.get(LengineMapKey.create(LengineString.create("read"))));
+        return reader.invoke();
     };
 
-    public static final LengineLambda0<LengineString> _READ_LINE = () -> {
-        Scanner scanner = new Scanner(System.in).useDelimiter("\n");
-        return LengineString.create(scanner.next());
-    };
-
-    public static final LengineLambda0<LengineString> _READ_EOF = () -> {
-        Reader sr = new InputStreamReader(System.in);
-        StringBuilder ret = new StringBuilder();
-        int ch;
-        while (true) {
-            try {
-                if ((ch = sr.read()) == 0xFFFF) break;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            ret.append((char) ch);
-        }
-
-        return LengineString.create(ret.toString());
-    };
-
-
-    public static final LengineLambda1<LengineString, LengineString> _READ_FILE = (fileName) -> {
-        try {
-            return new LengineString(new String(Files.readAllBytes(Paths.get(fileName.toString())), StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    };
-
-    public static final LengineLambda1<FileSequence, LengineString> _READ_FILE_SEQ = FileSequence::create;
-
-    public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE_CHAR = LengineFileReader::createFileReader;
+    public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE = LengineFileReader::createFileReader;
 
     public static final LengineLambda2<CreateIterator, CreateIterator, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof LengineList) {
@@ -426,7 +331,7 @@ public class PreludeImpl {
     public static final LengineLambda2<Object, Object, Object> _MERGE = (xs, ys) -> {
         if (xs instanceof LengineString) {
             if (ys instanceof LengineString) {
-                return ((LengineString)xs).add((LengineString) ys);
+                return ((LengineString)xs).add(ys);
             }
 
             throw new RuntimeException("Unable to determine the 2nd parameter to be LengineString");

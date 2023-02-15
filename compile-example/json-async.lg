@@ -1,10 +1,12 @@
 (module gben.tests.JsonAsyncModule)
 
 (import gben.libs.Json.from-json)
+(import gben.libs.Module.file-ch-stream)
+(import gben.libs.Module.read-through)
 
-(def json-file-stream (read-file-seq "./compile-example/json-example.json"))
+(def json-file-stream (file-ch-stream "./compile-example/json-example.json"))
 
-(def json-chs (fold json-file-stream "" +))
+(def json-chs (read-through json-file-stream))
 
 (fn run ()
   (let ((start (now))
