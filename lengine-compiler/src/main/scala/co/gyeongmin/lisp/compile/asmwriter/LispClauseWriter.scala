@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, LengineStringClass, ObjectClass, StringClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LengineMapKeyClass, LengineStringClass, ObjectClass}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Label
@@ -14,13 +14,7 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(
   private def declareObjectRefer(key: String, operands: List[LispValue]): Unit = {
     val map :: _ = operands
 
-    mv.visitLdcInsn(key)
-    mv.visitStaticMethodCall(
-      LengineStringClass,
-      "create",
-      LengineStringClass,
-      StringClass
-    )
+    mv.visitString(key)
     mv.visitStaticMethodCall(
       LengineMapKeyClass,
       "create",

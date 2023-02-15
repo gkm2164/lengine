@@ -113,6 +113,16 @@ object AsmHelper {
       stackSizeTrace.incrementAndGet()
     }
 
+    def visitString(str: String): Unit = {
+      mv.visitLdcInsn(str)
+      visitStaticMethodCall(
+        LengineStringClass,
+        "create",
+        LengineStringClass,
+        StringClass
+      )
+    }
+
     def visitAStore(location: Int): Unit = {
       mv.visitIntInsn(ASTORE, location)
       stackSizeTrace.decrementAndGet()

@@ -103,13 +103,7 @@ object RuntimeMethodVisitor {
     }
 
     if (value == Nil) {
-      mv.visitLdcInsn(nameOfSymbol)
-      mv.visitStaticMethodCall(
-        LengineStringClass,
-        "create",
-        LengineStringClass,
-        StringClass
-      )
+      mv.visitString(nameOfSymbol)
       mv.visitLispValue(symbol, ObjectClass)
       mv.visitStaticMethodCall(
         runtimeEnvironment.className,
@@ -121,13 +115,7 @@ object RuntimeMethodVisitor {
     } else {
       mv.visitLispValue(value.head, ObjectClass) // [V]
       mv.visitDup()                              // [V V]
-      mv.visitLdcInsn(nameOfSymbol)              // [V V S]
-      mv.visitStaticMethodCall(
-        LengineStringClass,
-        "create",
-        LengineStringClass,
-        StringClass
-      )
+      mv.visitString(nameOfSymbol)              // [V V S]
       mv.visitSwap()                             // [V S V]
       mv.visitStaticMethodCall( // [V]
                                runtimeEnvironment.className,
@@ -147,13 +135,7 @@ object RuntimeMethodVisitor {
     val mv                      = runtimeMethodVisitor.methodVisitor
     val symbolNameComb          = importNameSymbol.asInstanceOf[LispSymbol]
 
-    mv.visitLdcInsn(symbolNameComb.name)
-    mv.visitStaticMethodCall(
-      LengineStringClass,
-      "create",
-      LengineStringClass,
-      StringClass
-    )
+    mv.visitString(symbolNameComb.name)
     mv.visitStaticMethodCall(
       LengineClassLoaderClass,
       "importSymbol",

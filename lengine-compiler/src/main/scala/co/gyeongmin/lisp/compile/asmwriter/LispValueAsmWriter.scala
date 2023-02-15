@@ -106,13 +106,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitBoxing(DoubleClass, DoublePrimitive)
       mv.visitLineForValue(value)
     case LispString(str) => // 1 stack
-      mv.visitLdcInsn(str)
-      mv.visitStaticMethodCall(
-        LengineStringClass,
-        "create",
-        LengineStringClass,
-        StringClass
-      )
+      mv.visitString(str)
       mv.visitLineForValue(value)
     case LispList(body) =>
       declareSequence(body)
@@ -123,13 +117,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       declareCaseStmt(cases, fallback, exitLabel, tailRecReference = tailRecReference)
       mv.visitLabel(exitLabel)
     case ObjectReferSymbol(key) =>
-      mv.visitLdcInsn(key)
-      mv.visitStaticMethodCall(
-        LengineStringClass,
-        "create",
-        LengineStringClass,
-        StringClass
-      )
+      mv.visitString(key)
       mv.visitStaticMethodCall(
         LengineMapKeyClass,
         "create",
