@@ -56,6 +56,12 @@ package object parser {
                 case LispClause(body) => LispClause(EagerSymbol("force") :: body)
               }
           )
+      case LambdaStartPar() #:: afterLeftPar =>
+        (for {
+          args <- parseArgs
+          body <- parseValue
+          _ <- takeToken[RightPar]
+        } yield GeneralLispFunc(args, body)).apply(afterLeftPar)
       case (m: SpecialToken) #:: tail =>
         m.realize
           .leftMap(ParseTokenizeError)

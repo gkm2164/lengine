@@ -99,10 +99,24 @@
 
 (printf "Hello\n" [])
 
-(def lambda-test (^ (a b) (+ a b)))
+(def lambda-test ^((a b) (+ a b)))
 
 (println (lambda-test 3 5))
 
-(println (loop for x in (range 0 10)
-      (loop for y in (=range 0 x)
-            (seq [x y]))))
+(def combination (loop for x in (range 0 10)
+                       for y in (=range 0 x)
+                       (seq [x y])))
+
+(fn zip (xs ys)
+    (let ((this-loop (^ (acc xs ys)
+                       (case ((nil? xs) acc)
+                             ((nil? ys) acc)
+                             default (let ((h-xs (head xs))
+                                           (h-ys (head ys)))
+                                          ($ (+: acc (seq [h-xs h-ys])) (tail xs) (tail ys)))))))
+         (this-loop (nil> xs) xs ys)))
+
+(loop for row in combination
+      (do (print row)
+          (print " ")
+          return (println "")))
