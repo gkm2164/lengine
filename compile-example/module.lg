@@ -85,7 +85,6 @@
        (reduce xs (^ (acc elem)
                      (if (p elem) (+: acc elem) acc)))))
 
-
 (export contains (^ (chs ch)
                     (if (nil? chs)
                           false
@@ -105,3 +104,7 @@
 (println (take 3 (seq [1 2 3 4 5])))
 (println (drop 3 (seq [1 2 3 4 5])))
 (println (flatten (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])])))
+(fn stdin-stream-maker ()
+    #('cons (read-char) (stdin-stream-maker)))
+
+(export stdin-stream (stream (stdin-stream-maker)))

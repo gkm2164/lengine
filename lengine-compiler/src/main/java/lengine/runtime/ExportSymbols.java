@@ -44,6 +44,7 @@ public class ExportSymbols {
   public static final Field CAST_LIST_FIELD;
   public static final Field CAST_SEQ_FIELD;
   public static final Field CAST_SET_FIELD;
+  public static final Field CAST_STREAM_FIELD;
   public static final Field IS_BOOL_FIELD;
   public static final Field IS_CHAR_FIELD;
   public static final Field IS_INT_FIELD;
@@ -66,6 +67,7 @@ public class ExportSymbols {
   public static final Field ENTRY_FIELD;
   public static final Field ENTRIES_FIELD;
   public static final Field GET_FIELD;
+  public static final Field READ_CHAR_FIELD;
   public static final Field READ_LINE_FIELD;
   public static final Field READ_EOF_FIELD;
   public static final Field READ_FILE_FIELD;
@@ -149,6 +151,7 @@ public class ExportSymbols {
       ENTRY_FIELD = Prelude.class.getField("ENTRY");
       ENTRIES_FIELD = Prelude.class.getField("ENTRIES");
       GET_FIELD = Prelude.class.getField("GET");
+      READ_CHAR_FIELD = Prelude.class.getField("READ_CHAR");
       READ_LINE_FIELD = Prelude.class.getField("READ_LINE");
       READ_EOF_FIELD = Prelude.class.getField("READ_EOF");
       READ_FILE_FIELD = Prelude.class.getField("READ_FILE");
@@ -158,6 +161,7 @@ public class ExportSymbols {
       NIL_FIELD = Prelude.class.getField("NIL");
       STREAM_NIL_FIELD = Prelude.class.getField("STREAM_NIL");
       CAST_SET_FIELD = Prelude.class.getField("CAST_SET");
+      CAST_STREAM_FIELD = Prelude.class.getField("CAST_STREAM");
       IS_SET_FIELD = Prelude.class.getField("IS_SET");
       GET_NIL_FIELD = Prelude.class.getField("GET_NIL");
       DOES_HAVE_FIELD = Prelude.class.getField("DOES_HAVE");

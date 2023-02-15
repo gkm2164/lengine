@@ -64,6 +64,7 @@ public class Prelude {
   public static final LengineLambdaCommon ENTRY = PreludeImpl._ENTRY;
   public static final LengineLambdaCommon ENTRIES = PreludeImpl._ENTRIES;
   public static final LengineLambdaCommon GET = PreludeImpl._GET;
+  public static final LengineLambdaCommon READ_CHAR = PreludeImpl._READ_CHAR;
   public static final LengineLambdaCommon READ_LINE = PreludeImpl._READ_LINE;
   public static final LengineLambdaCommon READ_EOF = PreludeImpl._READ_EOF;
   public static final LengineLambdaCommon READ_FILE = PreludeImpl._READ_FILE;
@@ -72,6 +73,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_SET = PreludeImpl._IS_SET;
   public static final LengineLambdaCommon GET_NIL = PreludeImpl._GET_NIL;
   public static final LengineLambdaCommon CAST_SET = PreludeImpl._CAST_SET;
+  public static final LengineLambdaCommon CAST_STREAM = PreludeImpl._CAST_STREAM;
   public static final LengineLambdaCommon DOES_HAVE = PreludeImpl._DOES_HAVE;
   public static final LengineLambdaCommon MERGE = PreludeImpl._MERGE;
   public static final LengineLambdaCommon ASYNC = PreludeImpl._ASYNC;

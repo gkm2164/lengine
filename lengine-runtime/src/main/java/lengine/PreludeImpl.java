@@ -267,6 +267,7 @@ public class PreludeImpl {
     public static final LengineLambda1<LengineList, Object> _CAST_LIST = PreludeImpl::castList;
     public static final LengineLambda1<LengineSequence, Object> _CAST_SEQ = PreludeImpl::castSeq;
     public static final LengineLambda1<LengineSet, Object> _CAST_SET = PreludeImpl::castSet;
+    public static final LengineLambda1<LengineStream, Object> _CAST_STREAM = LengineStream::create;
     public static final LengineLambda1<Boolean, Object> _IS_BOOL = (obj) -> isInstanceOf(Boolean.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
@@ -358,6 +359,14 @@ public class PreludeImpl {
     public static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
     public static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
     public static final LengineLambda1<LengineString, LengineMapKey> _GET = LengineMapKey::getKey;
+
+    public static final LengineLambda0<Character> _READ_CHAR = () -> {
+      try {
+        return (char) System.in.read();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    };
 
     public static final LengineLambda0<LengineString> _READ_LINE = () -> {
         Scanner scanner = new Scanner(System.in).useDelimiter("\n");
