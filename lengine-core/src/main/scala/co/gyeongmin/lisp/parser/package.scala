@@ -220,21 +220,15 @@ package object parser {
   private def parseTry: LispTokenState[LispErrorHandler] =
     for {
       tryBody <- parseValue
-      catchBlock <- for {
+      recoveryBody <- for {
         _      <- takeToken[LeftPar]
-        _      <- takeToken[LispCatch]
+        _      <- takeToken[LispRecover]
         symbol <- takeToken[LispSymbol]
         body   <- parseValue
         _      <- takeToken[RightPar]
-      } yield LispCatchBlock(symbol, body)
-      recoveryBody <- for {
-        _    <- takeToken[LeftPar]
-        _    <- takeToken[LispRecover]
-        body <- parseValue
-        _    <- takeToken[RightPar]
-      } yield body
+      } yield LispRecoverBlock(symbol, body)
       _ <- takeToken[RightPar]
-    } yield LispErrorHandler(tryBody, catchBlock, recoveryBody)
+    } yield LispErrorHandler(tryBody, recoveryBody)
 
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)

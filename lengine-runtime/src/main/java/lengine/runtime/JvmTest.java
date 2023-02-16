@@ -74,5 +74,7 @@ public class JvmTest {
     } finally {
       System.out.println("asdfg");
     }
+
+    final int xyz = 10;
   }
 }

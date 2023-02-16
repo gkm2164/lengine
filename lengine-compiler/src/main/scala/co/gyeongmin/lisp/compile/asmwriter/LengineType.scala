@@ -4,7 +4,17 @@ import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
-import lengine.util.{Addable, Buildable, CollectionBuilder, Cons, LengineList, LengineMap, LengineMapKey, Nillable, Wrap}
+import lengine.util.{
+  Addable,
+  Buildable,
+  CollectionBuilder,
+  Cons,
+  LengineList,
+  LengineMap,
+  LengineMapKey,
+  Nillable,
+  Wrap
+}
 
 object LengineType {
   val VoidPrimitive: Class[Void]                     = java.lang.Void.TYPE
@@ -58,4 +68,5 @@ object LengineType {
   val CollectionBuilderClass: Class[CollectionBuilder[_]]  = classOf[CollectionBuilder[_]]
   val WrapClass: Class[Wrap[_]]                            = classOf[Wrap[_]]
   val LengineExceptionClass: Class[LengineException]       = classOf[LengineException]
+  val ExceptionClass: Class[Exception]                     = classOf[Exception]
 }

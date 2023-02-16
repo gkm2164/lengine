@@ -2,10 +2,11 @@
 
 (println "This is error handling test!")
 
-(def result (try
-    (/ 3 "1234")
-    (catch e (println (:message e)))
-    (recover 10)
-))
+;;; try is to put exception handler on expected failure point
+(def result (try (/ 3 0)
+             (recover e (do (println (:message e))
+                            (println (:type e))
+                            (println (:stack-trace e))
+                            return 10))))
 
-(println result)
+(assert-equals "result should be recovered with 10" result 10)
