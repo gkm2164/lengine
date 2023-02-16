@@ -60,7 +60,7 @@ package object parser {
         (for {
           args <- parseArgs
           body <- parseValue
-          _ <- takeToken[RightPar]
+          _    <- takeToken[RightPar]
         } yield GeneralLispFunc(args, body)).apply(afterLeftPar)
       case (m: SpecialToken) #:: tail =>
         m.realize
@@ -217,10 +217,30 @@ package object parser {
       _         <- takeToken[RightPar]
     } yield LispNamespace(namespace)
 
+  private def parseTry: LispTokenState[LispErrorHandler] =
+    for {
+      tryBody <- parseValue
+      catchBlock <- for {
+        _      <- takeToken[LeftPar]
+        _      <- takeToken[LispCatch]
+        symbol <- takeToken[LispSymbol]
+        body   <- parseValue
+        _      <- takeToken[RightPar]
+      } yield LispCatchBlock(symbol, body)
+      recoveryBody <- for {
+        _    <- takeToken[LeftPar]
+        _    <- takeToken[LispRecover]
+        body <- parseValue
+        _    <- takeToken[RightPar]
+      } yield body
+      _ <- takeToken[RightPar]
+    } yield LispErrorHandler(tryBody, catchBlock, recoveryBody)
+
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)
     case LispLet() #:: tail => parseLetClause(tail)
     case LispDo() #:: tail  => parseDoClause(tail)
+    case LispTry() #:: tail => parseTry(tail)
     case LispLambda() #:: tail =>
       (for {
         lambda <- parseLambda

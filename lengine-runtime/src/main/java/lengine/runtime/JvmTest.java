@@ -66,5 +66,13 @@ public class JvmTest {
     }
 
     System.out.println(new Object[] { 1, 2, 3, 4, 5 });
+
+    try {
+      System.out.println("Hello");
+    } catch (Exception e) {
+      System.out.println("asdf");
+    } finally {
+      System.out.println("asdfg");
+    }
   }
 }

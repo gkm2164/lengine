@@ -1,0 +1,11 @@
+(module gben.tests.ErrorHandling)
+
+(println "This is error handling test!")
+
+(def result (try
+    (/ 3 "1234")
+    (catch e (println (:message e)))
+    (recover 10)
+))
+
+(println result)

@@ -20,6 +20,7 @@ import lengine.runtime.LengineStringIterator;
 import lengine.runtime.LengineUnit;
 import lengine.runtime.RangeSequence;
 import lengine.runtime.RatioNumber;
+import lengine.runtime.exceptions.LengineRuntimeException;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.sqls.DBConn;
 import lengine.util.Addable;
@@ -129,7 +130,7 @@ public class PreludeImpl {
             return ((ComplexNumber) x).div((ComplexNumber) y);
         }
 
-        throw new RuntimeException("Can't divide");
+        throw new LengineRuntimeException("Can't divide");
     };
     public static final LengineLambda2<Object, Object, Object> _REM = (a, b) -> {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());

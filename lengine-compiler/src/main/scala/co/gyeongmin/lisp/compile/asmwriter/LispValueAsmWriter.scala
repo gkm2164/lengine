@@ -3,12 +3,12 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, FloatNumber, IntegerNumber, RatioNumber }
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispObject, LispValue }
+import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
@@ -170,6 +170,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       runtimeEnv.registerVariable(symbol, fnIdx, LengineLambdaClass(funcDef.placeHolders.size))
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
+    case v: LispErrorHandler =>
+      new LispErrorHandlerAsmWriter(v, typeToBe).writeValue()
   }
 
   private def declareSequence(body: List[LispValue]): Unit = {

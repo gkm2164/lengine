@@ -20,7 +20,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
       case Nil =>
         val mv = env.methodVisitor
         mv.visitALoad(retAddr.get)                               // [S']
-        mv.visitCheckCast(CollectionBuilderClass)                          // [S']
+        mv.visitCheckCast(CollectionBuilderClass)                // [S']
         mv.visitLispValue(body, requestedType, tailRecReference) // [S' E']
         mv.visitInterfaceMethodCall(
           CollectionBuilderClass,

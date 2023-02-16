@@ -113,6 +113,14 @@ object AsmHelper {
       stackSizeTrace.incrementAndGet()
     }
 
+    def visitTryCatchFinally(
+        start: Label,
+        end: Label,
+        handler: Label
+      ): Unit = {
+      mv.visitTryCatchBlock(start, end, handler, Type.getType(LengineExceptionClass).getInternalName)
+    }
+
     def visitString(str: String): Unit = {
       mv.visitLdcInsn(str)
       visitStaticMethodCall(
