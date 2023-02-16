@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispErrorHandler, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -46,6 +46,12 @@ object FunctionAnalyzer {
       case LispValueDef(symbol, body) =>
         captureUnknownVariables(captureVariables, body)
         captureVariables.ignoreCapture(symbol)
+      case LispErrorHandler(tryBody, recoveryBlock) =>
+        val child = new LengineVarCapture(captureVariables)
+        captureUnknownVariables(child, tryBody)
+        child.ignoreCapture(recoveryBlock.symbol)
+        captureUnknownVariables(child, recoveryBlock.body)
+        captureVariables.mergeChild(child)
       case GeneralLispFunc(placeholders, body) =>
         val childCapture = new LengineVarCapture(captureVariables)
         placeholders.foreach {

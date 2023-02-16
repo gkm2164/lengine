@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineExceptionClass, LengineLambdaClass, ObjectClass}
-import co.gyeongmin.lisp.lexer.statements.LispErrorHandler
+import co.gyeongmin.lisp.lexer.statements.{LispErrorHandler, LispRecoverBlock}
 import org.objectweb.asm.Label
 
 class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[_])(
@@ -11,6 +11,7 @@ class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[
     val mv = runtimeEnv.methodVisitor
 
     val LispErrorHandler(tryBody, recoveryBlock) = errorHandler
+    val LispRecoverBlock(symbol, body) = recoveryBlock
 
     val startLabel = new Label()
     val endLabel = new Label()
@@ -22,28 +23,26 @@ class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[
     mv.visitLabel(startLabel)
     mv.visitLineForValue(tryBody)
     mv.visitLispValue(tryBody, typeToBe)
+    mv.visitAReturn()
     mv.visitLabel(endLabel)
 
     mv.visitLabel(new Label())
     mv.visitGoto(exitBlock)
 
     mv.visitLabel(handlerLabel)
+    val exceptionLoc = runtimeEnv.allocateNextVar
+
     mv.visitStaticMethodCall(
       LengineExceptionClass,
       "CONVERT",
       LengineExceptionClass,
       ExceptionClass
     ) // [E]
+    mv.visitAStore(exceptionLoc)
 
-    new LispFnAsmWriter(recoveryBlock).writeValue() // [E F]
-    mv.visitCheckCast(LengineLambdaClass(1)) // [E F]
-    mv.visitSwap() // [F E]
-    mv.visitInterfaceMethodCall(
-      LengineLambdaClass(1),
-      "invoke",
-      ObjectClass,
-      ObjectClass
-    )
+    runtimeEnv.registerVariable(symbol, exceptionLoc, LengineExceptionClass)
+    mv.visitLispValue(body, typeToBe)
+    mv.visitAReturn()
     mv.visitLabel(exitBlock)
   }
 }

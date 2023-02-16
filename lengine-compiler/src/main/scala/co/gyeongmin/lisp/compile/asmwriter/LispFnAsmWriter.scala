@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LongClass, ObjectClass, VoidPrimitive}
+import co.gyeongmin.lisp.lexer.statements.LispErrorHandler
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -225,9 +226,15 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       itself
     }
 
-    mv.visitLispValue(f.body, ObjectClass, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))(
-      newRuntimeEnvironment
-    )
+    f.body match {
+      case handler: LispErrorHandler =>
+        new LispErrorHandlerAsmWriter(handler, ObjectClass)(newRuntimeEnvironment)
+          .writeValue()
+      case _ =>
+        mv.visitLispValue(f.body, ObjectClass, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))(
+          newRuntimeEnvironment
+        )
+    }
 
     newRuntimeEnvironment.setRequestedCapture(capturedVariables)
 
