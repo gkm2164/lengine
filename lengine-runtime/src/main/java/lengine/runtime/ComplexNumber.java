@@ -48,6 +48,8 @@ public class ComplexNumber implements LengineObjectWithHelp {
         return this.real;
       case "imagine":
         return this.imagine;
+      case "inverse":
+        return this.inverse();
       default:
         throw new RuntimeException("Unknown accessor for complex number: " + key);
     }
@@ -106,6 +108,10 @@ public class ComplexNumber implements LengineObjectWithHelp {
             _MULT.invoke(this.real, this.real),
             _MULT.invoke(this.imagine, this.imagine)
     );
+
+    if (commonDiv.doubleValue() == 0.0) {
+      throw new ArithmeticException("inverting fails as common divider became 0");
+    }
 
     return new ComplexNumber(
         (Number)_DIV.invoke(commonMult.real.doubleValue(), commonDiv),

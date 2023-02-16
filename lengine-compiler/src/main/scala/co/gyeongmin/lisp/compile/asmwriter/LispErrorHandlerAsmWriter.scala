@@ -32,6 +32,7 @@ class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[
       ExceptionClass
     )
     mv.visitAStore(exceptionVarId)
+    mv.visitLabel(recoveryLabel)
     runtimeEnv.registerVariable(exceptionSymbol, exceptionVarId, LengineExceptionClass)
     mv.visitLispValue(recoveryBody, ObjectClass)
     runtimeEnv.deregisterVariable(exceptionSymbol)

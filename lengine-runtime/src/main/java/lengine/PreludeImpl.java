@@ -73,7 +73,7 @@ public class PreludeImpl {
             return ((LengineString)x).add(y);
         }
 
-        throw new RuntimeException("Can't add");
+        throw new RuntimeException("Can't add " + a + ", " + b);
     };
     public static final LengineLambda2<Object, Object, Object> _SUB = (a, b) -> {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());
@@ -92,7 +92,7 @@ public class PreludeImpl {
             return ((ComplexNumber) x).sub((ComplexNumber) y);
         }
 
-        throw new RuntimeException("Can't subtract");
+        throw new RuntimeException("Can't subtract " + a + ", " + b);
     };
     public static final LengineLambda2<Object, Object, Object> _MULT = (a, b) -> {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());
@@ -111,7 +111,7 @@ public class PreludeImpl {
             return ((ComplexNumber) x).mult((ComplexNumber) y);
         }
 
-        throw new RuntimeException("Can't multiply");
+        throw new RuntimeException("Can't multiply " + a + ", " + b);
     };
     public static final LengineLambda2<Object, Object, Object> _DIV = (a, b) -> {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());
@@ -130,7 +130,7 @@ public class PreludeImpl {
             return ((ComplexNumber) x).div((ComplexNumber) y);
         }
 
-        throw new LengineRuntimeException("Can't divide");
+        throw new LengineRuntimeException("Can't divide " + a + ", " + b);
     };
     public static final LengineLambda2<Object, Object, Object> _REM = (a, b) -> {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());
@@ -145,7 +145,7 @@ public class PreludeImpl {
             return (Double) x % (Double) y;
         }
 
-        throw new RuntimeException("Can't divide");
+        throw new RuntimeException("Can't divide " + a + ", " + b);
     };
 
     public static final LengineLambda1<RatioNumber, RatioNumber> _NORM = RatioNumber::normalize;

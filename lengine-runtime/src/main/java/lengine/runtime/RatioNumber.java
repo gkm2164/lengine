@@ -12,7 +12,7 @@ public class RatioNumber extends Number implements LengineObjectWithHelp {
 
   public RatioNumber(final long over, final long under) {
     if (under == 0) {
-      throw new IllegalArgumentException("under cannot be 0");
+      throw new ArithmeticException("under cannot be 0");
     }
     this.over = over;
     this.under = under;

@@ -1,5 +1,7 @@
 (module gben.tests.ErrorHandling)
 
+(import gben.libs.Module.filter)
+
 (println "This is error handling test!")
 
 ;;; try is to put exception handler on expected failure point
@@ -9,8 +11,15 @@
                             (println (:stack-trace e))
                             return 10))))
 
+(println "Second try on dividing by string 0")
+
 (def result-2 (try (/ 3 "0")
                (recover e "0")))
 
+(println "Put wrong type, and see what happens")
+
+(def result-3 (try (filter "12345" 345)
+               (recover e (println (:type e)))))
+
 (assert-equals "result should be recovered with 10" result 10)
-(assert-equals "result-2 should be recovered with literal 0" result "0")
+(assert-equals "result-2 should be recovered with literal 0" result-2 "0")

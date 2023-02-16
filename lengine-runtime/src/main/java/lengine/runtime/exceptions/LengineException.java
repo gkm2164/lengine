@@ -26,7 +26,7 @@ public class LengineException extends RuntimeException implements LengineObjectT
             case "message":
                 return LengineString.create(this.getMessage());
             case "type":
-                return LengineString.create(this.getCause().toString());
+                return LengineString.create(this.getCause().getClass().getName());
             case "stack-trace":
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
