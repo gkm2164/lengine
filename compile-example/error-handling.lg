@@ -19,7 +19,7 @@
 (println "Put wrong type, and see what happens")
 
 (def result-3 (try (filter "12345" 345)
-               (recover e (println (:type e)))))
+               (recover e (:type e))))
 
 (assert-equals "result should be recovered with 10" result 10)
 (assert-equals "result-2 should be recovered with literal 0" result-2 "0")
