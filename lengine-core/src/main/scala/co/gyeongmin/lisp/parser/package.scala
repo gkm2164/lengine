@@ -226,7 +226,7 @@ package object parser {
         symbol <- takeToken[LispSymbol]
         body   <- parseValue
         _      <- takeToken[RightPar]
-      } yield LispRecoverBlock(symbol, body)
+      } yield GeneralLispFunc(List(symbol), body)
       _ <- takeToken[RightPar]
     } yield LispErrorHandler(tryBody, recoveryBody)
 

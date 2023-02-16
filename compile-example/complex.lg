@@ -19,7 +19,7 @@
 
 (printf "Real: %d, Imagine: %d\n" [(:real num) (:imagine num)])
 
-(def inverse-failure (try (:inverse num4)
-     (recover e num4)))
+(def result (try (:inverse num4)
+                 (recover e num4)))
 
-(println inverse-failure)
+(println result)

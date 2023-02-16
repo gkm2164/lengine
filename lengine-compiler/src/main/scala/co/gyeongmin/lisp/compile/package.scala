@@ -60,11 +60,6 @@ package object compile {
         case LispClause(EagerSymbol("export") :: _) =>
         case _                                      => mv.visitPop()
       }
-      if (mv.stackSizeTrace.get() > 0) {
-        throw CompileException(s"somewhere, stack leaking is happening",
-                               filename = mainRuntimeEnv.fileName,
-                               location = stmt.tokenLocation)
-      }
     })
     mv.visitLabel(endLabel)
     mv.visitReturn()

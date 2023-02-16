@@ -22,9 +22,9 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile and no death!" in {
+    execute("complex.lg", "gben.tests.ComplexNumberModule")
     execute("error-handling.lg", "gben.tests.ErrorHandling")
     execute("lazy-symbol.lg", "gben.tests.LazySymbolModule")
-    execute("complex.lg", "gben.tests.ComplexNumberModule")
     execute("hello.lg", "gben.tests.Hello")
     execute("boolean.lg", "gben.tests.Boolean")
     execute("runtime.lg", "gben.libs.Runtime")

@@ -1,5 +1,6 @@
 package lengine.runtime;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,25 +56,17 @@ public class JvmTest {
   }
 
   public void something2(int x, int y) {
-    System.out.println(String.class);
-
-    List<Integer> list = new ArrayList<>();
-    list.add(10);
-    list.add(20);
-
-    for (Integer integer : list) {
-      System.out.println(integer);
-    }
-
-    System.out.println(new Object[] { 1, 2, 3, 4, 5 });
-
+    Object z;
+    PrintStream stream = System.out;
     try {
       System.out.println("Hello");
+      z = "hello";
     } catch (Exception e) {
       System.out.println("asdf");
-    } finally {
-      System.out.println("asdfg");
+      z = e;
     }
+
+    stream.println(z);
 
     final int xyz = 10;
   }

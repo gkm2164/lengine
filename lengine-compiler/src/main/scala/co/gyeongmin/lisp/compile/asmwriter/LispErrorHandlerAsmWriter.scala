@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineExceptionClass, ObjectClass}
-import co.gyeongmin.lisp.lexer.statements.{LispRecoverBlock, LispErrorHandler}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineExceptionClass, LengineLambdaClass, ObjectClass}
+import co.gyeongmin.lisp.lexer.statements.LispErrorHandler
 import org.objectweb.asm.Label
 
 class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[_])(
@@ -11,31 +11,39 @@ class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[
     val mv = runtimeEnv.methodVisitor
 
     val LispErrorHandler(tryBody, recoveryBlock) = errorHandler
-    val LispRecoverBlock(exceptionSymbol, recoveryBody) = recoveryBlock
 
     val startLabel = new Label()
-    val catchLabel = new Label()
+    val endLabel = new Label()
+    val handlerLabel = new Label()
     val exitBlock = new Label()
 
-    mv.visitTryCatchFinally(startLabel, catchLabel)
+    mv.visitTryCatchFinally(startLabel, endLabel, handlerLabel)
+
     mv.visitLabel(startLabel)
     mv.visitLineForValue(tryBody)
     mv.visitLispValue(tryBody, typeToBe)
+    mv.visitLabel(endLabel)
+
+    mv.visitLabel(new Label())
     mv.visitGoto(exitBlock)
 
-    mv.visitLabel(catchLabel)
-    val exceptionVarId = runtimeEnv.allocateNextVar
+    mv.visitLabel(handlerLabel)
     mv.visitStaticMethodCall(
       LengineExceptionClass,
       "CONVERT",
       LengineExceptionClass,
       ExceptionClass
-    )
-    mv.visitAStore(exceptionVarId)
-    runtimeEnv.registerVariable(exceptionSymbol, exceptionVarId, LengineExceptionClass)
-    mv.visitLispValue(recoveryBody, ObjectClass)
-    runtimeEnv.deregisterVariable(exceptionSymbol)
+    ) // [E]
 
+    new LispFnAsmWriter(recoveryBlock).writeValue() // [E F]
+    mv.visitCheckCast(LengineLambdaClass(1)) // [E F]
+    mv.visitSwap() // [F E]
+    mv.visitInterfaceMethodCall(
+      LengineLambdaClass(1),
+      "invoke",
+      ObjectClass,
+      ObjectClass
+    )
     mv.visitLabel(exitBlock)
   }
 }

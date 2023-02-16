@@ -115,9 +115,10 @@ object AsmHelper {
 
     def visitTryCatchFinally(
         start: Label,
+        end: Label,
         handler: Label
       ): Unit = {
-      mv.visitTryCatchBlock(start, handler, handler, Type.getType(ExceptionClass).getInternalName)
+      mv.visitTryCatchBlock(start, end, handler, Type.getType(ExceptionClass).getInternalName)
     }
 
     def visitString(str: String): Unit = {
