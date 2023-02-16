@@ -1,6 +1,6 @@
-(module gben.tests.Lambda)
+(module gben.tests.lambda-test)
 
-(import gben.libs.Module.map)
+(import gben.libs.module.map)
 
 (def f ^((x y) (+ x y)))
 
@@ -25,6 +25,6 @@
 
 (assert-equals "Should be same as" (((f-3depth 1) 2) 3) 15)
 
-(import gben.libs.Math.fact)
+(import gben.libs.math.fact)
 
 (assert-equals "should 120 for 5 factorial" (fact 5) 120)

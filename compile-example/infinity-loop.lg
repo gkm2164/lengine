@@ -1,4 +1,4 @@
-(module gben.tests.InfinityLoop)
+(module gben.tests.infinity-loop)
 
 ;;; Testing tail-recursion
 (fn recursion () ($))

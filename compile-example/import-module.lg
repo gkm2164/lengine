@@ -1,11 +1,11 @@
-(module gben.tests.ImportModule)
+(module gben.tests.import-module)
 
-(import gben.libs.Math.fact)
-(import gben.libs.Math.sum)
-(import gben.libs.Math.product)
-(import gben.libs.Module.map)
-(import gben.libs.Module.compose)
-(import gben.libs.Module.filter)
+(import gben.libs.math.fact)
+(import gben.libs.math.sum)
+(import gben.libs.math.product)
+(import gben.libs.module.map)
+(import gben.libs.module.compose)
+(import gben.libs.module.filter)
 
 (println (map (^ (x) (+ x 3)) [1 2 3 4 5]))
 

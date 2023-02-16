@@ -1,4 +1,4 @@
-(module gben.tests.LazySymbolModule)
+(module gben.tests.lazy-symbol)
 
 (def x1 #(now))
 (def x2 (now))

@@ -1,4 +1,4 @@
-(module gben.concurrency.ChannelModule)
+(module gben.concurrency.channel-module)
 
 (def channel (chan))
 

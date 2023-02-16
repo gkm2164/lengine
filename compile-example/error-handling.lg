@@ -1,6 +1,6 @@
-(module gben.tests.ErrorHandling)
+(module gben.tests.error-handling)
 
-(import gben.libs.Module.filter)
+(import gben.libs.module.filter)
 
 (println "This is error handling test!")
 

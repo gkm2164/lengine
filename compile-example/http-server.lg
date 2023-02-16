@@ -1,4 +1,4 @@
-(module gben.nets.HttpServerModule)
+(module gben.nets.http-server)
 
 (import gben.libs.Json.to-json)
 (import gben.libs.Json.from-json)

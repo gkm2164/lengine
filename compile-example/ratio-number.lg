@@ -1,4 +1,4 @@
-(module gben.tests.RatioNumberModule)
+(module gben.tests.ratio-number)
 
 (def num 3/5)
 (def num2 4/7)

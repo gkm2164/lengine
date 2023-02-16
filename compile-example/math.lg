@@ -1,4 +1,4 @@
-(module gben.libs.Math)
+(module gben.libs.math)
 
 (fn fact-loop (acc n)
   (if (= n 1)

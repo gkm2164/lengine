@@ -1,8 +1,8 @@
-(module gben.tests.JsonAsyncModule)
+(module gben.tests.json-async-module)
 
-(import gben.libs.Json.from-json)
-(import gben.libs.Module.file-ch-stream)
-(import gben.libs.Module.read-through)
+(import gben.libs.json.from-json)
+(import gben.libs.module.file-ch-stream)
+(import gben.libs.module.read-through)
 
 (def json-file-stream (file-ch-stream "./compile-example/json-example.json"))
 

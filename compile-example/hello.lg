@@ -1,4 +1,4 @@
-(module gben.tests.Hello)
+(module gben.tests.hello)
 
 (def start (now))
 

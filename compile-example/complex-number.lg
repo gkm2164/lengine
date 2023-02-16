@@ -1,4 +1,4 @@
-(module gben.tests.ComplexNumberModule)
+(module gben.tests.complex-number)
 
 (def num #C(3 5))
 (def num2 #C(4.2 7.6))
@@ -19,6 +19,8 @@
 
 (printf "Real: %d, Imagine: %d\n" [(:real num) (:imagine num)])
 
+(println "Shouldn't be able to inverse #C(1 1) as it will return 0 for divisor")
 (println (try (:inverse num4)
          (recover e num4)))
+(println "In that case, just will return #C(1 1)")
 

@@ -1,0 +1,10 @@
+(module gben.tests.read-file-char-test)
+
+(import gben.libs.module.file-ch-stream)
+(import gben.libs.module.read-through)
+
+(fn read (filename)
+    (let ((chs (file-ch-stream filename)))
+         (read-through chs)))
+
+(println (read "./compile-example/read-file-char-test.lg"))

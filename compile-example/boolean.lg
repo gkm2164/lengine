@@ -1,4 +1,4 @@
-(module gben.tests.Boolean)
+(module gben.tests.boolean)
 
 (def T true)
 (def F false)

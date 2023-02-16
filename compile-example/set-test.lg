@@ -1,4 +1,4 @@
-(module gben.tests.SetTest)
+(module gben.tests.set-test)
 
 (def string-set (set ["abc" "def" "ghi"]))
 (def string-set-2 (set ["def" "jkl" "mno"]))

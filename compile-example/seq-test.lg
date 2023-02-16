@@ -1,4 +1,4 @@
-(module gben.tests.SeqTest)
+(module gben.tests.seq-test)
 
 (def seqs [1 2 3 4 5])
 (def fold-result (fold (range 1 10) 0 +))
