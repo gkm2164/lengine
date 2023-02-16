@@ -22,8 +22,6 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile and no death!" in {
-    execute("complex.lg", "gben.tests.ComplexNumberModule")
-    execute("error-handling.lg", "gben.tests.ErrorHandling")
     execute("lazy-symbol.lg", "gben.tests.LazySymbolModule")
     execute("hello.lg", "gben.tests.Hello")
     execute("boolean.lg", "gben.tests.Boolean")
@@ -31,6 +29,8 @@ class MainTest extends FlatSpec with Matchers {
     execute("map.lg", "gben.tests.MapTest")
     execute("math.lg", "gben.libs.Math")
     execute("module.lg", "gben.libs.Module")
+    execute("complex.lg", "gben.tests.ComplexNumberModule")
+    execute("error-handling.lg", "gben.tests.ErrorHandling")
     execute("read-file-char.lg", "gben.tests.ReadFileChar")
     execute("lambda.lg", "gben.tests.Lambda")
     execute("import-module.lg", "gben.tests.ImportModule")
