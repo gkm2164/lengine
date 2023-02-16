@@ -8,13 +8,4 @@ public class LengineRuntimeException extends LengineException implements Lengine
     public LengineRuntimeException(String msg) {
         super(msg);
     }
-
-    @Override
-    public Object get(LengineMapKey key) {
-        if (key.getKey().toString().equals("message")) {
-            return LengineString.create(this.getMessage());
-        }
-
-        throw new LengineRuntimeException("unknown key: " + key);
-    }
 }

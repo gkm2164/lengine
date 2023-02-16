@@ -6,8 +6,18 @@ import lengine.util.LengineMapKey;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LengineException extends RuntimeException implements LengineObjectType {
+    private static final Map<Class<? extends Throwable>, String> remappedException = new HashMap<>();
+
+    static {
+        remappedException.put(ArithmeticException.class, "divide-by-zero(%s)");
+        remappedException.put(LengineRuntimeException.class, "runtime-error(%s)");
+        remappedException.put(LengineTypeMismatchException.class, "type-mismatch(%s)");
+    }
+
     public LengineException(Throwable e, String msg) {
         super(msg, e);
     }
@@ -26,7 +36,9 @@ public class LengineException extends RuntimeException implements LengineObjectT
             case "message":
                 return LengineString.create(this.getMessage());
             case "type":
-                return LengineString.create(this.getCause().getClass().getName());
+                String remappedName = remappedException.getOrDefault(this.getCause().getClass(),
+                        "unclassified-exception(%s)");
+                return LengineString.create(String.format(remappedName, this.getCause().getClass().getName()));
             case "stack-trace":
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);

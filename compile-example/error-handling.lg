@@ -14,7 +14,8 @@
 (println "Second try on dividing by string 0")
 
 (def result-2 (try (/ 3 "0")
-               (recover e "0")))
+               (recover e (do (println (:type e))
+                              return "0"))))
 
 (println "Put wrong type, and see what happens")
 
@@ -23,3 +24,7 @@
 
 (assert-equals "result should be recovered with 10" result 10)
 (assert-equals "result-2 should be recovered with literal 0" result-2 "0")
+
+(println (try (char "Something")
+         (recover e (do (println (:type e))
+                         return #\c))))
