@@ -1,26 +1,41 @@
-(module ProcessMembrane)
+(module process-membrane)
 
 (import gben.libs.module.split)
 (import gben.libs.module.map)
 (import gben.libs.module.filter)
 (import gben.libs.module.reverse)
+(import gben.libs.module.debug)
 (import gben.libs.module.file-ch-stream)
 (import gben.libs.module.read-through)
+(import gben.libs.module.take-while)
 
 (def all-data (read-through (file-ch-stream "./102521_membrane_GC_cell_lines.csv")))
 
-(def splitted (split all-data #\Linefeed))
+(fn split-at (xs delim)
+    (^((acc xs delim)
+      (case ((nil? xs) {:this acc :remains (nil> xs) })
+            ((= (head xs) delim) { :this acc :remains (tail xs) })
+            default ($ (+: acc (head xs))
+                       (tail xs)
+                       delim)))
+     (nil> xs) xs delim))
 
-(println splitted)
+(fn runner (acc xs)
+    (let ((got (split-at xs #\Linefeed))
+          (this (:this got))
+          (rest (:remains got)))
+         (if (nil? rest) acc ($ (+: acc this) rest))))
 
-(def first-values (loop for x in splitted
-                         (let ((line (split x #\,)))
-                              (head line))))
+(def splitted (runner (seq nil) all-data))
 
-(println first-values)
+(def first-values (map ^((x) (head (split x #\, ))) splitted))
 
-(def numbers (map double (filter (drop 1 first-values)
-                                 ^((x) (and (/= x "NaN") (/= x "EOF"))))))
+(def result (filter first-values
+                    ^((x) (try (do (double x)
+                                   return true)
+                           (recover e false)))))
+
+(def numbers (map double result))
 
 (def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))

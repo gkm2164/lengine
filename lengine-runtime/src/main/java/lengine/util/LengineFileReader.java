@@ -48,22 +48,16 @@ public class LengineFileReader implements LengineObjectType {
                     }
                     return LengineUnit.create();
                 };
-            case "read":
-                return (LengineLambda0<Character>) () -> {
-                    if (isClosed) {
-                        return (char) -1;
-                    }
-                    try {
-                        int read = inputStream.read();
-                        if (read == -1) {
-                            inputStream.close();
-                        }
-
-                        return (char) read;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                };
+            case "get-char":
+                if (isClosed) {
+                    return (char) -1;
+                }
+                try {
+                    int read = inputStream.read();
+                    return (char) read;
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             default:
                 throw new RuntimeException("unknown command");
         }

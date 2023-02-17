@@ -29,19 +29,15 @@
 
 (export reverse ^((xs) (fold xs (nil> xs) >+)))
 
-(println (reverse (seq [1 2 3 4 5])))
-
-(fn split-loop (acc buf xs delim)
-  (if (= 0 (len xs))
-        (+: acc buf)
-        (let ((h (head xs))
-              (t (tail xs)))
-             (if (/= h delim)
-                   ($ acc (+ buf h) t delim)
-                   ($ (+: acc buf) "" t delim)))))
-
 (export split ^((s delim)
-                (split-loop (seq nil) "" s delim)))
+                (^((acc buf xs delim)
+                   (if (nil? xs)
+                       (+: acc buf)
+                       (let ((h (head xs))
+                             (t (tail xs)))
+                            (if (/= h delim)
+                                ($ acc (+ buf h) t delim)
+                                ($ (+: acc buf) "" t delim))))) (seq nil) "" s delim)))
 
 (export compose ^((f g)
                   ^((x) (f (g x)))))
@@ -53,19 +49,17 @@
 
 (export reduce ^((xs f) (fold (tail xs) (+< (nil> xs) (head xs)) f)))
 
-(fn debug (x)
+(export debug ^((x)
     (do (println x)
-        return x))
+        return x)))
 
 (export join ^((xs delim)
                (fold (tail xs)
                      (head xs)
                     ^((acc elem) (format "%s%s%s" [acc delim elem])))))
 
-(export filter
-    ^((xs p)
-      (reduce xs ^((acc elem)
-                   (if (p elem) (+< acc elem) acc)))))
+(export filter ^((xs p) (fold xs (nil> xs)
+                              ^((acc elem) (if (p elem) (+< acc elem) acc)))))
 
 (export contains ^((chs ch)
                    (if (nil? chs)
@@ -82,17 +76,15 @@
                (if (seq? h) (++ ($ h) ($ (tail xs)))
                    (++ (seq [h]) ($ (tail xs))))))))
 
-(println (take 3 (seq [1 2 3 4 5])))
-(println (drop 3 (seq [1 2 3 4 5])))
-(println (flatten (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])])))
 (fn stdin-stream-maker ()
     #('cons (read-char) (stdin-stream-maker)))
 
 (export stdin-stream ^(() (stream (stdin-stream-maker))))
 
 (fn file-stream-reader (handle)
-    #(let ((ch ((:read handle))))
-        (if (= ch -1) 'nil
+    #(let ((ch (:get-char handle)))
+        (if (= ch -1) (do (:close handle)
+                          return 'nil)
             ('cons ch (file-stream-reader handle)))))
 
 (export file-ch-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
