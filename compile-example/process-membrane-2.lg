@@ -1,8 +1,8 @@
 (module ProcessMembrane2)
 
-(import gben.libs.Module.split)
-(import gben.libs.Module.map)
-(import gben.libs.Module.filter)
+(import gben.libs.module.split)
+(import gben.libs.module.map)
+(import gben.libs.module.filter)
 
 ;;; Read file in Sequence type
 (def file-sequence (read-file-seq "./102521_membrane_GC_cell_lines.csv"))

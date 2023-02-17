@@ -1,12 +1,13 @@
 (module ProcessMembrane)
 
-(import gben.libs.Module.split)
-(import gben.libs.Module.map)
-(import gben.libs.Module.filter)
-(import gben.libs.Module.reverse)
-(import gben.libs.Module.read-through)
+(import gben.libs.module.split)
+(import gben.libs.module.map)
+(import gben.libs.module.filter)
+(import gben.libs.module.reverse)
+(import gben.libs.module.file-ch-stream)
+(import gben.libs.module.read-through)
 
-(def all-data (read-through (read-file "./102521_membrane_GC_cell_lines.csv")))
+(def all-data (read-through (file-ch-stream "./102521_membrane_GC_cell_lines.csv")))
 
 (def splitted (split all-data #\Linefeed))
 
