@@ -3,7 +3,6 @@
 (def num #C(3 5))
 (def num2 #C(4.2 7.6))
 (def num3 #C(3/5 6/7))
-(def num4 #C(1 1))
 
 (println num)
 (println num2)
@@ -18,9 +17,3 @@
 (println (norm (:imagine mult-result)))
 
 (printf "Real: %d, Imagine: %d\n" [(:real num) (:imagine num)])
-
-(println "Shouldn't be able to inverse #C(1 1) as it will return 0 for divisor")
-(println (try (:inverse num4)
-         (recover e num4)))
-(println "In that case, just will return #C(1 1)")
-

@@ -18,9 +18,8 @@
 
 (println first-values)
 
-(def numbers (map (^ (x) (double x))
-                  (filter (drop 1 first-values)
-                          (^ (x) (and (/= x "NaN") (/= x "EOF"))))))
+(def numbers (map double (filter (drop 1 first-values)
+                                 ^((x) (and (/= x "NaN") (/= x "EOF"))))))
 
 (def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))

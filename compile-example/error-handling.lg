@@ -28,3 +28,10 @@
 (println (try (char "Something")
          (recover e (do (println (:type e))
                          return #\c))))
+
+(def c-num #C(1 1))
+
+(println "Shouldn't be able to inverse #C(1 1) as it will return 0 for divisor")
+(println (try (:inverse c-num)
+         (recover e c-num)))
+(println "In that case, just will return #C(1 1)")
