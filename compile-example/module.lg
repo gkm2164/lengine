@@ -53,6 +53,15 @@
 
 (export reduce ^((xs f) (fold (tail xs) (+< (nil> xs) (head xs)) f)))
 
+(fn debug (x)
+    (do (println x)
+        return x))
+
+(export join ^((xs delim)
+               (fold (tail xs)
+                     (head xs)
+                    ^((acc elem) (format "%s%s%s" [acc delim elem])))))
+
 (export filter
     ^((xs p)
       (reduce xs ^((acc elem)

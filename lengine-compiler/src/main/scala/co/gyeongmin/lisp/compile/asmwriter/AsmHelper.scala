@@ -3,6 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{Type, _}
 import org.objectweb.asm.Opcodes._
@@ -13,6 +14,30 @@ object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
 
   class MethodVisitorWrapper(mv: MethodVisitor) {
+    def visitRatioNumber(over: Long, under: Long): Unit = {
+      mv.visitLdcInsn(over)
+      mv.visitLdcInsn(under)
+      visitStaticMethodCall(
+        RatioNumberClass,
+        "create",
+        RatioNumberClass,
+        LongPrimitive,
+        LongPrimitive
+      )
+    }
+
+    def visitComplexNumber(real: LispNumber, imagine: LispNumber)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+      visitLispValue(real, typeToBe = NumberClass)
+      visitLispValue(imagine, typeToBe = NumberClass)
+      visitStaticMethodCall(
+        ComplexNumberClass,
+        "create",
+        ComplexNumberClass,
+        NumberClass,
+        NumberClass
+      )
+    }
+
     def visitLineForValue(value: LispValue): Unit =
       value.line.foreach(line => {
         val label = new Label()

@@ -16,50 +16,6 @@ import scala.annotation.tailrec
 class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeEnv: LengineRuntimeEnvironment) {
   val mv: MethodVisitorWrapper = runtimeEnv.methodVisitor
 
-  private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
-    mv.visitStaticMethodCall(
-      LengineMapClass,
-      "builder",
-      LengineMapBuilderClass
-    )
-    map.foreach {
-      case (symbol, value) =>
-        mv.visitLispValue(symbol, LengineMapKeyClass)
-        mv.visitLispValue(value, ObjectClass)
-        mv.visitMethodCall(
-          LengineMapBuilderClass,
-          "put",
-          LengineMapBuilderClass,
-          LengineMapKeyClass,
-          ObjectClass
-        )
-    }
-
-    mv.visitMethodCall(
-      LengineMapBuilderClass,
-      "build",
-      LengineMapClass
-    )
-  }
-
-  @tailrec
-  private def declareCaseStmt(cases: List[LispCaseCondition],
-                              fallback: LispValue,
-                              exitLabel: Label,
-                              tailRecReference: Option[(LispSymbol, Label)],
-                              nextLabel: Label = new Label()): Unit = cases match {
-    case Nil =>
-      mv.visitLispValue(fallback, typeToBe, tailRecReference)
-    case LispCaseCondition(condition, thenValue) :: tail =>
-      mv.visitLispValue(condition, BooleanClass)
-      mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
-      mv.visitIfEq(nextLabel)
-      mv.visitLispValue(thenValue, typeToBe, tailRecReference)
-      mv.visitGoto(exitLabel)
-      mv.visitLabel(nextLabel)
-      declareCaseStmt(tail, fallback, exitLabel, tailRecReference)
-  }
-
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
     case LispTrue() => // 1 stack
       mv.visitIConst1()
@@ -82,25 +38,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitBoxing(LongClass, LongPrimitive)
       mv.visitLineForValue(value)
     case RatioNumber(over, under) =>
-      mv.visitLdcInsn(over)
-      mv.visitLdcInsn(under)
-      mv.visitStaticMethodCall(
-        RatioNumberClass,
-        "create",
-        RatioNumberClass,
-        LongPrimitive,
-        LongPrimitive
-      )
+      mv.visitRatioNumber(over, under)
     case ComplexNumber(real, imagine) =>
-      mv.visitLispValue(real, typeToBe = NumberClass)
-      mv.visitLispValue(imagine, typeToBe = NumberClass)
-      mv.visitStaticMethodCall(
-        ComplexNumberClass,
-        "create",
-        ComplexNumberClass,
-        NumberClass,
-        NumberClass
-      )
+      mv.visitComplexNumber(real, imagine)
     case FloatNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
@@ -195,5 +135,49 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLispValue(v, typeToBe)
       mv.visitPop()
       visitDoBody(LispDoStmt(tail), tailRecReference = tailRecReference)
+  }
+
+  private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
+    mv.visitStaticMethodCall(
+      LengineMapClass,
+      "builder",
+      LengineMapBuilderClass
+    )
+    map.foreach {
+      case (symbol, value) =>
+        mv.visitLispValue(symbol, LengineMapKeyClass)
+        mv.visitLispValue(value, ObjectClass)
+        mv.visitMethodCall(
+          LengineMapBuilderClass,
+          "put",
+          LengineMapBuilderClass,
+          LengineMapKeyClass,
+          ObjectClass
+        )
+    }
+
+    mv.visitMethodCall(
+      LengineMapBuilderClass,
+      "build",
+      LengineMapClass
+    )
+  }
+
+  @tailrec
+  private def declareCaseStmt(cases: List[LispCaseCondition],
+                              fallback: LispValue,
+                              exitLabel: Label,
+                              tailRecReference: Option[(LispSymbol, Label)],
+                              nextLabel: Label = new Label()): Unit = cases match {
+    case Nil =>
+      mv.visitLispValue(fallback, typeToBe, tailRecReference)
+    case LispCaseCondition(condition, thenValue) :: tail =>
+      mv.visitLispValue(condition, BooleanClass)
+      mv.visitUnboxing(BooleanClass, BooleanPrimitive, "booleanValue")
+      mv.visitIfEq(nextLabel)
+      mv.visitLispValue(thenValue, typeToBe, tailRecReference)
+      mv.visitGoto(exitLabel)
+      mv.visitLabel(nextLabel)
+      declareCaseStmt(tail, fallback, exitLabel, tailRecReference)
   }
 }

@@ -4,21 +4,13 @@
 (import gben.libs.math.sum)
 (import gben.libs.math.product)
 (import gben.libs.module.map)
-(import gben.libs.module.compose)
 (import gben.libs.module.filter)
+(import gben.libs.module.join)
 
-(println (map (^ (x) (+ x 3)) [1 2 3 4 5]))
 
 (println (fact 5))
 (println (sum [1 2 3 4 5]))
 (println (product [1 2 3 4 5]))
-
-(fn f (x) (+ x "F"))
-(fn g (x) (+ x "G"))
-(fn h (x) (+ x "H"))
-(fn . (f g) (compose f g))
-(println ((. (. f g) h) "Text"))
-
+(println (map (^ (x) (+ x 3)) [1 2 3 4 5]))
 (println (filter [1 2 3 4 5] (^ (x) (> x 2))))
-
-(println (fact 5))
+(println (join (seq ["a" "b" "c" "d"]) "."))
