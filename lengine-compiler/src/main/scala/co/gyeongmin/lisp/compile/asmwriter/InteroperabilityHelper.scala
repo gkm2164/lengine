@@ -18,6 +18,7 @@ object InteroperabilityHelper {
     "char?"        -> ExportSymbols.IS_CHAR_FIELD,
     "int?"         -> ExportSymbols.IS_INT_FIELD,
     "double?"      -> ExportSymbols.IS_DOUBLE_FIELD,
+    "nan?"         -> ExportSymbols.IS_NAN_FIELD,
     "string?"      -> ExportSymbols.IS_STR_FIELD,
     "list?"        -> ExportSymbols.IS_LIST_FIELD,
     "seq?"         -> ExportSymbols.IS_SEQ_FIELD,
@@ -99,7 +100,7 @@ object InteroperabilityHelper {
     "'cons"             -> ExportSymbols.STREAM_CONS_FIELD,
     "'cons?"            -> ExportSymbols.IS_STREAM_CONS_FIELD,
     "'nil?"             -> ExportSymbols.IS_STREAM_NIL_FIELD,
-    "'unresolved?"       -> ExportSymbols.IS_STREAM_UNRESOLVED_FIELD,
+    "'unresolved?"      -> ExportSymbols.IS_STREAM_UNRESOLVED_FIELD,
     "cons"              -> ExportSymbols.CONS_FIELD,
     "read-char"         -> ExportSymbols.READ_CHAR_FIELD,
     "read-file"         -> ExportSymbols.READ_FILE_FIELD,
@@ -112,6 +113,7 @@ object InteroperabilityHelper {
   val ReservedKeywordVars: Map[LispSymbol, Field] = Map(
     "nil"  -> ExportSymbols.NIL_FIELD,
     "'nil" -> ExportSymbols.STREAM_NIL_FIELD,
+    "nan"  -> ExportSymbols.NAN_FIELD,
   ).map {
     case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
     case (key, value)                        => EagerSymbol(key) -> value

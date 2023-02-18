@@ -47,6 +47,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_CHAR = PreludeImpl._IS_CHAR;
   public static final LengineLambdaCommon IS_INT = PreludeImpl._IS_INT;
   public static final LengineLambdaCommon IS_DOUBLE = PreludeImpl._IS_DOUBLE;
+  public static final LengineLambdaCommon IS_NAN = PreludeImpl._IS_NAN;
   public static final LengineLambdaCommon IS_STR = PreludeImpl._IS_STR;
   public static final LengineLambdaCommon IS_LIST = PreludeImpl._IS_LIST;
   public static final LengineLambdaCommon IS_SEQ = PreludeImpl._IS_SEQ;
@@ -85,7 +86,9 @@ public class Prelude {
   public static final LengineLambdaCommon HELP = PreludeImpl._HELP;
   public static final LengineLambdaCommon HELP_KEYWORD = PreludeImpl._HELP_KEYWORD;
   public static final LengineLambdaCommon DB_CONN = PreludeImpl._DB_CONN;
+
   public static final Object NIL = Nil.get();
   public static final Object STREAM_NIL = StreamNil.get();
+  public static final Object DOUBLE_NAN = Double.NaN;
 
 }

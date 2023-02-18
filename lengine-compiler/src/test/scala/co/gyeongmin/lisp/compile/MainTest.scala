@@ -43,4 +43,8 @@ class MainTest extends FlatSpec with Matchers {
     execute("channel-module.lg", "gben.concurrency.channel-module")
     execute("ratio-number.lg", "gben.tests.ratio-number")
   }
+
+  "compile examples" should "compile only" in {
+    Main.main(Array("./compile-example/process-membrane.lg"))
+  }
 }

@@ -40,6 +40,7 @@ public class ExportSymbols {
   public static final Field CAST_STR_FIELD;
   public static final Field CAST_INT_FIELD;
   public static final Field CAST_DOUBLE_FIELD;
+  public static final Field NAN_FIELD;
   public static final Field CAST_CHARACTER_FIELD;
   public static final Field CAST_LIST_FIELD;
   public static final Field CAST_SEQ_FIELD;
@@ -49,6 +50,7 @@ public class ExportSymbols {
   public static final Field IS_CHAR_FIELD;
   public static final Field IS_INT_FIELD;
   public static final Field IS_DOUBLE_FIELD;
+  public static final Field IS_NAN_FIELD;
   public static final Field IS_STR_FIELD;
   public static final Field IS_LIST_FIELD;
   public static final Field IS_SEQ_FIELD;
@@ -126,6 +128,7 @@ public class ExportSymbols {
       CAST_STR_FIELD = Prelude.class.getField("CAST_STR");
       CAST_INT_FIELD = Prelude.class.getField("CAST_INT");
       CAST_DOUBLE_FIELD = Prelude.class.getField("CAST_DOUBLE");
+      NAN_FIELD = Prelude.class.getField("DOUBLE_NAN");
       CAST_CHARACTER_FIELD = Prelude.class.getField("CAST_CHARACTER");
       CAST_LIST_FIELD = Prelude.class.getField("CAST_LIST");
       CAST_SEQ_FIELD = Prelude.class.getField("CAST_SEQ");
@@ -133,6 +136,7 @@ public class ExportSymbols {
       IS_CHAR_FIELD = Prelude.class.getField("IS_CHAR");
       IS_INT_FIELD = Prelude.class.getField("IS_INT");
       IS_DOUBLE_FIELD = Prelude.class.getField("IS_DOUBLE");
+      IS_NAN_FIELD = Prelude.class.getField("IS_NAN");
       IS_STR_FIELD = Prelude.class.getField("IS_STR");
       IS_LIST_FIELD = Prelude.class.getField("IS_LIST");
       IS_SEQ_FIELD = Prelude.class.getField("IS_SEQ");

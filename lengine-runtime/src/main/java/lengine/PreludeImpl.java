@@ -6,6 +6,7 @@ import lengine.functions.LengineLambda0;
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
+import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
 import lengine.runtime.LengineIterable;
@@ -264,6 +265,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_CHAR = (obj) -> isInstanceOf(Character.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_INT = (obj) -> isInstanceOf(Long.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_DOUBLE = (obj) -> isInstanceOf(Double.class, obj);
+    public static final LengineLambda1<Boolean, Double> _IS_NAN = (dbl) -> Double.isNaN(dbl);
     public static final LengineLambda1<Boolean, Object> _IS_STR = (obj) -> isInstanceOf(LengineString.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_LIST = (obj) -> isInstanceOf(LengineList.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
