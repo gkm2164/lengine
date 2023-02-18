@@ -1,22 +1,51 @@
-(module ProcessMembrane2)
+(module process-membrane-2)
 
-(import gben.libs.module.split)
-(import gben.libs.module.map)
-(import gben.libs.module.filter)
+(import std.split)
+(import std.split-at)
+(import std.map)
+(import std.filter)
+(import std.filter-not)
+(import std.file-stream)
+
+(fn n-th (n xs)
+    (if (= 0 n) (head xs)
+        (n-th (- n 1) (tail xs))))
+
+(fn split-at (xs delim)
+    (^((acc xs)
+      (case ((nil? xs) (seq [(nil> xs) (nil> xs)]))
+            ((= (head xs) delim) (seq [acc (tail xs)]))
+            default ($ (+: acc (head xs)) (tail xs))))
+    (nil> xs) xs))
+
+(fn line-stream (char-stream)
+    #(if (nil? char-stream) 'nil
+         (let ((got (split-at char-stream #\Linefeed))
+                (value (n-th 0 got))
+                (remains (n-th 1 got)))
+               ('cons (fold value "" +) (line-stream remains)))))
 
 ;;; Read file in Sequence type
-(def file-sequence (read-file-seq "./102521_membrane_GC_cell_lines.csv"))
+(def fs (file-stream "./102521_membrane_GC_cell_lines.csv"))
+(def ls (line-stream fs))
+(def file-sequence (stream ls))
 
-;;; Now the sequence type can be folded.
-(def head-values (fold file-sequence nil (^ (acc elem)
-                                            (let ((commas (split elem #\,)))
-                                                 (+: acc (head commas))))))
+(fn head-values-unresolved (line-stream)
+    #(if (nil? line-stream) 'nil
+         (let ((line (head line-stream))
+               (value (head (split line #\,))))
+              ('cons value (head-values-unresolved (tail line-stream))))))
 
-(def numbers (map (^ (x) (double x))
-                  (filter (drop 1 head-values)
-                          (^ (x) (and (/= x "NaN") (/= x "EOF"))))))
+(def head-values (take 1270 (stream (head-values-unresolved file-sequence))))
 
-(println numbers)
+(fn parse-double? (x)
+    (try (do (double x) return true)
+     (recover e false)))
+
+(fn non-nan? (x) (not (nan? x)))
+
+(def all-double (map double (filter head-values parse-double?)))
+(def numbers (filter-not all-double nan?))
 
 (def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))

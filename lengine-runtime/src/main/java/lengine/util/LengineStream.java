@@ -45,7 +45,8 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
     if (this instanceof StreamNil) {
       return cons(item, NIL());
     } else if (this instanceof StreamCons) {
-      return cons(((StreamCons) this).getValue(), ((StreamCons) this).getNext().ADD(item));
+      StreamCons _cons = (StreamCons)this;
+      return cons(_cons.getValue(), _cons.getNext().ADD(item));
     } else {
       return ((UnresolvedStream) this).force().ADD(item);
     }

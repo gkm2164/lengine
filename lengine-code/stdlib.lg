@@ -1,11 +1,11 @@
 (module std)
 
-(fn take-loop (acc n xs)
-    (case ((nil? xs) acc)
-              ((= 0 n) acc)
-              default ($ (+: acc (head xs)) (- n 1) (tail xs))))
-
-(export take ^((n xs) (take-loop (nil> xs) n xs)))
+(export take ^((n xs)
+    (^((acc n xs)
+       (case ((nil? xs) acc)
+             ((= 0 n) acc)
+             default ($ (+: acc (head xs)) (- n 1) (tail xs))))
+     (nil> xs) n xs)))
 
 (export drop ^((n xs)
                (case ((nil? xs) xs)
@@ -37,7 +37,8 @@
                              (t (tail xs)))
                             (if (/= h delim)
                                 ($ acc (+ buf h) t delim)
-                                ($ (+: acc buf) "" t delim))))) (seq nil) "" s delim)))
+                                ($ (+: acc buf) "" t delim)))))
+                (seq nil) "" s delim)))
 
 (export compose ^((f g)
                   ^((x) (f (g x)))))
@@ -88,16 +89,16 @@
                           return 'nil)
             ('cons ch (file-stream-reader handle)))))
 
-(export file-ch-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
+(export file-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
 
 (def eof (char -1))
 
-(export read-through ^((chs)
+(export read-through ^((any-stream)
     (^((acc chs)
        (let ((h (head chs)))
             (if (= h eof) acc
                 ($ (+ acc h) (tail chs)))))
-     "" chs)))
+     "" any-stream)))
 
 (export take-while ^((p xs)
     (^((acc p xs)
@@ -106,4 +107,4 @@
                 (if (p h) ($ (+: acc h) p (tail xs)) acc))))
      (nil> xs) p xs)))
 
-(export read-line ^(() (to-string (take-while ^((ch) (/= ch #\Linefeed)) (stdin-stream)))))
+(export read-line ^((any-stream) (to-string (take-while ^((ch) (/= ch #\Linefeed)) (any-stream)))))
