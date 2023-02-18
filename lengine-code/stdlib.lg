@@ -1,0 +1,109 @@
+(module std)
+
+(fn take-loop (acc n xs)
+    (case ((nil? xs) acc)
+              ((= 0 n) acc)
+              default ($ (+: acc (head xs)) (- n 1) (tail xs))))
+
+(export take ^((n xs) (take-loop (nil> xs) n xs)))
+
+(export drop ^((n xs)
+               (case ((nil? xs) xs)
+                     ((= 0 n) xs)
+                     default ($ (- n 1) (tail xs)))))
+
+(export map ^((f xs)
+              (loop for x in xs
+                    (f x))))
+
+(export to-string ^((xs) (fold xs "" +)))
+
+(export fold-right ^((xs init f)
+                     (fold xs
+                           init
+                           ^((acc elem)
+                             (f elem acc)))))
+
+(export >+ ^((xs x) (++ (+: (nil> xs) x) xs)))
+(export +< ^((xs x) (+: xs x)))
+
+(export reverse ^((xs) (fold xs (nil> xs) >+)))
+
+(export split ^((s delim)
+                (^((acc buf xs delim)
+                   (if (nil? xs)
+                       (+: acc buf)
+                       (let ((h (head xs))
+                             (t (tail xs)))
+                            (if (/= h delim)
+                                ($ acc (+ buf h) t delim)
+                                ($ (+: acc buf) "" t delim))))) (seq nil) "" s delim)))
+
+(export compose ^((f g)
+                  ^((x) (f (g x)))))
+
+(export fact ^((n)
+               (if (> n 1)
+                   (* n ($ (- n 1)))
+                   1)))
+
+(export reduce ^((xs f) (fold (tail xs) (+< (nil> xs) (head xs)) f)))
+
+(export debug ^((x)
+    (do (println x)
+        return x)))
+
+(export join ^((xs delim)
+               (fold (tail xs)
+                     (head xs)
+                    ^((acc elem) (format "%s%s%s" [acc delim elem])))))
+
+(export filter ^((xs p) (fold xs (nil> xs) ^((acc elem) (if (p elem) (+< acc elem) acc)))))
+
+(export filter-not ^((xs p) (filter xs ^((x) (not (p x))))))
+
+(export contains ^((chs ch)
+                   (if (nil? chs)
+                       false
+                       (let ((h (head chs))
+                             (t (tail chs)))
+                            (if (= h ch)
+                                true
+                                ($ t ch))))))
+
+(export flatten (lambda (xs)
+  (if (nil? xs) (nil> xs)
+      (let ((h (head xs)))
+               (if (seq? h) (++ ($ h) ($ (tail xs)))
+                   (++ (seq [h]) ($ (tail xs))))))))
+
+(fn stdin-stream-maker ()
+    #('cons (read-char) (stdin-stream-maker)))
+
+(export stdin-stream ^(() (stream (stdin-stream-maker))))
+
+(fn file-stream-reader (handle)
+    #(let ((ch (:get-char handle)))
+        (if (= ch -1) (do (:close handle)
+                          return 'nil)
+            ('cons ch (file-stream-reader handle)))))
+
+(export file-ch-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
+
+(def eof (char -1))
+
+(export read-through ^((chs)
+    (^((acc chs)
+       (let ((h (head chs)))
+            (if (= h eof) acc
+                ($ (+ acc h) (tail chs)))))
+     "" chs)))
+
+(export take-while ^((p xs)
+    (^((acc p xs)
+       (if (nil? xs) (nil> xs)
+           (let ((h (head xs)))
+                (if (p h) ($ (+: acc h) p (tail xs)) acc))))
+     (nil> xs) p xs)))
+
+(export read-line ^(() (to-string (take-while ^((ch) (/= ch #\Linefeed)) (stdin-stream)))))
