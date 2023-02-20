@@ -60,6 +60,8 @@ object LispToken {
     case "try"                                 => Right(LispTry())
     case "catch"                               => Right(LispCatch())
     case "recover"                             => Right(LispRecover())
+    case "when"                                => Right(LispWhen())
+    case "otherwise"                           => Right(LispOtherwise())
     case SpecialValueRegex(body)               => Right(SpecialToken(body))
     case NumberRegex(sign, num)                => Right(IntegerNumber(parseInteger(sign, num)))
     case v @ FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))

@@ -113,6 +113,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       new LispFnAsmWriter(genDef).writeValue()
     case v: LispErrorHandler =>
       mv.visitLispValue(LispClause(List(GeneralLispFunc(Nil, v))), typeToBe)
+    case v: LispForWhenStmt =>
+      new LispForWhenAsmWriter(v).writeValue(typeToBe, tailRecReference)
   }
 
   private def declareSequence(body: List[LispValue]): Unit = {

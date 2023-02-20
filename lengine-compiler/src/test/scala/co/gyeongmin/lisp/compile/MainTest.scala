@@ -22,11 +22,12 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile and no death!" in {
+    execute("for-when.lg", "gben.tests.for-when")
     execute("lazy-symbol.lg", "gben.tests.lazy-symbol")
     execute("hello.lg", "gben.tests.hello")
     execute("boolean.lg", "gben.tests.boolean")
     execute("runtime.lg", "gben.libs.runtime")
-    execute("map.lg", "gben.tests.map-test")
+    execute("lengine-objects.lg", "gben.tests.lengine-objects")
     execute("math.lg", "gben.libs.math")
     execute("module.lg", "gben.libs.module")
     execute("complex-number.lg", "gben.tests.complex-number")

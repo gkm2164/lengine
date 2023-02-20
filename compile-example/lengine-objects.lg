@@ -1,4 +1,4 @@
-(module gben.tests.map-test)
+(module gben.tests.lengine-objects)
 
 ;;; Object is defined with brace.
 ;;; Each key is mapped to value

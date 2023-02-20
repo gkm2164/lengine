@@ -4,17 +4,9 @@ import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
-import lengine.util.{
-  Addable,
-  Buildable,
-  CollectionBuilder,
-  Cons,
-  LengineList,
-  LengineMap,
-  LengineMapKey,
-  Nillable,
-  Wrap
-}
+import lengine.util.{Addable, Buildable, CollectionBuilder, Cons, LengineList, LengineMap, LengineMapKey, Nillable, Wrap}
+
+import java.util.Objects
 
 object LengineType {
   val VoidPrimitive: Class[Void]                     = java.lang.Void.TYPE
@@ -33,6 +25,7 @@ object LengineType {
   val StringArrayClass: Class[Array[java.lang.String]]         = classOf[Array[java.lang.String]]
   val LengineStringClass: Class[LengineString]                 = classOf[LengineString]
   val ObjectClass: Class[Object]                               = classOf[Object]
+  val ObjectsClass: Class[Objects]                             = classOf[Objects]
   val JavaMapClass: Class[java.util.Map[_, _]]                 = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]]         = classOf[java.util.HashMap[_, _]]
   val ArrayObjectClass: Class[Array[Object]]                   = classOf[Array[Object]]

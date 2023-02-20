@@ -230,6 +230,21 @@ package object parser {
       _ <- takeToken[RightPar]
     } yield LispErrorHandler(tryBody, recoveryBody)
 
+  private def parseForWhen: LispTokenState[LispForWhenStmt] =
+    for {
+      value <- parseValue
+      _     <- takeToken[LispWhen]
+      whens <- many(for {
+        _         <- takeToken[LeftPar]
+        whenValue <- parseValue
+        thenValue <- parseValue
+        _         <- takeToken[RightPar]
+      } yield LispWhenStmt(whenValue, thenValue))
+      _         <- takeToken[LispOtherwise]
+      otherwise <- parseValue
+      _         <- takeToken[RightPar]
+    } yield LispForWhenStmt(value, whens, otherwise)
+
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)
     case LispLet() #:: tail => parseLetClause(tail)
@@ -255,6 +270,7 @@ package object parser {
     case LispNs() #:: tail     => parseNamespace(tail)
     case LispCase() #:: tail   => parseCase(tail)
     case RightPar() #:: tail   => LispTokenState(LispUnit)(tail)
+    case LispFor() #:: tail    => parseForWhen(tail)
     case last =>
       (for {
         res <- many(parseValue)

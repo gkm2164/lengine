@@ -1,0 +1,14 @@
+(module gben.tests.for-when)
+
+(def xs "901348sjodef209348")
+
+(fn test-for-when (xs)
+    (if (nil? xs) (nil> xs)
+        (do (for (head xs)
+             when (#\0 (println "It's 0"))
+                  (#\1 (println "It's 1"))
+             otherwise (println (+ "Unknown symbol: " (head xs))))
+            return ($ (tail xs)))))
+
+
+(test-for-when xs)

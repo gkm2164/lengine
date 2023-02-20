@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispErrorHandler, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef}
+import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispErrorHandler, LispForStmt, LispForWhenStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef, LispWhenStmt}
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
@@ -8,7 +8,17 @@ import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 
+import scala.annotation.tailrec
+
 object FunctionAnalyzer {
+  @tailrec
+  private def captureWhenStmt(capture: LengineVarCapture, whenStmt: List[LispWhenStmt]): Unit = whenStmt match {
+    case Nil =>
+    case LispWhenStmt(whenValue, thenValue) :: tail =>
+      captureUnknownVariables(capture, whenValue)
+      captureUnknownVariables(capture, thenValue)
+      captureWhenStmt(capture, tail)
+  }
 
   /**
     * This method is to visit AST and identify which variable is not able to find.
@@ -83,6 +93,10 @@ object FunctionAnalyzer {
         captureUnknownVariables(captureVariables, cond)
         captureUnknownVariables(captureVariables, value)
         captureUnknownVariables(captureVariables, LispCaseStmt(tail, fallback))
+      case LispForWhenStmt(value, whenStmt, otherwise) =>
+        captureUnknownVariables(captureVariables, value)
+        captureWhenStmt(captureVariables, whenStmt)
+        captureUnknownVariables(captureVariables, otherwise)
     }
   }
 
@@ -112,6 +126,9 @@ object FunctionAnalyzer {
       isTailRecursion(itself, body)
     case LispLoopStmt(head :: tail, body) if !itself.contains(head.symbol) && head.symbol != EagerSymbol("$") =>
       isTailRecursion(itself, LispLoopStmt(tail, body))
+    case LispForWhenStmt(_, Nil, otherwise) => isTailRecursion(itself, otherwise)
+    case LispForWhenStmt(value, LispWhenStmt(_, thenValue) :: whens, otherwise) =>
+      isTailRecursion(itself, thenValue) || isTailRecursion(itself, LispForWhenStmt(value, whens, otherwise))
     case _ => false
   }
 }

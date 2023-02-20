@@ -20,7 +20,7 @@ package object compile {
     } else {
       clsName
     }
-    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null, "java/lang/Object", null)
+    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null, Type.getType(ObjectClass).getInternalName, null)
     cw.visitSource(sourceFileName, null)
     writeCsInitMethod(cw, qualifiedName)
     writeInitMethod(cw)
