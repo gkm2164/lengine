@@ -73,8 +73,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
           mv.visitAStore(idx)
           runtimeEnv.registerVariable(symbol, idx, ObjectClass)
       }
-      new LispValueAsmWriter(body, ObjectClass)
-        .visitForValue(tailRecReference = tailRecReference)
+      mv.visitLispValue(body, ObjectClass, tailRecReference)
       for (elem <- decls) {
         runtimeEnv.deregisterVariable(elem.name)
       }
@@ -92,8 +91,10 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLoadVariable(ref, typeToBe)
     case ref: LispSymbol =>
       throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
+    case l @ LispClause(operation :: body) if RuntimeMethodVisitor.supportOperation(operation) =>
+      RuntimeMethodVisitor.handle(operation:: body, typeToBe, tailRecReference)
     case l @ LispClause(_) =>
-      new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
+      mv.visitLispClause(l, typeToBe, tailRecReference)
     case ref @ LispValueDef(symbol, _) if runtimeEnv.hasVar(symbol) =>
       throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
     case LispValueDef(symbol, value) =>

@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
+import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ SupportedFunctions, SupportedVars }
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{Type, _}
+import org.objectweb.asm.{ Type, _ }
 import org.objectweb.asm.Opcodes._
 
 import java.lang.reflect.Field
@@ -14,6 +14,11 @@ object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
 
   class MethodVisitorWrapper(mv: MethodVisitor) {
+    def visitLispClause(l: LispClause, typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
+        implicit runtimeEnvironment: LengineRuntimeEnvironment
+    ): Unit =
+      new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
+
     def visitRatioNumber(over: Long, under: Long): Unit = {
       mv.visitLdcInsn(over)
       mv.visitLdcInsn(under)
@@ -26,7 +31,8 @@ object AsmHelper {
       )
     }
 
-    def visitComplexNumber(real: LispNumber, imagine: LispNumber)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    def visitComplexNumber(real: LispNumber,
+                           imagine: LispNumber)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
       visitLispValue(real, typeToBe = NumberClass)
       visitLispValue(imagine, typeToBe = NumberClass)
       visitStaticMethodCall(
@@ -142,9 +148,8 @@ object AsmHelper {
         start: Label,
         end: Label,
         handler: Label
-      ): Unit = {
+    ): Unit =
       mv.visitTryCatchBlock(start, end, handler, Type.getType(ExceptionClass).getInternalName)
-    }
 
     def visitString(str: String): Unit = {
       mv.visitLdcInsn(str)
@@ -220,14 +225,17 @@ object AsmHelper {
 
     def visitSpecialMethodCall(owner: Class[_], methodName: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKESPECIAL,
-        Type.getType(owner).getInternalName,
-        methodName,
-        retType,
-        args,
-        interface = false)
+                            Type.getType(owner).getInternalName,
+                            methodName,
+                            retType,
+                            args,
+                            interface = false)
 
     private def visitGetStaticField(owner: Class[_], fieldName: String, descriptor: Class[_]): Unit = {
-      mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, fieldName, Type.getType(descriptor).getDescriptor)
+      mv.visitFieldInsn(GETSTATIC,
+                        Type.getType(owner).getInternalName,
+                        fieldName,
+                        Type.getType(descriptor).getDescriptor)
       stackSizeTrace.incrementAndGet()
     }
 
@@ -281,8 +289,8 @@ object AsmHelper {
     }
 
     def visitArrayAssignWithLispValues(
-                                        values: Seq[LispValue]
-                                      )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
+        values: Seq[LispValue]
+    )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
       values.zipWithIndex.foreach {
         case (value, idx) =>
           visitDup()
@@ -299,7 +307,7 @@ object AsmHelper {
       }
 
     def visitLispValue(value: LispValue, typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)] = None)(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
+        implicit runtimeEnvironment: LengineRuntimeEnvironment
     ): Unit =
       new LispValueAsmWriter(value, typeToBe).visitForValue(tailRecReference)
 
@@ -323,9 +331,8 @@ object AsmHelper {
       stackSizeTrace.incrementAndGet()
     }
 
-    def visitSwap(): Unit = {
+    def visitSwap(): Unit =
       mv.visitInsn(Opcodes.SWAP)
-    }
   }
 
   object MethodVisitorWrapper {
