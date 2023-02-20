@@ -59,7 +59,12 @@
                      (head xs)
                     ^((acc elem) (format "%s%s%s" [acc delim elem])))))
 
-(export filter ^((xs p) (fold xs (nil> xs) ^((acc elem) (if (p elem) (+< acc elem) acc)))))
+(export filter ^((xs p)
+    (^((acc xs p)
+      (case ((nil? xs) xs)
+            ((p (head xs)) ($ (+< acc (head xs)) (tail xs) p))
+            default ($ acc (tail xs) p)))
+    (nil> xs) xs p)))
 
 (export filter-not ^((xs p) (filter xs ^((x) (not (p x))))))
 

@@ -84,23 +84,6 @@ public class LeafSequence extends LengineSequence {
   }
 
   @Override
-  public LengineSequence take(long n) {
-    if (this.list.size() <= n) {
-      return this;
-    }
-
-    return new LeafSequence(this.list.subList(0, (int)Math.max(n, this.list.size())));
-  }
-
-  @Override
-  public LengineSequence drop(long n) {
-    if (this.list.size() >= n) {
-      return new LeafSequence(this.list.subList((int)n, this.list.size()));
-    }
-    return new LeafSequence();
-  }
-
-  @Override
   public int hashCode() {
     return list.hashCode();
   }

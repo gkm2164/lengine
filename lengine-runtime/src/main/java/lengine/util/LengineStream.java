@@ -47,9 +47,12 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
     } else if (this instanceof StreamCons) {
       StreamCons _cons = (StreamCons)this;
       return cons(_cons.getValue(), _cons.getNext().ADD(item));
-    } else {
-      return ((UnresolvedStream) this).force().ADD(item);
+    } else if (this instanceof UnresolvedStream) {
+      UnresolvedStream _this = (UnresolvedStream) this;
+      return UnresolvedStream.create(LengineLazyValue.create(() -> _this.force().ADD(item)));
     }
+
+    throw new RuntimeException("Unidentified stream type");
   }
 
   @Override

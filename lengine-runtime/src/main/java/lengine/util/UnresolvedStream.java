@@ -11,7 +11,7 @@ public class UnresolvedStream extends LengineStream {
   }
 
   public LengineStream force() {
-    return (LengineStream) provider.invoke();
+    return (LengineStream) provider.force();
   }
 
   public static UnresolvedStream create(LengineLazyValue lazyValue) {

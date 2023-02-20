@@ -197,7 +197,7 @@ public class PreludeImpl {
     }
 
     public static final LengineLambda1<Object, LengineIterable> _HEAD = LengineIterable::head;
-    public static final LengineLambda1<LengineIterable, LengineIterable> _TAIL = (seq) -> _DROP.invoke(1L, seq);
+    public static final LengineLambda1<LengineIterable, LengineIterable> _TAIL = LengineIterable::tail;
     public static final LengineLambda3<Object, LengineIterable, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
         LengineIterator it = seq.iterator();
         while (it.hasNext()) {
@@ -315,19 +315,10 @@ public class PreludeImpl {
     public static final LengineLambda1<LengineObjectType, LengineString> _READ_FILE = LengineFileReader::createFileReader;
 
     public static final LengineLambda2<LengineIterable, LengineIterable, Object> _APPEND_ITEM = (coll, elem) -> {
-        if (coll instanceof LengineList) {
-            LengineList head = (LengineList) coll;
-            return head.add(elem);
-        } else if (coll instanceof LengineSequence) {
-            return ((LengineSequence) coll).add(elem);
+        if (coll instanceof Addable<?>) {
+            return ((Addable<?>)coll).ADD(elem);
         } else if (coll instanceof LengineMap) {
             return ((LengineMap) coll).putEntry((LengineMapEntry) elem);
-        } else if (coll instanceof LengineSet) {
-            return ((LengineSet) coll).add(elem);
-        } else if (coll instanceof LengineString) {
-            return ((LengineString)coll).add(elem);
-        } else if (coll instanceof LengineStream) {
-            return ((LengineStream)coll).ADD(elem);
         }
 
         throw new RuntimeException("currently not supporting the operation");

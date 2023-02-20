@@ -106,10 +106,6 @@ public abstract class LengineSequence implements LengineIterable,
     return !thisIt.hasNext() && !thatIt.hasNext();
   }
 
-  public abstract LengineSequence take(long n);
-
-  public abstract LengineSequence drop(long n);
-
   public abstract int hashCode();
 
   @Override

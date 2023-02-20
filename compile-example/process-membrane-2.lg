@@ -36,16 +36,25 @@
                (value (head (split line #\,))))
               ('cons value (head-values-unresolved (tail line-stream))))))
 
-(def head-values (take 1270 (stream (head-values-unresolved file-sequence))))
+(def head-values (stream (head-values-unresolved file-sequence)))
+(println head-values)
 
 (fn parse-double? (x)
     (try (do (double x) return true)
      (recover e false)))
 
-(fn non-nan? (x) (not (nan? x)))
+(println "step 1")
+(def filtered-head-values (filter head-values parse-double?))
 
-(def all-double (map double (filter head-values parse-double?)))
+(println "step 2")
+(def all-double (map double filtered-head-values))
+
+(println "step 3")
+(println all-double)
+
 (def numbers (filter-not all-double nan?))
+
+(println "?!@#$")
 
 (def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))

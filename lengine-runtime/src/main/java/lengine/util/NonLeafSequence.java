@@ -55,26 +55,6 @@ public class NonLeafSequence extends LengineSequence {
   }
 
   @Override
-  public LengineSequence take(long n) {
-    LengineSequence leftSeq = this.left.take(n);
-    long size = leftSeq.len();
-    if (size == n) {
-      return leftSeq;
-    }
-
-    LengineSequence rightSeq = this.right.take(n - size);
-    return new NonLeafSequence(leftSeq, rightSeq);
-  }
-
-  @Override
-  public LengineSequence drop(long n) {
-    if (this.left.len() <= n) {
-      return this.right.drop(n - this.left.len());
-    }
-    return new NonLeafSequence(this.left.drop(n), this.right);
-  }
-
-  @Override
   public int hashCode() {
     return this.left.hashCode() * (int) Math.pow(31, this.left.len()) + this.right.hashCode();
   }

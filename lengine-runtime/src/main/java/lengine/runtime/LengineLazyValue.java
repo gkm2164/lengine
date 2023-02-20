@@ -11,17 +11,17 @@ public class LengineLazyValue implements LengineLambda0<Object> {
     }
 
     public Object force() {
-      return invoke();
+      if (value != null) {
+        return value;
+      }
+
+      value = resolver.invoke();
+      return value;
     }
 
     @Override
     public Object invoke() {
-        if (value != null) {
-            return value;
-        }
-
-        value = resolver.invoke();
-        return value;
+        return force();
     }
 
     public boolean isResolved() {
