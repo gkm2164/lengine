@@ -49,8 +49,6 @@
 ;;; Show until resolved values
 (println fibs)
 
-(import std.filter)
-
 (println (inf-take 10 (inf-stream 0)))
 
 (println (inf-take 15 facts))
