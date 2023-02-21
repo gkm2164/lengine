@@ -4,6 +4,7 @@ import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineIterator;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -35,4 +36,13 @@ public class StreamReaderWrapper implements LengineIterable {
   public LengineIterable tail() {
     throw new RuntimeException("Unsupported operation");
   }
+
+    @Override
+    public Boolean IS_NIL() {
+        try {
+            return !stream.ready();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

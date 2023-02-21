@@ -75,4 +75,9 @@ public class LengineString implements LengineIterable, Nillable<LengineString>, 
     public LengineStringBuilder BUILDER() {
         return new LengineStringBuilder();
     }
+
+    @Override
+    public Boolean IS_NIL() {
+        return this.value.equals("");
+    }
 }

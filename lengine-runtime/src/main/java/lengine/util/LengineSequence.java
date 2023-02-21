@@ -119,4 +119,9 @@ public abstract class LengineSequence implements LengineIterable,
     iterator().forEachRemaining(list::add);
     return new LeafSequence(list);
   }
+
+  @Override
+  public Boolean IS_NIL() {
+    return len() == 0;
+  }
 }

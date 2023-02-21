@@ -100,4 +100,9 @@ public abstract class LengineMap implements LengineIterable, LengineObjectType, 
     );
     return new LeafMap(list);
   }
+
+  @Override
+  public Boolean IS_NIL() {
+    return this.len() == 0;
+  }
 }

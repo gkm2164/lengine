@@ -62,4 +62,9 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
   public LengineStreamBuilder BUILDER() {
     return new LengineStreamBuilder();
   }
+
+  @Override
+  public Boolean IS_NIL() {
+    return this instanceof StreamNil;
+  }
 }

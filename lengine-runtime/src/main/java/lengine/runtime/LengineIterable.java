@@ -5,4 +5,5 @@ public interface LengineIterable {
   Long len();
   Object head();
   LengineIterable tail();
+  Boolean IS_NIL();
 }

@@ -55,15 +55,15 @@
 
 (println facts)
 
-(fn filter-stream (p xs)
-    (case (('unresolved? xs) (stream #(filter-stream p (xs))))
-          (('nil? xs) xs)
-          ((p (head xs)) ('cons (head xs) (filter-stream p (tail xs))))
-          default (filter-stream p (tail xs))))
+(fn 'filter (p xs)
+    (case (('unresolved? xs) (stream #('filter p (xs))))
+          ((nil? xs) xs)
+          ((p (head xs)) ('cons (head xs) ('filter p (tail xs))))
+          default ('filter p (tail xs))))
 
-(fn map-stream (f xs)
-    (case (('unresolved? xs) (stream #(map-stream f (xs))))
-          (('nil? xs) (nil> xs))
-          default ('cons (f (head xs)) (map-stream f (tail xs)))))
+(fn 'map (f xs)
+    (case (('unresolved? xs) (stream #('map f (xs))))
+          ((nil? xs) (nil> xs))
+          default ('cons (f (head xs)) ('map f (tail xs)))))
 
-(println (take 100 (map-stream ^((x) (+ x 10)) (filter-stream ^((x) (< x 100)) fibs))))
+(println (take 100 ('map ^((x) (+ x 10)) ('filter ^((x) (< x 100)) fibs))))

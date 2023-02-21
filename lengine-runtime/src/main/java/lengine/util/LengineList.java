@@ -134,4 +134,9 @@ public abstract class LengineList implements LengineIterable,
   public LengineList WRAP() {
       return this;
   }
+
+  @Override
+  public Boolean IS_NIL() {
+    return this instanceof Nil;
+  }
 }

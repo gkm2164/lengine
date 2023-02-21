@@ -53,6 +53,11 @@ public class RangeSequence implements
   }
 
   @Override
+  public Boolean IS_NIL() {
+    return from == to;
+  }
+
+  @Override
   public LengineSequence NIL() {
     return LeafSequence.create();
   }

@@ -113,4 +113,9 @@ public abstract class LengineSet implements LengineIterable,
     iterator().forEachRemaining(set::add);
     return new LeafSet(set);
   }
+
+  @Override
+  public Boolean IS_NIL() {
+    return this.len() == 0;
+  }
 }
