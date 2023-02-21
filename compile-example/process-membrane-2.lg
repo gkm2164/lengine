@@ -36,8 +36,8 @@
     (case ((nil? line-stream) 'nil)
           (('unresolved? line-stream) (stream #(head-values-unresolved (line-stream))))
           default (let ((line (head line-stream))
-                 (value (head (split line #\,))))
-                ('cons value (head-values-unresolved (tail line-stream))))))
+                        (value (head (split line #\,))))
+                       ('cons value (head-values-unresolved (tail line-stream))))))
 
 (def head-values (stream (head-values-unresolved file-sequence)))
 (println head-values)
