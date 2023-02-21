@@ -55,8 +55,6 @@
 
 (println facts)
 
-(import std.filter)
-
 (fn filter-stream (p xs)
     (case (('unresolved? xs) (stream #(filter-stream p (xs))))
           (('nil? xs) xs)
