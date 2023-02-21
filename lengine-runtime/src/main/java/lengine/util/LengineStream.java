@@ -30,6 +30,8 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
   public static LengineStream create(Object obj) {
     if (obj instanceof LengineLazyValue) {
       return new UnresolvedStream((LengineLazyValue) obj);
+    } else if (obj instanceof LengineStream) {
+      return (LengineStream) obj;
     }
 
     return cons(obj, StreamNil.get());
@@ -45,8 +47,9 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
     if (this instanceof StreamNil) {
       return cons(item, NIL());
     } else if (this instanceof StreamCons) {
-      StreamCons _cons = (StreamCons)this;
-      return cons(_cons.getValue(), _cons.getNext().ADD(item));
+      StreamCons _this = (StreamCons)this;
+      LengineStream _next = _this.getNext().ADD(item);
+      return cons(_this.getValue(), _next);
     } else if (this instanceof UnresolvedStream) {
       UnresolvedStream _this = (UnresolvedStream) this;
       return UnresolvedStream.create(LengineLazyValue.create(() -> _this.force().ADD(item)));

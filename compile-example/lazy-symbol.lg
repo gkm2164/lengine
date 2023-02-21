@@ -54,3 +54,18 @@
 (println (inf-take 15 facts))
 
 (println facts)
+
+(import std.filter)
+
+(fn filter-stream (p xs)
+    (case (('unresolved? xs) (stream #(filter-stream p (xs))))
+          (('nil? xs) xs)
+          ((p (head xs)) ('cons (head xs) (filter-stream p (tail xs))))
+          default (filter-stream p (tail xs))))
+
+(fn map-stream (f xs)
+    (case (('unresolved? xs) (stream #(map-stream f (xs))))
+          (('nil? xs) (nil> xs))
+          default ('cons (f (head xs)) (map-stream f (tail xs)))))
+
+(println (take 100 (map-stream ^((x) (+ x 10)) (filter-stream ^((x) (< x 100)) fibs))))

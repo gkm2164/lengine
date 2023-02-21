@@ -47,6 +47,7 @@ object LengineType {
     classOf[LengineLambda8[_, _, _, _, _, _, _, _, _]],
     classOf[LengineLambda9[_, _, _, _, _, _, _, _, _, _]],
     classOf[LengineLambda10[_, _, _, _, _, _, _, _, _, _, _]],
+    classOf[LengineLambda11[_, _, _, _, _, _, _, _, _, _, _, _]]
   )
   val LengineLazyValueClass: Class[LengineLazyValue]       = classOf[LengineLazyValue]
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]

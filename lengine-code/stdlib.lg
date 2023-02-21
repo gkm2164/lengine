@@ -60,11 +60,11 @@
                     ^((acc elem) (format "%s%s%s" [acc delim elem])))))
 
 (export filter ^((xs p)
-    (^((acc xs p)
-      (case ((nil? xs) xs)
-            ((p (head xs)) ($ (+< acc (head xs)) (tail xs) p))
-            default ($ acc (tail xs) p)))
-    (nil> xs) xs p)))
+    (^((acc xs)
+      (case ((nil? xs) acc)
+            ((p (head xs)) ($ (+< acc (head xs)) (tail xs)))
+            default ($ acc (tail xs))))
+    (nil> xs) xs)))
 
 (export filter-not ^((xs p) (filter xs ^((x) (not (p x))))))
 

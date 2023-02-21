@@ -1,11 +1,12 @@
 package lengine.runtime;
 
 import lengine.util.Addable;
+import lengine.util.Buildable;
 import lengine.util.Nillable;
 
 import java.util.Objects;
 
-public class LengineString implements LengineIterable, Nillable<LengineString>, Addable<LengineString> {
+public class LengineString implements LengineIterable, Nillable<LengineString>, Addable<LengineString>, Buildable<LengineString, LengineStringBuilder> {
     private final String value;
 
     public LengineString(String value) {
@@ -68,5 +69,10 @@ public class LengineString implements LengineIterable, Nillable<LengineString>, 
     @Override
     public LengineString NIL() {
         return LengineString.create("");
+    }
+
+    @Override
+    public LengineStringBuilder BUILDER() {
+        return new LengineStringBuilder();
     }
 }

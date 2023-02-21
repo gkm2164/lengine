@@ -13,13 +13,13 @@
 
 (fn split-at (xs delim)
     (^((acc xs)
-      (case ((nil? xs) (seq [(nil> xs) (nil> xs)]))
+      (case (('nil? xs) (seq [(nil> xs) (nil> xs)]))
             ((= (head xs) delim) (seq [acc (tail xs)]))
             default ($ (+: acc (head xs)) (tail xs))))
     (nil> xs) xs))
 
 (fn line-stream (char-stream)
-    #(if (nil? char-stream) 'nil
+    #(if ('nil? char-stream) 'nil
          (let ((got (split-at char-stream #\Linefeed))
                 (value (n-th 0 got))
                 (remains (n-th 1 got)))
@@ -27,11 +27,12 @@
 
 ;;; Read file in Sequence type
 (def fs (file-stream "./102521_membrane_GC_cell_lines.csv"))
-(def ls (line-stream fs))
-(def file-sequence (stream ls))
+(println (take 10 fs))
+(def file-sequence (stream (line-stream fs)))
+(println (take 10 file-sequence))
 
 (fn head-values-unresolved (line-stream)
-    #(if (nil? line-stream) 'nil
+    #(if ('nil? line-stream) 'nil
          (let ((line (head line-stream))
                (value (head (split line #\,))))
               ('cons value (head-values-unresolved (tail line-stream))))))
@@ -44,20 +45,42 @@
      (recover e false)))
 
 (println "step 1")
-(def filtered-head-values (filter head-values parse-double?))
+(fn filter-stream (p xs)
+    (case (('unresolved? xs) (stream #(filter-stream p (xs))))
+          (('nil? xs) xs)
+          ((p (head xs)) ('cons (head xs) (filter-stream p (tail xs))))
+          default (filter-stream p (tail xs))))
+
+(fn map-stream (f xs)
+    (case (('unresolved? xs) (stream #(map-stream f (xs))))
+          (('nil? xs) (nil> xs))
+          default ('cons (f (head xs)) (map-stream f (tail xs)))))
+
+(def filtered-head-values (filter-stream parse-double? head-values))
+
+(println (take 10 filtered-head-values))
 
 (println "step 2")
-(def all-double (map double filtered-head-values))
+
+(def all-double (map-stream double filtered-head-values))
+
+(println (take 10 all-double))
 
 (println "step 3")
 (println all-double)
 
-(def numbers (filter-not all-double nan?))
+(fn non-nan? (x) (not (nan? x)))
 
-(println "?!@#$")
+(def numbers (filter-stream non-nan? all-double))
+
+(println (take 10 numbers))
+
+(println (len numbers))
 
 (def sum (fold numbers 0.0 +))
-(def avg (/ sum (len numbers)))
+(def length (fold numbers 0 ^((acc e) (+ acc 1))))
+(println length)
+(def avg (/ sum length))
 
 (println sum)
 (println avg)

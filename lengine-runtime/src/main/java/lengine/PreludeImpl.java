@@ -274,7 +274,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) -> isInstanceOf(Nil.class, obj) || isInstanceOf(StreamNil.class, obj) || _LEN.invoke(obj) == 0;
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
-    public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj);
+    public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj) && !((UnresolvedStream)obj).isResolved();
     public static final LengineLambda1<Boolean, Object> _IS_STREAM = (obj) -> isInstanceOf(LengineStream.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_SET = (obj) -> isInstanceOf(LengineSet.class, obj);
     public static final LengineLambda1<LengineIterable, Nillable<?>> _GET_NIL = Nillable::NIL;
@@ -296,6 +296,8 @@ public class PreludeImpl {
             return LengineStream.cons(value, (StreamCons) tail);
         } else if (tail instanceof StreamNil) {
             return LengineStream.cons(value, (StreamNil) tail);
+        } else if (tail instanceof UnresolvedStream) {
+            return LengineStream.cons(value, (UnresolvedStream) tail);
         }
 
         throw new RuntimeException("Unable to concatenate to stream:" + tail);

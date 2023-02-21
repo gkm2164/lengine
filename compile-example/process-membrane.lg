@@ -8,9 +8,14 @@
 (import std.read-through)
 
 (def all-data     (read-through (file-stream "./102521_membrane_GC_cell_lines.csv")))
+(println (take 10 all-data))
 (def first-values (map ^((x) (head (split x #\,))) (split all-data #\Linefeed)))
-(def only-double  (filter first-values ^((x) (try (do (double x) return true) (recover e false)))))
+(println (take 10 first-values))
+(fn can-double? (x) (try (do (double x) return true) (recover e false)))
+(def only-double  (filter first-values can-double?))
+(println (take 10 only-double))
 (def numbers      (filter-not (map double only-double) nan?))
+(println (take 10 numbers))
 
 (def sum (fold numbers 0.0 +))
 (def avg (/ sum (len numbers)))

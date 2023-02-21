@@ -1,9 +1,10 @@
 package lengine.util;
 
+import lengine.functions.LengineLambda0;
 import lengine.runtime.LengineIterable;
 import lengine.runtime.LengineLazyValue;
 
-public class UnresolvedStream extends LengineStream {
+public class UnresolvedStream extends LengineStream implements LengineLambda0<LengineStream> {
   private final LengineLazyValue provider;
 
   UnresolvedStream(LengineLazyValue provider) {
@@ -14,12 +15,20 @@ public class UnresolvedStream extends LengineStream {
     return (LengineStream) provider.force();
   }
 
+  public boolean isResolved() {
+    return this.provider.isResolved();
+  }
+
   public static UnresolvedStream create(LengineLazyValue lazyValue) {
     return new UnresolvedStream(lazyValue);
   }
 
   @Override
   public Long len() {
+    if (isResolved()) {
+      return force().len();
+    }
+
     return 1L;
   }
 
@@ -40,5 +49,10 @@ public class UnresolvedStream extends LengineStream {
     } else {
       return "...";
     }
+  }
+
+  @Override
+  public LengineStream invoke() {
+    return force();
   }
 }
