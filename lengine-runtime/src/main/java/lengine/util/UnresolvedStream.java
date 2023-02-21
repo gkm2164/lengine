@@ -25,11 +25,7 @@ public class UnresolvedStream extends LengineStream implements LengineLambda0<Le
 
   @Override
   public Long len() {
-    if (isResolved()) {
-      return force().len();
-    }
-
-    return 1L;
+    return force().len();
   }
 
   @Override
