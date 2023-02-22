@@ -51,7 +51,13 @@ public class LengineClassLoader {
                 Method importSymbol = foundMethodOptional.get();
                 return importSymbol.invoke(null, LengineString.create(symbolName));
             }
-        } catch (ClassNotFoundException | InvocationTargetException | IllegalAccessException e) {
+        } catch (InvocationTargetException e) {
+            if (e.getCause() instanceof RuntimeException) {
+                throw (RuntimeException) e.getCause();
+            } else {
+                throw new RuntimeException(e);
+            }
+        } catch (ClassNotFoundException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
     }

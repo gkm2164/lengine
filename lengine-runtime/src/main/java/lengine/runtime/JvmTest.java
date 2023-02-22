@@ -66,6 +66,17 @@ public class JvmTest {
       z = e;
     }
 
+    String k = "1234";
+    String l = "23456";
+
+    String m = k + l;
+    System.out.println(m);
+
+    if (z == null) {
+      System.out.println("!??");
+      throw new RuntimeException();
+    }
+
     stream.println(z);
 
     final int xyz = 10;

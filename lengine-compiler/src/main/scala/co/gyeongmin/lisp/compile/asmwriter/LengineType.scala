@@ -58,4 +58,6 @@ object LengineType {
   val CollectionBuilderClass: Class[CollectionBuilder[_]]  = classOf[CollectionBuilder[_]]
   val LengineExceptionClass: Class[LengineException]       = classOf[LengineException]
   val ExceptionClass: Class[Exception]                     = classOf[Exception]
+  val RuntimeExceptionClass: Class[RuntimeException]       = classOf[RuntimeException]
+  val StringBuilderClass: Class[java.lang.StringBuilder]   = classOf[java.lang.StringBuilder]
 }

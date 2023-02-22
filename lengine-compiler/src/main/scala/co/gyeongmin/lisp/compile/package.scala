@@ -184,6 +184,49 @@ package object compile {
       ObjectClass,
       ObjectClass
     )
+    mv.visitDup()
+    val exitLabel = new Label()
+    mv.visitIfNonNull(exitLabel)
+
+    mv.visitNew(RuntimeExceptionClass)
+    mv.visitDup()
+
+    mv.visitNew(StringBuilderClass)
+    mv.visitDup()
+    mv.visitSpecialMethodCall(StringBuilderClass, "<init>", VoidPrimitive)
+    mv.visitLdcInsn("No such exported value found: ")
+    mv.visitMethodCall(
+      StringBuilderClass,
+      "append",
+      StringBuilderClass,
+      StringClass
+    )
+    mv.visitALoad(0)
+    mv.visitMethodCall(
+      LengineStringClass,
+      "toString",
+      StringClass
+    )
+    mv.visitMethodCall(
+      StringBuilderClass,
+      "append",
+      StringBuilderClass,
+      StringClass
+    )
+    mv.visitMethodCall(
+      StringBuilderClass,
+      "toString",
+      StringClass
+    )
+    mv.visitSpecialMethodCall(
+      RuntimeExceptionClass,
+      "<init>",
+      VoidPrimitive,
+      StringClass
+    )
+    mv.visitAThrow()
+
+    mv.visitLabel(exitLabel)
     mv.visitAReturn()
     mv.visitMaxs()
     mv.visitEnd()

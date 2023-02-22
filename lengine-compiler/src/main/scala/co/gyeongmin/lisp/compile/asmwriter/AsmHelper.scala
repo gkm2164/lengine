@@ -14,6 +14,14 @@ object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
 
   class MethodVisitorWrapper(mv: MethodVisitor) {
+    def visitAThrow() = {
+      mv.visitInsn(ATHROW)
+    }
+
+    def visitIfNonNull(label: Label): Unit = {
+      mv.visitJumpInsn(IFNONNULL, label)
+    }
+
     def visitLispClause(l: LispClause, typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
         implicit runtimeEnvironment: LengineRuntimeEnvironment
     ): Unit =
