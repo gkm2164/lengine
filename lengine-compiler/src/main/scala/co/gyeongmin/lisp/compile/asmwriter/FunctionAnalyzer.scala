@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispErrorHandler, LispForStmt, LispForWhenStmt, LispLetDecl, LispLetDef, LispLoopStmt, LispValueDef, LispWhenStmt}
-import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.values.boolean._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers._
+import co.gyeongmin.lisp.lexer.values.seq._
+import co.gyeongmin.lisp.lexer.values.symbol._
+import co.gyeongmin.lisp.lexer.values._
 
 import scala.annotation.tailrec
 

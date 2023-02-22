@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol._
 import lengine.runtime.ExportSymbols
 
 import java.lang.reflect.Field

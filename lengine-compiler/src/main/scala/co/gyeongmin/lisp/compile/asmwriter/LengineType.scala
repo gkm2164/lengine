@@ -4,7 +4,7 @@ import lengine.Prelude
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
-import lengine.util.{Addable, Buildable, CollectionBuilder, Cons, LengineList, LengineMap, LengineMapKey, Nillable, Wrap}
+import lengine.util._
 
 import java.util.Objects
 
@@ -63,5 +63,4 @@ object LengineType {
   val WrapClass: Class[Wrap[_]]                            = classOf[Wrap[_]]
   val LengineExceptionClass: Class[LengineException]       = classOf[LengineException]
   val ExceptionClass: Class[Exception]                     = classOf[Exception]
-  val SystemClass: Class[System]                           = classOf[System]
 }

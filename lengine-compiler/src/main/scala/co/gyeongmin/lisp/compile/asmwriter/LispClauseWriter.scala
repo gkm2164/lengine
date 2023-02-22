@@ -1,15 +1,9 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
-  LengineLambdaClass,
-  LengineMapKeyClass,
-  LengineStringClass,
-  ObjectClass
-}
-import co.gyeongmin.lisp.lexer.values.functions.{ GeneralLispFunc, LispFunc }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ObjectReferSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, ObjectClass}
+import co.gyeongmin.lisp.lexer.values.LispClause
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 class LispClauseWriter(clause: LispClause, requestedType: Class[_])(

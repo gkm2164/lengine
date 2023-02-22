@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{AddableClass, BooleanPrimitive, BuildableClass, CollectionBuilderClass, ConsClass, LengineIterableClass, LengineIteratorClass, LengineListClass, NillableClass, ObjectClass, VoidPrimitive, WrapClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.statements.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol

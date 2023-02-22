@@ -29,13 +29,14 @@
 (fn line-stream (char-stream)
     (case ((nil? char-stream) 'nil)
           default (let ((got (split-at char-stream #\Linefeed))
-                (value (n-th 0 got))
-                (remains (n-th 1 got)))
-               ('cons (fold value "" +) #(line-stream remains)))))
+                        (value (n-th 0 got))
+                        (remains (n-th 1 got)))
+                       ('cons (fold value "" +) #(line-stream remains)))))
 
 ;;; Read file in Sequence type
 (def fs (file-stream "./102521_membrane_GC_cell_lines.csv"))
 (println (take 10 fs))
+
 (def file-sequence (stream (line-stream fs)))
 (println (take 10 file-sequence))
 

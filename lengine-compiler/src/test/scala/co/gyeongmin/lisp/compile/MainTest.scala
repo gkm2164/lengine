@@ -2,8 +2,6 @@ package co.gyeongmin.lisp.compile
 
 import org.scalatest.{ FlatSpec, Matchers }
 
-import java.io.{ BufferedReader, InputStreamReader }
-
 class MainTest extends FlatSpec with Matchers {
   def execute(fileName: String, className: String): Unit = {
     println(fileName)

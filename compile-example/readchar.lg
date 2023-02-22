@@ -1,6 +1,0 @@
-(module ReadCharModule)
-
-(import gben.libs.Module.stdin-stream)
-
-(println (head stdin-stream))
-(println (head (tail stdin-stream)))

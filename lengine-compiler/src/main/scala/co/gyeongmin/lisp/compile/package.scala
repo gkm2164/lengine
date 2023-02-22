@@ -3,7 +3,7 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, CompileException, LengineRuntimeEnvironment, LispValueAsmWriter}
+import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Opcodes._
@@ -64,6 +64,13 @@ package object compile {
     })
     mv.visitLabel(endLabel)
     mv.visitReturn()
+    for (elem <- mainRuntimeEnv.writeLaterAllScopeList) {
+      mv.visitLocalVariable(elem._1.name, Type.getDescriptor(elem._2), null, startLabel, endLabel, elem._3)
+    }
+    for (elem <- mainRuntimeEnv.writeLaterList) {
+      val (symbol, typeToBe, start, end, loc) = elem
+      mv.visitLocalVariable(symbol.name, Type.getDescriptor(typeToBe), null, start, end, loc)
+    }
     // Need to give hint to assembly generator for helping decide frame size
     mv.visitLocalVariable("__PADDING__",
       Type.getType(ObjectClass).getDescriptor,

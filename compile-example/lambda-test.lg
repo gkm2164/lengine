@@ -32,9 +32,9 @@
 (fn f (x) (+ x "F"))
 (fn g (x) (+ x "G"))
 (fn h (x) (+ x "H"))
-(fn . (f g) (compose f g))
-(fn ... (fs) (fold fs ^((x) x) .))
-(println ((. (. f g) h) "Text"))
-(println ((... [f g h]) "Another"))
+(fn comp-2 (f g) (compose f g))
+(fn comp-n (fs) (fold fs ^((x) x) comp-2))
+(println ((comp-2 (comp-2 f g) h) "Text"))
+(println ((comp-n [f g h]) "Another"))
 
 (println (fold ["a" "B" "C" "d"] (seq nil) +:))

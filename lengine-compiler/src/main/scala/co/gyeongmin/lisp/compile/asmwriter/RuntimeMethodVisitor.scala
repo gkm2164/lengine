@@ -126,6 +126,7 @@ object RuntimeMethodVisitor {
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
       runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)
+      runtimeEnvironment.writeLaterAllScope(symbol.asInstanceOf[LispSymbol], ObjectClass, loc)
     }
   }
 
@@ -147,6 +148,7 @@ object RuntimeMethodVisitor {
     mv.visitAStore(varLoc)
 
     runtimeMethodVisitor.registerVariable(EagerSymbol(symbolNameComb.name.split('.').last), varLoc, ObjectClass)
+    runtimeMethodVisitor.writeLaterAllScope(EagerSymbol(symbolNameComb.name.split('.').last), ObjectClass, varLoc)
   }
 
   private def visitLazy(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {

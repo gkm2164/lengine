@@ -65,7 +65,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         LengineStringClass
       ) // 1 stack
     case LispLetDef(decls, body) =>
-      mv.visitLabel(new Label())
+      val startLabel = new Label()
+      val endLabel = new Label()
+      mv.visitLabel(startLabel)
       decls.foreach {
         case LispLetDecl(symbol, value) =>
           val idx = runtimeEnv.allocateNextVar
@@ -75,9 +77,13 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       }
       mv.visitLispValue(body, ObjectClass, tailRecReference)
       for (elem <- decls) {
+        runtimeEnv.getVar(elem.name) match {
+          case Some((location, typeToBe)) => runtimeEnv.writeLater(elem.name, typeToBe, startLabel, endLabel, location)
+          case None =>
+        }
         runtimeEnv.deregisterVariable(elem.name)
       }
-      mv.visitLabel(new Label())
+      mv.visitLabel(endLabel)
     case LispImportDef(path) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil),
@@ -103,12 +109,14 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitDup()
       mv.visitAStore(varIdx)
       runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
+      runtimeEnv.writeLaterAllScope(symbol, typeToBe, varIdx)
     case LispFuncDef(symbol, funcDef) =>
       new LispFnAsmWriter(funcDef).writeValue(itself = Some(symbol))
       val fnIdx = runtimeEnv.allocateNextVar
       mv.visitDup()
       mv.visitAStore(fnIdx)
       runtimeEnv.registerVariable(symbol, fnIdx, LengineLambdaClass(funcDef.placeHolders.size))
+      runtimeEnv.writeLaterAllScope(symbol, LengineLambdaClass(funcDef.placeHolders.size), fnIdx)
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
     case v: LispErrorHandler =>

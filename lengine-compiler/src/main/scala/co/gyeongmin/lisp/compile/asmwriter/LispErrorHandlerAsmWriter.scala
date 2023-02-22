@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineExceptionClass, LengineLambdaClass, ObjectClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineExceptionClass}
 import co.gyeongmin.lisp.lexer.statements.{LispErrorHandler, LispRecoverBlock}
 import org.objectweb.asm.Label
 

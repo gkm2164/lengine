@@ -2,6 +2,9 @@
 
 (def start (now))
 
+(let ((x 3))
+    (println x))
+
 (println "=== Declare variables ===")
 (def v 3)
 (def strs "Something Wonderful!")

@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.{ClassWriter, Label}
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
@@ -14,6 +14,19 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val className: String,
                                 val fileName: String,
                                 numberOfArgs: Int) {
+  val writeLaterAllScopeList: mutable.ListBuffer[(LispSymbol, Class[_], Int)] = mutable.ListBuffer()
+  def writeLaterAllScope(symbol: LispSymbol, typeToBe: Class[_], location: Int): Unit = {
+    val tuple = (symbol, typeToBe, location)
+    this.writeLaterAllScopeList += tuple
+  }
+
+
+  val writeLaterList: mutable.ListBuffer[(LispSymbol, Class[_], Label, Label, Int)] = mutable.ListBuffer()
+  def writeLater(name: LispSymbol, typeToBe: Class[_], startLabel: Label, endLabel: Label, location: Int): Unit = {
+    val tuple = (name, typeToBe, startLabel, endLabel, location)
+    writeLaterList += tuple
+  }
+
   var captureVariables: Option[LengineVarCapture] = None
 
   private val varIdx = new AtomicInteger(numberOfArgs)
