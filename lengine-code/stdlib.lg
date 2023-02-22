@@ -32,7 +32,7 @@
 (export split ^((s delim)
                 (^((acc buf xs delim)
                    (if (nil? xs)
-                       (+: acc buf)
+                       (+< acc buf)
                        (let ((h (head xs))
                              (t (tail xs)))
                             (if (/= h delim)

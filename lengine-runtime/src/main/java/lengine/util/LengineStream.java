@@ -6,6 +6,8 @@ import lengine.runtime.LengineLazyValue;
 import lengine.runtime.LengineStreamIterator;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class LengineStream implements LengineIterable, Nillable<LengineStream>, Addable<LengineStream>, Buildable<LengineStream, LengineStreamBuilder> {
   public static LengineStream cons(Object o, LengineStream lengineStream) {
@@ -35,6 +37,13 @@ public abstract class LengineStream implements LengineIterable, Nillable<Lengine
     }
 
     return cons(obj, StreamNil.get());
+  }
+
+  @Override
+  public final Long len() {
+    AtomicLong ai = new AtomicLong();
+    iterator().forEachRemaining(elem -> ai.incrementAndGet());
+    return ai.get();
   }
 
   @Override

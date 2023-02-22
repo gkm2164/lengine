@@ -11,11 +11,6 @@ public class StreamNil extends LengineStream {
   }
 
   @Override
-  public Long len() {
-    return 0L;
-  }
-
-  @Override
   public Object head() {
     throw new RuntimeException("no more items left on the stream");
   }

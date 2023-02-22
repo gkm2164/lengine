@@ -14,6 +14,9 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit runtimeEnvironment: Leng
     (t, u, v) match {
       case (Nil, Nil, Nil)                                  => acc
       case (tHead :: tTail, uHead :: uTail, vHead :: vTail) => zip3(tTail, uTail, vTail, acc :+ (tHead, uHead, vHead))
+      case _ =>
+        println("Unmatched list size!")
+        Nil
     }
 
   def writeValue(typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)]): Unit = {

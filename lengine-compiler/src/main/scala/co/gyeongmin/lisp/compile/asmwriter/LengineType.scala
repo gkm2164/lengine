@@ -63,4 +63,5 @@ object LengineType {
   val WrapClass: Class[Wrap[_]]                            = classOf[Wrap[_]]
   val LengineExceptionClass: Class[LengineException]       = classOf[LengineException]
   val ExceptionClass: Class[Exception]                     = classOf[Exception]
+  val SystemClass: Class[System]                           = classOf[System]
 }

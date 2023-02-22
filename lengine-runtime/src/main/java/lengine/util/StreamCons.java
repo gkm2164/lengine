@@ -9,11 +9,6 @@ public class StreamCons extends LengineStream {
     this.next = next;
   }
 
-  @Override
-  public Long len() {
-    return 1 + next.len();
-  }
-
   public Object head() {
     return value;
   }

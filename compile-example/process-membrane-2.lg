@@ -11,20 +11,27 @@
     (if (= 0 n) (head xs)
         (n-th (- n 1) (tail xs))))
 
-(fn split-at (xs delim)
+(fn 'reverse (xs)
     (^((acc xs)
-      (case ((nil? xs) (seq [(nil> xs) (nil> xs)]))
-            ((= (head xs) delim) (seq [acc (tail xs)]))
-            default ($ (+: acc (head xs)) (tail xs))))
-    (nil> xs) xs))
+        (if (nil? xs) acc
+            ($ ('cons (head xs) acc) (tail xs))))
+      (nil> xs) xs))
+
+(fn split-at-loop (acc xs delim)
+    (case ((nil? xs) [('reverse acc) (nil> xs)])
+            (('unresolved? xs) ($ acc (xs) delim))
+            ((= (head xs) delim) [('reverse acc) (tail xs)])
+            default ($ ('cons (head xs) acc) (tail xs) delim)))
+
+(fn split-at (xs delim)
+    (split-at-loop (nil> xs) xs delim))
 
 (fn line-stream (char-stream)
     (case ((nil? char-stream) 'nil)
-          (('unresolved? char-stream) (stream #(line-stream (char-stream))))
           default (let ((got (split-at char-stream #\Linefeed))
                 (value (n-th 0 got))
                 (remains (n-th 1 got)))
-               ('cons (fold value "" +) (line-stream remains)))))
+               ('cons (fold value "" +) #(line-stream remains)))))
 
 ;;; Read file in Sequence type
 (def fs (file-stream "./102521_membrane_GC_cell_lines.csv"))
@@ -39,41 +46,45 @@
                         (value (head (split line #\,))))
                        ('cons value (head-values-unresolved (tail line-stream))))))
 
-(def head-values (stream (head-values-unresolved file-sequence)))
-(println head-values)
+(def head-values (head-values-unresolved file-sequence))
 
 (fn parse-double? (x)
     (try (do (double x) return true)
      (recover e false)))
 
 (println "step 1")
-(fn filter-stream (p xs)
-    (case (('unresolved? xs) (stream #(filter-stream p (xs))))
-          ((nil? xs) xs)
-          ((p (head xs)) ('cons (head xs) (filter-stream p (tail xs))))
-          default (filter-stream p (tail xs))))
-
-(fn map-stream (f xs)
-    (case (('unresolved? xs) (stream #(map-stream f (xs))))
+(fn 'filter (p xs)
+    (case (('unresolved? xs) (stream #('filter p (xs))))
           ((nil? xs) (nil> xs))
-          default ('cons (f (head xs)) (map-stream f (tail xs)))))
+          ((p (head xs)) ('cons (head xs) ('filter p (tail xs))))
+          default ('filter p (tail xs))))
 
-(def filtered-head-values (filter-stream parse-double? head-values))
+(fn 'filter-not (p xs)
+    ('filter ^((x) (not (p x))) xs))
+
+(fn 'map (f xs)
+    (case (('unresolved? xs) (stream #('map f (xs))))
+          ((nil? xs) (nil> xs))
+          default ('cons (f (head xs)) ('map f (tail xs)))))
+
+(def filtered-head-values ('filter parse-double? head-values))
 
 (println filtered-head-values)
 
 (println "step 2")
-(def all-double (map-stream double filtered-head-values))
-(println all-double)
-
-(println "step 3")
-(fn non-nan? (x) (not (nan? x)))
-
-(def numbers (filter-stream non-nan? all-double))
+(def numbers ('map double filtered-head-values))
 (println numbers)
 
-(def sum (fold numbers 0.0 +))
-(def avg (/ sum (len numbers)))
+(println "step 3")
+(fn calc (acc n xs)
+    (case ((nil? xs) [acc (/ acc n)])
+          ((nan? (head xs)) ($ acc n (tail xs)))
+          default ($ (+ acc (head xs)) (+ n 1) (tail xs))))
+
+(def stat (calc 0.0 0 numbers))
+
+(def sum (head stat))
+(def avg (head (tail stat)))
 
 (println sum)
 (println avg)

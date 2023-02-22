@@ -24,11 +24,6 @@ public class UnresolvedStream extends LengineStream implements LengineLambda0<Le
   }
 
   @Override
-  public Long len() {
-    return force().len();
-  }
-
-  @Override
   public Object head() {
     return force().head();
   }

@@ -58,6 +58,7 @@ package object compile {
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
         case LispClause(EagerSymbol("export") :: _) =>
+        case LispClause(EagerSymbol("jvm-gc") :: _) =>
         case _                                      => mv.visitPop()
       }
     })
