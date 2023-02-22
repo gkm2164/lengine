@@ -15,3 +15,7 @@
 
 (loop for x in (split "Hello,World,This,Is,Real,World" #\,)
     (println x))
+
+(println (:upper "abcdefg"))
+(println (:lower "ABCDEFG"))
+(println (:trim "    abcdefg    "))

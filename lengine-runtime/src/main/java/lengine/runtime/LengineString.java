@@ -2,11 +2,12 @@ package lengine.runtime;
 
 import lengine.util.Addable;
 import lengine.util.Buildable;
+import lengine.util.LengineMapKey;
 import lengine.util.Nillable;
 
 import java.util.Objects;
 
-public class LengineString implements LengineIterable, Nillable<LengineString>, Addable<LengineString>, Buildable<LengineString, LengineStringBuilder> {
+public class LengineString implements LengineIterable, Nillable<LengineString>, Addable<LengineString>, Buildable<LengineString, LengineStringBuilder>, LengineObjectType {
     private final String value;
 
     public LengineString(String value) {
@@ -79,5 +80,21 @@ public class LengineString implements LengineIterable, Nillable<LengineString>, 
     @Override
     public Boolean IS_NIL() {
         return this.value.equals("");
+    }
+
+    @Override
+    public Object get(LengineMapKey key) {
+        switch (key.getKey().value) {
+            case "length":
+                return len();
+            case "lower":
+                return LengineString.create(this.value.toLowerCase());
+            case "upper":
+                return LengineString.create(this.value.toUpperCase());
+            case "trim":
+                return LengineString.create(this.value.trim());
+            default:
+                throw new RuntimeException("Unsupported operation");
+        }
     }
 }

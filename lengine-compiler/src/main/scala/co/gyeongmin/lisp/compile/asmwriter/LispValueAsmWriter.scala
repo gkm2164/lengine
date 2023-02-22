@@ -16,46 +16,58 @@ import scala.annotation.tailrec
 class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeEnv: LengineRuntimeEnvironment) {
   val mv: MethodVisitorWrapper = runtimeEnv.methodVisitor
 
-  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Unit = value match {
+  def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Class[_] = value match {
     case LispTrue() => // 1 stack
       mv.visitIConst1()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
       mv.visitLineForValue(value)
+      BooleanClass
     case LispFalse() => // 1 stack
       mv.visitIConst0()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
       mv.visitLineForValue(value)
+      BooleanClass
     case LispChar(ch) => // 1 stack
       mv.visitSiPush(ch)
       mv.visitBoxing(CharacterClass, CharacterPrimitive)
       mv.visitLineForValue(value)
+      CharacterClass
     case IntegerNumber(n) if n >= 0 && n <= 1 => // 1 stack
       mv.visitLConstN(n.toInt)
       mv.visitBoxing(LongClass, LongPrimitive)
       mv.visitLineForValue(value)
+      LongClass
     case IntegerNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(LongClass, LongPrimitive)
       mv.visitLineForValue(value)
+      LongClass
     case RatioNumber(over, under) =>
       mv.visitRatioNumber(over, under)
+      RatioNumberClass
     case ComplexNumber(real, imagine) =>
       mv.visitComplexNumber(real, imagine)
+      ComplexNumberClass
     case FloatNumber(n) => // 1 stack
       mv.visitLdcInsn(n)
       mv.visitBoxing(DoubleClass, DoublePrimitive)
       mv.visitLineForValue(value)
+      DoubleClass
     case LispString(str) => // 1 stack
       mv.visitString(str)
       mv.visitLineForValue(value)
+      LengineStringClass
     case LispList(body) =>
       declareSequence(body)
+      LengineListClass
     case LispObject(kv) =>
       declareMap(kv)
+      LengineMapClass
     case LispCaseStmt(cases, fallback) =>
       val exitLabel = new Label()
       declareCaseStmt(cases, fallback, exitLabel, tailRecReference = tailRecReference)
       mv.visitLabel(exitLabel)
+      ObjectClass
     case ObjectReferSymbol(key) =>
       mv.visitString(key)
       mv.visitStaticMethodCall(
@@ -64,6 +76,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         LengineMapKeyClass,
         LengineStringClass
       ) // 1 stack
+      LengineMapKeyClass
     case LispLetDef(decls, body) =>
       val startLabel = new Label()
       val endLabel = new Label()
@@ -71,9 +84,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       decls.foreach {
         case LispLetDecl(symbol, value) =>
           val idx = runtimeEnv.allocateNextVar
-          new LispValueAsmWriter(value, ObjectClass).visitForValue()
+          val retType = new LispValueAsmWriter(value, ObjectClass).visitForValue()
           mv.visitAStore(idx)
-          runtimeEnv.registerVariable(symbol, idx, ObjectClass)
+          runtimeEnv.registerVariable(symbol, idx, retType)
       }
       mv.visitLispValue(body, ObjectClass, tailRecReference)
       for (elem <- decls) {
@@ -84,6 +97,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         runtimeEnv.deregisterVariable(elem.name)
       }
       mv.visitLabel(endLabel)
+      ObjectClass
     case LispImportDef(path) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil),
@@ -91,25 +105,31 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
       new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference).writeValue()
+      typeToBe
     case doStmt: LispDoStmt =>
       visitDoBody(doStmt, tailRecReference = tailRecReference)
+      typeToBe
     case ref: LispSymbol if runtimeEnv.hasVar(ref) =>
       mv.visitLoadVariable(ref, typeToBe)
+      typeToBe
     case ref: LispSymbol =>
       throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
-    case l @ LispClause(operation :: body) if RuntimeMethodVisitor.supportOperation(operation) =>
+    case LispClause(operation :: body) if RuntimeMethodVisitor.supportOperation(operation) =>
       RuntimeMethodVisitor.handle(operation:: body, typeToBe, tailRecReference)
+      typeToBe
     case l @ LispClause(_) =>
       mv.visitLispClause(l, typeToBe, tailRecReference)
+      typeToBe
     case ref @ LispValueDef(symbol, _) if runtimeEnv.hasVar(symbol) =>
       throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
     case LispValueDef(symbol, value) =>
       val varIdx = runtimeEnv.allocateNextVar
-      mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
+      val retType = mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
       mv.visitDup()
       mv.visitAStore(varIdx)
-      runtimeEnv.registerVariable(symbol, varIdx, typeToBe)
-      runtimeEnv.writeLaterAllScope(symbol, typeToBe, varIdx)
+      runtimeEnv.registerVariable(symbol, varIdx, retType)
+      runtimeEnv.writeLaterAllScope(symbol, retType, varIdx)
+      typeToBe
     case LispFuncDef(symbol, funcDef) =>
       new LispFnAsmWriter(funcDef).writeValue(itself = Some(symbol))
       val fnIdx = runtimeEnv.allocateNextVar
@@ -117,21 +137,25 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitAStore(fnIdx)
       runtimeEnv.registerVariable(symbol, fnIdx, LengineLambdaClass(funcDef.placeHolders.size))
       runtimeEnv.writeLaterAllScope(symbol, LengineLambdaClass(funcDef.placeHolders.size), fnIdx)
+      LengineLambdaClass(funcDef.placeHolders.size)
     case genDef: GeneralLispFunc =>
       new LispFnAsmWriter(genDef).writeValue()
+      LengineLambdaCommonClass
     case v: LispErrorHandler =>
       mv.visitLispValue(LispClause(List(GeneralLispFunc(Nil, v))), typeToBe)
+      typeToBe
     case v: LispForWhenStmt =>
       new LispForWhenAsmWriter(v).writeValue(typeToBe, tailRecReference)
+      typeToBe
   }
 
   private def declareSequence(body: List[LispValue]): Unit = {
     mv.allocateNewArray(ObjectClass, body.length) // 1 stack
     mv.visitArrayAssignWithLispValues(body)       // 1 stack
     mv.visitStaticMethodCall(
-      LengineList,
+      LengineListClass,
       "create",
-      LengineList,
+      LengineListClass,
       ArrayObjectClass
     ) // 1stack
   }

@@ -213,6 +213,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       argsType.size + 1
     )
 
+    newRuntimeEnvironment.args.foreach {
+      case (symbol, (loc, typeToBe)) =>
+        newRuntimeEnvironment.writeLaterAllScope(symbol, typeToBe, loc)
+    }
+
     newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0, thisLambdaClass)
 
     mv.visitLabel(startLabel)
@@ -240,6 +245,10 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     mv.visitLabel(endLabel)
     mv.visitAReturn()
+    newRuntimeEnvironment.writeLaterAllScopeList.foreach {
+      case (symbol, cls, loc) =>
+        mv.visitLocalVariable(symbol.name, Type.getDescriptor(cls), null, startLabel, endLabel, loc)
+    }
     newRuntimeEnvironment.writeLaterList.foreach {
       case (symbol, cls, start, end, loc) =>
         mv.visitLocalVariable(symbol.name, Type.getDescriptor(cls), null, start, end, loc)

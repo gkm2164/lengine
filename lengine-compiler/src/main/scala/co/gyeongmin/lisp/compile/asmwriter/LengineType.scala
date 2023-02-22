@@ -31,8 +31,6 @@ object LengineType {
   val ArrayObjectClass: Class[Array[Object]]                   = classOf[Array[Object]]
   val CharacterClass: Class[java.lang.Character]               = classOf[Character]
   val PreludeClass: Class[Prelude]                             = classOf[Prelude]
-  val LengineListClass: Class[LengineList]                     = classOf[LengineList]
-  val ConsClass: Class[Cons]                                   = classOf[Cons]
   val LengineMapClass: Class[LengineMap]                       = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]                 = classOf[LengineMapKey]
   val LengineLambdaClass: List[Class[_]] = List(
@@ -51,16 +49,13 @@ object LengineType {
   )
   val LengineLazyValueClass: Class[LengineLazyValue]       = classOf[LengineLazyValue]
   val LengineLambdaCommonClass: Class[LengineLambdaCommon] = classOf[LengineLambdaCommon]
-  val LengineList: Class[LengineList]                      = classOf[LengineList]
+  val LengineListClass: Class[LengineList]                 = classOf[LengineList]
   val LengineIterableClass: Class[LengineIterable]         = classOf[LengineIterable]
   val LengineIteratorClass: Class[LengineIterator]         = classOf[LengineIterator]
   val LengineMapBuilderClass: Class[LengineMap.Builder]    = classOf[LengineMap.Builder]
   val LengineClassLoaderClass: Class[LengineClassLoader]   = classOf[LengineClassLoader]
-  val NillableClass: Class[Nillable[_]]                    = classOf[Nillable[_]]
-  val AddableClass: Class[Addable[_]]                      = classOf[Addable[_]]
   val BuildableClass: Class[Buildable[_, _]]               = classOf[Buildable[_, _]]
   val CollectionBuilderClass: Class[CollectionBuilder[_]]  = classOf[CollectionBuilder[_]]
-  val WrapClass: Class[Wrap[_]]                            = classOf[Wrap[_]]
   val LengineExceptionClass: Class[LengineException]       = classOf[LengineException]
   val ExceptionClass: Class[Exception]                     = classOf[Exception]
 }
