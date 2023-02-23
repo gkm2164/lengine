@@ -36,7 +36,7 @@ package object monad {
     }
 
   implicit class LispTokenStateExtension[A](t: LispTokenState[A]) {
-    def mapValue[B](mapper: (LispToken) => B): LispTokenState[B] = {
+    def mapValue[B](mapper: LispToken => B): LispTokenState[B] = {
       case Stream.Empty => Left(EmptyTokenListError)
       case t #:: next => lispTokenStateMonad.pure(mapper(t))(next)
     }

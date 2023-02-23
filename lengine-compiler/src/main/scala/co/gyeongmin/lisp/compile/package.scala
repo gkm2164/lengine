@@ -3,7 +3,8 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.compile.asmwriter.{AsmHelper, LengineRuntimeEnvironment, LispValueAsmWriter}
+import co.gyeongmin.lisp.compile.asmwriter._
+import co.gyeongmin.lisp.lexer.statements.LispExportDef
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import org.objectweb.asm.Opcodes._
@@ -57,8 +58,7 @@ package object compile {
       mv.visitLabel(thisLabel)
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
-        case LispClause(EagerSymbol("export") :: _) =>
-        case LispClause(EagerSymbol("jvm-gc") :: _) =>
+        case _: LispExportDef =>
         case _                                      => mv.visitPop()
       }
     })

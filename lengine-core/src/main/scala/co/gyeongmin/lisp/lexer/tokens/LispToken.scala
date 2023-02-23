@@ -48,6 +48,8 @@ object LispToken {
     case "ns"                                  => Right(LispNs())
     case "lambda"                              => Right(LispLambda())
     case "import"                              => Right(LispImport())
+    case "export"                              => Right(LispExport())
+    case "native"                              => Right(LispNative())
     case "loop"                                => Right(LispLoop())
     case "for"                                 => Right(LispFor())
     case "in"                                  => Right(LispIn())

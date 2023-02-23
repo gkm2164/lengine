@@ -98,9 +98,24 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       }
       mv.visitLabel(endLabel)
       ObjectClass
-    case LispImportDef(path) =>
+    case LispImportDef(path, true) =>
+      new LispValueAsmWriter(
+        LispClause(EagerSymbol("import") :: EagerSymbol("native") :: path :: Nil),
+        typeToBe
+      ).visitForValue()
+    case LispImportDef(path, false) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("import") :: path :: Nil),
+        typeToBe
+      ).visitForValue()
+    case LispExportDef(symbol, None) =>
+      new LispValueAsmWriter(
+        LispClause(EagerSymbol("export") :: symbol :: Nil),
+        typeToBe
+      ).visitForValue()
+    case LispExportDef(symbol, Some(value)) =>
+      new LispValueAsmWriter(
+        LispClause(EagerSymbol("export") :: symbol :: value :: Nil),
         typeToBe
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>

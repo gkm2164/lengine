@@ -1,20 +1,15 @@
 package co.gyeongmin.lisp
 
 import cats.implicits._
-import co.gyeongmin.lisp.errors.parser.{
-  DeniedKeywordError,
-  EmptyTokenListError,
-  ParseTokenizeError,
-  UnexpectedTokenError
-}
+import co.gyeongmin.lisp.errors.parser._
 import co.gyeongmin.lisp.lexer.statements._
-import co.gyeongmin.lisp.monad._
 import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, LispNumber }
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LispSymbol, ObjectReferSymbol }
-import lexer.values.{ LispClause, LispObject, LispUnit, LispValue, _ }
+import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispObject, LispUnit, LispValue}
+import co.gyeongmin.lisp.monad._
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -155,6 +150,12 @@ package object parser {
     loop(Vector.empty)(tks)
   }
 
+  private def option[A <: LispToken](parser: LispTokenState[A]): LispTokenState[Option[A]] = many(parser).flatMap {
+    case Nil => LispTokenState(None)
+    case v :: Nil => LispTokenState(Some(v))
+    case v :: _ => LispTokenState.error(UnexpectedTokenError(v, "Can't have more than 1"))
+  }
+
   private def parseFor: LispTokenState[LispForStmt] =
     for {
       _      <- takeToken[LispFor]
@@ -200,9 +201,10 @@ package object parser {
 
   private def parseImportStmt: LispTokenState[LispImportDef] =
     for {
+      isNative <- option(takeToken[LispNative])
       d <- parseValue
       _ <- takeToken[RightPar]
-    } yield LispImportDef(d)
+    } yield LispImportDef(d, isNative.isDefined)
 
   private def parseLoopStmt: LispTokenState[LispLoopStmt] =
     for {
@@ -266,6 +268,14 @@ package object parser {
         _ <- takeToken[RightPar]
       } yield d)(tail)
     case LispImport() #:: tail => parseImportStmt(tail)
+    case LispExport() #:: tail =>
+      (for {
+        symbol <- takeToken[LispSymbol]
+        body <- option(for {
+          value <- parseValue
+        } yield value)
+        _ <- takeToken[RightPar]
+      } yield LispExportDef(symbol, body))(tail)
     case LispLoop() #:: tail   => parseLoopStmt(tail)
     case LispNs() #:: tail     => parseNamespace(tail)
     case LispCase() #:: tail   => parseCase(tail)
