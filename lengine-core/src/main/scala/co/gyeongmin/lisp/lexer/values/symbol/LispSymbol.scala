@@ -4,4 +4,9 @@ import co.gyeongmin.lisp.lexer.values.LispValue
 
 trait LispSymbol extends LispValue {
   def name: String
+  def escapeToJvmAsm: String = name.flatMap {
+    case '/' => "_div_"
+    case '.' => "_dot_"
+    case ch  => ch.toString
+  }
 }

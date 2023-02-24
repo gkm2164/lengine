@@ -64,11 +64,11 @@ package object compile {
     mv.visitLabel(endLabel)
     mv.visitReturn()
     for (elem <- mainRuntimeEnv.writeLaterAllScopeList) {
-      mv.visitLocalVariable(elem._1.name, Type.getDescriptor(elem._2), null, startLabel, endLabel, elem._3)
+      mv.visitLocalVariable(elem._1.escapeToJvmAsm, Type.getDescriptor(elem._2), null, startLabel, endLabel, elem._3)
     }
     for (elem <- mainRuntimeEnv.writeLaterList) {
       val (symbol, typeToBe, start, end, loc) = elem
-      mv.visitLocalVariable(symbol.name, Type.getDescriptor(typeToBe), null, start, end, loc)
+      mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(typeToBe), null, start, end, loc)
     }
     // Need to give hint to assembly generator for helping decide frame size
     mv.visitLocalVariable("__PADDING__",
