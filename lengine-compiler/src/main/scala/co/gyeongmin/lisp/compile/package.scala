@@ -5,10 +5,9 @@ import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.Method
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.compile.asmwriter._
 import co.gyeongmin.lisp.lexer.statements.LispExportDef
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ClassWriter, Label, Type}
+import org.objectweb.asm.{ ClassWriter, Label, Type }
 
 import scala.collection.mutable
 
@@ -59,7 +58,7 @@ package object compile {
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
         case _: LispExportDef =>
-        case _                                      => mv.visitPop()
+        case _                => mv.visitPop()
       }
     })
     mv.visitLabel(endLabel)
@@ -73,12 +72,11 @@ package object compile {
     }
     // Need to give hint to assembly generator for helping decide frame size
     mv.visitLocalVariable("__PADDING__",
-      Type.getType(ObjectClass).getDescriptor,
-      null,
-      startLabel,
-      endLabel,
-      mainRuntimeEnv.getLastVarIdx
-    )
+                          Type.getType(ObjectClass).getDescriptor,
+                          null,
+                          startLabel,
+                          endLabel,
+                          mainRuntimeEnv.getLastVarIdx)
     mv.visitMaxs()
     mv.visitEnd()
   }

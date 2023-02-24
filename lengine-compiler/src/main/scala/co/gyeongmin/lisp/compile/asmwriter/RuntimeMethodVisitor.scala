@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
+import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispVar}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
@@ -11,6 +12,7 @@ object RuntimeMethodVisitor {
   private val supportedOps = Set(
     "export",
     "import",
+    "native",
     "if",
     "exit",
     "lazy",
@@ -22,25 +24,6 @@ object RuntimeMethodVisitor {
     case _               => false
   }
 
-  private def visitQuit(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
-    val mv             = runtimeEnvironment.methodVisitor
-    val operand :: Nil = body
-
-    mv.visitLispValue(operand, LongClass)
-    mv.visitDup()
-    mv.visitMethodCall(
-      LongClass,
-      "intValue",
-      Integer.TYPE,
-    )
-    mv.visitStaticMethodCall(
-      classOf[System],
-      "exit",
-      VoidPrimitive,
-      Integer.TYPE
-    )
-  }
-
   def handle(body: List[LispValue], requestedType: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
@@ -50,6 +33,7 @@ object RuntimeMethodVisitor {
         op match {
           case "export" => visitExport(operands)
           case "import" => visitImport(operands)
+          case "native" => visitNative(operands)
           case "if"     => visitIfStmt(operands, requestedType, tailRecReference)
           case "exit"   => visitQuit(operands)
           case "lazy"   => visitLazy(operands)
@@ -147,8 +131,10 @@ object RuntimeMethodVisitor {
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 
-    runtimeMethodVisitor.registerVariable(EagerSymbol(symbolNameComb.name.split('.').last), varLoc, ObjectClass)
-    runtimeMethodVisitor.writeLaterAllScope(EagerSymbol(symbolNameComb.name.split('.').last), ObjectClass, varLoc)
+    val symbolToBeRegistered = EagerSymbol(symbolNameComb.name.split('.').last)
+
+    runtimeMethodVisitor.registerVariable(symbolToBeRegistered, varLoc, ObjectClass)
+    runtimeMethodVisitor.writeLaterAllScope(symbolToBeRegistered, ObjectClass, varLoc)
   }
 
   private def visitLazy(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
@@ -172,6 +158,46 @@ object RuntimeMethodVisitor {
       LengineLazyValueClass,
       "force",
       ObjectClass,
+    )
+  }
+
+
+  private def visitQuit(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    val mv = runtimeEnvironment.methodVisitor
+    val operand :: Nil = body
+
+    mv.visitLispValue(operand, LongClass)
+    mv.visitDup()
+    mv.visitMethodCall(
+      LongClass,
+      "intValue",
+      Integer.TYPE,
+    )
+    mv.visitStaticMethodCall(
+      classOf[System],
+      "exit",
+      VoidPrimitive,
+      Integer.TYPE
+    )
+  }
+
+  private def visitNative(operands: List[LispValue])(
+    implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
+    val symbol :: objectType :: Nil = operands
+    val symbolName = symbol.asInstanceOf[LispSymbol].name
+
+    val expectingType = objectType match {
+      case LispFn() => LengineLambdaCommonClass
+      case LispVar() => ObjectClass
+    }
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    mv.visitGetStatic(
+      PreludeClass,
+      symbolName,
+      expectingType
     )
   }
 }

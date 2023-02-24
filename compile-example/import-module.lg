@@ -1,5 +1,8 @@
 (module gben.tests.import-module)
 
+(export fold (native FOLD fn))
+(export custom-nil-import (native NIL var))
+
 (import gben.libs.math.fact)
 (import gben.libs.math.sum)
 (import gben.libs.math.product)

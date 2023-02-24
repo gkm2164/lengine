@@ -44,6 +44,7 @@ object LispToken {
     case "^"                                   => Right(LispLambda())
     case "def"                                 => Right(LispDef())
     case "fn"                                  => Right(LispFn())
+    case "var"                                 => Right(LispVar())
     case "let"                                 => Right(LispLet())
     case "ns"                                  => Right(LispNs())
     case "lambda"                              => Right(LispLambda())

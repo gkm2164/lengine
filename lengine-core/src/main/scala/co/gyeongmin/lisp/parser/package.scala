@@ -201,10 +201,9 @@ package object parser {
 
   private def parseImportStmt: LispTokenState[LispImportDef] =
     for {
-      isNative <- option(takeToken[LispNative])
       d <- parseValue
       _ <- takeToken[RightPar]
-    } yield LispImportDef(d, isNative.isDefined)
+    } yield LispImportDef(d)
 
   private def parseLoopStmt: LispTokenState[LispLoopStmt] =
     for {
@@ -247,6 +246,12 @@ package object parser {
       _         <- takeToken[RightPar]
     } yield LispForWhenStmt(value, whens, otherwise)
 
+  private def parseNative: LispTokenState[LispValue] = for {
+    canonicalName <- takeToken[LispSymbol]
+    objectType <- takeToken[LispDataType]
+    _ <- takeToken[RightPar]
+  } yield LispNativeStmt(canonicalName, objectType)
+
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)
     case LispLet() #:: tail => parseLetClause(tail)
@@ -281,6 +286,7 @@ package object parser {
     case LispCase() #:: tail   => parseCase(tail)
     case RightPar() #:: tail   => LispTokenState(LispUnit)(tail)
     case LispFor() #:: tail    => parseForWhen(tail)
+    case LispNative() #:: tail => parseNative(tail)
     case last =>
       (for {
         res <- many(parseValue)
