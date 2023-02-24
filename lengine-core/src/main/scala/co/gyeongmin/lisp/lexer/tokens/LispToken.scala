@@ -19,10 +19,10 @@ trait LispToken {
 
 object LispToken {
   private val digitMap: Map[Char, Int]      = mapFor('0' to '9', x => x -> (x - '0'))
-  private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z\-+/*%<>=?][.a-zA-Z0-9\-+/*%<>=?]*\*?)""".r
-  private val SymbolRegex: Regex            = """([$.a-zA-Z\-+/*%<>=?:][$.a-zA-Z0-9\-+/*%<>=?:]*\*?)""".r
-  private val LazySymbolRegex: Regex        = """('[$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*)""".r
-  private val ListSymbolRegex: Regex        = """([$.a-zA-Z\-+/*%<>=?][$.a-zA-Z0-9\-+/*%<>=?]*\*)""".r
+  private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z_\-+/*%<>=?][.a-zA-Z0-9_\-+/*%<>=?]*\*?)""".r
+  private val SymbolRegex: Regex            = """([$.a-zA-Z_\-+/*%<>=?:][$.a-zA-Z0-9_\-+/*%<>=?:]*\*?)""".r
+  private val LazySymbolRegex: Regex        = """('[$.a-zA-Z_\-+/*%<>=?][$.a-zA-Z0-9_\-+/*%<>=?]*)""".r
+  private val ListSymbolRegex: Regex        = """([$.a-zA-Z_\-+/*%<>=?][$.a-zA-Z0-9_\-+/*%<>=?]*\*)""".r
   private val SpecialValueRegex: Regex      = """#(.+)""".r
   private val NumberRegex: Regex            = """([+\-])?(\d+)""".r
   private val RatioRegex: Regex             = """([+\-]?)(\d+)/(\d+)""".r

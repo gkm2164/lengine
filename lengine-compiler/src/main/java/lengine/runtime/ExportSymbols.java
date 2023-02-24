@@ -37,6 +37,7 @@ public class ExportSymbols {
   public static final Field ASSERT_FALSE_FIELD;
   public static final Field ASSERT_EQUALS_FIELD;
   public static final Field ASSERT_NOT_EQUALS_FIELD;
+  public static final Field CAST_BOOLEAN_FIELD;
   public static final Field CAST_STR_FIELD;
   public static final Field CAST_INT_FIELD;
   public static final Field CAST_DOUBLE_FIELD;
@@ -125,6 +126,7 @@ public class ExportSymbols {
       ASSERT_FALSE_FIELD = Prelude.class.getField("ASSERT_FALSE");
       ASSERT_EQUALS_FIELD = Prelude.class.getField("ASSERT_EQUALS");
       ASSERT_NOT_EQUALS_FIELD = Prelude.class.getField("ASSERT_NOT_EQUALS");
+      CAST_BOOLEAN_FIELD = Prelude.class.getField("CAST_BOOLEAN");
       CAST_STR_FIELD = Prelude.class.getField("CAST_STR");
       CAST_INT_FIELD = Prelude.class.getField("CAST_INT");
       CAST_DOUBLE_FIELD = Prelude.class.getField("CAST_DOUBLE");

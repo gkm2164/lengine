@@ -37,6 +37,7 @@ public class Prelude {
   public static final LengineLambdaCommon ASSERT_FALSE = PreludeImpl._ASSERT_FALSE;
   public static final LengineLambdaCommon ASSERT_EQUALS = PreludeImpl._ASSERT_EQUALS;
   public static final LengineLambdaCommon ASSERT_NOT_EQUALS = PreludeImpl._ASSERT_NOT_EQUALS;
+  public static final LengineLambdaCommon CAST_BOOLEAN = PreludeImpl._CAST_BOOLEAN;
   public static final LengineLambdaCommon CAST_STR = PreludeImpl._CAST_STR;
   public static final LengineLambdaCommon CAST_INT = PreludeImpl._CAST_INT;
   public static final LengineLambdaCommon CAST_DOUBLE = PreludeImpl._CAST_DOUBLE;

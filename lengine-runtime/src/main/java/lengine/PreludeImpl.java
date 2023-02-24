@@ -253,6 +253,7 @@ public class PreludeImpl {
         return UNIT;
     };
     public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
+    public static final LengineLambda1<Boolean, Object> _CAST_BOOLEAN = PreludeImpl::castBoolean;
     public static final LengineLambda1<LengineString, Object> _CAST_STR = PreludeImpl::castString;
     public static final LengineLambda1<Long, Object> _CAST_INT = PreludeImpl::castLong;
     public static final LengineLambda1<Double, Object> _CAST_DOUBLE = PreludeImpl::castDouble;
@@ -479,6 +480,16 @@ public class PreludeImpl {
         }
 
         throw new LengineTypeMismatchException(from, ComplexNumber.class);
+    }
+
+    private static Boolean castBoolean(Object o) {
+        switch (o.toString()) {
+            case "true":
+                return true;
+            case "false":
+                return false;
+        }
+        throw new RuntimeException("Can't convert " + o.toString() + " into boolean type");
     }
 
     private static LengineString castString(Object from) {
