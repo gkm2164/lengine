@@ -16,5 +16,14 @@
 (println (join (seq ["a" "b" "c" "d"]) "."))
 
 (import prelude./)
+(import prelude.'nil)
+(import prelude.nan?)
+(import prelude.&)
+(import prelude.|)
+(import prelude.~)
 
 (println (/ 3 5))
+
+(println (& 3 5))
+(println (| 3 5))
+(println (~ 3))

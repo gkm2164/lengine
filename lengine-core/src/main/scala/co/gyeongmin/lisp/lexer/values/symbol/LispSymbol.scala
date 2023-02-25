@@ -7,6 +7,7 @@ trait LispSymbol extends LispValue {
   def escapeToJvmAsm: String = name.flatMap {
     case '/' => "_div_"
     case '.' => "_dot_"
+    case '\'' => "_quote_"
     case ch  => ch.toString
   }
 }

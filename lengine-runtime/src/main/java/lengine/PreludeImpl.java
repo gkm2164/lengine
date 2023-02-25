@@ -37,12 +37,12 @@ import lengine.util.LengineMapKey;
 import lengine.util.LengineSequence;
 import lengine.util.LengineSet;
 import lengine.util.LengineStream;
-import lengine.util.Nil;
 import lengine.util.Nillable;
 import lengine.util.StreamCons;
 import lengine.util.StreamNil;
 import lengine.util.UnresolvedStream;
 import lengine.util.Wrap;
+import scala.Char;
 
 import java.util.LinkedList;
 import java.util.Objects;
@@ -307,7 +307,7 @@ public class PreludeImpl {
     public static final LengineLambda1<LengineSet, LengineMap> _KEYS = LengineMap::keys;
     public static final LengineLambda2<LengineMapEntry, LengineMapKey, Object> _ENTRY = LengineMapEntry::create;
     public static final LengineLambda1<LengineSequence, LengineMap> _ENTRIES = LengineMap::entries;
-    public static final LengineLambda1<LengineString, LengineMapKey> _GET = LengineMapKey::getKey;
+    public static final LengineLambda1<LengineString, LengineMapKey> _OBJECT_GET = LengineMapKey::getKey;
 
     public static final LengineLambda0<Character> _READ_CHAR = () -> {
         LengineObjectType fr = LengineFileReader.createFileReader(System.in);
@@ -393,6 +393,48 @@ public class PreludeImpl {
     static final LengineLambda2<LengineString, LengineObjectHasHelp, LengineMapKey> _HELP_KEYWORD = LengineObjectHasHelp::help;
     static final LengineLambda1<LengineLambda0<LengineUnit>, LengineMap> _LISTEN = HttpServerBuilder::listen;
     static final LengineLambda3<LengineMap, LengineString, LengineString, LengineString> _DB_CONN = DBConn::connect;
+
+    static final LengineLambda2<Object, Object, Object> _BYTE_AND = (_a, _b) -> {
+        Class<?> largerType = getLargerType(_a.getClass(), _b.getClass());
+        Object a = cast(_a, largerType);
+        Object b = cast(_b, largerType);
+
+        if (a instanceof Boolean) {
+            return _AND.invoke((Boolean) _a, (Boolean) _b);
+        } else if (a instanceof Character) {
+            return (Character)a & (Character) b;
+        } else if (a instanceof Long) {
+            return (Long)a & (Long) b;
+        }
+
+        throw new RuntimeException("operation & cannot be applied");
+    };
+    static final LengineLambda2<Object, Object, Object> _BYTE_OR = (_a, _b) -> {
+        Class<?> largerType = getLargerType(_a.getClass(), _b.getClass());
+        Object a = cast(_a, largerType);
+        Object b = cast(_b, largerType);
+
+        if (a instanceof Boolean) {
+            return _OR.invoke((Boolean) _a, (Boolean) _b);
+        } else if (a instanceof Character) {
+            return (Character)a | (Character) b;
+        } else if (a instanceof Long) {
+            return (Long)a | (Long) b;
+        }
+
+        throw new RuntimeException("operation ~ cannot be applied");
+    };
+    static final LengineLambda1<Object, Object> _BYTE_NEG = (a) -> {
+        if (a instanceof Boolean) {
+            return _NOT.invoke((Boolean) a);
+        } else if (a instanceof Character) {
+            return ~(Character) a;
+        } else if (a instanceof Long) {
+            return ~(Long) a;
+        }
+
+        throw new RuntimeException("operation ~ cannot be applied");
+    };
 
 
 

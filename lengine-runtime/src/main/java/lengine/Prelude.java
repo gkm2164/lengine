@@ -66,7 +66,7 @@ public class Prelude {
   public static final LengineLambdaCommon KEYS = PreludeImpl._KEYS;
   public static final LengineLambdaCommon ENTRY = PreludeImpl._ENTRY;
   public static final LengineLambdaCommon ENTRIES = PreludeImpl._ENTRIES;
-  public static final LengineLambdaCommon GET = PreludeImpl._GET;
+  public static final LengineLambdaCommon OBJECT_GET = PreludeImpl._OBJECT_GET;
   public static final LengineLambdaCommon READ_CHAR = PreludeImpl._READ_CHAR;
   public static final LengineLambdaCommon READ_FILE = PreludeImpl._READ_FILE;
   public static final LengineLambdaCommon APPEND_ITEM = PreludeImpl._APPEND_ITEM;
@@ -87,6 +87,11 @@ public class Prelude {
   public static final LengineLambdaCommon HELP = PreludeImpl._HELP;
   public static final LengineLambdaCommon HELP_KEYWORD = PreludeImpl._HELP_KEYWORD;
   public static final LengineLambdaCommon DB_CONN = PreludeImpl._DB_CONN;
+
+  public static final LengineLambdaCommon BYTE_AND = PreludeImpl._BYTE_AND;
+  public static final LengineLambdaCommon BYTE_OR = PreludeImpl._BYTE_OR;
+  public static final LengineLambdaCommon BYTE_NEG = PreludeImpl._BYTE_NEG;
+
 
   public static final Object NIL = Nil.get();
   public static final Object STREAM_NIL = StreamNil.get();

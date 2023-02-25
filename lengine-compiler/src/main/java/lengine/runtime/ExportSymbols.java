@@ -68,7 +68,7 @@ public class ExportSymbols {
   public static final Field KEYS_FIELD;
   public static final Field ENTRY_FIELD;
   public static final Field ENTRIES_FIELD;
-  public static final Field GET_FIELD;
+  public static final Field OBJECT_GET_FIELD;
   public static final Field READ_CHAR_FIELD;
   public static final Field READ_FILE_CHAR_FIELD;
   public static final Field READ_FILE_FIELD;
@@ -156,7 +156,7 @@ public class ExportSymbols {
       KEYS_FIELD = Prelude.class.getField("KEYS");
       ENTRY_FIELD = Prelude.class.getField("ENTRY");
       ENTRIES_FIELD = Prelude.class.getField("ENTRIES");
-      GET_FIELD = Prelude.class.getField("GET");
+      OBJECT_GET_FIELD = Prelude.class.getField("OBJECT_GET");
       READ_CHAR_FIELD = Prelude.class.getField("READ_CHAR");
       READ_FILE_CHAR_FIELD = Prelude.class.getField("READ_FILE");
       READ_FILE_FIELD = Prelude.class.getField("READ_FILE");
