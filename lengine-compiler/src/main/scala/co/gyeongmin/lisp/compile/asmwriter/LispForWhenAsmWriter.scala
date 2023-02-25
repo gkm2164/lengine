@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ObjectClass, ObjectsClass}
 import co.gyeongmin.lisp.lexer.statements.{LispForWhenStmt, LispWhenStmt}
-import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
@@ -27,29 +27,31 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit runtimeEnvironment: Leng
     val toLabels                                 = allLabels.tail :+ otherwiseLabel
     val exitLabel                                = new Label
 
+    val startLabel = new Label()
+    val targetValueLoc = runtimeEnvironment.allocateNextVar
+    runtimeEnvironment.writeLater(EagerSymbol(value.hashCode().toHexString), ObjectClass, startLabel, exitLabel, targetValueLoc)
     mv.visitLispValue(value, ObjectClass) // For target [S]
+    mv.visitAStore(targetValueLoc)
 
     zip3(whens, allLabels, toLabels) foreach {
       case (LispWhenStmt(value, thenValue), currentLabel, nextLabel) =>
         mv.visitLabel(currentLabel)
-        mv.visitDup()                         // [S, S]
-        mv.visitLispValue(value, ObjectClass) // [S, S, V]
+        mv.visitALoad(targetValueLoc)
+        mv.visitLispValue(value, ObjectClass) // [S, V]
         mv.visitStaticMethodCall(
           ObjectsClass,
           "equals",
           BooleanPrimitive,
           ObjectClass,
           ObjectClass
-        )                                                        // [S, Z]
-        mv.visitIfEq(nextLabel)                                  // [S]
-        mv.visitLispValue(thenValue, typeToBe, tailRecReference) // [S L]
+        )                                                        // [Z]
+        mv.visitIfEq(nextLabel)                                  // []
+        mv.visitLispValue(thenValue, typeToBe, tailRecReference) // [L]
         mv.visitGoto(exitLabel)
     }
 
     mv.visitLabel(otherwiseLabel)
-    mv.visitLispValue(otherwise, typeToBe, tailRecReference) // [S, V]
+    mv.visitLispValue(otherwise, typeToBe, tailRecReference) // [V]
     mv.visitLabel(exitLabel)
-    mv.visitSwap()
-    mv.visitPop()
   }
 }

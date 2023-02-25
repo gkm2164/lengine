@@ -49,8 +49,8 @@
 (def head-values (head-values-unresolved file-sequence))
 
 (fn parse-double? (x)
-    (try (do (double x) return true)
-     (recover e false)))
+  (try (do (double x) return true)
+    (recover e false)))
 
 (println "step 1")
 (fn 'filter (p xs)

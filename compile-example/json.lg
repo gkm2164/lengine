@@ -103,16 +103,17 @@
           default [nil nil]))
 
 (fn parse-array (acc s pv)
-    (case ((nil? s) [acc s])
-          ((= (head s) #\Space) ($ acc (tail s) pv))
-          ((= (head s) #\,)  ($ acc (tail s) pv))
-          ((= (head s) #\Linefeed) ($ acc (tail s) pv))
-          ((= (head s) #\]) [acc (tail s)])
-          default (let
+  (if (nil? s) [acc s]
+    (for (head s)
+     when (#\Space    ($ acc (tail s) pv))
+          (#\,        ($ acc (tail s) pv))
+          (#\Linefeed ($ acc (tail s) pv))
+          (#\]        [acc (tail s)])
+     otherwise (let
             ((parsed (pv s))
              (value (head parsed))
              (remains (head (tail parsed))))
-            ($ (+: acc value) remains pv))))
+            ($ (+: acc value) remains pv)))))
 
 (fn num? (ch)
   (for ch

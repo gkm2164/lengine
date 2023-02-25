@@ -14,7 +14,7 @@ object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
 
   class MethodVisitorWrapper(mv: MethodVisitor) {
-    def visitAThrow() = {
+    def visitAThrow(): Unit = {
       mv.visitInsn(ATHROW)
     }
 
