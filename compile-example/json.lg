@@ -6,6 +6,7 @@
 (import gben.libs.module.map)
 (import gben.libs.module.file-ch-stream)
 (import gben.libs.module.read-through)
+(import prelude.keys)
 
 ;;; Finally! reached to JSON related library
 
@@ -22,7 +23,7 @@
                                            (let ((value (k obj))
                                                  (object-key (format "\"%s\":" [(get k)])))
                                                 (+ object-key (to-json value))))))
-                         (format "{%s}" [(join-string key-values ",")])))
+                         (format "{%s}" [(join-string (seq key-values) ",")])))
 
 (fn escape (stream)
     (fold stream "" (^ (ret ch)
@@ -50,6 +51,8 @@
   :logo #\,
   :arrs (seq [1 2 3 4 5])
 })
+
+(println obj)
 
 (def result (loop for x in (=range 1 10)
                   (let ((start (now))
@@ -112,19 +115,20 @@
             ($ (+: acc value) remains pv))))
 
 (fn num? (ch)
-  (case ((= ch #\0) true)
-        ((= ch #\1) true)
-        ((= ch #\2) true)
-        ((= ch #\3) true)
-        ((= ch #\4) true)
-        ((= ch #\5) true)
-        ((= ch #\6) true)
-        ((= ch #\7) true)
-        ((= ch #\8) true)
-        ((= ch #\9) true)
-        ((= ch #\-) true)
-        ((= ch #\.) true)
-        default false))
+  (for ch
+   when (#\0 true)
+        (#\1 true)
+        (#\2 true)
+        (#\3 true)
+        (#\4 true)
+        (#\5 true)
+        (#\6 true)
+        (#\7 true)
+        (#\8 true)
+        (#\9 true)
+        (#\- true)
+        (#\. true)
+    otherwise false))
 
 (fn parse-value (json-str)
       (if (nil? json-str) ["" json-str]

@@ -87,7 +87,6 @@ public class Prelude {
   public static final LengineLambdaCommon HELP = PreludeImpl._HELP;
   public static final LengineLambdaCommon HELP_KEYWORD = PreludeImpl._HELP_KEYWORD;
   public static final LengineLambdaCommon DB_CONN = PreludeImpl._DB_CONN;
-
   public static final LengineLambdaCommon BYTE_AND = PreludeImpl._BYTE_AND;
   public static final LengineLambdaCommon BYTE_OR = PreludeImpl._BYTE_OR;
   public static final LengineLambdaCommon BYTE_NEG = PreludeImpl._BYTE_NEG;

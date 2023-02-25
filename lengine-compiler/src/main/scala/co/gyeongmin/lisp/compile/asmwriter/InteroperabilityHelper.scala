@@ -33,6 +33,15 @@ object InteroperabilityHelper {
     "entry"             -> ExportSymbols.ENTRY_FIELD,
     "entries"           -> ExportSymbols.ENTRIES_FIELD,
     "get"               -> ExportSymbols.OBJECT_GET_FIELD,
+    "+" -> ExportSymbols.ADD_FIELD,
+    "+:" -> ExportSymbols.APPEND_ITEM_FIELD,
+    "++" -> ExportSymbols.MERGE_FIELD,
+    "-" -> ExportSymbols.SUB_FIELD,
+    "*" -> ExportSymbols.MULT_FIELD,
+    "/" -> ExportSymbols.DIV_FIELD,
+    "&" -> ExportSymbols.BYTE_AND_FIELD,
+    "|" -> ExportSymbols.BYTE_OR_FIELD,
+    "~" -> ExportSymbols.BYTE_NEG_FIELD,
     "<"                 -> ExportSymbols.LESS_THAN_FIELD,
     "<="                -> ExportSymbols.LESS_EQUALS_FIELD,
     ">"                 -> ExportSymbols.GREATER_THAN_FIELD,
@@ -42,12 +51,6 @@ object InteroperabilityHelper {
     "and"               -> ExportSymbols.AND_FIELD,
     "or"                -> ExportSymbols.OR_FIELD,
     "not"               -> ExportSymbols.NOT_FIELD,
-    "+"                 -> ExportSymbols.ADD_FIELD,
-    "+:"                -> ExportSymbols.APPEND_ITEM_FIELD,
-    "++"                -> ExportSymbols.MERGE_FIELD,
-    "-"                 -> ExportSymbols.SUB_FIELD,
-    "*"                 -> ExportSymbols.MULT_FIELD,
-    "/"                 -> ExportSymbols.DIV_FIELD,
     "rem"               -> ExportSymbols.REM_FIELD,
     "norm"              -> ExportSymbols.NORM_FIELD,
     "async"             -> ExportSymbols.ASYNC_FIELD,
@@ -101,6 +104,7 @@ object InteroperabilityHelper {
     "read-char"         -> ExportSymbols.READ_CHAR_FIELD,
     "read-file"         -> ExportSymbols.READ_FILE_FIELD,
     "listen"            -> ExportSymbols.LISTEN_FIELD,
+
   ).map {
     case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
     case (key, value)                        => EagerSymbol(key) -> value

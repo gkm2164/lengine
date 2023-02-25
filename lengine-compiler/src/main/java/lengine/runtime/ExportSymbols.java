@@ -91,6 +91,9 @@ public class ExportSymbols {
   public static final Field HELP_FIELD;
   public static final Field HELP_KEYWORD_FIELD;
   public static final Field DB_CONN_FIELD;
+  public static final Field BYTE_AND_FIELD;
+  public static final Field BYTE_OR_FIELD;
+  public static final Field BYTE_NEG_FIELD;
 
   static {
     try {
@@ -180,6 +183,9 @@ public class ExportSymbols {
       HELP_FIELD = Prelude.class.getField("HELP");
       HELP_KEYWORD_FIELD = Prelude.class.getField("HELP_KEYWORD");
       DB_CONN_FIELD = Prelude.class.getField("DB_CONN");
+      BYTE_AND_FIELD = Prelude.class.getField("BYTE_AND");
+      BYTE_OR_FIELD = Prelude.class.getField("BYTE_OR");
+      BYTE_NEG_FIELD = Prelude.class.getField("BYTE_NEG");
     } catch (NoSuchFieldException e) {
       throw new RuntimeException(e);
     } catch (Exception e) {
