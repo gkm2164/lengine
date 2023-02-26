@@ -74,9 +74,9 @@
   ($ (+ acc (head s)) (tail s)))))
 
 (fn parse-number (acc s)
-    (case ((nil? s) [(double (join-string acc "")) nil])
-          ((contains (list ",]}) ") (head s)) [(double (join-string acc "")) s])
-          default ($ (+: acc (head s)) (tail s))))
+    (case ((nil? s) [(double acc) nil])
+          ((contains (list ",]}) ") (head s)) [(double acc) s])
+          default ($ (+ acc (head s)) (tail s))))
 
 (fn parse-boolean (s)
     (if (= #\t (head s)) [true (drop 4 s)]
@@ -105,15 +105,14 @@
 (fn parse-array (acc s pv)
   (if (nil? s) [acc s]
     (for (head s)
-     when (#\Space    ($ acc (tail s) pv))
-          (#\,        ($ acc (tail s) pv))
-          (#\Linefeed ($ acc (tail s) pv))
-          (#\]        [acc (tail s)])
-     otherwise (let
-            ((parsed (pv s))
-             (value (head parsed))
-             (remains (head (tail parsed))))
-            ($ (+: acc value) remains pv)))))
+      when (#\Space    ($ acc (tail s) pv))
+           (#\,        ($ acc (tail s) pv))
+           (#\Linefeed ($ acc (tail s) pv))
+           (#\]        [acc (tail s)])
+      otherwise (let ((parsed (pv s))
+                      (value (head parsed))
+                      (remains (head (tail parsed))))
+                     ($ (+: acc value) remains pv)))))
 
 (fn num? (ch)
   (for ch
@@ -137,7 +136,7 @@
            (case ((= #\{ first) (parse-object {} (tail json-str) $))
                  ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
                  ((= #\" first) (parse-string "" (tail json-str)))
-                 ((num?  first) (parse-number (seq nil) json-str))
+                 ((num?  first) (parse-number "" json-str))
                  ((= #\t first) (parse-boolean json-str))
                  ((= #\f first) (parse-boolean json-str))
                  ((= #\n first) (parse-null json-str))
