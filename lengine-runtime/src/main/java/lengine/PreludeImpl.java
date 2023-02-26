@@ -1,48 +1,48 @@
 package lengine;
 
+import lengine.collections.traits.AddFront;
+import lengine.collections.traits.AddRear;
 import lengine.concurrency.LengineChannel;
 import lengine.concurrency.LengineFuture;
 import lengine.functions.LengineLambda0;
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
 import lengine.functions.LengineLambda3;
-import lengine.functions.LengineLambdaCommon;
 import lengine.https.HttpServerBuilder;
 import lengine.runtime.ComplexNumber;
-import lengine.runtime.LengineIterable;
-import lengine.runtime.LengineIterator;
+import lengine.collections.traits.LengineIterable;
+import lengine.collections.traits.LengineIterator;
 import lengine.runtime.LengineLazyValue;
-import lengine.runtime.LengineObjectHasHelp;
-import lengine.runtime.LengineObjectType;
-import lengine.runtime.LengineSequenceIterator;
-import lengine.runtime.LengineStreamIterator;
+import lengine.collections.traits.LengineObjectHasHelp;
+import lengine.collections.traits.LengineObjectType;
+import lengine.collections.traits.LengineSequenceIterator;
+import lengine.collections.LengineStreamIterator;
 import lengine.runtime.LengineString;
 import lengine.runtime.LengineStringIterator;
 import lengine.runtime.LengineUnit;
-import lengine.runtime.RangeSequence;
+import lengine.collections.RangeSequence;
 import lengine.runtime.RatioNumber;
 import lengine.runtime.exceptions.LengineRuntimeException;
 import lengine.runtime.exceptions.LengineTypeMismatchException;
 import lengine.sqls.DBConn;
-import lengine.util.Addable;
-import lengine.util.Buildable;
-import lengine.util.CollectionBuilder;
-import lengine.util.Cons;
-import lengine.util.LengineFileReader;
-import lengine.util.LengineList;
-import lengine.util.LengineListIterator;
-import lengine.util.LengineMap;
-import lengine.util.LengineMapEntry;
-import lengine.util.LengineMapKey;
-import lengine.util.LengineSequence;
-import lengine.util.LengineSet;
-import lengine.util.LengineStream;
-import lengine.util.Nillable;
-import lengine.util.StreamCons;
-import lengine.util.StreamNil;
-import lengine.util.UnresolvedStream;
-import lengine.util.Wrap;
-import scala.Char;
+import lengine.collections.traits.Addable;
+import lengine.collections.traits.Buildable;
+import lengine.collections.traits.CollectionBuilder;
+import lengine.collections.Cons;
+import lengine.collections.LengineFileReader;
+import lengine.collections.LengineList;
+import lengine.collections.LengineListIterator;
+import lengine.collections.LengineMap;
+import lengine.collections.LengineMapEntry;
+import lengine.collections.LengineMapKey;
+import lengine.collections.LengineSequence;
+import lengine.collections.LengineSet;
+import lengine.collections.LengineStream;
+import lengine.collections.traits.Nillable;
+import lengine.collections.StreamCons;
+import lengine.collections.StreamNil;
+import lengine.collections.UnresolvedStream;
+import lengine.collections.traits.Wrap;
 
 import java.util.LinkedList;
 import java.util.Objects;
@@ -326,6 +326,9 @@ public class PreludeImpl {
 
         throw new RuntimeException("currently not supporting the operation");
     };
+
+    public static final LengineLambda2<LengineIterable, Object, AddFront<?>> _ADD_FRONT = (item, coll) -> coll.ADD_FRONT(item);
+  public static final LengineLambda2<LengineIterable, AddRear<?>, Object> _ADD_REAR = AddRear::ADD_REAR;
 
     public static final LengineLambda2<Object, Object, Object> _MERGE = (xs, ys) -> {
         if (xs instanceof LengineString) {

@@ -1,7 +1,8 @@
 package lengine.runtime;
 
-import lengine.util.LengineMapKey;
-import lengine.util.LengineSequence;
+import lengine.collections.LengineMapKey;
+import lengine.collections.LengineSequence;
+import lengine.collections.traits.LengineObjectWithHelp;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

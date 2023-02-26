@@ -1,8 +1,6 @@
 package lengine.runtime.exceptions;
 
-import lengine.runtime.LengineObjectType;
-import lengine.runtime.LengineString;
-import lengine.util.LengineMapKey;
+import lengine.collections.traits.LengineObjectType;
 
 public class LengineRuntimeException extends LengineException implements LengineObjectType {
     public LengineRuntimeException(String msg) {

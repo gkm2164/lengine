@@ -24,8 +24,8 @@
                            ^((acc elem)
                              (f elem acc)))))
 
-(export >+ ^((xs x) (++ (+: (nil> xs) x) xs)))
-(export +< ^((xs x) (+: xs x)))
+(import prelude.>+)
+(import prelude.+<)
 
 (export reverse ^((xs) (fold xs (nil> xs) >+)))
 

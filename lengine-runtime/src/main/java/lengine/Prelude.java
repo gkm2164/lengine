@@ -1,8 +1,8 @@
 package lengine;
 
 import lengine.functions.LengineLambdaCommon;
-import lengine.util.Nil;
-import lengine.util.StreamNil;
+import lengine.collections.Nil;
+import lengine.collections.StreamNil;
 
 public class Prelude {
   public static final LengineLambdaCommon ADD = PreludeImpl._ADD;
@@ -70,6 +70,8 @@ public class Prelude {
   public static final LengineLambdaCommon READ_CHAR = PreludeImpl._READ_CHAR;
   public static final LengineLambdaCommon READ_FILE = PreludeImpl._READ_FILE;
   public static final LengineLambdaCommon APPEND_ITEM = PreludeImpl._APPEND_ITEM;
+  public static final LengineLambdaCommon ADD_FRONT = PreludeImpl._ADD_FRONT;
+  public static final LengineLambdaCommon ADD_REAR = PreludeImpl._ADD_REAR;
   public static final LengineLambdaCommon IS_SET = PreludeImpl._IS_SET;
   public static final LengineLambdaCommon GET_NIL = PreludeImpl._GET_NIL;
   public static final LengineLambdaCommon CAST_SET = PreludeImpl._CAST_SET;

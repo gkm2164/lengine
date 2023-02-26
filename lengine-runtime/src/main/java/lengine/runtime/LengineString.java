@@ -1,9 +1,12 @@
 package lengine.runtime;
 
-import lengine.util.Addable;
-import lengine.util.Buildable;
-import lengine.util.LengineMapKey;
-import lengine.util.Nillable;
+import lengine.collections.traits.Addable;
+import lengine.collections.traits.Buildable;
+import lengine.collections.LengineMapKey;
+import lengine.collections.traits.LengineIterable;
+import lengine.collections.traits.LengineIterator;
+import lengine.collections.traits.LengineObjectType;
+import lengine.collections.traits.Nillable;
 
 import java.util.Objects;
 

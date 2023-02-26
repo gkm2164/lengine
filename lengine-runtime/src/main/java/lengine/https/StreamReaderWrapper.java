@@ -1,7 +1,7 @@
 package lengine.https;
 
-import lengine.runtime.LengineIterable;
-import lengine.runtime.LengineIterator;
+import lengine.collections.traits.LengineIterable;
+import lengine.collections.traits.LengineIterator;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,5 +1,8 @@
 package lengine.runtime;
 
+import lengine.collections.traits.LengineIterable;
+import lengine.collections.traits.LengineIterator;
+
 public class LengineStringIterator implements LengineIterator {
     private final String value;
     private int idx = 0;

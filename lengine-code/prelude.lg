@@ -21,6 +21,8 @@
 
 (export +: (native APPEND_ITEM fn))
 (export ++ (native MERGE fn))
+(export >+ (native ADD_FRONT fn))
+(export +< (native ADD_REAR fn))
 
 (export norm (native NORM fn))
 (export len (native LEN fn))

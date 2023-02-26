@@ -3,7 +3,7 @@ package lengine.concurrency;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import lengine.util.Nil;
+import lengine.collections.Nil;
 
 public class LengineChannel {
   static class ChannelClosed { }

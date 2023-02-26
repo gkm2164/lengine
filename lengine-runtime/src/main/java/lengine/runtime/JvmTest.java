@@ -1,11 +1,10 @@
 package lengine.runtime;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+
+import lengine.collections.traits.LengineIterator;
 
 public class JvmTest {
   public static Map hashMap = new HashMap<>();

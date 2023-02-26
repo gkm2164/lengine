@@ -1,6 +1,8 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import lengine.Prelude
+import lengine.collections.traits.{Buildable, CollectionBuilder, LengineIterable, LengineIterator}
+import lengine.collections.{LengineList, LengineMap, LengineMapKey}
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
@@ -9,12 +11,11 @@ import lengine.util._
 import java.util.Objects
 
 object LengineType {
-  val VoidPrimitive: Class[Void]                     = java.lang.Void.TYPE
-  val BooleanPrimitive: Class[java.lang.Boolean]     = java.lang.Boolean.TYPE
-  val CharacterPrimitive: Class[java.lang.Character] = Character.TYPE
-  val LongPrimitive: Class[java.lang.Long]           = java.lang.Long.TYPE
-  val DoublePrimitive: Class[java.lang.Double]       = java.lang.Double.TYPE
-
+  val VoidPrimitive: Class[Void]                               = java.lang.Void.TYPE
+  val BooleanPrimitive: Class[java.lang.Boolean]               = java.lang.Boolean.TYPE
+  val CharacterPrimitive: Class[java.lang.Character]           = Character.TYPE
+  val LongPrimitive: Class[java.lang.Long]                     = java.lang.Long.TYPE
+  val DoublePrimitive: Class[java.lang.Double]                 = java.lang.Double.TYPE
   val BooleanClass: Class[java.lang.Boolean]                   = classOf[java.lang.Boolean]
   val LongClass: Class[java.lang.Long]                         = classOf[java.lang.Long]
   val DoubleClass: Class[java.lang.Double]                     = classOf[java.lang.Double]

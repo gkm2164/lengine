@@ -5,22 +5,17 @@
 (import std.filter)
 (import std.filter-not)
 (import std.file-stream)
+(import prelude.+<)
 
 (fn n-th (n xs)
     (if (= 0 n) (head xs)
         (n-th (- n 1) (tail xs))))
 
-(fn 'reverse (xs)
-    (^((acc xs)
-        (if (nil? xs) acc
-            ($ ('cons (head xs) acc) (tail xs))))
-      (nil> xs) xs))
-
 (fn split-at-loop (acc xs delim)
-    (case ((nil? xs) [('reverse acc) (nil> xs)])
-            (('unresolved? xs) ($ acc (xs) delim))
-            ((= (head xs) delim) [('reverse acc) (tail xs)])
-            default ($ ('cons (head xs) acc) (tail xs) delim)))
+    (case ((nil? xs) [acc (nil> xs)])
+          (('unresolved? xs) ($ acc (xs) delim))
+          ((= (head xs) delim) [acc (tail xs)])
+          default ($ (+< acc (head xs)) (tail xs) delim)))
 
 (fn split-at (xs delim)
     (split-at-loop (nil> xs) xs delim))

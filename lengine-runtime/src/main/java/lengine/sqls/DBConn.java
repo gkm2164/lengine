@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Properties;
 
 import lengine.functions.LengineLambda2;
-import lengine.runtime.LengineIterable;
-import lengine.runtime.LengineIterator;
+import lengine.collections.traits.LengineIterable;
+import lengine.collections.traits.LengineIterator;
 import lengine.runtime.LengineString;
-import lengine.util.LengineMap;
-import lengine.util.LengineMapKey;
-import lengine.util.LengineSequence;
+import lengine.collections.LengineMap;
+import lengine.collections.LengineMapKey;
+import lengine.collections.LengineSequence;
 
 public class DBConn {
   private static boolean initOnce = false;

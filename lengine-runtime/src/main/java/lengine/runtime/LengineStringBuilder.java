@@ -1,6 +1,6 @@
 package lengine.runtime;
 
-import lengine.util.CollectionBuilder;
+import lengine.collections.traits.CollectionBuilder;
 
 public class LengineStringBuilder implements CollectionBuilder<LengineString> {
     private final StringBuilder stringBuilder = new StringBuilder();

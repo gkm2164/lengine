@@ -1,15 +1,15 @@
 package lengine.https;
 
 import com.sun.net.httpserver.HttpExchange;
-import lengine.runtime.LengineObjectType;
-import lengine.runtime.LengineObjectWithHelp;
+import lengine.collections.traits.LengineObjectType;
+import lengine.collections.traits.LengineObjectWithHelp;
 import lengine.runtime.LengineString;
-import lengine.util.LeafSequence;
-import lengine.util.LengineMap;
-import lengine.util.LengineMapEntry;
-import lengine.util.LengineMapKey;
-import lengine.util.LengineSequence;
-import lengine.util.Nil;
+import lengine.collections.LeafSequence;
+import lengine.collections.LengineMap;
+import lengine.collections.LengineMapEntry;
+import lengine.collections.LengineMapKey;
+import lengine.collections.LengineSequence;
+import lengine.collections.Nil;
 
 import java.io.IOException;
 import java.io.InputStream;

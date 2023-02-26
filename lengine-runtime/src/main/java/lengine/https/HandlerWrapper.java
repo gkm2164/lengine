@@ -6,12 +6,12 @@ import com.sun.net.httpserver.HttpHandler;
 
 import lengine.functions.LengineLambda1;
 import lengine.functions.LengineLambda2;
-import lengine.runtime.LengineObjectType;
+import lengine.collections.traits.LengineObjectType;
 import lengine.runtime.LengineString;
 import lengine.runtime.LengineUnit;
-import lengine.util.LengineMap;
-import lengine.util.LengineMapEntry;
-import lengine.util.LengineMapKey;
+import lengine.collections.LengineMap;
+import lengine.collections.LengineMapEntry;
+import lengine.collections.LengineMapKey;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

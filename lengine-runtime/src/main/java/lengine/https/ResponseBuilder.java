@@ -1,13 +1,13 @@
 package lengine.https;
 
 import lengine.functions.LengineLambda1;
-import lengine.runtime.LengineObjectType;
-import lengine.runtime.LengineObjectWithHelp;
+import lengine.collections.traits.LengineObjectType;
+import lengine.collections.traits.LengineObjectWithHelp;
 import lengine.runtime.LengineString;
 import lengine.runtime.LengineUnit;
-import lengine.util.LengineMap;
-import lengine.util.LengineMapKey;
-import lengine.util.LengineSequence;
+import lengine.collections.LengineMap;
+import lengine.collections.LengineMapKey;
+import lengine.collections.LengineSequence;
 
 import java.io.PrintStream;
 import java.util.stream.Collectors;
