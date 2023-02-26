@@ -95,6 +95,40 @@ Double + String => Double.toString() + String // At this point, actually it's no
 ### 3. Collections
 
 All collections in Lengine are immutable.
+List/Sequence/Set/Map/Stream
+
+List: a single linked list
+- Behaves like stack. 
+
+```lengine
+(list ?)                == convert ? into list type
+(cons 1 nil)            == [1]
+(cons 1 (cons 2 nil))   == [1 2]
+(list? xs)              == is list?
+(nil? xs)               == check xs is nil type
+(+: (cons 1 nil) 12)    == Append 12 at the end of list, so, (cons 1 (cons 12 nil))
+(++ (cons 1 nil) (cons 2 nil)) == merge to list [1], [2] => (cons 1 (cons 2 nil))
+```
+- Pros: really fast to append, head/tail/take/drop operations
+- Cons
+  - It's really slow when put items at the end of the list
+  - No support on random access
+
+Sequence: Doubly linked list
+- Can put data from front/back
+- 
+```lengine
+(seq nil)              == conver nil into sequence type
+(nil> (seq [1 2 3]))   == get nil type of (seq [1 2 3]) == (seq nil)
+(+< (seq [1 2]) 3)     == (seq [1 2 3])
+(>+ 12 (seq [1 2]))    == (seq [12 1 2])
+```
+
+- Pros: fast at append item in front/back both
+
+Set: Unordered list
+Map: Object type - Key-value collections
+Stream: Lazy evaluation allowed stream
 
 ### 4. Runtime library
 
