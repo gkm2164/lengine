@@ -20,6 +20,7 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile only" in {
+    Main.main(Array("./lengine-code/math.lg"))
     Main.main(Array("./lengine-code/prelude.lg"))
     Main.main(Array("./lengine-code/stdlib.lg"))
     Main.main(Array("./compile-example/process-membrane.lg"))
@@ -28,6 +29,7 @@ class MainTest extends FlatSpec with Matchers {
 
   "compile examples" should "compile and no death!" in {
     Main.main(Array("./lengine-code/prelude.lg"))
+    Main.main(Array("./lengine-code/math.lg"))
     Main.main(Array("./lengine-code/stdlib.lg"))
     execute("for-when.lg", "gben.tests.for-when")
     execute("lazy-symbol.lg", "gben.tests.lazy-symbol")
@@ -35,7 +37,6 @@ class MainTest extends FlatSpec with Matchers {
     execute("boolean.lg", "gben.tests.boolean")
     execute("runtime.lg", "gben.libs.runtime")
     execute("lengine-objects.lg", "gben.tests.lengine-objects")
-    execute("math.lg", "gben.libs.math")
     execute("module.lg", "gben.libs.module")
     execute("complex-number.lg", "gben.tests.complex-number")
     execute("error-handling.lg", "gben.tests.error-handling")

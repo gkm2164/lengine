@@ -1,0 +1,25 @@
+(module math)
+
+(require "lengine-code/prelude.lg")
+
+(export fact    ^((n) (^((acc n)
+                          (if (= n 1) acc
+                                      ($ (* acc n) (- n 1))))
+                       1 n)))
+(export sum     ^((seq) (fold seq 0 +)))
+(export product ^((xs) (fold xs 1 *)))
+
+(fn if-else (f a b) (if (f a b) a b))
+
+(export max ^((a b) (if-else > a b)))
+(export min ^((a b) (if-else < a b)))
+(export pow ^((a n)
+    (^((acc n')
+        (if (= n' n) acc
+            ($ (* acc a) (+ n' 1))))
+     1 0)))
+(export sqrt ^((x)
+    (^((z idx)
+        (if (= idx 10) z
+            ($ (- z (/ (- (pow z 2) x) (* 2 z))) (+ idx 1))))
+     1.0 1)))

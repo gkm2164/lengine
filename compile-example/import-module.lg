@@ -1,8 +1,8 @@
 (module gben.tests.import-module)
 
-(require "compile-example/math.lg")
-(require "compile-example/module.lg")
+(require "lengine-code/math.lg")
 (require "lengine-code/prelude.lg")
+(require "compile-example/module.lg")
 
 (println (fact 5))
 (println (sum [1 2 3 4 5]))
@@ -16,3 +16,9 @@
 (println (& 3 5))
 (println (| 3 5))
 (println (~ 3))
+
+(assert-equals "Should be largest number" (max 3 5) 5)
+(assert-equals "Should be smallest number" (min 5 3) 3)
+
+(println (sqrt 2))
+(println (pow (sqrt 2) 2))
