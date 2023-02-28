@@ -106,4 +106,8 @@
                 (if (p h) ($ (+: acc h) p (tail xs)) acc))))
      (nil> xs) p xs)))
 
+(export drop-while ^((p xs) (case ((nil? xs) xs)
+                                  ((p (head xs)) ($ p (tail xs)))
+                                  default xs)))
+
 (export read-line ^(() (to-string (take-while ^((ch) (/= ch #\Linefeed)) (stdin-stream)))))
