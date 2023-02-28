@@ -1,6 +1,8 @@
 (module process-membrane)
 
+(require "lengine-code/prelude.lg")
 (require "lengine-code/stdlib.lg")
+(require "lengine-code/collections.lg")
 
 (def all-data     (read-through (file-stream "./102521_membrane_GC_cell_lines.csv")))
 (println (take 10 all-data))

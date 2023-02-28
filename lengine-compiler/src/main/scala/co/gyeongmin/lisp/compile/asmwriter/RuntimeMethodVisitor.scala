@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispVar}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 object RuntimeMethodVisitor {
@@ -131,7 +131,10 @@ object RuntimeMethodVisitor {
     val varLoc = runtimeMethodVisitor.allocateNextVar
     mv.visitAStore(varLoc)
 
-    val symbolToBeRegistered = EagerSymbol(symbolNameComb.name.split('.').last)
+    val symbolToBeRegistered = importNameSymbol match {
+      case _:EagerSymbol => EagerSymbol(symbolNameComb.name.split('.').last)
+      case _:LazySymbol => LazySymbol(symbolNameComb.name.split('.').last)
+    }
 
     runtimeMethodVisitor.registerVariable(symbolToBeRegistered, varLoc, ObjectClass)
     runtimeMethodVisitor.writeLaterAllScope(symbolToBeRegistered, ObjectClass, varLoc)

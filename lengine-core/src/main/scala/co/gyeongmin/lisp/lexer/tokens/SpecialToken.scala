@@ -24,6 +24,8 @@ case class SpecialToken(body: String) extends LispValue {
     """([0-9]+r|b|o|x)([+\-]?)([0-9a-zA-Z]+(/([0-9a-zA-Z]+))?)""".r
   private val CharRegex: Regex =
     """\\(Backspace|Tab|Linefeed|Page|Space|Return|Rubout|.)""".r
+  private val TypeHintRegex: Regex =
+    """(Bool|Char|Int|Double|String|Fn|Fn1|Fn2|Fn3|Fn4|Fn5|Fn6|Fn7|Fn8|Fn9|Fn10)""".r
 
   private val charNumMap: Map[Char, Int] =
     ('0' to '9').zipWithIndex.toMap ++
@@ -89,6 +91,7 @@ case class SpecialToken(body: String) extends LispValue {
         }
         .getOrElse(1)
       parseNumber(b, s, number)
+    case TypeHintRegex(typeName) => Right(LispTypeHint(typeName))
     case CharRegex(char) =>
       char match {
         case "Backspace"   => Right(LispChar('\b'))

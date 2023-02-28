@@ -1,12 +1,7 @@
 (module gben.libs.json)
 
-(import gben.libs.module.filter)
-(import gben.libs.module.take-while)
-(import gben.libs.module.contains)
-(import gben.libs.module.map)
-(import gben.libs.module.file-ch-stream)
-(import gben.libs.module.read-through)
-(import prelude.keys)
+(require "lengine-code/stdlib.lg")
+(require "lengine-code/collections.lg")
 
 ;;; Finally! reached to JSON related library
 
@@ -63,7 +58,7 @@
       (let ((fmt "%dms elapsed, and got result: [%s]\n"))
            (printf fmt x)))
 
-(def json-file-stream (file-ch-stream "./compile-example/json-example.json"))
+(def json-file-stream (file-stream "./compile-example/json-example.json"))
 (def json-chs (read-through json-file-stream))
 
 (println json-chs)

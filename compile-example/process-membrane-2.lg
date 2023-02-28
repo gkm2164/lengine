@@ -1,11 +1,8 @@
 (module process-membrane-2)
 
-(import std.split)
-(import std.map)
-(import std.filter)
-(import std.filter-not)
-(import std.file-stream)
-(import prelude.+<)
+(require "lengine-code/prelude.lg")
+(require "lengine-code/stdlib.lg")
+(require "lengine-code/collections.lg")
 
 (fn n-th (n xs)
     (if (= 0 n) (head xs)

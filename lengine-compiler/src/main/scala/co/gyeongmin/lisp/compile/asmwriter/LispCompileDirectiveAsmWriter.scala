@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType.ObjectClass
 import co.gyeongmin.lisp.compile.utils.compileLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispModuleStmt, LispRequireStmt}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 
 import scala.io.Source
@@ -51,7 +51,10 @@ class LispCompileDirectiveAsmWriter(value: LispValue, typeToBe: Class[_])(implic
           val fullNameToImport = moduleName.canonicalName.name + "." + symbol.name
           new LispValueAsmWriter(
             LispClause(
-              EagerSymbol("import") :: EagerSymbol(fullNameToImport) :: Nil
+              EagerSymbol("import") :: (symbol match {
+                case _: EagerSymbol => EagerSymbol(fullNameToImport)
+                case _: LazySymbol => LazySymbol(fullNameToImport)
+              }) :: Nil
             ),
             ObjectClass
           ).visitForValue()

@@ -247,11 +247,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitAReturn()
     newRuntimeEnvironment.writeLaterAllScopeList.foreach {
       case (symbol, cls, loc) =>
-        mv.visitLocalVariable(symbol.name, Type.getDescriptor(cls), null, startLabel, endLabel, loc)
+        mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(cls), null, startLabel, endLabel, loc)
     }
     newRuntimeEnvironment.writeLaterList.foreach {
       case (symbol, cls, start, end, loc) =>
-        mv.visitLocalVariable(symbol.name, Type.getDescriptor(cls), null, start, end, loc)
+        mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(cls), null, start, end, loc)
     }
     // Need to give some hint to ASM generator when calculating Frame size
     mv.visitLocalVariable("__PADDING__",
