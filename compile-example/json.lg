@@ -73,9 +73,13 @@
   (if (= (head s) #\") [acc (tail s)]
   ($ (+ acc (head s)) (tail s)))))
 
+(fn to-num (num)
+    (if (contains num #\.) (double num)
+        (int num)))
+
 (fn parse-number (acc s)
-    (case ((nil? s) [(double acc) nil])
-          ((contains (list ",]}) ") (head s)) [(double acc) s])
+    (case ((nil? s) [(to-num acc) nil])
+          ((contains (list ",]}) ") (head s)) [(to-num acc) s])
           default ($ (+ acc (head s)) (tail s))))
 
 (fn parse-boolean (s)
@@ -85,12 +89,13 @@
 (fn parse-null (s) [nil (drop 4 s)])
 
 (fn parse-object (acc s pv)
-    (case ((nil? s) [acc s])
-          ((= (head s) #\}) [acc (tail s)])
-          ((= (head s) #\,) ($ acc (tail s) pv))
-          ((= (head s) #\Space) ($ acc (tail s) pv))
-          ((= (head s) #\Linefeed) ($ acc (tail s) pv))
-          ((= (head s) #\")
+    (if (nil? s) [acc s]
+        (for (head s)
+         when (#\}        [acc (tail s)])
+              (#\,        ($ acc (tail s) pv))
+              (#\Space    ($ acc (tail s) pv))
+              (#\Linefeed ($ acc (tail s) pv))
+              (#\"
             (let ((key-remains (parse-string "" (tail s))) ;;; ["SomeString" REMAINS]
                   (key-name (head key-remains))            ;;; "SomeString"
                   (after-key (head (tail key-remains)))
@@ -100,7 +105,7 @@
                   (e (entry (key key-name) value))
                   (remains (head (tail value-remains))))
                  ($ (+: acc e) remains pv)))
-          default [nil nil]))
+          otherwise [nil nil])))
 
 (fn parse-array (acc s pv)
   (if (nil? s) [acc s]
