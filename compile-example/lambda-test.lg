@@ -1,8 +1,7 @@
 (module gben.tests.lambda-test)
 
-(import gben.libs.module.map)
-(import gben.libs.math.fact)
-(import gben.libs.module.compose)
+(require "./compile-example/module.lg")
+(require "./lengine-code/math.lg")
 
 (def f ^((x y) (+ x y)))
 
