@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
@@ -15,8 +15,13 @@ import scala.annotation.tailrec
 
 class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeEnv: LengineRuntimeEnvironment) {
   val mv: MethodVisitorWrapper = runtimeEnv.methodVisitor
-
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Class[_] = value match {
+    case requireStmt: LispRequireStmt =>
+      new LispCompileDirectiveAsmWriter(requireStmt, typeToBe).visitForValue()
+      VoidPrimitive
+    case exportDef: LispExportDef =>
+      new LispCompileDirectiveAsmWriter(exportDef, typeToBe).visitForValue()
+      VoidPrimitive
     case LispTrue() => // 1 stack
       mv.visitIConst1()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)
@@ -106,16 +111,6 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispNativeStmt(canonicalName, objectType) =>
       new LispValueAsmWriter(
         LispClause(EagerSymbol("native") :: canonicalName :: objectType :: Nil),
-        typeToBe
-      ).visitForValue()
-    case LispExportDef(symbol, None) =>
-      new LispValueAsmWriter(
-        LispClause(EagerSymbol("export") :: symbol :: Nil),
-        typeToBe
-      ).visitForValue()
-    case LispExportDef(symbol, Some(value)) =>
-      new LispValueAsmWriter(
-        LispClause(EagerSymbol("export") :: symbol :: value :: Nil),
         typeToBe
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>

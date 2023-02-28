@@ -2,7 +2,7 @@ package co.gyeongmin.lisp
 
 import cats.implicits._
 import co.gyeongmin.lisp.errors.parser._
-import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
@@ -252,6 +252,17 @@ package object parser {
     _ <- takeToken[RightPar]
   } yield LispNativeStmt(canonicalName, objectType)
 
+  private def parseRequire: LispTokenState[LispValue] = for {
+    filePath <- takeToken[LispString]
+    _ <- takeToken[RightPar]
+  } yield LispRequireStmt(filePath.value)
+
+  private def parseModule: LispTokenState[LispValue] = for {
+    canonicalNameSymbol <- takeToken[LispSymbol]
+    _ <- takeToken[RightPar]
+  } yield LispModuleStmt(canonicalNameSymbol)
+
+
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)
     case LispLet() #:: tail => parseLetClause(tail)
@@ -287,6 +298,8 @@ package object parser {
     case RightPar() #:: tail   => LispTokenState(LispUnit)(tail)
     case LispFor() #:: tail    => parseForWhen(tail)
     case LispNative() #:: tail => parseNative(tail)
+    case LispRequire() #:: tail => parseRequire(tail)
+    case LispModule() #:: tail => parseModule(tail)
     case last =>
       (for {
         res <- many(parseValue)

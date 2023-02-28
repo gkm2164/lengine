@@ -6,12 +6,17 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lengine.collections.traits.Addable;
 import lengine.collections.traits.LengineIterable;
 import lengine.collections.traits.LengineIterator;
 import lengine.collections.traits.LengineObjectType;
 import lengine.collections.traits.Wrap;
 
-public abstract class LengineMap implements LengineIterable, LengineObjectType, Wrap<LengineMap> {
+public abstract class LengineMap implements
+        LengineIterable,
+        LengineObjectType,
+        Addable<LengineMap>,
+        Wrap<LengineMap> {
   protected final boolean lately;
 
   protected LengineMap(boolean lately) {
@@ -105,5 +110,13 @@ public abstract class LengineMap implements LengineIterable, LengineObjectType, 
   @Override
   public Boolean IS_NIL() {
     return this.len() == 0;
+  }
+
+  @Override
+  public LengineMap ADD(Object item) {
+    if (!(item instanceof LengineMapEntry)) {
+      throw new RuntimeException(String.format("item %s is %s type and cannot be added. Should be entry type.", item, item.getClass().getName()));
+    }
+    return this.putEntry((LengineMapEntry) item);
   }
 }

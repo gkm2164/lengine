@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LongClass, ObjectClass, VoidPrimitive}
-import co.gyeongmin.lisp.lexer.statements.LispErrorHandler
+import co.gyeongmin.lisp.lexer.ast.LispErrorHandler
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}

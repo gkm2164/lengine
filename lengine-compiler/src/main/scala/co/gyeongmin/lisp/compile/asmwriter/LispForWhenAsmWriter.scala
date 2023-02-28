@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ObjectClass, ObjectsClass}
-import co.gyeongmin.lisp.lexer.statements.{LispForWhenStmt, LispWhenStmt}
+import co.gyeongmin.lisp.lexer.ast.{LispForWhenStmt, LispWhenStmt}
 import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
 import org.objectweb.asm.Label
 

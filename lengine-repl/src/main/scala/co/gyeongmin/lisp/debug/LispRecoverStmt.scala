@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.debug
 
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values._
 import co.gyeongmin.lisp.lexer.values.functions.{

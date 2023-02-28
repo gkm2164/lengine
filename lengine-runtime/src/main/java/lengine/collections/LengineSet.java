@@ -6,6 +6,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lengine.collections.traits.AddFront;
+import lengine.collections.traits.AddRear;
 import lengine.collections.traits.LengineIterable;
 import lengine.collections.traits.LengineIterator;
 import lengine.collections.traits.Addable;
@@ -14,9 +16,12 @@ import lengine.collections.traits.Nillable;
 import lengine.collections.traits.Singleton;
 import lengine.collections.traits.Wrap;
 
-public abstract class LengineSet implements LengineIterable,
+public abstract class LengineSet implements
+    LengineIterable,
     Nillable<LengineSet>,
     Addable<LengineSet>,
+    AddFront<LengineSet>,
+    AddRear<LengineSet>,
     Singleton<LengineSet>,
     Buildable<LengineSet, LengineSetBuilder>,
     Wrap<LengineSet> {
@@ -100,6 +105,19 @@ public abstract class LengineSet implements LengineIterable,
   @Override
   public LengineSet ADD(Object item) {
     return this.add(item);
+  }
+
+  /**
+   * Since the set is unordered, there's no meaning around FRONT/REAR. Just add item.
+   * */
+  @Override
+  public LengineSet ADD_FRONT(Object item) {
+    return ADD(item);
+  }
+
+  @Override
+  public LengineSet ADD_REAR(Object item) {
+    return ADD(item);
   }
 
   @Override

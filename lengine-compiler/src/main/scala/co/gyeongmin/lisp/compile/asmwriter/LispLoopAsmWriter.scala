@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.lexer.statements.LispForStmt
+import co.gyeongmin.lisp.lexer.ast.LispForStmt
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Label

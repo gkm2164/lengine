@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.statements._
+import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.values.boolean._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers._

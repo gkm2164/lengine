@@ -6,7 +6,7 @@ import co.gyeongmin.lisp.errors.eval.{
   NotAnExecutableError,
   UnknownSymbolNameError
 }
-import co.gyeongmin.lisp.lexer.statements.LispValueDef
+import co.gyeongmin.lisp.lexer.ast.LispValueDef
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.functions.{

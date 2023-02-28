@@ -4,10 +4,10 @@ import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.compile.asmwriter._
-import co.gyeongmin.lisp.lexer.statements.LispExportDef
+import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispRequireStmt}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ ClassWriter, Label, Type }
+import org.objectweb.asm.{ClassWriter, Label, Type}
 
 import scala.collection.mutable
 
@@ -58,6 +58,7 @@ package object compile {
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
         case _: LispExportDef =>
+        case _: LispRequireStmt =>
         case _                => mv.visitPop()
       }
     })

@@ -1,12 +1,8 @@
 (module gben.tests.import-module)
 
-(import gben.libs.math.fact)
-(import gben.libs.math.sum)
-(import gben.libs.math.product)
-(import gben.libs.module.map)
-(import gben.libs.module.filter)
-(import gben.libs.module.join)
-
+(require "compile-example/math.lg")
+(require "compile-example/module.lg")
+(require "lengine-code/prelude.lg")
 
 (println (fact 5))
 (println (sum [1 2 3 4 5]))
@@ -14,13 +10,6 @@
 (println (map (^ (x) (+ x 3)) [1 2 3 4 5]))
 (println (filter [1 2 3 4 5] (^ (x) (> x 2))))
 (println (join (seq ["a" "b" "c" "d"]) "."))
-
-(import prelude./)
-(import prelude.'nil)
-(import prelude.nan?)
-(import prelude.&)
-(import prelude.|)
-(import prelude.~)
 
 (println (/ 3 5))
 

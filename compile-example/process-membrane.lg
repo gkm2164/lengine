@@ -1,11 +1,6 @@
 (module process-membrane)
 
-(import std.split)
-(import std.map)
-(import std.filter)
-(import std.filter-not)
-(import std.file-stream)
-(import std.read-through)
+(require "lengine-code/stdlib.lg")
 
 (def all-data     (read-through (file-stream "./102521_membrane_GC_cell_lines.csv")))
 (println (take 10 all-data))

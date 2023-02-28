@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.debug
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
 import co.gyeongmin.lisp.errors.eval.{EmptyBodyClauseError, EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.execution.LispEnvironment
-import co.gyeongmin.lisp.lexer.statements.{LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt}
+import co.gyeongmin.lisp.lexer.ast.{LispDoStmt, LispForStmt, LispLetDecl, LispLetDef, LispLoopStmt}
 import co.gyeongmin.lisp.lexer.tokens.SpecialToken
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispObject, LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean

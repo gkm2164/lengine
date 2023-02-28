@@ -1,7 +1,9 @@
 package co.gyeongmin.lisp.compile
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
+import co.gyeongmin.lisp.compile.utils.compileLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
+import co.gyeongmin.lisp.lexer.ast.LispModuleStmt
 import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
@@ -13,18 +15,6 @@ import scala.annotation.tailrec
 import scala.io.Source
 
 object Main {
-  @tailrec
-  private def compileLoop(acc: Vector[LispValue], tokenStream: Stream[LispToken]): List[LispValue] =
-    tokenStream.dropWhile(_ == LispNop()) match {
-      case Stream.Empty => acc.toList
-      case _ =>
-        parseValue(tokenStream) match {
-          case Right((lispValue, remain)) =>
-            compileLoop(acc :+ lispValue, remain)
-          case Left(err) => throw new RuntimeException(s"while parse: ${err.message}")
-        }
-    }
-
   case class LengineCompileOptions(sourceFileOpt: Option[String], classNameOpt: Option[String]) {
     def sourceFile: String = sourceFileOpt.getOrElse(throw new IllegalArgumentException("No source file was given"))
     def className: String  = classNameOpt.getOrElse("Main")
@@ -59,7 +49,8 @@ object Main {
         .map(tokenStream => compileLoop(Vector(), tokenStream))
         .foreach(lispValues => {
           val (pkgName, clsName) = lispValues.head match {
-            case LispClause(EagerSymbol("module") :: EagerSymbol(clsName) :: Nil) =>
+            case LispModuleStmt(symbol) =>
+              val clsName = symbol.name
               val qualifiedNames = clsName.split('.')
               val pkg = qualifiedNames.init.mkString(".")
               val cls = qualifiedNames.last
@@ -72,7 +63,7 @@ object Main {
           if (pkgName.nonEmpty) {
             Files.createDirectories(Paths.get(pkgName.replaceAllLiterally(".", "/")))
           }
-          val ret = writeClass(compileOps.sourceFile, pkgName, clsName, lispValues.tail)
+          val ret = writeClass(compileOps.sourceFile, pkgName, clsName, lispValues.filter(x => !x.isInstanceOf[LispModuleStmt]))
           val fos = new FileOutputStream(s"./${pkgName.replaceAllLiterally(".", "/")}/$clsName.class")
           fos.write(ret)
           fos.close()
