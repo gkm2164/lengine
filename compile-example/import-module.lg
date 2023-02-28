@@ -22,3 +22,8 @@
 
 (println (sqrt 2))
 (println (pow (sqrt 2) 2))
+(println (floor 3.12345))
+(println (ceil 3.12345))
+
+(assert-equals "Hex number comparison" (& #16rF #16rA) #16rA)
+(assert-equals "Binary number comparison" (& #2r1111 #2r1010) #2r1010)

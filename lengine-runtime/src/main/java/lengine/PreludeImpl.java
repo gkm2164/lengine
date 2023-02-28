@@ -245,13 +245,7 @@ public class PreludeImpl {
     public static final LengineLambda2<RangeSequence, Long, Long> _INCLUSIVE_RANGE = RangeSequence::createInclusiveRange;
     public static final LengineLambda2<LengineUnit, LengineString, Boolean> _ASSERT_TRUE = PreludeImpl::assertTrue;
     public static final LengineLambda2<LengineUnit, LengineString, Boolean> _ASSERT_FALSE = (message, value) -> assertTrue(message, !value);
-    public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_EQUALS = (message, a, b) -> {
-        if (!_EQUALS.invoke(a, b)) {
-            throw new RuntimeException(a.toString() + " /= " + b.toString());
-        }
-
-        return UNIT;
-    };
+    public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_EQUALS = (message, a, b) -> assertTrue(message, _EQUALS.invoke(a, b));
     public static final LengineLambda3<LengineUnit, LengineString, Object, Object> _ASSERT_NOT_EQUALS = (message, a, b) -> assertTrue(message, _NOT_EQUALS.invoke(a, b));
     public static final LengineLambda1<Boolean, Object> _CAST_BOOLEAN = PreludeImpl::castBoolean;
     public static final LengineLambda1<LengineString, Object> _CAST_STR = PreludeImpl::castString;
@@ -320,8 +314,6 @@ public class PreludeImpl {
     public static final LengineLambda2<LengineIterable, LengineIterable, Object> _APPEND_ITEM = (coll, elem) -> {
         if (coll instanceof Addable<?>) {
             return ((Addable<?>)coll).ADD(elem);
-        } else if (coll instanceof LengineMap) {
-            return ((LengineMap) coll).putEntry((LengineMapEntry) elem);
         }
 
         throw new RuntimeException("currently not supporting the operation");
@@ -534,7 +526,7 @@ public class PreludeImpl {
             case "false":
                 return false;
         }
-        throw new RuntimeException("Can't convert " + o.toString() + " into boolean type");
+        throw new RuntimeException("Can't convert " + o + " into boolean type");
     }
 
     private static LengineString castString(Object from) {

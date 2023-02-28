@@ -23,3 +23,8 @@
         (if (= idx 10) z
             ($ (- z (/ (- (pow z 2) x) (* 2 z))) (+ idx 1))))
      1.0 1)))
+(export floor ^((x)
+    (int (- x (rem x 1)))))
+(export ceil ^((x)
+    (int (if (> (rem x 1) 0) (+ (floor x) 1)
+                      (floor x)))))
