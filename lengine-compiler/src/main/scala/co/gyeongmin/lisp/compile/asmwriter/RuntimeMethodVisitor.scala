@@ -100,13 +100,12 @@ object RuntimeMethodVisitor {
       mv.visitLispValue(value.head, ObjectClass) // [V]
       mv.visitDup()                              // [V V]
       mv.visitString(nameOfSymbol)              // [V V S]
-      mv.visitSwap()                             // [V S V]
       mv.visitStaticMethodCall( // [V]
                                runtimeEnvironment.className,
                                "export",
                                VoidPrimitive,
-                               LengineStringClass,
-                               ObjectClass)
+                               ObjectClass,
+                               LengineStringClass)
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
       runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)

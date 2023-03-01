@@ -138,8 +138,8 @@ package object compile {
         "export",
         Type.getMethodDescriptor(
           Type.getType(VoidPrimitive),
-          Type.getType(LengineStringClass),
-          Type.getType(ObjectClass)
+          Type.getType(ObjectClass),
+          Type.getType(LengineStringClass)
         ),
         null,
         null
@@ -147,8 +147,8 @@ package object compile {
       .wrap()
 
     mv.visitGetStatic(clsName, "exportMap", JavaMapClass)
-    mv.visitALoad(0)
     mv.visitALoad(1)
+    mv.visitALoad(0)
     mv.visitInterfaceMethodCall(
       JavaMapClass,
       "put",

@@ -122,3 +122,23 @@
 (loop for row in combination
       (do (printf "%s " [row])
           return (println "")))
+
+(fn n-th (n xs)
+    (case ((nil? xs) (nil> xs))
+          ((= n 0) (head xs))
+          default (n-th (- n 1) (tail xs))))
+
+(import math.pow)
+(import prelude.>+)
+
+(fn comb (n m)
+    (^((n' row)
+       (do (println row)
+       return (if (= n' n) (n-th (- m 1) row)
+                  ($ (+ n' 1)
+                     (+: (>+ 1 (fold (range 1 (len row))
+                                 (seq nil)
+                                 ^((r idx) (+: r (+ (n-th (- idx 1) row) (n-th idx row)))))) 1)))))
+     1 (seq [1])))
+
+(println (comb 10 2))
