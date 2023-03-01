@@ -115,3 +115,8 @@
      (nil> xs) p xs)))
 
 (export read-line ^((any-stream) (to-string (take-while ^((ch) (/= ch #\Linefeed)) (any-stream)))))
+
+(export n-th ^((xs n)
+    (case ((nil? xs) nil)
+          ((= n 0) (head xs))
+          default ($ (tail xs) (- n 1)))))

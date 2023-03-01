@@ -57,8 +57,3 @@
 (export listen  (native lengine.Prelude.LISTEN fn))
 (export help    (native lengine.Prelude.HELP fn))
 (export db-conn (native lengine.Prelude.DB_CONN fn))
-
-(println (string true))
-(println (string? true))
-(println (string? "Hello"))
-(println (/= 10 20))

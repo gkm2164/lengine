@@ -44,12 +44,11 @@
   (try (do (double x) return true)
     (recover e false)))
 
-(println "step 1")
 (fn 'filter (p xs)
     (case (('unresolved? xs) (stream #('filter p (xs))))
           ((nil? xs) (nil> xs))
-          ((p (head xs)) ('cons (head xs) ('filter p (tail xs))))
-          default ('filter p (tail xs))))
+          ((p (head xs)) ('cons (head xs) ($ p (tail xs))))
+          default ($ p (tail xs))))
 
 (fn 'filter-not (p xs)
     ('filter ^((x) (not (p x))) xs))
@@ -59,8 +58,15 @@
           ((nil? xs) (nil> xs))
           default ('cons (f (head xs)) ('map f (tail xs)))))
 
-(def filtered-head-values ('filter parse-double? head-values))
+(fn calc (acc n xs)
+    (case ((nil? xs) { :sum acc
+                       :avg (/ acc n) })
+          (('unresolved? xs) ($ acc n (xs)))
+          ((nan? (head xs)) ($ acc n (tail xs)))
+          default ($ (+ acc (head xs)) (+ n 1) (tail xs))))
 
+(println "step 1")
+(def filtered-head-values ('filter parse-double? head-values))
 (println filtered-head-values)
 
 (println "step 2")
@@ -68,16 +74,10 @@
 (println numbers)
 
 (println "step 3")
-(fn calc (acc n xs)
-    (case ((nil? xs) [acc (/ acc n)])
-          (('unresolved? xs) ($ acc n (xs)))
-          ((nan? (head xs)) ($ acc n (tail xs)))
-          default ($ (+ acc (head xs)) (+ n 1) (tail xs))))
-
 (def stat (calc 0.0 0 numbers))
 
-(def sum (head stat))
-(def avg (head (tail stat)))
+(def sum (:sum stat))
+(def avg (:avg stat))
 
 (println sum)
 (println avg)
