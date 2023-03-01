@@ -45,8 +45,8 @@
     (recover e false)))
 
 (fn 'filter (p xs)
-    (case (('unresolved? xs) (stream #('filter p (xs))))
-          ((nil? xs) (nil> xs))
+    (case ((nil? xs) (nil> xs))
+          (('unresolved? xs) (stream #('filter p (xs))))
           ((p (head xs)) ('cons (head xs) ($ p (tail xs))))
           default ($ p (tail xs))))
 
@@ -70,14 +70,17 @@
 (println filtered-head-values)
 
 (println "step 2")
-(def numbers ('map double filtered-head-values))
-(println numbers)
+(def all-numbers ('map double filtered-head-values))
+(println all-numbers)
 
 (println "step 3")
-(def stat (calc 0.0 0 numbers))
+(def numbers ('filter-not nan? all-numbers))
+(println numbers)
 
-(def sum (:sum stat))
-(def avg (:avg stat))
+(println "step 4")
+(def sum (fold numbers 0.0 +))
+(def avg (/ sum (len numbers)))
 
 (println sum)
 (println avg)
+(println (len numbers))

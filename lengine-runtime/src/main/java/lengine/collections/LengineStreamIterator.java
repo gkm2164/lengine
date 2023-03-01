@@ -15,11 +15,18 @@ public class LengineStreamIterator implements LengineIterator {
     if (_this instanceof StreamCons) {
       return true;
     } else if (_this instanceof UnresolvedStream) {
-      _this = ((UnresolvedStream)_this).force();
+      _this = forceFully(_this);
       return _this instanceof StreamCons;
     }
 
     return false;
+  }
+
+  private LengineStream forceFully(LengineStream unresolvedStream) {
+    while (unresolvedStream instanceof UnresolvedStream) {
+      unresolvedStream = ((UnresolvedStream) unresolvedStream).force();
+    }
+    return unresolvedStream;
   }
 
   @Override
