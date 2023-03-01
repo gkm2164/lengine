@@ -60,6 +60,7 @@ public class Prelude {
   public static final LengineLambdaCommon IS_STREAM_UNRESOLVED = PreludeImpl._IS_STREAM_UNRESOLVED;
   public static final LengineLambdaCommon IS_STREAM = PreludeImpl._IS_STREAM;
   public static final LengineLambdaCommon NOW = PreludeImpl._NOW;
+  public static final LengineLambdaCommon EXIT = PreludeImpl._EXIT;
   public static final LengineLambdaCommon CONS = PreludeImpl._CONS;
   public static final LengineLambdaCommon STREAM_CONS = PreludeImpl._STREAM_CONS;
   public static final LengineLambdaCommon KEY = PreludeImpl._KEY;

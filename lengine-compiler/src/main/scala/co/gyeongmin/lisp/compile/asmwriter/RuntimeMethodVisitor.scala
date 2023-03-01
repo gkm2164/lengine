@@ -196,9 +196,11 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
+    val separated = symbolName.split('.')
+
     mv.visitGetStatic(
-      PreludeClass,
-      symbolName,
+      separated.init.mkString("/"),
+      separated.last,
       expectingType
     )
   }

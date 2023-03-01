@@ -283,6 +283,10 @@ public class PreludeImpl {
         return false;
     };
     public static final LengineLambda0<Long> _NOW = System::currentTimeMillis;
+    public static final LengineLambda1<LengineUnit, Long> _EXIT = (code) -> {
+        System.exit(code.intValue());
+        return UNIT;
+    };
     public static final LengineLambda2<LengineList, Object, LengineList> _CONS = LengineList::cons;
     public static final LengineLambda2<LengineStream, Object, Object> _STREAM_CONS = (value, tail) -> {
         if (tail instanceof LengineLazyValue) {

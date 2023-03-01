@@ -1,7 +1,6 @@
 (module gben.nets.http-server)
 
-(import gben.libs.Json.to-json)
-(import gben.libs.Json.from-json)
+(require "./compile-example/json.lg")
 ;;; Now we do some fun with Lengine...
 
 ;;; Though, this backend implementation is Java, but, for now, this would be the interface.

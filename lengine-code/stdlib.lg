@@ -24,8 +24,8 @@
                            ^((acc elem)
                              (f elem acc)))))
 
-(import prelude.>+)
-(import prelude.+<)
+(import collections.>+)
+(import collections.+<)
 
 (export reverse ^((xs) (fold xs (nil> xs) >+)))
 
@@ -88,21 +88,23 @@
 
 (export stdin-stream ^(() (stream (stdin-stream-maker))))
 
+(def eof (char -1))
+
 (fn file-stream-reader (handle)
     #(let ((ch (:get-char handle)))
-        (if (= ch -1) (do (:close handle)
+        (if (= ch eof) (do (:close handle)
                           return 'nil)
             ('cons ch (file-stream-reader handle)))))
 
 (export file-stream ^((filename) (stream (file-stream-reader (read-file filename)))))
 
-(def eof (char -1))
-
 (export read-through ^((any-stream)
     (^((acc chs)
-       (let ((h (head chs)))
-            (if (= h eof) acc
-                ($ (+ acc h) (tail chs)))))
+       (case ((nil? chs) acc)
+             (('unresolved? chs) ($ acc (chs)))
+             default (let ((h (head chs)))
+                          (if (= h eof) acc
+                          ($ (+ acc h) (tail chs))))))
      "" any-stream)))
 
 (export take-while ^((p xs)

@@ -70,6 +70,7 @@
 (println "step 3")
 (fn calc (acc n xs)
     (case ((nil? xs) [acc (/ acc n)])
+          (('unresolved? xs) ($ acc n (xs)))
           ((nan? (head xs)) ($ acc n (tail xs)))
           default ($ (+ acc (head xs)) (+ n 1) (tail xs))))
 

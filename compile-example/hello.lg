@@ -129,7 +129,7 @@
           default (n-th (- n 1) (tail xs))))
 
 (import math.pow)
-(import prelude.>+)
+(import collections.>+)
 
 (fn comb (n m)
     (^((n' row)

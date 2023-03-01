@@ -1,5 +1,6 @@
 (module gben.libs.json)
 
+(require "lengine-code/prelude.lg")
 (require "lengine-code/stdlib.lg")
 (require "lengine-code/collections.lg")
 
