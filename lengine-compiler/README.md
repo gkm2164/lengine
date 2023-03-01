@@ -1,9 +1,10 @@
 # Lengine Compiler
 
-The purpose of this Lengine project to have dedicated compiler along with the engine.
-Target machine is JVM.
-For now, it's experimental, as it is under development.
-So far, all the implements allowed are in `hello.lg` file.
+The purpose of this Lengine project is to have dedicated compiler along with the engine(REPL).
+Currently, target machine is JVM, and LLVM is a future works.
+For now, it's experimental. Compiler's structure is now stabilized, but, still grammar & library parts are in development.
+
+So far, all the implements allowed are under [../compiler-example](https://github.com/gkm2164/lengine/tree/master/compile-example)
 
 ## How to test?
 
@@ -12,9 +13,11 @@ Refer `./test/scala/co/gyeongmin/lisp/compile/MainTest.scala` to see how to run.
 
 From the project root(`../`), compile the lengine with below commands.
 
-`$ ./install.sh`
-`$ ./lenginec hello.lg`
-`$ ./leng Hello`
+```shell
+$ ./install.sh
+$ ./lenginec hello.lg
+$ ./leng gben.tests.hello # you can find the module name on each files. 
+```
 
 To build entire compiler-examples(located in [../compiler-example](https://github.com/gkm2164/lengine/tree/master/compile-example))
 
@@ -34,12 +37,13 @@ To execute each examples, `leng` script is to execute the classes. This class is
 as CLASSPATH, and execute the java code.
 
 ```bash
-$ ./leng Hello
-$ ./leng Lambda
-$ ./leng Boolean
+$ ./leng gben.tests.hello
+$ ./leng gben.tests.lambda
+$ ./leng gben.tests.boolean
 ```
 
 The name of class is given in the first line of scripts, with `module` declaration.
+Please note that, when you write your own lengine script, you should write a sentence with `(module ...)` clause.
 
 Each examples... didn't prepare explanation yet, but, what kind of directives, methods are being used.
 And plus, if you have IntelliJ, or some byte code decompiler, you can check how the java binary code is generated.
@@ -58,10 +62,13 @@ following;
 Since the JVM is dealing with both primitive types, and object types, here's how lengine's data types are mapped to each
 JVM.
 
+Primitive types are belows.
 ```
 #\n        ;;; char ch = 'n';      // Also known as java.lang.Character
 #\Linefeed ;;; char ch = '\n';
 3          ;;; long lng = 3;       // Also known as java.lang.Long
+#2r1010    ;;; long lng = 0xA;
+#16rA      ;;; long lng = 0xA;
 10.0       ;;; double dbl = 10.0;  // Also known as java.lang.Double
 "Str"      ;;; String str = "Str"; // Also known as java.lang.String
 ```
@@ -97,7 +104,7 @@ Double + String => Double.toString() + String // At this point, actually it's no
 All collections in Lengine are immutable.
 List/Sequence/Set/Map/Stream
 
-List: a single linked list
+#### 3.1. List: a single linked list
 - Behaves like stack. 
 
 ```lengine
@@ -114,7 +121,7 @@ List: a single linked list
   - It's really slow when put items at the end of the list
   - No support on random access
 
-Sequence: Doubly linked list
+#### 3.2. Sequence: Doubly linked list
 - Can put data from front/back
 - 
 ```lengine
@@ -126,9 +133,46 @@ Sequence: Doubly linked list
 
 - Pros: fast at append item in front/back both
 
-Set: Unordered list
-Map: Object type - Key-value collections
-Stream: Lazy evaluation allowed stream
+#### 3.3. Set: Unordered list
+
+```lengine
+(def s (set [1 2 3 4 5]))
+
+(has? s 3) ;;; == true
+```
+
+This structure doesn't have orders, so efficient at checking the element is there or not. 
+
+#### 3.4. Map: Object type - Key-value collections
+
+```lengine
+{ :key-name values :key-name-2 values-2 } 
+```
+
+Hash based key-value storage.
+
+#### 3.5. Stream: Lazy evaluation allowed stream
+- This is needed when you want to define/assume a infinite stream.
+
+On the finite world, even time is not infinite. But, we can assume there is an infinite.
+```lengine
+(`cons 3 nil)
+
+(fn fib-stream (this next)
+    ('cons this #(fib-stream next (+ this next))))
+    
+(def fibs (fib-stream 0 1))
+
+(println fibs)
+=> ('cons 0 nil)
+
+(take 10 fibs)
+(println fibs)
+=> ('cons 0 ('cons 1 ('cons 1 ('cons 2 ('cons 3 ('cons 5 ('cons 8 ('cons 13 ('cons 21 ('cons 33 ...)))))))))) 
+```
+
+- Pros: can encapsulate many things related to the user's infinite inputs (from stdin, files, networks)
+- Cons: the way it operates is single linked list, also need to use different collection operations. And, this means that you should avoid using same stream over time, as the evaluated values are persisted until the reference is gone.
 
 ### 4. Runtime library
 
