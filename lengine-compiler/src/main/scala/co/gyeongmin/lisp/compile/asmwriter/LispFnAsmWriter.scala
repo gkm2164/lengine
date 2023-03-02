@@ -44,7 +44,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
 
-    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, (int + 1, ObjectClass)) }.toMap
+    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, LengineRuntimeVariable(Some(int + 1), ObjectClass)) }.toMap
 
     createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
@@ -64,7 +64,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
   private def createLambdaClass(itself: Option[LispSymbol],
                                 fnName: String,
                                 capturedVariables: LengineVarCapture,
-                                argsWithCapturedVars: Map[LispSymbol, (Int, Class[_])],
+                                argsWithCapturedVars: Map[LispSymbol, LengineRuntimeVariable],
                                 isTailRec: Boolean): Unit = {
     val lambdaClassWriter = new ClassWriter(AsmHelper.GlobalConfig)
     val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
@@ -199,10 +199,10 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val startLabel = new Label()
     val endLabel = new Label()
 
-    val initialArgMap: mutable.Map[LispSymbol, (Int, Class[_])] =
+    val initialArgMap: mutable.Map[LispSymbol, LengineRuntimeVariable] =
       itself
-        .map(it => mutable.Map[LispSymbol, (Int, Class[_])](it -> (0, thisLambdaClass)))
-        .getOrElse(mutable.Map[LispSymbol, (Int, Class[_])]())
+        .map(it => mutable.Map[LispSymbol, LengineRuntimeVariable](it -> LengineRuntimeVariable(Some(0), thisLambdaClass)))
+        .getOrElse(mutable.Map[LispSymbol, LengineRuntimeVariable]())
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
       runtimeEnvironment.classWriter,
@@ -214,7 +214,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     )
 
     newRuntimeEnvironment.args.foreach {
-      case (symbol, (loc, typeToBe)) =>
+      case (symbol, LengineRuntimeVariable(Some(loc), typeToBe)) =>
         newRuntimeEnvironment.writeLaterAllScope(symbol, typeToBe, loc)
     }
 

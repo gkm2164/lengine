@@ -1,5 +1,8 @@
 (module std)
 
+(import collections.>+)
+(import collections.+<)
+
 (export take ^((n xs)
     (^((acc n xs)
        (case ((nil? xs) acc)
@@ -12,9 +15,12 @@
                      ((= 0 n) xs)
                      default ($ (- n 1) (tail xs)))))
 
-(export map ^((f xs)
-              (loop for x in xs
-                    (f x))))
+(fn map (f xs)
+    (case (('unresolved? xs) (stream #(map f (xs))))
+          ((nil? xs) (nil> xs))
+          default (>+ (f (head xs)) (map f (tail xs)))))
+
+(export map)
 
 (export to-string ^((xs) (fold xs "" +)))
 
@@ -23,9 +29,6 @@
                            init
                            ^((acc elem)
                              (f elem acc)))))
-
-(import collections.>+)
-(import collections.+<)
 
 (export reverse ^((xs) (fold xs (nil> xs) >+)))
 
@@ -59,14 +62,16 @@
                      (head xs)
                     ^((acc elem) (format "%s%s%s" [acc delim elem])))))
 
-(export filter ^((xs p)
-    (^((acc xs)
-      (case ((nil? xs) acc)
-            ((p (head xs)) ($ (+< acc (head xs)) (tail xs)))
-            default ($ acc (tail xs))))
-    (nil> xs) xs)))
+(fn filter (p xs)
+    (case ((nil? xs) (nil> xs))
+          (('unresolved? xs) (stream #(filter p (xs))))
+          ((p (head xs)) (>+ (head xs) ($ p (tail xs))))
+          default ($ p (tail xs))))
 
-(export filter-not ^((xs p) (filter xs ^((x) (not (p x))))))
+(export filter)
+
+(export filter-not ^((p xs)
+    (filter ^((x) (not (p x))) xs)))
 
 (export contains ^((chs ch)
                    (if (nil? chs)

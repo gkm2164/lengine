@@ -49,7 +49,7 @@ object RuntimeMethodVisitor {
                           tailRecReference: Option[(LispSymbol, Label)])(
       implicit runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
-    val condition :: ifmatch :: elsematch :: Nil = operands
+    val condition :: ifValue :: elseValue :: Nil = operands
 
     val mv = runtimeEnvironment.methodVisitor
     mv.visitLispValue(condition, BooleanClass)
@@ -59,17 +59,15 @@ object RuntimeMethodVisitor {
       BooleanPrimitive
     )
 
-    val tLabel = new Label()
-    val fLabel = new Label()
-    val next   = new Label()
+    val (tLabel, fLabel, next) = (new Label(), new Label(), new Label())
 
     mv.visitIfNe(tLabel)
     mv.visitLabel(fLabel)
-    mv.visitLispValue(elsematch, requestedType, tailRecReference = tailRecReference)
+    mv.visitLispValue(elseValue, requestedType, tailRecReference = tailRecReference)
     mv.visitGoto(next)
 
     mv.visitLabel(tLabel)
-    mv.visitLispValue(ifmatch, requestedType, tailRecReference = tailRecReference)
+    mv.visitLispValue(ifValue, requestedType, tailRecReference = tailRecReference)
     mv.visitLabel(next)
 
     mv.stackSizeTrace.decrementAndGet()
@@ -98,14 +96,14 @@ object RuntimeMethodVisitor {
       )
     } else {
       mv.visitLispValue(value.head, ObjectClass) // [V]
-      mv.visitDup()                              // [V V]
+      mv.visitDup()
       mv.visitString(nameOfSymbol)              // [V V S]
-      mv.visitStaticMethodCall( // [V]
-                               runtimeEnvironment.className,
+      mv.visitSwap()                            // [V S V]
+      mv.visitStaticMethodCall(runtimeEnvironment.className,
                                "export",
                                VoidPrimitive,
-                               ObjectClass,
-                               LengineStringClass)
+                               LengineStringClass,
+                               ObjectClass)  // [V]
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
       runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)

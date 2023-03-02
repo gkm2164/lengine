@@ -1,8 +1,11 @@
 (module process-membrane-2)
 
-(require "lengine-code/prelude.lg")
-(require "lengine-code/stdlib.lg")
-(require "lengine-code/collections.lg")
+(import collections.+<)
+(import std.filter)
+(import std.filter-not)
+(import std.map)
+(import std.split)
+(import std.file-stream)
 
 (fn n-th (n xs)
     (if (= 0 n) (head xs)
@@ -44,37 +47,16 @@
   (try (do (double x) return true)
     (recover e false)))
 
-(fn 'filter (p xs)
-    (case ((nil? xs) (nil> xs))
-          (('unresolved? xs) (stream #('filter p (xs))))
-          ((p (head xs)) ('cons (head xs) ($ p (tail xs))))
-          default ($ p (tail xs))))
-
-(fn 'filter-not (p xs)
-    ('filter ^((x) (not (p x))) xs))
-
-(fn 'map (f xs)
-    (case (('unresolved? xs) (stream #('map f (xs))))
-          ((nil? xs) (nil> xs))
-          default ('cons (f (head xs)) ('map f (tail xs)))))
-
-(fn calc (acc n xs)
-    (case ((nil? xs) { :sum acc
-                       :avg (/ acc n) })
-          (('unresolved? xs) ($ acc n (xs)))
-          ((nan? (head xs)) ($ acc n (tail xs)))
-          default ($ (+ acc (head xs)) (+ n 1) (tail xs))))
-
 (println "step 1")
-(def filtered-head-values ('filter parse-double? head-values))
+(def filtered-head-values (filter parse-double? head-values))
 (println filtered-head-values)
 
 (println "step 2")
-(def all-numbers ('map double filtered-head-values))
+(def all-numbers (map double filtered-head-values))
 (println all-numbers)
 
 (println "step 3")
-(def numbers ('filter-not nan? all-numbers))
+(def numbers (filter-not nan? all-numbers))
 (println numbers)
 
 (println "step 4")

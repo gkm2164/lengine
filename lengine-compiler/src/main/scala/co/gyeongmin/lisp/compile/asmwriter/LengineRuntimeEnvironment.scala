@@ -8,9 +8,11 @@ import org.objectweb.asm.{ClassWriter, Label}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
+case class LengineRuntimeVariable(varLoc: Option[Int], declaredType: Class[_])
+
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitorWrapper,
-                                val args: mutable.Map[LispSymbol, (Int, Class[_])],
+                                val args: mutable.Map[LispSymbol, LengineRuntimeVariable],
                                 val className: String,
                                 val fileName: String,
                                 numberOfArgs: Int) {
@@ -35,12 +37,14 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
     this.captureVariables = Some(captureVariables)
 
   def registerVariable(value: LispSymbol, varIdx: Int, knownType: Class[_]): Unit =
-    args += (value -> (varIdx, knownType))
+    args += (value -> LengineRuntimeVariable(Some(varIdx), knownType))
 
   def deregisterVariable(value: LispSymbol): Unit =
     args -= value
 
-  def getVar(varName: LispSymbol): Option[(Int, Class[_])] = args.get(varName)
+  def getVar(varName: LispSymbol): Option[(Int, Class[_])] = args.get(varName).map {
+    case LengineRuntimeVariable(Some(value), declaredType) => (value, declaredType)
+  }
 
   def hasVar(varName: LispSymbol): Boolean =
     args.contains(varName) || SupportedFunctions.contains(varName) || SupportedVars.contains(varName)
