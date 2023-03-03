@@ -1,11 +1,7 @@
 (module process-membrane-2)
 
-(import collections.+<)
-(import std.filter)
-(import std.filter-not)
-(import std.map)
-(import std.split)
-(import std.file-stream)
+(require "./lengine-code/collections.lg")
+(require "./lengine-code/stdlib.lg")
 
 (fn n-th (n xs)
     (if (= 0 n) (head xs)
@@ -38,7 +34,7 @@
     (case ((nil? line-stream) 'nil)
           (('unresolved? line-stream) (stream #(head-values-unresolved (line-stream))))
           default (let ((line (head line-stream))
-                        (value (head (split line #\,))))
+                        (value (n-th 0 (split line #\,))))
                        ('cons value (head-values-unresolved (tail line-stream))))))
 
 (def head-values (head-values-unresolved file-sequence))

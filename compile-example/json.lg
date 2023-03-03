@@ -8,7 +8,10 @@
 
 ;;; Below is actually, "Reduce" operation.
 (fn join-string (strs delim)
-   (fold (tail strs) (head strs) (^ (acc next) (format "%s%s%s" [acc delim next]))))
+  (fold (tail strs)
+        (head strs)
+        ^((acc next)
+          (format "%s%s%s" [acc delim next]))))
 
 ;;; Make str -> "str"
 (fn with-double-quotes (s) (format "\"%s\"" [s]))
@@ -101,19 +104,19 @@
                   (e (entry (key key-name) value))
                   (remains (head (tail value-remains))))
                  ($ (+: acc e) remains pv)))
-          otherwise [nil nil])))
+         otherwise [nil nil])))
 
 (fn parse-array (acc s pv)
   (if (nil? s) [acc s]
     (for (head s)
-      when (#\Space    ($ acc (tail s) pv))
-           (#\,        ($ acc (tail s) pv))
-           (#\Linefeed ($ acc (tail s) pv))
-           (#\]        [acc (tail s)])
-      otherwise (let ((parsed (pv s))
-                      (value (head parsed))
-                      (remains (head (tail parsed))))
-                     ($ (+: acc value) remains pv)))))
+     when (#\Space    ($ acc (tail s) pv))
+          (#\,        ($ acc (tail s) pv))
+          (#\Linefeed ($ acc (tail s) pv))
+          (#\]        [acc (tail s)])
+     otherwise (let ((parsed (pv s))
+                     (value (head parsed))
+                     (remains (head (tail parsed))))
+                    ($ (+: acc value) remains pv)))))
 
 (fn num? (ch)
   (for ch
