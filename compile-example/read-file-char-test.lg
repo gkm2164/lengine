@@ -1,6 +1,6 @@
 (module gben.tests.read-file-char-test)
 
-(require "./compile-example/module.lg")
+(require "compile-example/module.lg")
 
 (fn read (filename)
     (let ((chs (file-ch-stream filename)))

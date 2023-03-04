@@ -1,7 +1,7 @@
 (module gben.libs.seq-module)
 
 (require "lengine-code/collections.lg")
-(require "./compile-example/module.lg")
+(require "compile-example/module.lg")
 
 (fn lt-5 (x) (< x 5))
 

@@ -94,14 +94,14 @@
               (#\Space    ($ acc (tail s) pv))
               (#\Linefeed ($ acc (tail s) pv))
               (#\"
-            (let ((key-remains (parse-string "" (tail s))) ;;; ["SomeString" REMAINS]
-                  (key-name (head key-remains))            ;;; "SomeString"
-                  (after-key (head (tail key-remains)))
-                  (remains (drop 1 after-key))             ;;; REMAINS
+            (let ((key-remains   (parse-string "" (tail s))) ;;; ["SomeString" REMAINS]
+                  (key-name      (head key-remains))            ;;; "SomeString"
+                  (after-key     (n-th key-remains 1))
+                  (remains       (drop 1 after-key))             ;;; REMAINS
                   (value-remains (pv remains))
-                  (value (head value-remains))
-                  (e (entry (key key-name) value))
-                  (remains (head (tail value-remains))))
+                  (value         (head value-remains))
+                  (e             (entry (key key-name) value))
+                  (remains       (head (tail value-remains))))
                  ($ (+: acc e) remains pv)))
          otherwise [nil nil])))
 
@@ -136,13 +136,13 @@
 (fn parse-value (json-str)
       (if (nil? json-str) ["" json-str]
       (let ((first (head json-str)))
-           (case ((= #\{ first) (parse-object {} (tail json-str) $))
-                 ((= #\[ first) (parse-array (seq nil) (tail json-str) $))
-                 ((= #\" first) (parse-string "" (tail json-str)))
-                 ((= #\t first) (parse-boolean json-str))
-                 ((= #\f first) (parse-boolean json-str))
-                 ((= #\n first) (parse-null json-str))
-                 ((num?  first) (parse-number "" json-str))
+           (case ((= #\{ first)        (parse-object {} (tail json-str) $))
+                 ((= #\[ first)        (parse-array (seq nil) (tail json-str) $))
+                 ((= #\" first)        (parse-string "" (tail json-str)))
+                 ((= #\t first)        (parse-boolean json-str))
+                 ((= #\f first)        (parse-boolean json-str))
+                 ((= #\n first)        (parse-null json-str))
+                 ((num?  first)        (parse-number "" json-str))
                  ((= #\Space first)    ($ (tail json-str)))
                  ((= #\Linefeed first) ($ (tail json-str)))
                  ((= #\Return first)   ($ (tail json-str)))
