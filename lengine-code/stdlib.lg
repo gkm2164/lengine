@@ -1,7 +1,6 @@
 (module std)
 
-(import collections.>+)
-(import collections.+<)
+(require "./lengine-code/collections.lg")
 
 (export take ^((n xs)
     (^((acc n xs)

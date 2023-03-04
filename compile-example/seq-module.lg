@@ -1,9 +1,10 @@
 (module gben.libs.seq-module)
 
+(require "lengine-code/collections.lg")
 (require "./compile-example/module.lg")
 
 (fn lt-5 (x) (< x 5))
 
-(println (str (take-while lt-5 (seq [1 2 3 4 5]))))
-(println (str (drop-while lt-5 (seq [1 2 3 4 5]))))
+(println (string (take-while lt-5 (seq [1 2 3 4 5]))))
+(println (string (drop-while lt-5 (seq [1 2 3 4 5]))))
 (println (seq [1 2 3 (seq [1 2 3 (seq [1 2 3])])]))

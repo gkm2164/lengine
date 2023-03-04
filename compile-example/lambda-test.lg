@@ -1,6 +1,7 @@
 (module gben.tests.lambda-test)
 
 (require "./compile-example/module.lg")
+(require "./lengine-code/collections.lg")
 (require "./lengine-code/math.lg")
 
 (def f ^((x y) (+ x y)))

@@ -1,6 +1,5 @@
 (module gben.libs.json)
 
-(require "lengine-code/prelude.lg")
 (require "lengine-code/stdlib.lg")
 (require "lengine-code/collections.lg")
 
@@ -33,11 +32,11 @@
 
 ;;; Actual logics
 (export to-json (^ (obj)
-            (case ((bool? obj) (str obj))
-                  ((char? obj) (with-double-quotes (str obj)))
-                  ((int? obj) (str obj))
+            (case ((bool? obj) (string obj))
+                  ((char? obj) (with-double-quotes (string obj)))
+                  ((int? obj) (string obj))
                   ((string? obj) (with-double-quotes (escape (seq obj))))
-                  ((double? obj) (str obj))
+                  ((double? obj) (string obj))
                   ((seq? obj) (format "[%s]" [(join-string (map $ obj) ",")]))
                   ((object? obj) (to-json-object obj $))
                    default "null")))

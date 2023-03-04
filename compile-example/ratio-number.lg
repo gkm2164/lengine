@@ -16,8 +16,3 @@
 (println (norm 2/10))
 
 (printf "Over: %d, Under: %d\n" [(:over num) (:under num)])
-
-(print "Retrieve all available keywords that can be used: ")
-(println (help num))
-(print "What is over?: ")
-(println (help-keyword num :over))

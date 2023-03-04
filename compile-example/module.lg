@@ -1,5 +1,7 @@
 (module gben.libs.module)
 
+(require "./lengine-code/collections.lg")
+
 (fn take-loop (acc n xs)
     (case ((nil? xs) acc)
               ((= 0 n) acc)

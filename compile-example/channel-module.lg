@@ -1,5 +1,7 @@
 (module gben.concurrency.channel-module)
 
+(require "lengine-code/collections.lg")
+
 (def channel (chan))
 
 (fn producer (n)

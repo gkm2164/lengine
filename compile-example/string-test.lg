@@ -1,5 +1,7 @@
 (module gben.tests.string-test)
 
+(require "./lengine-code/collections.lg")
+
 (import gben.libs.module.map)
 (import gben.libs.module.split)
 

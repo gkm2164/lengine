@@ -3,18 +3,17 @@ package co.gyeongmin.lisp.compile
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
 import co.gyeongmin.lisp.compile.utils.compileLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
-import co.gyeongmin.lisp.lexer.ast.LispModuleStmt
-import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
-import co.gyeongmin.lisp.parser.{appendForbiddenKeywords, parseValue}
+import co.gyeongmin.lisp.lexer.ast.{LispModuleStmt, LispRequireStmt}
+import co.gyeongmin.lisp.parser.appendForbiddenKeywords
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 import scala.io.Source
 
 object Main {
+  private val DefaultPrelude = "./lengine-code/prelude.lg"
+
   case class LengineCompileOptions(sourceFileOpt: Option[String], classNameOpt: Option[String]) {
     def sourceFile: String = sourceFileOpt.getOrElse(throw new IllegalArgumentException("No source file was given"))
     def className: String  = classNameOpt.getOrElse("Main")
@@ -63,7 +62,13 @@ object Main {
           if (pkgName.nonEmpty) {
             Files.createDirectories(Paths.get(pkgName.replaceAllLiterally(".", "/")))
           }
-          val ret = writeClass(compileOps.sourceFile, pkgName, clsName, lispValues.filter(x => !x.isInstanceOf[LispModuleStmt]))
+          val passingStmts = if (new File(compileOps.sourceFile).equals(new File(DefaultPrelude))) {
+            lispValues.filter(x => !x.isInstanceOf[LispModuleStmt])
+          } else {
+            LispRequireStmt(DefaultPrelude) +: lispValues.filter(x => !x.isInstanceOf[LispModuleStmt])
+          }
+
+          val ret = writeClass(compileOps.sourceFile, pkgName, clsName, passingStmts)
           val fos = new FileOutputStream(s"./${pkgName.replaceAllLiterally(".", "/")}/$clsName.class")
           fos.write(ret)
           fos.close()

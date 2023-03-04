@@ -1,6 +1,6 @@
 (module math)
 
-(require "lengine-code/prelude.lg")
+(require "./lengine-code/collections.lg")
 
 (export fact    ^((n) (^((acc n)
                           (if (= n 1) acc

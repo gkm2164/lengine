@@ -4,6 +4,7 @@
 (export - (native lengine.Prelude.SUB fn))
 (export * (native lengine.Prelude.MULT fn))
 (export / (native lengine.Prelude.DIV fn))
+(export rem (native lengine.Prelude.REM fn))
 
 (export & (native lengine.Prelude.BYTE_AND fn))
 (export | (native lengine.Prelude.BYTE_OR fn))
@@ -46,6 +47,7 @@
 
 (export now     (native lengine.Prelude.NOW fn))
 (export exit    (native lengine.Prelude.EXIT fn))
+(export wait    (native lengine.Prelude.WAIT fn))
 
 (export async   (native lengine.Prelude.ASYNC fn))
 (export await   (native lengine.Prelude.AWAIT fn))

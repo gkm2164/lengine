@@ -1,5 +1,7 @@
 (module gben.tests.hello)
 
+(require "./lengine-code/collections.lg")
+
 (def start (now))
 
 (let ((x 3))
@@ -82,7 +84,7 @@
 (println (char (int #\c)))
 (println (int 1.3))
 (println (double 1))
-(println (str 1234))
+(println (string 1234))
 
 (def object {
   :id 12345

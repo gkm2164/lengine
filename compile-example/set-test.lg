@@ -1,9 +1,11 @@
 (module gben.tests.set-test)
 
+(require "lengine-code/collections.lg")
+
 (def string-set (set ["abc" "def" "ghi"]))
 (def string-set-2 (set ["def" "jkl" "mno"]))
 
-(println (str string-set))
+(println (string string-set))
 
 (assert-true  "Should have abc in the set" (has? string-set "abc"))
 (assert-false "Should not have abc in the set" (has? string-set "abcde"))

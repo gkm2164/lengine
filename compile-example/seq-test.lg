@@ -1,5 +1,7 @@
 (module gben.tests.seq-test)
 
+(require "./lengine-code/collections.lg")
+
 (def seqs [1 2 3 4 5])
 (def fold-result (fold (range 1 10) 0 +))
 
@@ -74,10 +76,6 @@
                 for y in (=range 1 x)
                 [x y]))
 
-(fn ++ (xs ys)
-       (if (nil? xs) ys
-           (cons (head xs) (++ (tail xs) ys))))
-
 (fn flatten (xs)
             (if (nil? xs) nil
                 (let ((h (head xs))
@@ -118,11 +116,3 @@
             (reverse-loop nil lst))
 
 (println (reverse make-lengine-list))
-
-;;; merges 2 arrays
-(fn ++ (xs ys)
-       (if (nil? xs) ys
-                     (cons (head xs) ($ (tail xs) ys))))
-
-(println (++ xs-1 xs-2))
-

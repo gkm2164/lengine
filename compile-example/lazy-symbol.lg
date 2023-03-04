@@ -1,5 +1,7 @@
 (module gben.tests.lazy-symbol)
 
+(require "./lengine-code/collections.lg")
+
 (def x1 #(now))
 (def x2 (now))
 

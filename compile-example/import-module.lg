@@ -1,7 +1,7 @@
 (module gben.tests.import-module)
 
+(require "lengine-code/collections.lg")
 (require "lengine-code/math.lg")
-(require "lengine-code/prelude.lg")
 (require "compile-example/module.lg")
 
 (println (fact 5))

@@ -1,5 +1,7 @@
 (module gben.tests.json-async-module)
 
+(require "lengine-code/collections.lg")
+
 (import gben.libs.json.from-json)
 (import gben.libs.module.file-ch-stream)
 (import gben.libs.module.read-through)

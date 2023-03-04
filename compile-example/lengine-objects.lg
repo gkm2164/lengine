@@ -1,5 +1,7 @@
 (module gben.tests.lengine-objects)
 
+(require "./lengine-code/collections.lg")
+
 ;;; Object is defined with brace.
 ;;; Each key is mapped to value
 ;;; Key is special type

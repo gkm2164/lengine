@@ -1,5 +1,7 @@
 (module gben.tests.for-when)
 
+(require "./lengine-code/collections.lg")
+
 (def xs "901348sjodef209348")
 
 (fn test-for-when (xs)

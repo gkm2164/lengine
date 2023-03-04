@@ -1,5 +1,7 @@
 (module gben.tests.boolean)
 
+(require "./lengine-code/collections.lg")
+
 (def T true)
 (def F false)
 (def bool-list [T F])

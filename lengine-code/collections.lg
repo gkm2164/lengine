@@ -15,6 +15,7 @@
 (export list?   (native lengine.Prelude.IS_LIST fn))
 (export seq     (native lengine.Prelude.CAST_SEQ fn))
 (export seq?    (native lengine.Prelude.IS_SEQ fn))
+(export cons    (native lengine.Prelude.CONS fn))
 (export cons?   (native lengine.Prelude.IS_CONS fn))
 (export nil     (native lengine.Prelude.NIL var))
 (export nil?    (native lengine.Prelude.IS_NIL fn))
