@@ -20,19 +20,19 @@ class MainTest extends FlatSpec with Matchers {
   }
 
   "compile examples" should "compile only" in {
-    Main.main(Array("./lengine-code/math.lg"))
     Main.main(Array("./lengine-code/prelude.lg"))
     Main.main(Array("./lengine-code/collections.lg"))
     Main.main(Array("./lengine-code/stdlib.lg"))
+    Main.main(Array("./lengine-code/math.lg"))
     Main.main(Array("./compile-example/process-membrane.lg"))
     Main.main(Array("./compile-example/process-membrane-2.lg"))
   }
 
   "compile examples" should "compile and no death!" in {
     Main.main(Array("./lengine-code/prelude.lg"))
-    Main.main(Array("./lengine-code/math.lg"))
-    Main.main(Array("./lengine-code/stdlib.lg"))
     Main.main(Array("./lengine-code/collections.lg"))
+    Main.main(Array("./lengine-code/stdlib.lg"))
+    Main.main(Array("./lengine-code/math.lg"))
     execute("module.lg", "gben.libs.module")
     execute("for-when.lg", "gben.tests.for-when")
     execute("lazy-symbol.lg", "gben.tests.lazy-symbol")
