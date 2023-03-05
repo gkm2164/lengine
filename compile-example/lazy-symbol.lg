@@ -1,7 +1,7 @@
 (module gben.tests.lazy-symbol)
 
-(require "./lengine-code/collections.lg")
-(require "./lengine-code/stdlib.lg")
+(require "lengine-code/collections.lg")
+(require "lengine-code/stdlib.lg")
 
 (def x1 #(now))
 (def x2 (now))
@@ -51,4 +51,4 @@
 
 (println facts)
 
-(println (take 100 (map ^((x) (+ x 10)) (filter ^((x) (< x 100)) fibs))))
+(println (take 100 (filter ^((x) (< x 100)) fibs)))

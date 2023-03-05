@@ -13,10 +13,11 @@ import java.util.Objects
 object LengineType {
   val VoidPrimitive: Class[Void]                               = java.lang.Void.TYPE
   val BooleanPrimitive: Class[java.lang.Boolean]               = java.lang.Boolean.TYPE
-  val CharacterPrimitive: Class[java.lang.Character]           = Character.TYPE
+  val CharacterPrimitive: Class[java.lang.Character]           = java.lang.Character.TYPE
   val LongPrimitive: Class[java.lang.Long]                     = java.lang.Long.TYPE
   val DoublePrimitive: Class[java.lang.Double]                 = java.lang.Double.TYPE
   val BooleanClass: Class[java.lang.Boolean]                   = classOf[java.lang.Boolean]
+  val CharacterClass: Class[java.lang.Character]               = classOf[Character]
   val LongClass: Class[java.lang.Long]                         = classOf[java.lang.Long]
   val DoubleClass: Class[java.lang.Double]                     = classOf[java.lang.Double]
   val NumberClass: Class[java.lang.Number]                     = classOf[java.lang.Number]
@@ -30,7 +31,6 @@ object LengineType {
   val JavaMapClass: Class[java.util.Map[_, _]]                 = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]]         = classOf[java.util.HashMap[_, _]]
   val ArrayObjectClass: Class[Array[Object]]                   = classOf[Array[Object]]
-  val CharacterClass: Class[java.lang.Character]               = classOf[Character]
   val PreludeClass: Class[Prelude]                             = classOf[Prelude]
   val LengineMapClass: Class[LengineMap]                       = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]                 = classOf[LengineMapKey]

@@ -1,6 +1,6 @@
 (module gben.tests.boolean)
 
-(require "./lengine-code/collections.lg")
+(require "collections")
 
 (def T true)
 (def F false)
