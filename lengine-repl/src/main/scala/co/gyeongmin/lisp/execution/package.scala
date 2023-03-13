@@ -2,19 +2,19 @@ package co.gyeongmin.lisp
 
 import cats.syntax.either._
 import co.gyeongmin.lisp.builtin.BuiltinLispFunc
-import co.gyeongmin.lisp.debug.{ Debugger, ReplDebugger }
+import co.gyeongmin.lisp.debug.{Debugger, ReplDebugger}
 import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.EmptyTokenListError
 import co.gyeongmin.lisp.lexer.ast._
-import co.gyeongmin.lisp.lexer.tokens.{ LispToken, SpecialToken }
+import co.gyeongmin.lisp.lexer.tokens.{LispToken, SpecialToken}
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
-import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
-import co.gyeongmin.lisp.lexer.values.functions.{ GeneralLispFunc, LispFunc, OverridableFunc }
+import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc, OverridableFunc}
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, LispSymbol, ListSymbol }
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ListSymbol}
 import lexer.values._
-import lexer.{ StdInReader, TokenLocation, Tokenizer }
+import lexer.{StdInReader, TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
 import errors.LispError
 
@@ -353,7 +353,7 @@ package object execution {
   ): LispEnvironment = {
     val tokenizer = readFile(path)
     implicit val debugger: Option[Debugger] =
-      if (env.getOrElse(EagerSymbol("$$VERBOSE$$"), LispFalse).eq(LispTrue))
+      if (env.getOrElse(EagerSymbol("$$VERBOSE$$"), LispFalse()).eq(LispTrue()))
         Some(new ReplDebugger())
       else None
     runLoop(tokenizer, env) match {

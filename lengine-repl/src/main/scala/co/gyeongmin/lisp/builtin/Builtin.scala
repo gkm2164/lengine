@@ -22,7 +22,7 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
 import java.io.{BufferedReader, InputStreamReader}
 
 object Builtin {
-  def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(
+  private def defBuiltinFn(symbolName: LispSymbol, args: LispSymbol*)(
     f: LispEnvironment => Either[EvalError, LispValue]
   ): OverridableFunc =
     OverridableFunc(Vector(new BuiltinLispFunc(symbolName, args.toList) {

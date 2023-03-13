@@ -56,7 +56,7 @@
       ((:writer res) "<html><h1>This is About</h1></html>")
       return res))
 
-(def closer (listen {
+(def close-server (listen {
   :host "127.0.0.1"
   :port 8080
   :handlers {
@@ -80,4 +80,4 @@
 ;;; Will never reach here, but, if reaches...
 (println "Closing server...")
 ;;; here how we can close the server.
-(closer)
+(close-server)

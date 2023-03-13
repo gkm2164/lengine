@@ -24,6 +24,6 @@
 (println "Closed sender")
 (close channel)
 (await receiver)
-(println "Received finished since the channel was closed")
+(println "Receiving finished since the channel was closed")
 
 (exit 0)
