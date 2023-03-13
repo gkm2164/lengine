@@ -4,8 +4,9 @@
 
 # Lengine, another Lisp Engine
 
-Compiler is now available!!
-Checkout [compiler's README.md](./lengine-compiler/README.md)!!
+Compiler is now available!! Checkout [compiler's README.md](./lengine-compiler/README.md)!!
+
+Documentation is in progress: [Documentation](https://docs.lengine.io)
 
 ## Table of contents
 

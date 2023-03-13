@@ -75,8 +75,7 @@ object Main {
         })
     } catch {
       case re: RuntimeException =>
-        System.err.println(s"Error: ${re.getMessage}")
-        re.printStackTrace()
+        System.err.println(s"[ERROR]: ${re.getMessage}")
         System.exit(1)
     }
 
