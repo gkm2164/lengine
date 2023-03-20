@@ -140,6 +140,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       runtimeEnv.registerVariable(symbol, varIdx, retType)
       runtimeEnv.writeLaterAllScope(symbol, retType, varIdx)
       typeToBe
+    case macroDef@LispMacroDef(symbol: LispSymbol, _) =>
+      runtimeEnv.registerMacroDef(symbol, macroDef)
+      typeToBe
     case LispFuncDef(symbol, funcDef) =>
       new LispFnAsmWriter(funcDef).writeValue(itself = Some(symbol))
       val fnIdx = runtimeEnv.allocateNextVar

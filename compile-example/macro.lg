@@ -1,0 +1,14 @@
+(module macro-test)
+
+(defmacro abc-macro (x y)
+    (x y))
+
+(defmacro if' (cond then-clause ,else else-clause)
+    (if cond then-clause else-clause))
+
+(abc-macro println 30)
+
+(def x 10)
+
+(if' (= x 20) (println "X is 20!")
+ else (println "X is not 20!"))

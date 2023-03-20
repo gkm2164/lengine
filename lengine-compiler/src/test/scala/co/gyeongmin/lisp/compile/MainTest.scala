@@ -24,6 +24,7 @@ class MainTest extends FlatSpec with Matchers {
     Main.main(Array("./lengine-code/collections.lg"))
     Main.main(Array("./lengine-code/stdlib.lg"))
     Main.main(Array("./lengine-code/math.lg"))
+    Main.main(Array("./compile-example/macro.lg"))
     Main.main(Array("./compile-example/process-membrane.lg"))
     Main.main(Array("./compile-example/process-membrane-2.lg"))
   }

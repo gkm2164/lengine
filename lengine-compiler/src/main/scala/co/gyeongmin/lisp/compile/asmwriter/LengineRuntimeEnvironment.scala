@@ -2,6 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
+import co.gyeongmin.lisp.lexer.ast.LispMacroDef
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{ClassWriter, Label}
 
@@ -16,6 +17,15 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val className: String,
                                 val fileName: String,
                                 numberOfArgs: Int) {
+
+
+  private val macros = mutable.Map[LispSymbol, LispMacroDef]()
+  def registerMacroDef(symbol: LispSymbol, macroDef: LispMacroDef): Unit = {
+    macros += (symbol -> macroDef)
+  }
+  def getMacroVar(ref: LispSymbol): LispMacroDef = macros(ref)
+  def hasMacroVar(ref: LispSymbol): Boolean = macros.contains(ref)
+
   val writeLaterAllScopeList: mutable.ListBuffer[(LispSymbol, Class[_], Int)] = mutable.ListBuffer()
   def writeLaterAllScope(symbol: LispSymbol, typeToBe: Class[_], location: Int): Unit = {
     val tuple = (symbol, typeToBe, location)
