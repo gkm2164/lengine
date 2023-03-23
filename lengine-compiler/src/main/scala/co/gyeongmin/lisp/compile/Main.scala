@@ -14,7 +14,7 @@ import scala.io.Source
 object Main {
   private val DefaultPrelude = "./lengine-code/prelude.lg"
 
-  case class LengineCompileOptions(sourceFileOpt: Option[String], classNameOpt: Option[String]) {
+  private case class LengineCompileOptions(sourceFileOpt: Option[String], classNameOpt: Option[String]) {
     def sourceFile: String = sourceFileOpt.getOrElse(throw new IllegalArgumentException("No source file was given"))
     def className: String  = classNameOpt.getOrElse("Main")
   }

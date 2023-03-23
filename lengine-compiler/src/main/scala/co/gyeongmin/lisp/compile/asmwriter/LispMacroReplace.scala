@@ -30,6 +30,8 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
       case es: LispSymbol if map.contains(es) => map(es)
       case es: LispSymbol => es
       case LispClause(lst: List[LispValue]) => LispClause(lst.map(replaceLoop))
+      case LispForStmt(symbol, seq) if map.contains(symbol) =>
+        LispForStmt(map(symbol).asInstanceOf[LispSymbol], replaceLoop(seq))
       case LispForStmt(symbol, seq) => LispForStmt(symbol, replaceLoop(seq))
       case LispLoopStmt(Nil, body) => LispLoopStmt(Nil, replaceLoop(body))
       case LispLoopStmt(forStmt :: tail, body) =>
@@ -37,7 +39,8 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
         val LispLoopStmt(replacedTail, replacedBody) = replaceLoop(LispLoopStmt(tail, body))
         LispLoopStmt(replacedFor :: replacedTail, replacedBody)
       case _ =>
-        throw CompileException(s"Unsupported replacement of macro: $lispValue", runtimeEnvironment.fileName, clause.tokenLocation)
+        throw CompileException(s"Unsupported replacement of macro: $lispValue",
+          runtimeEnvironment.fileName, clause.tokenLocation)
     }
 
     replaceLoop(value.generalLispFunc.body)

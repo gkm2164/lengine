@@ -1,5 +1,7 @@
 (module macro-test)
 
+(require "collections")
+
 (defmacro abc-macro (x y)
     (x y))
 
@@ -12,3 +14,9 @@
 
 (if' (= x 20) (println "X is 20!")
  else (println "X is not 20!"))
+
+(defmacro for' (varname ,in' seqs body)
+    (loop for varname in seqs body))
+
+(for' x in' (range 1 10)
+    (println x))
