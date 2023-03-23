@@ -283,6 +283,12 @@ package object parser {
         d <- parseDef
         _ <- takeToken[RightPar]
       } yield d)(tail)
+    case LispDefMacro() #:: tail =>
+      (for {
+        func <- parseFunc
+        LispFuncDef(symbol, body) = func
+        _ <- takeToken[RightPar]
+      } yield LispMacroDef(symbol, body))(tail)
     case LispImport() #:: tail => parseImportStmt(tail)
     case LispExport() #:: tail =>
       (for {

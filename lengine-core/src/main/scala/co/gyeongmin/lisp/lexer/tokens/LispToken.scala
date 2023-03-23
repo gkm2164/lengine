@@ -1,11 +1,11 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors.tokenizer.{ RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError }
+import co.gyeongmin.lisp.errors.tokenizer.{RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError}
 import co.gyeongmin.lisp.lexer.TokenLocation
-import co.gyeongmin.lisp.lexer.values.boolean.{ LispFalse, LispTrue }
-import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber, RatioNumber }
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber, RatioNumber}
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol, SyntacticSymbol}
 
 import scala.util.matching.Regex
 
@@ -21,6 +21,7 @@ object LispToken {
   private val digitMap: Map[Char, Int]      = mapFor('0' to '9', x => x -> (x - '0'))
   private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z_\-+/*%<>=?][.a-zA-Z0-9_\-+/*%<>=?]*\*?)""".r
   private val SymbolRegex: Regex            = """([$.a-zA-Z_\-+/*%<>=?:'&|~][$.a-zA-Z0-9_\-+/*%<>=?:'&|~]*\*?)""".r
+  private val SyntacticalSymbolRegex: Regex = """(,[$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*)""".r
   private val LazySymbolRegex: Regex        = """('[$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*)""".r
   private val ListSymbolRegex: Regex        = """([$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*\*)""".r
   private val SpecialValueRegex: Regex      = """#(.+)""".r
@@ -48,6 +49,7 @@ object LispToken {
     case "require"                             => Right(LispRequire())
     case "def"                                 => Right(LispDef())
     case "fn"                                  => Right(LispFn())
+    case "defmacro"                            => Right(LispDefMacro())
     case "var"                                 => Right(LispVar())
     case "let"                                 => Right(LispLet())
     case "ns"                                  => Right(LispNs())
@@ -76,6 +78,7 @@ object LispToken {
       if (u == 0) Left(RatioUnderZeroNotAllowedError)
       else Right(RatioNumber(o, u))
     case ObjectReferSymbolRegex(name)                                   => Right(ObjectReferSymbol(name))
+    case SyntacticalSymbolRegex(name)                                   => Right(SyntacticSymbol(name))
     case LazySymbolRegex(name)                                          => Right(LazySymbol(name))
     case ListSymbolRegex(name)                                          => Right(ListSymbol(name))
     case SymbolRegex(name)                                              => Right(EagerSymbol(name))
