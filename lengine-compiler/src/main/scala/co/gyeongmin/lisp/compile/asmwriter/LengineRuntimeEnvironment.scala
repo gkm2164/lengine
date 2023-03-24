@@ -9,8 +9,6 @@ import org.objectweb.asm.{ClassWriter, Label}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
-case class LengineRuntimeVariable(varLoc: Option[Int], declaredType: Class[_])
-
 class LengineRuntimeEnvironment(val classWriter: ClassWriter,
                                 val methodVisitor: MethodVisitorWrapper,
                                 val args: mutable.Map[LispSymbol, LengineRuntimeVariable],

@@ -45,7 +45,7 @@ object Main {
       val tokenizer = Tokenizer(code)
 
       tokenizer.getTokenStream
-        .map(tokenStream => compileLoop(Vector(), tokenStream))
+        .map(compileLoop(Vector(), _))
         .foreach(lispValues => {
           val (pkgName, clsName) = lispValues.head match {
             case LispModuleStmt(symbol) =>

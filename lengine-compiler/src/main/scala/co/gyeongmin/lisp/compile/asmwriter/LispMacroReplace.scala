@@ -44,10 +44,10 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
       case list: LispList                                               => replaceList(list)
       case when: LispForWhenStmt                                        => repalceForWhenStmt(when)
       case errorHandler: LispErrorHandler                               => replaceErrorHandler(errorHandler)
-      case number: LispNumber                                           => number
       case fn: LispFuncDef                                              => replaceFuncDef(fn)
       case lambda: GeneralLispFunc                                      => replaceLambda(lambda)
       case let: LispLetDef                                              => replaceLetDef(let)
+      case number: LispNumber                                           => number
       case v @ (LispString(_) | LispChar(_) | LispString(_) | LispUnit) => v
       case v =>
         throw CompileException(s"Unsupported replacement of macro: $v",

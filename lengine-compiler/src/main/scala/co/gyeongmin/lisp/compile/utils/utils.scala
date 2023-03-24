@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
+import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.parser.parseValue
 
@@ -13,9 +13,8 @@ package object utils {
       case Stream.Empty => acc.toList
       case _ =>
         parseValue(tokenStream) match {
-          case Right((lispValue, remain)) =>
-            compileLoop(acc :+ lispValue, remain)
-          case Left(err) => throw new RuntimeException(s"while parse: ${err.message}")
+          case Right((lispValue, remain)) => compileLoop(acc :+ lispValue, remain)
+          case Left(err)                  => throw new RuntimeException(s"while parse: ${err.message}")
         }
     }
 }
