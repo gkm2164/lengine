@@ -25,3 +25,10 @@
     (printf "Hello, %s!\n" [name]))
 
 (hello my name is "Gyeongmin!")
+
+(defmacro let' (varname value body)
+    (let ((varname value))
+         body))
+
+(let' x 30 (println x))
+

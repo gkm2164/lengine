@@ -1,10 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.lexer.ast.{LispCaseCondition, LispCaseStmt, LispDoStmt, LispForStmt, LispLoopStmt, LispMacroDef}
-import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, SyntacticSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
+import co.gyeongmin.lisp.lexer.ast._
+import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
+import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ LispSymbol, SyntacticSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispUnit, LispValue }
 
 class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   private type MacroReplacer[T <: LispValue] = PartialFunction[T, T]
@@ -35,15 +36,51 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
   private class Replacer(implicit macroEnv: Map[LispSymbol, LispValue]) {
     def replaceLispValue: MacroReplacer[LispValue] = {
-      case symbol: LispSymbol => replaceSymbol(symbol)
-      case clause: LispClause => replaceLispClause.apply(clause)
-      case loop: LispLoopStmt => replaceLoopStmt.apply(loop)
-      case caseStmt: LispCaseStmt => replaceCaseStmt.apply(caseStmt)
-      case doStmt: LispDoStmt => replaceDoStmt.apply(doStmt)
-      case list: LispList => replaceList.apply(list)
-      case v@(LispString(_) | IntegerNumber(_)) => v
+      case symbol: LispSymbol                                           => replaceSymbol(symbol)
+      case clause: LispClause                                           => replaceLispClause(clause)
+      case loop: LispLoopStmt                                           => replaceLoopStmt(loop)
+      case caseStmt: LispCaseStmt                                       => replaceCaseStmt(caseStmt)
+      case doStmt: LispDoStmt                                           => replaceDoStmt(doStmt)
+      case list: LispList                                               => replaceList(list)
+      case when: LispForWhenStmt                                        => repalceForWhenStmt(when)
+      case errorHandler: LispErrorHandler                               => replaceErrorHandler(errorHandler)
+      case number: LispNumber                                           => number
+      case fn: LispFuncDef                                              => replaceFuncDef(fn)
+      case lambda: GeneralLispFunc                                      => replaceLambda(lambda)
+      case let: LispLetDef                                              => replaceLetDef(let)
+      case v @ (LispString(_) | LispChar(_) | LispString(_) | LispUnit) => v
       case v =>
-        throw CompileException(s"Unsupported replacement of macro: $v", runtimeEnvironment.fileName, clause.tokenLocation)
+        throw CompileException(s"Unsupported replacement of macro: $v",
+                               runtimeEnvironment.fileName,
+                               clause.tokenLocation)
+    }
+
+    private def replaceLetDecl: MacroReplacer[LispLetDecl] = {
+      case LispLetDecl(name, value) =>
+        LispLetDecl(replaceSymbol(name).asInstanceOf[LispSymbol], replaceLispValue(value))
+    }
+
+    private def replaceLetDef: MacroReplacer[LispLetDef] = {
+      case LispLetDef(decls, body) => LispLetDef(decls.map(replaceLetDecl), replaceLispValue(body))
+    }
+
+    private def replaceErrorHandler: MacroReplacer[LispErrorHandler] = {
+      case LispErrorHandler(tryBody, recoveryBlock) =>
+        LispErrorHandler(replaceLispValue(tryBody), replaceRecoverStmt(recoveryBlock))
+    }
+
+    private def replaceRecoverStmt: MacroReplacer[LispRecoverBlock] = {
+      case LispRecoverBlock(symbol, body) =>
+        LispRecoverBlock(replaceSymbol(symbol).asInstanceOf[LispSymbol], replaceLispValue(body))
+    }
+
+    private def repalceForWhenStmt: MacroReplacer[LispForWhenStmt] = {
+      case LispForWhenStmt(value, whenStmt, otherwise) =>
+        LispForWhenStmt(replaceLispValue(value), whenStmt.map(replaceLispWhen), replaceLispValue(otherwise))
+    }
+
+    private def replaceLispWhen: MacroReplacer[LispWhenStmt] = {
+      case LispWhenStmt(value, thenValue) => LispWhenStmt(replaceLispValue(value), replaceLispValue(thenValue))
     }
 
     private def replaceCaseStmt: MacroReplacer[LispCaseStmt] = {
@@ -80,6 +117,15 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
 
     private def replaceList: MacroReplacer[LispList] = {
       case LispList(items) => LispList(items.map(replaceLispValue))
+    }
+
+    private def replaceFuncDef: MacroReplacer[LispFuncDef] = {
+      case LispFuncDef(symbol, fn) => LispFuncDef(replaceSymbol(symbol).asInstanceOf[LispSymbol], replaceLambda(fn))
+    }
+
+    private def replaceLambda: MacroReplacer[GeneralLispFunc] = {
+      case GeneralLispFunc(placeHolders, body) =>
+        GeneralLispFunc(placeHolders.map(replaceLispValue), replaceLispValue(body))
     }
   }
 }
