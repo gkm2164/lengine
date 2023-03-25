@@ -107,8 +107,8 @@ object FunctionAnalyzer {
   then, refer it as tail recursion. Only the first referring symbol will be replaced to loop, but, laters not.
     * */
   def isTailRecursion(itself: Option[LispSymbol], body: LispValue): Boolean = body match {
-    case LispClause((symbol: LispSymbol) :: _) if symbol == EagerSymbol("$") || itself.contains(symbol) => true
-    case LispClause(EagerSymbol("if") :: _ :: thenValue :: elseValue :: Nil) =>
+    case LispClause((symbol: LispSymbol) :: _) if symbol == VarSymbol("$") || itself.contains(symbol) => true
+    case LispClause(VarSymbol("if") :: _ :: thenValue :: elseValue :: Nil) =>
       isTailRecursion(itself, thenValue) || isTailRecursion(itself, elseValue)
     case LispCaseStmt(Nil, fallback) =>
       isTailRecursion(itself, fallback)
@@ -119,12 +119,12 @@ object FunctionAnalyzer {
     case _ @LispDoStmt(_ :: tail) =>
       isTailRecursion(itself, LispDoStmt(tail))
     case LispLetDef(decls, body) if decls.forall {
-          case LispLetDecl(symbol, _) => !itself.contains(symbol) && symbol != EagerSymbol("$")
+          case LispLetDecl(symbol, _) => !itself.contains(symbol) && symbol != VarSymbol("$")
         } =>
       isTailRecursion(itself, body)
     case LispLoopStmt(Nil, body) =>
       isTailRecursion(itself, body)
-    case LispLoopStmt(head :: tail, body) if !itself.contains(head.symbol) && head.symbol != EagerSymbol("$") =>
+    case LispLoopStmt(head :: tail, body) if !itself.contains(head.symbol) && head.symbol != VarSymbol("$") =>
       isTailRecursion(itself, LispLoopStmt(tail, body))
     case LispForWhenStmt(_, Nil, otherwise) => isTailRecursion(itself, otherwise)
     case LispForWhenStmt(value, LispWhenStmt(_, thenValue) :: whens, otherwise) =>

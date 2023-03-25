@@ -7,7 +7,7 @@ import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispObject, LispUnit, LispValue}
 import co.gyeongmin.lisp.monad._
 
@@ -41,14 +41,14 @@ package object parser {
         parseClause(afterLeftPar)
           .map(
             _.mapValue(_.wrapLocation(t.tokenLocation))
-              .mapValue(c => LispClause(List(EagerSymbol("lazy"), c)))
+              .mapValue(c => LispClause(List(VarSymbol("lazy"), c)))
           )
       case (t @ LeftForcePar()) #:: afterLeftPar =>
         parseClause(afterLeftPar)
           .map(
             _.mapValue(_.wrapLocation(t.tokenLocation))
               .mapValue {
-                case LispClause(body) => LispClause(EagerSymbol("force") :: body)
+                case LispClause(body) => LispClause(VarSymbol("force") :: body)
               }
           )
       case LambdaStartPar() #:: afterLeftPar =>
@@ -89,7 +89,7 @@ package object parser {
   private def parseDef: LispTokenState[LispValueDef] = {
     case Stream.Empty                                                 => Left(EmptyTokenListError)
     case LispNop() #:: tail                                           => parseDef(tail)
-    case EagerSymbol(name) #:: _ if ForbiddenOverrides.contains(name) => Left(DeniedKeywordError(name, "parseDef"))
+    case VarSymbol(name) #:: _ if ForbiddenOverrides.contains(name) => Left(DeniedKeywordError(name, "parseDef"))
     case (x: LispSymbol) #:: tail                                     => parseValue.map(v => LispValueDef(x, v))(tail)
     case token #:: _                                                  => Left(UnexpectedTokenError(token))
   }
@@ -111,7 +111,7 @@ package object parser {
       values: mutable.Set[String]
   )(context: String)(implicit ct: ClassTag[A]): LispTokenState[A] = {
     case Stream.Empty                                   => Left(EmptyTokenListError)
-    case EagerSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str, context))
+    case VarSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str, context))
     case LispNop() #:: tail                             => takeToken[A](ct)(tail)
     case (tk: A) #:: tail                               => LispTokenState(tk)(tail)
     case token #:: _                                    => Left(UnexpectedTokenError(token))

@@ -15,7 +15,7 @@ import co.gyeongmin.lisp.lexer.values.functions.{
 }
 import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
+  VarSymbol,
   LazySymbol,
   LispSymbol
 }
@@ -26,17 +26,17 @@ import java.util.concurrent.atomic.AtomicLong
 class packageTest extends FlatSpec with Matchers {
   "addFn" should "pass" in {
     val x: LispEnvironment = Map()
-    val fn = GeneralLispFunc(List(EagerSymbol("b")), LispUnit)
-    val next = x.addFn(EagerSymbol("a"), fn)
-    next.right.get(EagerSymbol("a")) should be(
+    val fn = GeneralLispFunc(List(VarSymbol("b")), LispUnit)
+    val next = x.addFn(VarSymbol("a"), fn)
+    next.right.get(VarSymbol("a")) should be(
       OverridableFunc(Vector(fn))
     )
   }
 
   "addFn" should "fail" in {
-    val x: LispEnvironment = Map(EagerSymbol("invalidEnv") -> LispUnit)
-    val fn = GeneralLispFunc(List(EagerSymbol("b")), LispUnit)
-    val next = x.addFn(EagerSymbol("invalidEnv"), fn)
+    val x: LispEnvironment = Map(VarSymbol("invalidEnv") -> LispUnit)
+    val fn = GeneralLispFunc(List(VarSymbol("b")), LispUnit)
+    val next = x.addFn(VarSymbol("invalidEnv"), fn)
 
     next should matchPattern { case Left(_) => }
   }
@@ -66,13 +66,13 @@ class packageTest extends FlatSpec with Matchers {
   }
 
   "clause executor" should "work" in {
-    val env: LispEnvironment = Map(EagerSymbol("x") -> LispUnit)
+    val env: LispEnvironment = Map(VarSymbol("x") -> LispUnit)
 
     LispClause(Nil).execute(env) should be(Left(EmptyBodyClauseError))
-    LispClause(List(EagerSymbol("unknown"))).execute(env) should matchPattern {
+    LispClause(List(VarSymbol("unknown"))).execute(env) should matchPattern {
       case Left(_: UnknownSymbolNameError) =>
     }
-    LispClause(List(EagerSymbol("x"))).execute(env) should matchPattern {
+    LispClause(List(VarSymbol("x"))).execute(env) should matchPattern {
       case Left(_: NotAnExecutableError) =>
     }
   }
@@ -80,11 +80,11 @@ class packageTest extends FlatSpec with Matchers {
   "def executor" should "work" in {
     val env: LispEnvironment = Map()
 
-    LispValueDef(EagerSymbol("x"), LispUnit)
+    LispValueDef(VarSymbol("x"), LispUnit)
       .registerSymbol(env)
       .map { case (_, nextEnv) => nextEnv }
       .getOrElse(Map())
-      .contains(EagerSymbol("x")) should be(true)
+      .contains(VarSymbol("x")) should be(true)
 
     LispValueDef(LazySymbol("x"), LispUnit)
       .registerSymbol(env)
@@ -109,7 +109,7 @@ class packageTest extends FlatSpec with Matchers {
 
   "eval" should "fail" in {
     val symbol1 = LazySymbol("'a")
-    val symbol2 = EagerSymbol("a")
+    val symbol2 = VarSymbol("a")
 
     val anyLispValue = new LispValue {}
 

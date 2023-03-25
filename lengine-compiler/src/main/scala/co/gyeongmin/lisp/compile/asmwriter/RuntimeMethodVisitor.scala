@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispVar}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 object RuntimeMethodVisitor {
@@ -20,7 +20,7 @@ object RuntimeMethodVisitor {
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
-    case EagerSymbol(op) => supportedOps.contains(op)
+    case VarSymbol(op) => supportedOps.contains(op)
     case _               => false
   }
 
@@ -29,7 +29,7 @@ object RuntimeMethodVisitor {
   ): Unit = {
     val operation :: operands = body
     operation match {
-      case EagerSymbol(op) =>
+      case VarSymbol(op) =>
         op match {
           case "export" => visitExport(operands)
           case "import" => visitImport(operands)
@@ -129,7 +129,7 @@ object RuntimeMethodVisitor {
     mv.visitAStore(varLoc)
 
     val symbolToBeRegistered = importNameSymbol match {
-      case _:EagerSymbol => EagerSymbol(symbolNameComb.name.split('.').last)
+      case _:VarSymbol => VarSymbol(symbolNameComb.name.split('.').last)
       case _:LazySymbol => LazySymbol(symbolNameComb.name.split('.').last)
     }
 

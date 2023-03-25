@@ -51,20 +51,20 @@ package object debug {
     }
 
     private def symbolDebug(symbol: LispSymbol): String = symbol match {
-      case EagerSymbol(name) => s"$name: eager evaluation symbol"
+      case VarSymbol(name) => s"$name: eager evaluation symbol"
       case LazySymbol(name)  => s"$name: lazy evaluation symbol"
       case ListSymbol(name)  => s"$name: a symbol for list"
       case ObjectReferSymbol(name) =>
         s":$name: a symbol for object reference"
     }
 
-    def booleanDebug(boolean: LispBoolean): String = boolean match {
+    private def booleanDebug(boolean: LispBoolean): String = boolean match {
       case LispFalse() => s"false: Boolean"
       case LispTrue()  => s"true: Boolean"
       case x         => s"${x.toString}(unknown): Boolean"
     }
 
-    def listDebug(list: LispList): String = list.printable() match {
+    private def listDebug(list: LispList): String = list.printable() match {
       case Right(str) => s"$str: List"
       case Left(_)    => "#unable to print: List"
     }

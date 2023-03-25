@@ -19,7 +19,7 @@ import co.gyeongmin.lisp.lexer.values.numbers.{
 }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
 import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
+  VarSymbol,
   LazySymbol,
   ListSymbol,
   ObjectReferSymbol
@@ -34,44 +34,44 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
 
   it should "pass" in {
     assertStmt(LispDoStmt(List(LispUnit)), "(do ())")
-    assertStmt(LispForStmt(EagerSymbol("a"), LispUnit), "for a in ()")
+    assertStmt(LispForStmt(VarSymbol("a"), LispUnit), "for a in ()")
     assertStmt(
       LispFuncDef(
-        EagerSymbol("f"),
-        GeneralLispFunc(List(EagerSymbol("a")), LispUnit)
+        VarSymbol("f"),
+        GeneralLispFunc(List(VarSymbol("a")), LispUnit)
       ),
       "(fn f (a) ())"
     )
     assertStmt(LispImportDef(LispUnit), "(import ())")
     assertStmt(
       LispLoopStmt(
-        List(LispForStmt(EagerSymbol("a"), LispUnit)),
+        List(LispForStmt(VarSymbol("a"), LispUnit)),
         LispUnit
       ),
       "(loop for a in () ())"
     )
     assertStmt(LispNamespace(LispString("hello")), "(ns \"hello\")")
 
-    assertStmt(LispValueDef(EagerSymbol("a"), LispUnit), "(def a ())")
+    assertStmt(LispValueDef(VarSymbol("a"), LispUnit), "(def a ())")
 
     assertStmt(
-      LispLetDef(List(LispLetDecl(EagerSymbol("a"), LispUnit)), LispUnit),
+      LispLetDef(List(LispLetDecl(VarSymbol("a"), LispUnit)), LispUnit),
       "(let ((a ())) ())"
     )
 
     assertStmt(
-      new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {
+      new BuiltinLispFunc(VarSymbol("a"), List(VarSymbol("b"))) {
         override def execute(
           env: LispEnvironment
         ): Either[EvalError, LispValue] = {
-          Right(EagerSymbol("c"))
+          Right(VarSymbol("c"))
         }
       },
       "(lambda (b) #native)"
     )
     assertStmt(
       GeneralLispFunc(
-        placeHolders = List(EagerSymbol("a"), EagerSymbol("b")),
+        placeHolders = List(VarSymbol("a"), VarSymbol("b")),
         body = LispUnit
       ),
       "(a b) ()"
@@ -80,7 +80,7 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
     val f1 = mock[LispFunc]
     val f2 = mock[LispFunc]
 
-    val placeHolders = List(EagerSymbol("a"))
+    val placeHolders = List(VarSymbol("a"))
 
     expect(f1.placeHolders).andReturn(placeHolders)
     expect(f2.placeHolders).andReturn(placeHolders)
@@ -116,8 +116,8 @@ class LispRecoverStmtTest extends FlatSpec with Matchers {
       s"namespace declaration: something"
     )
     LispFuncDef(
-      EagerSymbol("a"),
-      GeneralLispFunc(List(EagerSymbol("a")), LispUnit)
+      VarSymbol("a"),
+      GeneralLispFunc(List(VarSymbol("a")), LispUnit)
     ).debug() should be(
       "function definition to a: eager evaluation symbol -> (lambda (a) ()): Lambda"
     )

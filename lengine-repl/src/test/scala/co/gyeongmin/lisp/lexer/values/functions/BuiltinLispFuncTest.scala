@@ -4,12 +4,12 @@ import co.gyeongmin.lisp.builtin.BuiltinLispFunc
 import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
-import co.gyeongmin.lisp.lexer.values.symbol.EagerSymbol
+import co.gyeongmin.lisp.lexer.values.symbol.VarSymbol
 import org.scalatest.{FlatSpec, Matchers}
 
 class BuiltinLispFuncTest extends FlatSpec with Matchers {
   val builtinLispFunc =
-    new BuiltinLispFunc(EagerSymbol("a"), List(EagerSymbol("b"))) {
+    new BuiltinLispFunc(VarSymbol("a"), List(VarSymbol("b"))) {
       override def execute(
         env: LispEnvironment
       ): Either[EvalError, LispValue] = Left(

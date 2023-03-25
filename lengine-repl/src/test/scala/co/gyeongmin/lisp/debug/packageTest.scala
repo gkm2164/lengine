@@ -10,7 +10,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.LispBoolean
 import co.gyeongmin.lisp.lexer.values.functions.LispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.seq.LispList
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, ObjectReferSymbol}
 import org.scalatest.{FlatSpec, Matchers}
 
 class packageTest extends FlatSpec with Matchers {
@@ -21,15 +21,15 @@ class packageTest extends FlatSpec with Matchers {
         ObjectReferSymbol("something2") -> IntegerNumber(12)
       )
     ).debug() should be("{:something 10 :something2 12}: Object")
-    LispForStmt(EagerSymbol("x"), LispList(List(LispUnit, LispUnit, LispUnit)))
+    LispForStmt(VarSymbol("x"), LispList(List(LispUnit, LispUnit, LispUnit)))
       .debug() should be(
       "for statement with x: eager evaluation symbol in [() () ()]: List"
     )
     LispDoStmt(Nil).debug() should be("do statement")
-    LispLetDef(List(LispLetDecl(EagerSymbol("x"), LispUnit)), LispUnit).debug() should be(
+    LispLetDef(List(LispLetDecl(VarSymbol("x"), LispUnit)), LispUnit).debug() should be(
       "let statement define (x: eager evaluation symbol)"
     )
-    LispLetDef(List(LispLetDecl(EagerSymbol("x"), LispUnit), LispLetDecl(EagerSymbol("y"), LispUnit)), LispUnit).debug() should be(
+    LispLetDef(List(LispLetDecl(VarSymbol("x"), LispUnit), LispLetDecl(VarSymbol("y"), LispUnit)), LispUnit).debug() should be(
       "let statement define (x: eager evaluation symbol, y: eager evaluation symbol)"
     )
     LispLoopStmt(Nil, LispUnit).debug() should be("loop statement")
@@ -39,13 +39,13 @@ class packageTest extends FlatSpec with Matchers {
       override def printable(): Either[EvalError, String] =
         Left(EmptyBodyClauseError)
     }.debug() should be(s"#unprintable(${EmptyBodyClauseError.message})")
-    new BuiltinLispFunc(EagerSymbol("x"), Nil) {
+    new BuiltinLispFunc(VarSymbol("x"), Nil) {
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] =
         Left(UnimplementedOperationError("something", LispUnit))
     }.debug() should be(
       "(fn x () #native): Built in function"
     )
-    new BuiltinLispFunc(EagerSymbol("x"), Nil) {
+    new BuiltinLispFunc(VarSymbol("x"), Nil) {
       override def printable(): Either[EvalError, String] =
         Left(UnimplementedOperationError("something", LispUnit))
       override def execute(env: LispEnvironment): Either[EvalError, LispValue] =

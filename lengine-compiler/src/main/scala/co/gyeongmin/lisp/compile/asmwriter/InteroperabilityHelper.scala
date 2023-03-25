@@ -8,18 +8,14 @@ object InteroperabilityHelper {
   val ReservedKeywordFunctions: Map[LispSymbol, Field] = Map()
   val SupportedFunctions: Map[LispSymbol, Field] = Map[String, Field](
   ).map {
-    case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
-    case (key, value)                        => EagerSymbol(key) -> value
+    case (key, value)                        => VarSymbol(key) -> value
   } ++ ReservedKeywordFunctions
-
   val ReservedKeywordVars: Map[LispSymbol, Field] = Map[String, Field](
   ).map {
-    case (key, value) if key.startsWith("'") => LazySymbol(key)  -> value
-    case (key, value)                        => EagerSymbol(key) -> value
+    case (key, value)                        => VarSymbol(key) -> value
   }
-
   val SupportedVars: Map[LispSymbol, Field] = Map[String, Field](
     ).map {
-    case (key, value) => EagerSymbol(key) -> value
+    case (key, value) => VarSymbol(key) -> value
   } ++ ReservedKeywordVars
 }

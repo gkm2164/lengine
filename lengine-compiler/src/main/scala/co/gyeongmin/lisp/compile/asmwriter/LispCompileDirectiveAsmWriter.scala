@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType.ObjectClass
 import co.gyeongmin.lisp.compile.utils.compileLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispModuleStmt, LispRequireStmt}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol}
 import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 
 import java.io.File
@@ -15,12 +15,12 @@ class LispCompileDirectiveAsmWriter(value: LispValue, typeToBe: Class[_])(implic
     case LispRequireStmt(value) => importFile(value)
     case LispExportDef(symbol, None) =>
       new LispValueAsmWriter(
-        LispClause(EagerSymbol("export") :: symbol :: Nil),
+        LispClause(VarSymbol("export") :: symbol :: Nil),
         typeToBe
       ).visitForValue()
     case LispExportDef(symbol, Some(value)) =>
       new LispValueAsmWriter(
-        LispClause(EagerSymbol("export") :: symbol :: value :: Nil),
+        LispClause(VarSymbol("export") :: symbol :: value :: Nil),
         typeToBe
       ).visitForValue()
   }
@@ -66,8 +66,8 @@ class LispCompileDirectiveAsmWriter(value: LispValue, typeToBe: Class[_])(implic
           val fullNameToImport = moduleName.canonicalName.name + "." + symbol.name
           new LispValueAsmWriter(
             LispClause(
-              EagerSymbol("import") :: (symbol match {
-                case _: EagerSymbol => EagerSymbol(fullNameToImport)
+              VarSymbol("import") :: (symbol match {
+                case _: VarSymbol => VarSymbol(fullNameToImport)
                 case _: LazySymbol => LazySymbol(fullNameToImport)
               }) :: Nil
             ),

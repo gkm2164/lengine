@@ -17,14 +17,14 @@ import co.gyeongmin.lisp.lexer.values.numbers.{
 }
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
+  VarSymbol,
   LazySymbol,
   ListSymbol,
   ObjectReferSymbol
 }
 
 object LispRecoverStmt {
-  def recoverStmtWith(value: LispValue): String = value match {
+  private def recoverStmtWith(value: LispValue): String = value match {
     case LispUnit      => "()"
     case LispChar(chs) => s"#\\$chs"
     case LispObject(kv) =>
@@ -53,7 +53,7 @@ object LispRecoverStmt {
     case ObjectReferSymbol(name) => s":$name"
     case ListSymbol(name)        => s"$name"
     case LispString(value)       => s""""$value""""
-    case EagerSymbol(name)       => s"$name"
+    case VarSymbol(name)       => s"$name"
     case LazySymbol(name)        => s"$name"
     case LispList(values) =>
       values.map(_.recoverStmt).mkString("(list ", " ", ")")

@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.errors.tokenizer.{ RatioUnderZeroNotAllowedError, Unkno
 import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber, RatioNumber }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.{ EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
+import co.gyeongmin.lisp.lexer.values.symbol.{ VarSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
 import org.scalatest.{ FlatSpec, Matchers }
 
 import java.io.ByteArrayOutputStream
@@ -90,9 +90,9 @@ class TokenizerTest extends FlatSpec with Matchers {
       Right(
         Stream(
           LeftPar(),
-          EagerSymbol("a"),
-          EagerSymbol("b"),
-          EagerSymbol("c"),
+          VarSymbol("a"),
+          VarSymbol("b"),
+          VarSymbol("c"),
           RightPar(),
         )
       )
@@ -124,7 +124,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       Right(
         Stream(
           LeftPar(),
-          LazySymbol("'a"),
+          VarSymbol("'a"),
           RightPar(),
         )
       )
@@ -157,7 +157,7 @@ class TokenizerTest extends FlatSpec with Matchers {
       Right(
         Stream(
           LeftPar(),
-          EagerSymbol("something"),
+          VarSymbol("something"),
         )
       )
     )

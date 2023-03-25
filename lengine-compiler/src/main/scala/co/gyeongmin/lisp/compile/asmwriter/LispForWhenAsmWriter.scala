@@ -2,7 +2,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ObjectClass, ObjectsClass}
 import co.gyeongmin.lisp.lexer.ast.{LispForWhenStmt, LispWhenStmt}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol}
 import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
@@ -29,7 +29,7 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit runtimeEnvironment: Leng
 
     val startLabel = new Label()
     val targetValueLoc = runtimeEnvironment.allocateNextVar
-    runtimeEnvironment.writeLater(EagerSymbol(value.hashCode().toHexString), ObjectClass, startLabel, exitLabel, targetValueLoc)
+    runtimeEnvironment.writeLater(VarSymbol(value.hashCode().toHexString), ObjectClass, startLabel, exitLabel, targetValueLoc)
     mv.visitLispValue(value, ObjectClass) // For target [S]
     mv.visitAStore(targetValueLoc)
 

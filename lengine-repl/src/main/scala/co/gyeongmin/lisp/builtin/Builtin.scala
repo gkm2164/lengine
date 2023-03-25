@@ -13,7 +13,7 @@ import co.gyeongmin.lisp.lexer.values.functions.OverridableFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{IntegerNumber, LispNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispSeq, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{
-  EagerSymbol,
+  VarSymbol,
   LazySymbol,
   LispSymbol,
   ListSymbol
@@ -74,13 +74,13 @@ object Builtin {
     ): (LispSymbol, OverridableFunc) = binaryStmtFunc(x, _.toSeq, f)
   }
 
-  def E(name: String): EagerSymbol = EagerSymbol(name)
+  def E(name: String): VarSymbol = VarSymbol(name)
 
   def L(name: String): ListSymbol = ListSymbol(name)
 
   def Z(name: String): LazySymbol = LazySymbol(name)
 
-  def historyFn: OverridableFunc =
+  private def historyFn: OverridableFunc =
     defBuiltinFn(E("history"), ListSymbol("_1")) { env =>
       for {
         history <- env refer E("$$HISTORY$$")

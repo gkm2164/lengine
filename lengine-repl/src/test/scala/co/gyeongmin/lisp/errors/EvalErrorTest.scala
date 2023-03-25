@@ -4,7 +4,7 @@ import co.gyeongmin.lisp.errors.eval._
 import co.gyeongmin.lisp.errors.parser.ParseError
 import co.gyeongmin.lisp.errors.tokenizer.TokenizeError
 import co.gyeongmin.lisp.lexer.values.LispUnit
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol}
 import org.scalatest.{FlatSpec, Matchers}
 
 class EvalErrorTest extends FlatSpec with Matchers {
@@ -14,7 +14,7 @@ class EvalErrorTest extends FlatSpec with Matchers {
   val mockTokenizeError: TokenizeError = new TokenizeError {
     override def message: String = "hello"
   }
-  val mockLispSymbol: LispSymbol = EagerSymbol("test")
+  val mockLispSymbol: LispSymbol = VarSymbol("test")
 
   it should "pass" in {
     EmptyBodyClauseError.message should be("body of clause is empty")

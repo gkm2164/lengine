@@ -12,7 +12,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc, OverridableFunc}
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, LispSymbol, ListSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol, LispSymbol, ListSymbol}
 import lexer.values._
 import lexer.{StdInReader, TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
@@ -26,7 +26,7 @@ package object execution {
   type LispEnvironment = Map[LispSymbol, LispValue]
 
   implicit class LispEnvironmentSyntax(env: LispEnvironment) {
-    private val HistorySymbol: EagerSymbol = EagerSymbol("$$HISTORY$$")
+    private val HistorySymbol: VarSymbol = VarSymbol("$$HISTORY$$")
 
     def addFn(
         symbol: LispSymbol,
@@ -50,7 +50,7 @@ package object execution {
           Some(varName),
           env
             .updated(HistorySymbol, LispList(stmt :: items))
-            .updated(EagerSymbol(varName), res)
+            .updated(VarSymbol(varName), res)
         )
       case _ => (None, env)
     }
@@ -62,7 +62,7 @@ package object execution {
     ): Either[EvalError, (LispValue, LispEnvironment)] = v match {
       case LispFuncDef(symbol, fn) => env.addFn(symbol, fn).map((fn, _))
       case n @ LispNamespace(ns) =>
-        Right(n, env.updated(EagerSymbol("$$NAMESPACE$$"), ns))
+        Right(n, env.updated(VarSymbol("$$NAMESPACE$$"), ns))
       case l: LispLetDef   => l.execute(env).map((_, env))
       case d: LispValueDef => d.registerSymbol(env)
       case l: LispDoStmt   => l.runBody(env)
@@ -163,7 +163,7 @@ package object execution {
       ): Either[EvalError, LispEnvironment] =
         (symbols, args) match {
           case (Nil, Nil) => Right(accEnv)
-          case ((e: EagerSymbol) :: symbolTail, arg :: argTail) =>
+          case ((e: VarSymbol) :: symbolTail, arg :: argTail) =>
             for {
               evalRes <- arg.eval(env)
               (evalValue, _) = evalRes
@@ -229,7 +229,7 @@ package object execution {
     def registerSymbol(
         env: LispEnvironment
     ): Either[EvalError, (LispValue, LispEnvironment)] = stmt.symbol match {
-      case EagerSymbol(_) =>
+      case VarSymbol(_) =>
         stmt.value.eval(env).map {
           case (evaluatedValue, _) =>
             (stmt, env.updated(stmt.symbol, evaluatedValue))
@@ -310,8 +310,8 @@ package object execution {
   private def printPrompt(env: LispEnvironment): Either[EvalError, String] =
     for {
       prompt <- env
-        .get(EagerSymbol("$$PROMPT$$"))
-        .toRight(UnknownSymbolNameError(EagerSymbol("$$PROMPT$$")))
+        .get(VarSymbol("$$PROMPT$$"))
+        .toRight(UnknownSymbolNameError(VarSymbol("$$PROMPT$$")))
       ret <- prompt.printable()
     } yield ret
 
@@ -353,7 +353,7 @@ package object execution {
   ): LispEnvironment = {
     val tokenizer = readFile(path)
     implicit val debugger: Option[Debugger] =
-      if (env.getOrElse(EagerSymbol("$$VERBOSE$$"), LispFalse()).eq(LispTrue()))
+      if (env.getOrElse(VarSymbol("$$VERBOSE$$"), LispFalse()).eq(LispTrue()))
         Some(new ReplDebugger())
       else None
     runLoop(tokenizer, env) match {

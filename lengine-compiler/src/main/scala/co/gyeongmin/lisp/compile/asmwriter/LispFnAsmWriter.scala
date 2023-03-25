@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, Long
 import co.gyeongmin.lisp.lexer.ast.LispErrorHandler
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol}
 import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
 import java.io.FileOutputStream
@@ -32,7 +32,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val capture = new LengineVarCapture()
 
     itself.foreach(capture.ignoreCapture)
-    capture.ignoreCapture(EagerSymbol("$"))
+    capture.ignoreCapture(VarSymbol("$"))
     f.placeHolders.foreach({
       case symbol: LispSymbol =>
         capture.ignoreCapture(symbol)
@@ -218,14 +218,14 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         newRuntimeEnvironment.writeLaterAllScope(symbol, typeToBe, loc)
     }
 
-    newRuntimeEnvironment.registerVariable(EagerSymbol("$"), 0, thisLambdaClass)
+    newRuntimeEnvironment.registerVariable(VarSymbol("$"), 0, thisLambdaClass)
 
     mv.visitLabel(startLabel)
 
     val newItSelf = if (isTailRec) {
       itself match {
         case Some(_) => itself
-        case None => Some(EagerSymbol("$"))
+        case None => Some(VarSymbol("$"))
       }
     } else {
       itself

@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber, RatioNumber}
 import co.gyeongmin.lisp.lexer.values.seq.LispString
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LazySymbol, ListSymbol, ObjectReferSymbol, SyntacticSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol, ListSymbol, ObjectReferSymbol, SyntacticSymbol}
 
 import scala.util.matching.Regex
 
@@ -22,7 +22,6 @@ object LispToken {
   private val ObjectReferSymbolRegex: Regex = """:([.a-zA-Z_\-+/*%<>=?][.a-zA-Z0-9_\-+/*%<>=?]*\*?)""".r
   private val SymbolRegex: Regex            = """([$.a-zA-Z_\-+/*%<>=?:'&|~][$.a-zA-Z0-9_\-+/*%<>=?:'&|~]*\*?)""".r
   private val SyntacticalSymbolRegex: Regex = """(,[$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*)""".r
-  private val LazySymbolRegex: Regex        = """('[$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*)""".r
   private val ListSymbolRegex: Regex        = """([$.a-zA-Z_\-+/*%<>=?'&|~][$.a-zA-Z0-9_\-+/*%<>=?'&|~]*\*)""".r
   private val SpecialValueRegex: Regex      = """#(.+)""".r
   private val NumberRegex: Regex            = """([+\-])?(\d+)""".r
@@ -79,9 +78,8 @@ object LispToken {
       else Right(RatioNumber(o, u))
     case ObjectReferSymbolRegex(name)                                   => Right(ObjectReferSymbol(name))
     case SyntacticalSymbolRegex(name)                                   => Right(SyntacticSymbol(name))
-    case LazySymbolRegex(name)                                          => Right(LazySymbol(name))
     case ListSymbolRegex(name)                                          => Right(ListSymbol(name))
-    case SymbolRegex(name)                                              => Right(EagerSymbol(name))
+    case SymbolRegex(name)                                              => Right(VarSymbol(name))
     case str if str.length >= 2 && str.head == '\"' && str.last == '\"' => Right(LispString(str.tail.init))
     case str                                                            => Left(UnknownTokenError(s"what is it? [$str]: (line: ${location.line}, column: ${location.column})"))
   }

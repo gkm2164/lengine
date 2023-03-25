@@ -7,7 +7,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{EagerSymbol, LispSymbol, ObjectReferSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol, ObjectReferSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
 import org.objectweb.asm.Label
 
@@ -105,12 +105,12 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       ObjectClass
     case LispImportDef(path) =>
       new LispValueAsmWriter(
-        LispClause(EagerSymbol("import") :: path :: Nil),
+        LispClause(VarSymbol("import") :: path :: Nil),
         typeToBe
       ).visitForValue()
     case LispNativeStmt(canonicalName, objectType) =>
       new LispValueAsmWriter(
-        LispClause(EagerSymbol("native") :: canonicalName :: objectType :: Nil),
+        LispClause(VarSymbol("native") :: canonicalName :: objectType :: Nil),
         typeToBe
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
