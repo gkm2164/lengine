@@ -34,4 +34,4 @@
 
 (eval #T((if (= 3 3) (println "33") (println "!33"))))
 
-(println #T((if (= 3 3) (println "33") (println "!33"))))
+(println (seq #T((if (= 3 3) (println "33") (println "!33")))))
