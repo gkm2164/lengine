@@ -2,10 +2,12 @@ package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispVar}
-import co.gyeongmin.lisp.lexer.values.LispValue
+import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispToken, LispVar}
+import co.gyeongmin.lisp.lexer.values.{LispTokenValue, LispValue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.seq.LispList
+import co.gyeongmin.lisp.lexer.values.symbol.{LazySymbol, LispSymbol, VarSymbol}
+import co.gyeongmin.lisp.parser.parseValue
 import org.objectweb.asm.Label
 
 object RuntimeMethodVisitor {
@@ -17,6 +19,7 @@ object RuntimeMethodVisitor {
     "exit",
     "lazy",
     "force",
+    "eval",
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
@@ -38,6 +41,7 @@ object RuntimeMethodVisitor {
           case "exit"   => visitQuit(operands)
           case "lazy"   => visitLazy(operands)
           case "force"  => visitForce(operands)
+          case "eval"   => visitEval(operands, requestedType, tailRecReference)
           case _        => new RuntimeException("Unsupported operation: " + op)
         }
 
@@ -201,5 +205,21 @@ object RuntimeMethodVisitor {
       separated.last,
       expectingType
     )
+  }
+
+  private def visitEval(operands: List[LispValue], typeToBe: Class[_], tailRecRef: Option[(LispSymbol, Label)])(
+      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  ): Unit = {
+    val toBeEval :: _ = operands
+    val tokenList: List[LispToken] = toBeEval.asInstanceOf[LispList].items.map {
+      case LispTokenValue(lispToken) => lispToken
+    }
+
+    val mv = runtimeEnvironment.methodVisitor
+
+    parseValue(tokenList.toStream) match {
+      case Left(err) => throw CompileException(err.toString, runtimeEnvironment.fileName, operands.head.tokenLocation)
+      case Right((v, t)) if t.isEmpty => mv.visitLispValue(v, typeToBe, tailRecRef)
+    }
   }
 }

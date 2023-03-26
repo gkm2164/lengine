@@ -7,8 +7,8 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispValue}
+import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol, VarSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispTokenValue, LispValue}
 import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
@@ -61,6 +61,10 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
     case LispString(str) => // 1 stack
       mv.visitString(str)
       mv.visitLineForValue(value)
+      LengineStringClass
+    case v@LispTokenValue(_) =>
+      mv.visitString(v.toString)
+      mv.visitLineForValue(v)
       LengineStringClass
     case LispList(body) =>
       declareSequence(body)

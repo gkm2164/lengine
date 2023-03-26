@@ -5,12 +5,13 @@ import co.gyeongmin.lisp.errors.parser._
 import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, LispNumber}
-import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol, ObjectReferSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispClause, LispObject, LispUnit, LispValue}
+import co.gyeongmin.lisp.lexer.values.numbers.{ ComplexNumber, LispNumber }
+import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
+import co.gyeongmin.lisp.lexer.values.symbol.{ LispSymbol, ObjectReferSymbol, VarSymbol }
+import co.gyeongmin.lisp.lexer.values.{ LispClause, LispObject, LispTokenValue, LispUnit, LispValue }
 import co.gyeongmin.lisp.monad._
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -19,15 +20,39 @@ package object parser {
 
   def appendForbiddenKeywords(set: Set[String]): Unit = this.ForbiddenOverrides ++= set
 
+  private def parseTokenList: LispTokenState[LispList] = tokens => {
+    @tailrec
+    def loop(acc: Vector[LispToken], xs: Stream[LispToken], parCnt: Int): (List[LispToken], Stream[LispToken]) =
+      xs match {
+        case LispNop() #:: tail                 => loop(acc, tail, parCnt)
+        case RightPar() #:: tail if parCnt == 0 => (acc.toList, tail)
+        case RightPar() #:: tail                => loop(acc :+ RightPar(), tail, parCnt - 1)
+        case (v @ LeftPar()) #:: tail           => loop(acc :+ v, tail, parCnt + 1)
+        case (v @ CmplxNPar()) #:: tail         => loop(acc :+ v, tail, parCnt + 1)
+        case (v @ LambdaStartPar()) #:: tail    => loop(acc :+ v, tail, parCnt + 1)
+        case (v @ LeftForcePar()) #:: tail      => loop(acc :+ v, tail, parCnt + 1)
+        case (v @ LeftLazyPar()) #:: tail       => loop(acc :+ v, tail, parCnt + 1)
+        case (v @ LeftTokenListPar()) #:: tail  => loop(acc :+ v, tail, parCnt + 1)
+        case h #:: tail                         => loop(acc :+ h, tail, parCnt)
+      }
+
+    val (ret, tail) = loop(Vector.empty, tokens, 0)
+
+    Right(LispList(ret.map(LispTokenValue)), tail)
+  }
+
   def parseValue: LispTokenState[LispValue] = token => {
     val result = token match {
       case Stream.Empty       => Left(EmptyTokenListError)
       case LispNop() #:: tail => parseValue(tail)
       case (t @ ListStartPar()) #:: tail =>
-        parseList(takeToken[RightPar])(tail).map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+        parseList(takeToken[RightPar])(tail)
+          .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
       case (t @ LeftBracket()) #:: tail =>
         parseList(takeToken[RightBracket])(tail)
           .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
+      case (t @ LeftTokenListPar()) #:: tail =>
+        parseTokenList(tail).map(_.mapValue(_.wrapLocation(t.tokenLocation)))
       case (t @ LeftBrace()) #:: tail =>
         parseBrace(tail)
           .map(_.mapValue(_.wrapLocation(t.tokenLocation)))
@@ -87,11 +112,11 @@ package object parser {
     } yield ComplexNumber(real, imagine)
 
   private def parseDef: LispTokenState[LispValueDef] = {
-    case Stream.Empty                                                 => Left(EmptyTokenListError)
-    case LispNop() #:: tail                                           => parseDef(tail)
+    case Stream.Empty                                               => Left(EmptyTokenListError)
+    case LispNop() #:: tail                                         => parseDef(tail)
     case VarSymbol(name) #:: _ if ForbiddenOverrides.contains(name) => Left(DeniedKeywordError(name, "parseDef"))
-    case (x: LispSymbol) #:: tail                                     => parseValue.map(v => LispValueDef(x, v))(tail)
-    case token #:: _                                                  => Left(UnexpectedTokenError(token))
+    case (x: LispSymbol) #:: tail                                   => parseValue.map(v => LispValueDef(x, v))(tail)
+    case token #:: _                                                => Left(UnexpectedTokenError(token))
   }
 
   private def parseList[A](lastParser: LispTokenState[A]): LispTokenState[LispList] =
@@ -110,11 +135,11 @@ package object parser {
   private def denySymbolIfContains[A <: LispSymbol](
       values: mutable.Set[String]
   )(context: String)(implicit ct: ClassTag[A]): LispTokenState[A] = {
-    case Stream.Empty                                   => Left(EmptyTokenListError)
+    case Stream.Empty                                 => Left(EmptyTokenListError)
     case VarSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str, context))
-    case LispNop() #:: tail                             => takeToken[A](ct)(tail)
-    case (tk: A) #:: tail                               => LispTokenState(tk)(tail)
-    case token #:: _                                    => Left(UnexpectedTokenError(token))
+    case LispNop() #:: tail                           => takeToken[A](ct)(tail)
+    case (tk: A) #:: tail                             => LispTokenState(tk)(tail)
+    case token #:: _                                  => Left(UnexpectedTokenError(token))
   }
 
   def parseArgs: LispTokenState[List[LispValue]] =
@@ -151,9 +176,9 @@ package object parser {
   }
 
   private def option[A <: LispToken](parser: LispTokenState[A]): LispTokenState[Option[A]] = many(parser).flatMap {
-    case Nil => LispTokenState(None)
+    case Nil      => LispTokenState(None)
     case v :: Nil => LispTokenState(Some(v))
-    case v :: _ => LispTokenState.error(UnexpectedTokenError(v, "Can't have more than 1"))
+    case v :: _   => LispTokenState.error(UnexpectedTokenError(v, "Can't have more than 1"))
   }
 
   private def parseFor: LispTokenState[LispForStmt] =
@@ -246,22 +271,24 @@ package object parser {
       _         <- takeToken[RightPar]
     } yield LispForWhenStmt(value, whens, otherwise)
 
-  private def parseNative: LispTokenState[LispValue] = for {
-    canonicalName <- takeToken[LispSymbol]
-    objectType <- takeToken[LispDataType]
-    _ <- takeToken[RightPar]
-  } yield LispNativeStmt(canonicalName, objectType)
+  private def parseNative: LispTokenState[LispValue] =
+    for {
+      canonicalName <- takeToken[LispSymbol]
+      objectType    <- takeToken[LispDataType]
+      _             <- takeToken[RightPar]
+    } yield LispNativeStmt(canonicalName, objectType)
 
-  private def parseRequire: LispTokenState[LispValue] = for {
-    filePath <- takeToken[LispString]
-    _ <- takeToken[RightPar]
-  } yield LispRequireStmt(filePath.value)
+  private def parseRequire: LispTokenState[LispValue] =
+    for {
+      filePath <- takeToken[LispString]
+      _        <- takeToken[RightPar]
+    } yield LispRequireStmt(filePath.value)
 
-  private def parseModule: LispTokenState[LispValue] = for {
-    canonicalNameSymbol <- takeToken[LispSymbol]
-    _ <- takeToken[RightPar]
-  } yield LispModuleStmt(canonicalNameSymbol)
-
+  private def parseModule: LispTokenState[LispValue] =
+    for {
+      canonicalNameSymbol <- takeToken[LispSymbol]
+      _                   <- takeToken[RightPar]
+    } yield LispModuleStmt(canonicalNameSymbol)
 
   private def parseClause: LispTokenState[LispValue] = {
     case LispNop() #:: tail => parseClause(tail)
@@ -298,14 +325,14 @@ package object parser {
         } yield value)
         _ <- takeToken[RightPar]
       } yield LispExportDef(symbol, body))(tail)
-    case LispLoop() #:: tail   => parseLoopStmt(tail)
-    case LispNs() #:: tail     => parseNamespace(tail)
-    case LispCase() #:: tail   => parseCase(tail)
-    case RightPar() #:: tail   => LispTokenState(LispUnit)(tail)
-    case LispFor() #:: tail    => parseForWhen(tail)
-    case LispNative() #:: tail => parseNative(tail)
+    case LispLoop() #:: tail    => parseLoopStmt(tail)
+    case LispNs() #:: tail      => parseNamespace(tail)
+    case LispCase() #:: tail    => parseCase(tail)
+    case RightPar() #:: tail    => LispTokenState(LispUnit)(tail)
+    case LispFor() #:: tail     => parseForWhen(tail)
+    case LispNative() #:: tail  => parseNative(tail)
     case LispRequire() #:: tail => parseRequire(tail)
-    case LispModule() #:: tail => parseModule(tail)
+    case LispModule() #:: tail  => parseModule(tail)
     case last =>
       (for {
         res <- many(parseValue)

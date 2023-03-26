@@ -37,6 +37,7 @@ object LispToken {
     case "#C("                                 => Right(CmplxNPar())
     case "'("                                  => Right(ListStartPar())
     case "^("                                  => Right(LambdaStartPar())
+    case "#T("                                 => Right(LeftTokenListPar())
     case "["                                   => Right(LeftBracket())
     case "]"                                   => Right(RightBracket())
     case "{"                                   => Right(LeftBrace())
