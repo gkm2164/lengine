@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.ReservedKeywordFunctions
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.tokens.{LispFn, LispToken, LispVar}
 import co.gyeongmin.lisp.lexer.values.{LispTokenValue, LispValue}
@@ -81,12 +80,6 @@ object RuntimeMethodVisitor {
     val symbol :: value = operands
     val nameOfSymbol    = symbol.asInstanceOf[LispSymbol].name
     val mv              = runtimeEnvironment.methodVisitor
-
-    if (ReservedKeywordFunctions.contains(symbol.asInstanceOf[LispSymbol])) {
-      throw CompileException(s"You can't override function $nameOfSymbol",
-                             runtimeEnvironment.fileName,
-                             symbol.tokenLocation)
-    }
 
     if (value == Nil) {
       mv.visitString(nameOfSymbol)

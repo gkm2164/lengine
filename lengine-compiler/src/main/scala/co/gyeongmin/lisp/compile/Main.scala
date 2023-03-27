@@ -1,10 +1,8 @@
 package co.gyeongmin.lisp.compile
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ReservedKeywordFunctions, ReservedKeywordVars}
 import co.gyeongmin.lisp.compile.utils.compileLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.ast.{LispModuleStmt, LispRequireStmt}
-import co.gyeongmin.lisp.parser.appendForbiddenKeywords
 
 import java.io.{File, FileOutputStream}
 import java.nio.file.{Files, Paths}
@@ -39,9 +37,6 @@ object Main {
     val codeSource = Source.fromFile(compileOps.sourceFile)
     val code       = codeSource.mkString
     try {
-      appendForbiddenKeywords(ReservedKeywordFunctions.keySet.map(_.name))
-      appendForbiddenKeywords(ReservedKeywordVars.keySet.map(_.name))
-
       val tokenizer = Tokenizer(code)
 
       tokenizer.getTokenStream

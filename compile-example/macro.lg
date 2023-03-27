@@ -40,3 +40,8 @@
     (printf fmt args))
 
 (print-fmt "Hello, %s and %s!\n" "Gyeongmin" "Yoonjung")
+
+(defmacro adds (nums*)
+    (fold nums 0 +))
+
+(println (adds 1 2 3 4 5 6 7 8 9 10))

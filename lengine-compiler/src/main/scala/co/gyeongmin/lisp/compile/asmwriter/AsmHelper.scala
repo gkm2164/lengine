@@ -1,14 +1,11 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{ SupportedFunctions, SupportedVars }
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
-import org.objectweb.asm.{ Type, _ }
+import org.objectweb.asm._
 import org.objectweb.asm.Opcodes._
-
-import java.lang.reflect.Field
 
 object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
@@ -239,21 +236,10 @@ object AsmHelper {
                             args,
                             interface = false)
 
-    private def visitGetStaticField(owner: Class[_], fieldName: String, descriptor: Class[_]): Unit = {
-      mv.visitFieldInsn(GETSTATIC,
-                        Type.getType(owner).getInternalName,
-                        fieldName,
-                        Type.getType(descriptor).getDescriptor)
-      stackSizeTrace.incrementAndGet()
-    }
-
     def visitPutField(owner: String, fieldName: String, descriptorClass: Class[_]): Unit = {
       mv.visitFieldInsn(PUTFIELD, owner, fieldName, Type.getType(descriptorClass).getDescriptor)
       stackSizeTrace.decrementAndGet()
     }
-
-    private def visitGetStaticField(owner: Class[_], field: Field, descriptor: Class[_]): Unit =
-      visitGetStaticField(owner, field.getName, descriptor)
 
     def visitLoadVariable(lispSymbol: LispSymbol,
                           typeToBe: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
@@ -268,24 +254,6 @@ object AsmHelper {
                   visitCheckCast(typeToBe)
                 }
             }
-        case None if SupportedFunctions.contains(lispSymbol) =>
-          visitGetStaticField(
-            PreludeClass,
-            SupportedFunctions(lispSymbol),
-            LengineLambdaCommonClass
-          )
-          if (typeToBe != ObjectClass) {
-            visitCheckCast(typeToBe)
-          }
-        case None if SupportedVars.contains(lispSymbol) =>
-          visitGetStaticField(
-            PreludeClass,
-            SupportedVars(lispSymbol),
-            ObjectClass
-          )
-          if (typeToBe != ObjectClass) {
-            visitCheckCast(typeToBe)
-          }
         case None =>
           throw new RuntimeException(s"Unable to resolve the symbol: $lispSymbol")
       }

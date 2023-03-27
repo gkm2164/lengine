@@ -1,7 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
-import co.gyeongmin.lisp.compile.asmwriter.InteroperabilityHelper.{SupportedFunctions, SupportedVars}
 import co.gyeongmin.lisp.lexer.ast.LispMacroDef
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.{ClassWriter, Label}
@@ -54,8 +53,7 @@ class LengineRuntimeEnvironment(val classWriter: ClassWriter,
     case LengineRuntimeVariable(Some(value), declaredType) => (value, declaredType)
   }
 
-  def hasVar(varName: LispSymbol): Boolean =
-    args.contains(varName) || SupportedFunctions.contains(varName) || SupportedVars.contains(varName)
+  def hasVar(varName: LispSymbol): Boolean = args.contains(varName)
   def allocateNextVar: Int = varIdx.getAndAdd(1)
 
   def getLastVarIdx: Int = varIdx.get()
