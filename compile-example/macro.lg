@@ -32,6 +32,11 @@
 
 (let' x 30 (println x))
 
-(eval #T((if (= 3 3) (println "33") (println "!33"))))
+(eval '((if (= 3 3) (println "33") (println "!33"))))
 
-(println (seq #T((if (= 3 3) (println "33") (println "!33")))))
+(println (seq '((if (= 3 3) (println "33") (println "!33")))))
+
+(defmacro print-fmt (fmt args*)
+    (printf fmt args))
+
+(print-fmt "Hello, %s and %s!\n" "Gyeongmin" "Yoonjung")

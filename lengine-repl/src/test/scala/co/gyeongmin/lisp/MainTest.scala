@@ -26,11 +26,11 @@ class MainTest extends FlatSpec with Matchers {
     runCommand("(if false true false)") should include("false: Boolean")
     runCommand("history (history)") should include("history")
     runCommand("history (history) (history 1)") should include("history")
-    runCommand("(++ '(1 2 3) '(4 5 6))") should include("1 2 3 4 5 6")
+    runCommand("(++ [1 2 3] [4 5 6])") should include("1 2 3 4 5 6")
     runCommand("""(++ "ABC" "DEF")""") should include("ABCDEF")
-    runCommand("(head '(1 2 3))") should include("1")
+    runCommand("(head [1 2 3])") should include("1")
     runCommand("""(head "ABC")""") should include("A: Char")
-    runCommand("(tail '(1 2 3))") should include("2 3")
+    runCommand("(tail [1 2 3])") should include("2 3")
     runCommand("""(tail "ABC")""") should include("BC")
     runCommand("(list 1 2 3)") should include("[1 2 3]: List")
     runCommand("(do return 3)") should include("3: Integer")
@@ -60,8 +60,8 @@ class MainTest extends FlatSpec with Matchers {
     runCommand("(now)") should include("Integer")
     runCommand("""(print "ABC")""") should include("ABC")
     runCommand("""(println "ABC")""") should include("ABC")
-    runCommand("""(loop for x in '(1 2 3)
-        |      for y in '(4 5 6) (+ x y))""".stripMargin) should include(
+    runCommand("""(loop for x in [1 2 3]
+        |      for y in [4 5 6] (+ x y))""".stripMargin) should include(
       "5 6 7 6 7 8 7 8 9"
     )
     runCommand("""((lambda (a b) (+ a b)) 3 5)""") should include("8")

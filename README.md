@@ -200,13 +200,13 @@ x
 ;;; for [symbol] in [list]
 ;;; ex)
 
-(loop for x in '(1 2 3 4 5)
+(loop for x in [1 2 3 4 5]
       (do (println x)
           (+ x 1)))
-;;; == '(2 3 4 5 6)
+;;; == [2 3 4 5 6]
 
-(loop for x in '(1 2 3 4 5)
-      for y in '(2 3 4 5 6)
+(loop for x in [1 2 3 4 5]
+      for y in [2 3 4 5 6]
       (+ x y))
 ```
 

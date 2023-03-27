@@ -3,9 +3,11 @@ package co.gyeongmin.lisp.compile.asmwriter
 import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
-import co.gyeongmin.lisp.lexer.values.seq.{ LispList, LispString }
-import co.gyeongmin.lisp.lexer.values.symbol.{ LispSymbol, SyntacticSymbol }
-import co.gyeongmin.lisp.lexer.values.{ LispChar, LispClause, LispUnit, LispValue }
+import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
+import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ListSymbol, SyntacticSymbol, VarSymbol}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispUnit, LispValue}
+
+import scala.annotation.tailrec
 
 class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
   private type MacroReplacer[T <: LispValue] = PartialFunction[T, T]
@@ -13,25 +15,25 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
   def replaceValue(value: LispMacroDef): LispValue = {
     val placeholders = value.generalLispFunc.placeHolders
 
-    if (placeholders.length != clause.body.length - 1) {
-      throw CompileException(
-        s"Replacing macro failed: lengths are not matches. Macro requires ${placeholders.length}, but, given is ${clause.body.length - 1}",
-        runtimeEnvironment.fileName,
-        clause.tokenLocation
-      )
-    }
-
-    implicit val map: Map[LispSymbol, LispValue] = (placeholders zip clause.body.tail).flatMap {
-      case (s @ SyntacticSymbol(symbolName), any: LispSymbol) if symbolName.tail != any.name =>
-        throw CompileException(
-          s"Replacing macro failed: syntactical symbol not matches. Macro requires ${symbolName.tail}, but, given is ${any.name}",
-          runtimeEnvironment.fileName,
-          s.tokenLocation
-        )
-      case (s: LispSymbol, any) => Some(s -> any)
-    }.toMap
+    implicit val map: Map[LispSymbol, LispValue] = getMacroEnv(placeholders, clause.body.tail)
 
     new Replacer().replaceLispValue(value.generalLispFunc.body)
+  }
+
+  private def getMacroEnv(placeholders: List[LispValue], body: List[LispValue]): Map[LispSymbol, LispValue] = {
+    @tailrec
+    def loop(acc: Map[LispSymbol, LispValue], ph: List[LispSymbol], body: List[LispValue]): Map[LispSymbol, LispValue] = ph match {
+      case Nil => acc
+      case ListSymbol(xs) :: Nil => acc + (VarSymbol(xs.init) -> LispList(body))
+      case (s@ListSymbol(xs)) :: _ => throw CompileException(
+        s"Replacing macro failed: list symbol $xs should be located at last of the macro definition",
+        runtimeEnvironment.fileName,
+        s.tokenLocation
+      )
+      case h :: t => loop(acc + (h -> body.head), t, body.tail)
+    }
+
+    loop(Map(), placeholders.map(_.asInstanceOf[LispSymbol]), body)
   }
 
   private class Replacer(implicit macroEnv: Map[LispSymbol, LispValue]) {
