@@ -30,6 +30,17 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
         runtimeEnvironment.fileName,
         s.tokenLocation
       )
+      case SyntacticSymbol(xs) :: t =>
+        val (v: LispSymbol) :: bodyTail = body
+        if (xs.tail == v.name) {
+          loop(acc, t, bodyTail)
+        } else {
+          throw CompileException(
+            s"Replacing macro failed: ${v.name} is not matched with ${xs.tail}.",
+            runtimeEnvironment.fileName,
+            v.tokenLocation
+          )
+        }
       case h :: t => loop(acc + (h -> body.head), t, body.tail)
     }
 
