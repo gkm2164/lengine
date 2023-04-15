@@ -1,4 +1,4 @@
-ThisBuild / organization := "co.gyeongmin.lengine"
+ThisBuild / organization := "io.lengine"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.10"
 
