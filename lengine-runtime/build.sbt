@@ -6,3 +6,5 @@ assemblyJarName in assembly := "lengine-runtime.jar"
 
 sources in (Compile,doc) := Seq.empty
 publishArtifact in (Compile, packageDoc) := false
+
+releaseIgnoreUntrackedFiles := true
