@@ -1,12 +1,10 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import lengine.Prelude
 import lengine.collections.traits.{Buildable, CollectionBuilder, LengineIterable, LengineIterator}
 import lengine.collections.{LengineList, LengineMap, LengineMapKey}
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
-import lengine.util._
 
 import java.util.Objects
 
@@ -31,7 +29,6 @@ object LengineType {
   val JavaMapClass: Class[java.util.Map[_, _]]                 = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]]         = classOf[java.util.HashMap[_, _]]
   val ArrayObjectClass: Class[Array[Object]]                   = classOf[Array[Object]]
-  val PreludeClass: Class[Prelude]                             = classOf[Prelude]
   val LengineMapClass: Class[LengineMap]                       = classOf[LengineMap]
   val LengineMapKeyClass: Class[LengineMapKey]                 = classOf[LengineMapKey]
   val LengineLambdaClass: List[Class[_]] = List(

@@ -22,6 +22,4 @@ class AtomicIntegerWrapper {
     ret
   }
   def decrementAndGet(): Int = thisAtomic.decrementAndGet()
-
-  def getMaxValue: Int = maxStackSizeTrace.get()
 }
