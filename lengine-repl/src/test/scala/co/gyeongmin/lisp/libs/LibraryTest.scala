@@ -23,12 +23,12 @@ class LibraryTest extends FlatSpec with Matchers {
     outputWriter.toString
   }
 
-  "utils.lisp" should "run functions correctly" in {
+  "utils.lg" should "run functions correctly" in {
     runCommand("libs/utils", "(inc 1)") should include("2: Integer")
     runCommand("libs/utils", "(dec 1)") should include("0: Integer")
   }
 
-  "math.lisp" should "run functions correctly" in {
+  "math.lg" should "run functions correctly" in {
     runCommand("libs/math", "(fact 5)") should include("120: Integer")
     runCommand("libs/math", "(fact-tailrec 5)") should include("120: Integer")
     runCommand("libs/math", "(fib 3)") should include("2: Integer")
@@ -36,7 +36,7 @@ class LibraryTest extends FlatSpec with Matchers {
     runCommand("libs/math", "(abs -1)") should include("1: Integer")
   }
 
-  "sequence.lisp" should "run functions correctly" in {
+  "sequence.lg" should "run functions correctly" in {
     runCommand(
       "libs/sequence",
       """(concat "1234" "5678" "9012")"""
