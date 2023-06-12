@@ -5,22 +5,22 @@
 ;;; This file is to define basic runtime functions
 ;;; The goal of this program is to put every basic "Functional" functions to be here.
 
-(export map (^ (f xs)
+(export map ^((f xs)
                (loop for x in xs
                      (f x))))
 
-(export to-string (^ (xs) (fold xs "" +)))
+(export to-string ^((xs) (fold xs "" +)))
 
 (fn take-loop (acc n xs)
     (case ((nil? xs) acc)
               ((= 0 n) acc)
               default ($ (+: acc (head xs)) (- n 1) (tail xs))))
 
-(export take (^ (n xs)
+(export take ^((n xs)
     (take-loop (nil> xs) n xs)))
 
 
-(export drop (^ (n xs)
+(export drop ^((n xs)
     (case ((nil? xs) xs)
           ((= 0 n) xs)
           default ($ (- n 1) (tail xs)))))
@@ -30,15 +30,15 @@
           ((not (p (head xs))) acc)
           default ($ (+: acc (head xs)) p (tail xs))))
 
-(export take-while (^ (p xs)
+(export take-while ^((p xs)
     (take-while-loop (nil> xs) p xs)))
 
-(export drop-while (^ (p xs)
+(export drop-while ^((p xs)
     (case ((nil? xs) xs)
           ((p (head xs)) ($ p (tail xs)))
           default xs)))
 
 (println (take 3 (seq [1 2 3 4 5])))
 (println (drop 3 (seq [1 2 3 4 5])))
-(println (take-while (^ (x) (<= x 3)) (seq [1 2 3 4 5])))
-(println (drop-while (^ (x) (<= x 3)) (seq [1 2 3 4 5])))
+(println (take-while ^((x) (<= x 3)) (seq [1 2 3 4 5])))
+(println (drop-while ^((x) (<= x 3)) (seq [1 2 3 4 5])))
