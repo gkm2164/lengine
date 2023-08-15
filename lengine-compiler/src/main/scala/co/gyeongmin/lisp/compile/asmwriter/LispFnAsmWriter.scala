@@ -15,7 +15,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
   private def randomGenerate() = s"lambda$$${f.hashCode().toHexString}"
 
-  def writeValue(itself: Option[LispSymbol] = None): Unit = {
+  def writeValue(itself: Option[LispSymbol] = None,
+                 fnSymbol: Option[LispSymbol] = None): Unit = {
     val traversedPlaceHolders = traverse(
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
@@ -26,8 +27,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
                                f.tokenLocation)
       case Right(value) => value
     }
-
-    val fnName = randomGenerate()
 
     val capture = new LengineVarCapture()
 
@@ -45,6 +44,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
 
     val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, LengineRuntimeVariable(Some(int + 1), ObjectClass)) }.toMap
+
+    val fnName = fnSymbol match {
+      case Some(value) => value.name
+      case None => randomGenerate()
+    }
 
     createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
@@ -97,7 +101,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
       case (_, idx) =>
         lambdaClassWriter.visitField(
-          Opcodes.ACC_PUBLIC,
+          Opcodes.ACC_PRIVATE,
           s"var$idx",
           Type.getType(ObjectClass).getDescriptor,
           null,
