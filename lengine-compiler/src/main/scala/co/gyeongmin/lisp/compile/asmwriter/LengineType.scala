@@ -26,6 +26,7 @@ object LengineType {
   val LengineStringClass: Class[LengineString]                 = classOf[LengineString]
   val ObjectClass: Class[Object]                               = classOf[Object]
   val ObjectsClass: Class[Objects]                             = classOf[Objects]
+  val LengineObjectClass: Class[LengineObject]                        = classOf[LengineObject]
   val JavaMapClass: Class[java.util.Map[_, _]]                 = classOf[java.util.Map[_, _]]
   val JavaHashMapClass: Class[java.util.HashMap[_, _]]         = classOf[java.util.HashMap[_, _]]
   val ArrayObjectClass: Class[Array[Object]]                   = classOf[Array[Object]]

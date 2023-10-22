@@ -82,9 +82,10 @@ object RuntimeMethodVisitor {
     val mv              = runtimeEnvironment.methodVisitor
 
     if (value == Nil) {
+      mv.visitALoad(0)
       mv.visitString(nameOfSymbol)
       mv.visitLispValue(symbol, ObjectClass)
-      mv.visitStaticMethodCall(
+      mv.visitMethodCall(
         runtimeEnvironment.className,
         "export",
         VoidPrimitive,
@@ -92,11 +93,13 @@ object RuntimeMethodVisitor {
         ObjectClass
       )
     } else {
-      mv.visitLispValue(value.head, ObjectClass) // [V]
+      mv.visitLispValue(value.head, ObjectClass)
       mv.visitDup()
-      mv.visitString(nameOfSymbol)              // [V V S]
-      mv.visitSwap()                            // [V S V]
-      mv.visitStaticMethodCall(runtimeEnvironment.className,
+      mv.visitALoad(0)
+      mv.visitSwap()
+      mv.visitString(nameOfSymbol)
+      mv.visitSwap()
+      mv.visitMethodCall(runtimeEnvironment.className,
                                "export",
                                VoidPrimitive,
                                LengineStringClass,

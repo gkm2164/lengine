@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType.ObjectClass
-import co.gyeongmin.lisp.compile.utils.compileLoop
+import co.gyeongmin.lisp.compile.utils.parserLoop
 import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispModuleStmt, LispRequireStmt}
 import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol}
@@ -49,7 +49,7 @@ class LispCompileDirectiveAsmWriter(value: LispValue, typeToBe: Class[_])(implic
     val code = codeSource.mkString
     val tokenizer = Tokenizer(code)
     val parsedTokens = tokenizer.getTokenStream
-      .map(tokenStream => compileLoop(Vector(), tokenStream))
+      .map(tokenStream => parserLoop(Vector(), tokenStream))
     val moduleNameEither = parsedTokens.map(_.filter(_.isInstanceOf[LispModuleStmt])
       .map(_.asInstanceOf[LispModuleStmt]).headOption)
 

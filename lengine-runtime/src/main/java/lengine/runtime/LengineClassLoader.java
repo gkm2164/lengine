@@ -2,15 +2,13 @@ package lengine.runtime;
 
 import lengine.Prelude;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class LengineClassLoader {
-    private static final Map<String, Class<?>> alreadyLoadedClass = new HashMap<>();
+    private static final Map<String, LengineObject> alreadyLoadedClass = new HashMap<>();
 
     private static String[] split(String qualifiedName) {
         String[] splitted = qualifiedName.split("\\.");
@@ -30,34 +28,20 @@ public class LengineClassLoader {
         try {
             if (!alreadyLoadedClass.containsKey(className)) {
                 Class<?> cls = Prelude.class.getClassLoader().loadClass(className);
-                Optional<Method> foundMethod = Arrays.stream(cls.getMethods())
-                        .filter(x -> x.getName().equals("main")).findFirst();
-                if (!foundMethod.isPresent()) {
-                    throw new RuntimeException("Unable to find method main!");
-                } else {
-                    Method mainMethod = foundMethod.get();
-                    mainMethod.invoke(null, new Object[]{new String[]{}});
-                }
-                alreadyLoadedClass.put(className, cls);
+                Constructor<?> constructor = cls.getConstructor();
+                LengineObject lengineObject = (LengineObject) constructor.newInstance();
+                lengineObject.scriptMain();
+                alreadyLoadedClass.put(className, lengineObject);
             }
-
-            Class<?> cls = alreadyLoadedClass.get(className);
-
-            Optional<Method> foundMethodOptional = Arrays.stream(cls.getMethods())
-                    .filter(x -> x.getName().equals("importSymbol")).findFirst();
-            if (!foundMethodOptional.isPresent()) {
-                throw new RuntimeException("Not a lengine class.");
-            } else {
-                Method importSymbol = foundMethodOptional.get();
-                return importSymbol.invoke(null, LengineString.create(symbolName));
-            }
+            LengineObject lengineObject = alreadyLoadedClass.get(className);
+            return lengineObject.importSymbol(LengineString.create(symbolName));
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
             } else {
                 throw new RuntimeException(e);
             }
-        } catch (ClassNotFoundException | IllegalAccessException e) {
+        } catch (ClassNotFoundException | IllegalAccessException | NoSuchMethodException | InstantiationException e) {
             throw new RuntimeException(e);
         }
     }

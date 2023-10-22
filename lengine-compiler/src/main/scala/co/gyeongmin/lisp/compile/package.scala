@@ -1,6 +1,5 @@
 package co.gyeongmin.lisp
 
-import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.compile.asmwriter._
@@ -20,28 +19,62 @@ package object compile {
     } else {
       clsName
     }
-    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null, Type.getType(ObjectClass).getInternalName, null)
+    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null,
+      Type.getType(ObjectClass).getInternalName,
+      Array(Type.getType(LengineObjectClass).getInternalName))
     cw.visitSource(sourceFileName, null)
-    writeCsInitMethod(cw, qualifiedName)
-    writeInitMethod(cw)
-    writeMain(sourceFileName, cw, statements, qualifiedName)
+    visitRequiredFields(cw)
+    writeInitMethod(cw, qualifiedName)
+    writeExecute(sourceFileName, cw, statements, qualifiedName)
+    writeMain(cw, qualifiedName)
     writeExportMethod(cw, qualifiedName)
     writeImportMethod(cw, qualifiedName)
 
     cw.toByteArray
   }
 
-  private def writeMain(sourceFileName: String,
+  private def visitRequiredFields(cw: ClassWriter): Unit = {
+    val fieldVisit = cw.visitField(
+      ACC_PRIVATE,
+      "export-map",
+      Type.getType(JavaMapClass).getDescriptor,
+      null,
+      null
+    )
+    fieldVisit.visitEnd()
+  }
+
+  private def writeInitMethod(cw: ClassWriter, className: String): Unit = {
+    val mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null).wrap()
+    mv.visitCode()
+    mv.visitALoad(0)
+    mv.visitSpecialMethodCall(ObjectClass, "<init>", VoidPrimitive)
+
+    mv.visitALoad(0)
+    mv.visitNew(JavaHashMapClass)
+    mv.visitDup()
+    mv.visitSpecialMethodCall(
+      JavaHashMapClass,
+      "<init>",
+      VoidPrimitive
+    )
+    mv.visitPutField(
+      className,
+      "export-map",
+      JavaMapClass
+    )
+    mv.visitReturn()
+    mv.visitMaxs()
+    mv.visitEnd()
+  }
+
+  private def writeExecute(sourceFileName: String,
                         cw: ClassWriter,
                         statements: List[LispValue],
                         className: String): Unit = {
     val mv = cw
-      .visitMethod(ACC_PUBLIC | ACC_STATIC,
-                   "main",
-                   Type.getMethodDescriptor(
-                     Type.getType(VoidPrimitive),
-                     Type.getType(StringArrayClass)
-                   ),
+      .visitMethod(ACC_PUBLIC, "scriptMain",
+                   Type.getMethodDescriptor(Type.getType(VoidPrimitive)),
                    null,
                    null)
       .wrap()
@@ -82,50 +115,24 @@ package object compile {
     mv.visitEnd()
   }
 
-  private def writeInitMethod(cw: ClassWriter): Unit = {
-    val mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null).wrap()
-    mv.visitCode()
-    mv.visitALoad(0)
-    mv.visitSpecialMethodCall(ObjectClass, "<init>", VoidPrimitive)
-    mv.visitReturn()
-    mv.visitMaxs()
-    mv.visitEnd()
-  }
-
-  private def writeCsInitMethod(cw: ClassWriter, className: String): Unit = {
-    val fieldVisit = cw.visitField(
-      ACC_PRIVATE | ACC_STATIC,
-      "exportMap",
-      Type.getType(JavaMapClass).getDescriptor,
-      null,
-      null
-    )
-    fieldVisit.visitEnd()
-
-    val mv: MethodVisitorWrapper = cw
-      .visitMethod(ACC_STATIC,
-                   "<clinit>",
-                   Type.getMethodDescriptor(
-                     Type.getType(VoidPrimitive)
-                   ),
-                   null,
-                   null)
+  private def writeMain(cw: ClassWriter, className: String): Unit = {
+    val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
+        "main",
+        Type.getMethodDescriptor(
+          Type.getType(VoidPrimitive),
+          Type.getType(StringArrayClass)
+        ),
+        null,
+        null)
       .wrap()
-
-    mv.visitCode()
-    mv.visitNew(JavaHashMapClass)
+    mv.visitNew(className)
     mv.visitDup()
     mv.visitSpecialMethodCall(
-      JavaHashMapClass,
+      className,
       "<init>",
       VoidPrimitive
     )
-    mv.visitPutStatic(
-      className,
-      "exportMap",
-      JavaMapClass
-    )
-
+    mv.visitMethodCall(className, "scriptMain", VoidPrimitive)
     mv.visitReturn()
     mv.visitMaxs()
     mv.visitEnd()
@@ -134,7 +141,7 @@ package object compile {
   private def writeExportMethod(cw: ClassWriter, clsName: String): Unit = {
     val mv = cw
       .visitMethod(
-        ACC_PRIVATE | ACC_STATIC,
+        ACC_PRIVATE,
         "export",
         Type.getMethodDescriptor(
           Type.getType(VoidPrimitive),
@@ -146,9 +153,10 @@ package object compile {
       )
       .wrap()
 
-    mv.visitGetStatic(clsName, "exportMap", JavaMapClass)
     mv.visitALoad(0)
+    mv.visitGetField(clsName, "export-map", JavaMapClass)
     mv.visitALoad(1)
+    mv.visitALoad(2)
     mv.visitInterfaceMethodCall(
       JavaMapClass,
       "put",
@@ -162,9 +170,8 @@ package object compile {
   }
 
   private def writeImportMethod(cw: ClassWriter, clsName: String): Unit = {
-    val mv = cw
-      .visitMethod(
-        ACC_PUBLIC | ACC_STATIC,
+    val mv = cw.visitMethod(
+        ACC_PUBLIC,
         "importSymbol",
         Type.getMethodDescriptor(
           Type.getType(ObjectClass),
@@ -175,8 +182,9 @@ package object compile {
       )
       .wrap()
 
-    mv.visitGetStatic(clsName, "exportMap", JavaMapClass)
     mv.visitALoad(0)
+    mv.visitGetField(clsName, "export-map", JavaMapClass)
+    mv.visitALoad(1)
     mv.visitInterfaceMethodCall(
       JavaMapClass,
       "get",
@@ -200,7 +208,7 @@ package object compile {
       StringBuilderClass,
       StringClass
     )
-    mv.visitALoad(0)
+    mv.visitALoad(1)
     mv.visitMethodCall(
       LengineStringClass,
       "toString",
@@ -224,7 +232,6 @@ package object compile {
       StringClass
     )
     mv.visitAThrow()
-
     mv.visitLabel(exitLabel)
     mv.visitAReturn()
     mv.visitMaxs()

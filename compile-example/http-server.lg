@@ -1,5 +1,7 @@
 (module gben.nets.http-server)
 
+(require "collections")
+(require "stdlib")
 (require "./compile-example/json.lg")
 ;;; Now we do some fun with Lengine...
 
