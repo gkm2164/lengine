@@ -8,9 +8,9 @@
 (def first-values (map ^((x) (head (split x #\,))) (split all-data #\Linefeed)))
 (println (take 10 first-values))
 (fn can-double? (x) (try (do (double x) return true) (recover e false)))
-(def only-double  (filter first-values can-double?))
+(def only-double  (filter can-double? first-values))
 (println (take 10 only-double))
-(def numbers      (filter-not (map double only-double) nan?))
+(def numbers      (filter-not nan? (map double only-double)))
 (println (take 10 numbers))
 
 (def sum (fold numbers 0.0 +))
