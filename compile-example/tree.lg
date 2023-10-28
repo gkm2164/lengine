@@ -1,6 +1,7 @@
 (module Tree)
 
-(import gben.libs.module.flatten)
+(require "stdlib")
+(require "collections")
 
 (fn node (v l r) (seq [l v r]))
 (fn leaf (v) (node v (seq nil) (seq nil)))
@@ -16,7 +17,7 @@
 
 (println (node 3 (leaf 2) (leaf 4)))
 
-(def some-tree (node 4 (node 2 (leaf 1) (leaf 3)) (node 5 (leaf 6) (leaf 7))))
+(def some-tree (node 4 (node 2 (leaf 1) (leaf 3)) (node 6 (leaf 5) (leaf 7))))
 
 (println some-tree)
 

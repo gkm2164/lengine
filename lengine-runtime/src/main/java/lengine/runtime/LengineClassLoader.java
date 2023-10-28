@@ -29,6 +29,11 @@ public class LengineClassLoader {
             if (!alreadyLoadedClass.containsKey(className)) {
                 ClassLoader cl = Thread.currentThread().getContextClassLoader();
                 Class<?> cls = cl.loadClass(className);
+
+                if (cls.isAssignableFrom(LengineObject.class)) {
+                    throw new RuntimeException("The name " + className + " is not LengineObject");
+                }
+
                 Constructor<?> constructor = cls.getConstructor();
                 LengineObject lengineObject = (LengineObject) constructor.newInstance();
                 lengineObject.scriptMain();
