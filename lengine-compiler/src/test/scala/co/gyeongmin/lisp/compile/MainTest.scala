@@ -1,21 +1,79 @@
 package co.gyeongmin.lisp.compile
 
-import org.scalatest.{ FlatSpec, Matchers }
+import lengine.runtime.LengineObject
 
-class MainTest extends FlatSpec with Matchers {
+import org.scalatest._
+import flatspec._
+import matchers._
+
+
+import java.nio.file.{Files, Paths}
+import scala.collection.mutable
+import scala.reflect.io.Path
+
+class LengineTestClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
+  private val loadedClass: mutable.Map[String, Class[_]] = mutable.Map[String, Class[_]]()
+
+  private def loadClassByName(className: String): Class[_] = {
+    val nameSplit = className.split('.')
+
+    val classBytes = Files.readAllBytes(Paths.get(nameSplit.reduce((acc, elem) => s"$acc/$elem") + ".class"))
+
+    val lastClassName = nameSplit.last
+    val dirString = nameSplit.init.mkString("/")
+    val toPath = Path(if (dirString.isEmpty) "." else dirString)
+
+    toPath.toDirectory
+      .list
+      .filter(path => path.name.replace(lastClassName, "").startsWith("$")
+        && path.name.endsWith(".class"))
+      .foreach(path => {
+        val bytes = Files.readAllBytes(path.jfile.toPath)
+        defineClass(null, bytes, 0, bytes.length)
+      })
+
+    defineClass(null, classBytes, 0, classBytes.length)
+  }
+
+  def loadFromClassName(className: String): Class[_] = {
+    loadedClass.getOrElseUpdate(className, loadClassByName(className))
+  }
+}
+
+class MainTest extends AnyFlatSpec with should.Matchers {
+
+  val classLoader = new LengineTestClassLoader(Thread.currentThread().getContextClassLoader)
+
   def execute(fileName: String, className: String): Unit = {
     println(fileName)
     Main.main(
       Array(s"./compile-example/$fileName")
     )
 
-    val builder = new ProcessBuilder("/bin/bash", "./leng-debug", className)
+    val testingClass = classLoader.loadFromClassName(className)
+    val testThread = new Thread(() => {
+      Thread.currentThread().setContextClassLoader(classLoader)
+      val lengineObject = testingClass.getConstructor()
+        .newInstance()
+        .asInstanceOf[LengineObject]
+      System.setSecurityManager(new NoExitSecurityManager())
+      try {
+        lengineObject.scriptMain()
+      } catch {
+        case e: ExitException =>
+          println("program finished in expected way.")
+      }
+      System.setSecurityManager(null)
+    })
 
     val startTime = System.currentTimeMillis()
-
-    val process = builder.start()
-    assert(process.waitFor() == 0)
-
+    testThread.setUncaughtExceptionHandler((t: Thread, e: Throwable) => {
+      println("Uncaught exception")
+      e.printStackTrace()
+      fail("Should've been succeeded, but, failed")
+    })
+    testThread.start()
+    testThread.join()
     println(s"${System.currentTimeMillis() - startTime}ms elapsed to run")
   }
 
@@ -34,6 +92,13 @@ class MainTest extends FlatSpec with Matchers {
     Main.main(Array("./lengine-code/collections.lg"))
     Main.main(Array("./lengine-code/stdlib.lg"))
     Main.main(Array("./lengine-code/math.lg"))
+
+    classLoader.loadClass("lengine.runtime.LengineObject")
+    classLoader.loadFromClassName("prelude")
+    classLoader.loadFromClassName("collections")
+    classLoader.loadFromClassName("std")
+    classLoader.loadFromClassName("math")
+
     execute("module.lg", "gben.libs.module")
     execute("for-when.lg", "gben.tests.for-when")
     execute("lazy-symbol.lg", "gben.tests.lazy-symbol")
@@ -55,5 +120,4 @@ class MainTest extends FlatSpec with Matchers {
     execute("channel-module.lg", "gben.concurrency.channel-module")
     execute("ratio-number.lg", "gben.tests.ratio-number")
   }
-
 }

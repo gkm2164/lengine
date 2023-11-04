@@ -27,7 +27,8 @@ public class LengineClassLoader {
 
         try {
             if (!alreadyLoadedClass.containsKey(className)) {
-                Class<?> cls = Prelude.class.getClassLoader().loadClass(className);
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                Class<?> cls = cl.loadClass(className);
                 Constructor<?> constructor = cls.getConstructor();
                 LengineObject lengineObject = (LengineObject) constructor.newInstance();
                 lengineObject.scriptMain();
