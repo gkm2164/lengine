@@ -1,9 +1,5 @@
 name := "lengine-repl"
 
-scalacOptions ++= Seq(
-  "-Ypartial-unification"
-)
-
 mainClass := Some("co.gyeongmin.lisp.Main")
 
 assemblyJarName in assembly := "lengine.jar"

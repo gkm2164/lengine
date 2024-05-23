@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
-import co.gyeongmin.lisp.lexer.values.{ LispClause, LispValue }
+import co.gyeongmin.lisp.lexer.values.{LispClause, LispValue}
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm._
@@ -11,16 +11,18 @@ object AsmHelper {
   val GlobalConfig: Int = ClassWriter.COMPUTE_FRAMES
 
   class MethodVisitorWrapper(mv: MethodVisitor) {
-    def visitAThrow(): Unit = {
+    def visitAThrow(): Unit =
       mv.visitInsn(ATHROW)
-    }
 
-    def visitIfNonNull(label: Label): Unit = {
+    def visitIfNonNull(label: Label): Unit =
       mv.visitJumpInsn(IFNONNULL, label)
-    }
 
-    def visitLispClause(l: LispClause, typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
-        implicit runtimeEnvironment: LengineRuntimeEnvironment
+    def visitLispClause(
+      l: LispClause,
+      typeToBe: Class[_],
+      tailRecReference: Option[(LispSymbol, Label)]
+    )(implicit
+      runtimeEnvironment: LengineRuntimeEnvironment
     ): Unit =
       new LispClauseWriter(l, typeToBe).visitForValue(tailRecReference = tailRecReference)
 
@@ -36,8 +38,9 @@ object AsmHelper {
       )
     }
 
-    def visitComplexNumber(real: LispNumber,
-                           imagine: LispNumber)(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+    def visitComplexNumber(real: LispNumber, imagine: LispNumber)(implicit
+      runtimeEnvironment: LengineRuntimeEnvironment
+    ): Unit = {
       visitLispValue(real, typeToBe = NumberClass)
       visitLispValue(imagine, typeToBe = NumberClass)
       visitStaticMethodCall(
@@ -50,11 +53,11 @@ object AsmHelper {
     }
 
     def visitLineForValue(value: LispValue): Unit =
-      value.line.foreach(line => {
+      value.line.foreach { line =>
         val label = new Label()
         mv.visitLabel(label)
         mv.visitLineNumber(line, label)
-      })
+      }
 
     val stackSizeTrace = new AtomicIntegerWrapper
 
@@ -69,7 +72,12 @@ object AsmHelper {
     }
 
     def visitGetStatic(owner: Class[_], operation: String, value: Class[_]): Unit = {
-      mv.visitFieldInsn(GETSTATIC, Type.getType(owner).getInternalName, operation, Type.getType(value).getDescriptor)
+      mv.visitFieldInsn(
+        GETSTATIC,
+        Type.getType(owner).getInternalName,
+        operation,
+        Type.getType(value).getDescriptor
+      )
       stackSizeTrace.incrementAndGet()
     }
 
@@ -93,12 +101,14 @@ object AsmHelper {
       stackSizeTrace.decrementAndGet()
     }
 
-    def visitLocalVariable(name: String,
-                           descriptor: String,
-                           signature: String,
-                           startLabel: Label,
-                           endLabel: Label,
-                           index: Int): Unit =
+    def visitLocalVariable(
+      name: String,
+      descriptor: String,
+      signature: String,
+      startLabel: Label,
+      endLabel: Label,
+      index: Int
+    ): Unit =
       mv.visitLocalVariable(name, descriptor, signature, startLabel, endLabel, index)
 
     def visitLConstN(n: Int): Unit = {
@@ -150,9 +160,9 @@ object AsmHelper {
     }
 
     def visitTryCatchFinally(
-        start: Label,
-        end: Label,
-        handler: Label
+      start: Label,
+      end: Label,
+      handler: Label
     ): Unit =
       mv.visitTryCatchBlock(start, end, handler, Type.getType(ExceptionClass).getInternalName)
 
@@ -176,12 +186,14 @@ object AsmHelper {
       stackSizeTrace.incrementAndGet()
     }
 
-    private def visitCommonMethodCall(callType: Int,
-                                      owner: String,
-                                      name: String,
-                                      retType: Class[_],
-                                      args: Seq[Class[_]],
-                                      interface: Boolean): Unit = {
+    private def visitCommonMethodCall(
+      callType: Int,
+      owner: String,
+      name: String,
+      retType: Class[_],
+      args: Seq[Class[_]],
+      interface: Boolean
+    ): Unit = {
       mv.visitMethodInsn(
         callType,
         owner,
@@ -203,7 +215,12 @@ object AsmHelper {
       }
     }
 
-    def visitInterfaceMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
+    def visitInterfaceMethodCall(
+      owner: Class[_],
+      name: String,
+      retType: Class[_],
+      args: Class[_]*
+    ): Unit =
       visitCommonMethodCall(
         INVOKEINTERFACE,
         Type.getType(owner).getInternalName,
@@ -214,45 +231,81 @@ object AsmHelper {
       )
 
     def visitMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
-      visitCommonMethodCall(INVOKEVIRTUAL, Type.getType(owner).getInternalName, name, retType, args, interface = false)
+      visitCommonMethodCall(
+        INVOKEVIRTUAL,
+        Type.getType(owner).getInternalName,
+        name,
+        retType,
+        args,
+        interface = false
+      )
 
     def visitMethodCall(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
       visitCommonMethodCall(INVOKEVIRTUAL, owner, name, retType, args, interface = false)
 
-    def visitStaticMethodCall(owner: Class[_], name: String, retType: Class[_], args: Class[_]*): Unit =
-      visitCommonMethodCall(INVOKESTATIC, Type.getType(owner).getInternalName, name, retType, args, interface = false)
+    def visitStaticMethodCall(
+      owner: Class[_],
+      name: String,
+      retType: Class[_],
+      args: Class[_]*
+    ): Unit =
+      visitCommonMethodCall(
+        INVOKESTATIC,
+        Type.getType(owner).getInternalName,
+        name,
+        retType,
+        args,
+        interface = false
+      )
 
-    def visitStaticMethodCall(owner: String, name: String, retType: Class[_], args: Class[_]*): Unit =
+    def visitStaticMethodCall(
+      owner: String,
+      name: String,
+      retType: Class[_],
+      args: Class[_]*
+    ): Unit =
       visitCommonMethodCall(INVOKESTATIC, owner, name, retType, args, interface = false)
 
-    def visitSpecialMethodCall(owner: String, methodName: String, retType: Class[_], args: Class[_]*): Unit =
+    def visitSpecialMethodCall(
+      owner: String,
+      methodName: String,
+      retType: Class[_],
+      args: Class[_]*
+    ): Unit =
       visitCommonMethodCall(INVOKESPECIAL, owner, methodName, retType, args, interface = false)
 
-    def visitSpecialMethodCall(owner: Class[_], methodName: String, retType: Class[_], args: Class[_]*): Unit =
-      visitCommonMethodCall(INVOKESPECIAL,
-                            Type.getType(owner).getInternalName,
-                            methodName,
-                            retType,
-                            args,
-                            interface = false)
+    def visitSpecialMethodCall(
+      owner: Class[_],
+      methodName: String,
+      retType: Class[_],
+      args: Class[_]*
+    ): Unit =
+      visitCommonMethodCall(
+        INVOKESPECIAL,
+        Type.getType(owner).getInternalName,
+        methodName,
+        retType,
+        args,
+        interface = false
+      )
 
     def visitPutField(owner: String, fieldName: String, descriptorClass: Class[_]): Unit = {
       mv.visitFieldInsn(PUTFIELD, owner, fieldName, Type.getType(descriptorClass).getDescriptor)
       stackSizeTrace.decrementAndGet()
     }
 
-    def visitLoadVariable(lispSymbol: LispSymbol,
-                          typeToBe: Class[_])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
+    def visitLoadVariable(lispSymbol: LispSymbol, typeToBe: Class[_])(implicit
+      runtimeEnvironment: LengineRuntimeEnvironment
+    ): Unit =
       runtimeEnvironment.getVar(lispSymbol) match {
         case Some(_) =>
           runtimeEnvironment
             .getVar(lispSymbol)
-            .foreach {
-              case (loc, preservedType) =>
-                visitALoad(loc)
-                if (preservedType == ObjectClass) {
-                  visitCheckCast(typeToBe)
-                }
+            .foreach { case (loc, preservedType) =>
+              visitALoad(loc)
+              if (preservedType == ObjectClass) {
+                visitCheckCast(typeToBe)
+              }
             }
         case None =>
           throw new RuntimeException(s"Unable to resolve the symbol: $lispSymbol")
@@ -265,16 +318,15 @@ object AsmHelper {
     }
 
     def visitArrayAssignWithLispValues(
-        values: Seq[LispValue]
+      values: Seq[LispValue]
     )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit =
-      values.zipWithIndex.foreach {
-        case (value, idx) =>
-          visitDup()
-          mv.visitLdcInsn(idx)
-          stackSizeTrace.incrementAndGet()
-          visitLispValue(value, ObjectClass)
-          mv.visitInsn(Opcodes.AASTORE)
-          stackSizeTrace.addAndGet(-3)
+      values.zipWithIndex.foreach { case (value, idx) =>
+        visitDup()
+        mv.visitLdcInsn(idx)
+        stackSizeTrace.incrementAndGet()
+        visitLispValue(value, ObjectClass)
+        mv.visitInsn(Opcodes.AASTORE)
+        stackSizeTrace.addAndGet(-3)
       }
 
     def visitCheckCast(cls: Class[_]): Unit =
@@ -282,8 +334,12 @@ object AsmHelper {
         mv.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(cls).getInternalName)
       }
 
-    def visitLispValue(value: LispValue, typeToBe: Class[_], tailRecReference: Option[(LispSymbol, Label)] = None)(
-        implicit runtimeEnvironment: LengineRuntimeEnvironment
+    def visitLispValue(
+      value: LispValue,
+      typeToBe: Class[_],
+      tailRecReference: Option[(LispSymbol, Label)] = None
+    )(implicit
+      runtimeEnvironment: LengineRuntimeEnvironment
     ): Class[_] =
       new LispValueAsmWriter(value, typeToBe).visitForValue(tailRecReference)
 
@@ -295,7 +351,11 @@ object AsmHelper {
         primitiveType
       )
 
-    def visitUnboxing(boxedType: Class[_ <: Object], primitiveType: Class[_ <: Object], methodName: String): Unit =
+    def visitUnboxing(
+      boxedType: Class[_ <: Object],
+      primitiveType: Class[_ <: Object],
+      methodName: String
+    ): Unit =
       visitMethodCall(
         boxedType,
         methodName,

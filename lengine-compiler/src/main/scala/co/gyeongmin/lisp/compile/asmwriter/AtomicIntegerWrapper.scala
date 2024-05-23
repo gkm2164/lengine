@@ -3,7 +3,7 @@ package co.gyeongmin.lisp.compile.asmwriter
 import java.util.concurrent.atomic.AtomicInteger
 
 class AtomicIntegerWrapper {
-  private val thisAtomic        = new AtomicInteger
+  private val thisAtomic = new AtomicInteger
   private val maxStackSizeTrace = new AtomicInteger()
   def addAndGet(n: Int): Unit = {
     thisAtomic.addAndGet(n)

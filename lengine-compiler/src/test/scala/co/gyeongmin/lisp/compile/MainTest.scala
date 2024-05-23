@@ -6,8 +6,7 @@ import org.scalatest._
 import flatspec._
 import matchers._
 
-
-import java.nio.file.{Files, Paths}
+import java.nio.file.{ Files, Paths }
 import scala.collection.mutable
 import scala.reflect.io.Path
 
@@ -20,13 +19,15 @@ class LengineTestClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
     val classBytes = Files.readAllBytes(Paths.get(nameSplit.reduce((acc, elem) => s"$acc/$elem") + ".class"))
 
     val lastClassName = nameSplit.last
-    val dirString = nameSplit.init.mkString("/")
-    val toPath = Path(if (dirString.isEmpty) "." else dirString)
+    val dirString     = nameSplit.init.mkString("/")
+    val toPath        = Path(if (dirString.isEmpty) "." else dirString)
 
-    toPath.toDirectory
-      .list
-      .filter(path => path.name.replace(lastClassName, "").startsWith("$")
-        && path.name.endsWith(".class"))
+    toPath.toDirectory.list
+      .filter(
+        path =>
+          path.name.replace(lastClassName, "").startsWith("$")
+          && path.name.endsWith(".class")
+      )
       .foreach(path => {
         val bytes = Files.readAllBytes(path.jfile.toPath)
         defineClass(null, bytes, 0, bytes.length)
@@ -35,9 +36,8 @@ class LengineTestClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
     defineClass(null, classBytes, 0, classBytes.length)
   }
 
-  def loadFromClassName(className: String): Class[_] = {
+  def loadFromClassName(className: String): Class[_] =
     loadedClass.getOrElseUpdate(className, loadClassByName(className))
-  }
 }
 
 class MainTest extends AnyFlatSpec with should.Matchers {
@@ -53,7 +53,8 @@ class MainTest extends AnyFlatSpec with should.Matchers {
     val testingClass = classLoader.loadFromClassName(className)
     val testThread = new Thread(() => {
       Thread.currentThread().setContextClassLoader(classLoader)
-      val lengineObject = testingClass.getConstructor()
+      val lengineObject = testingClass
+        .getConstructor()
         .newInstance()
         .asInstanceOf[LengineObject]
       System.setSecurityManager(new NoExitSecurityManager())

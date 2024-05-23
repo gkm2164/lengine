@@ -39,9 +39,9 @@ object Main {
     val codeSource      = Source.fromFile(compileOps.sourceFile)
     val code            = codeSource.mkString
     try {
-        Tokenizer(code).getTokenStream
-          .map(parserLoop(Vector(), _))
-          .foreach(compileExecutor)
+      Tokenizer(code).getTokenStream
+        .map(parserLoop(Vector(), _))
+        .foreach(compileExecutor)
     } catch {
       case re: RuntimeException =>
         System.err.println(s"[ERROR]: ${re.getMessage}")
@@ -65,7 +65,7 @@ object Main {
         )
     }
     if (pkgName.nonEmpty) {
-      Files.createDirectories(Paths.get(pkgName.replaceAllLiterally(".", "/")))
+      Files.createDirectories(Paths.get(pkgName.replace(".", "/")))
     }
     val passingStmts = if (new File(compileOps.sourceFile).equals(new File(DefaultPrelude))) {
       lispValues.filter(x => !x.isInstanceOf[LispModuleStmt])
@@ -74,7 +74,7 @@ object Main {
     }
 
     val ret = writeClass(compileOps.sourceFile, pkgName, clsName, passingStmts)
-    val fos = new FileOutputStream(s"./${pkgName.replaceAllLiterally(".", "/")}/$clsName.class")
+    val fos = new FileOutputStream(s"./${pkgName.replace(".", "/")}/$clsName.class")
     fos.write(ret)
     fos.close()
   }

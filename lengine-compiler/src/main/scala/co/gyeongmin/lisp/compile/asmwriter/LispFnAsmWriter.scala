@@ -1,11 +1,16 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{LengineLambdaClass, LongClass, ObjectClass, VoidPrimitive}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{
+  LengineLambdaClass,
+  LongClass,
+  ObjectClass,
+  VoidPrimitive
+}
 import co.gyeongmin.lisp.lexer.ast.LispErrorHandler
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, VarSymbol}
 import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
 import java.io.FileOutputStream
@@ -15,16 +20,17 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
   private def randomGenerate() = s"lambda$$${f.hashCode().toHexString}"
 
-  def writeValue(itself: Option[LispSymbol] = None,
-                 fnSymbol: Option[LispSymbol] = None): Unit = {
+  def writeValue(itself: Option[LispSymbol] = None, fnSymbol: Option[LispSymbol] = None): Unit = {
     val traversedPlaceHolders = traverse(
       f.placeHolders
         .map(holder => holder.as[LispSymbol])
     ) match {
       case Left(err) =>
-        throw CompileException(s"functions placeholders should be symbol: $err",
-                               runtimeEnvironment.fileName,
-                               f.tokenLocation)
+        throw CompileException(
+          s"functions placeholders should be symbol: $err",
+          runtimeEnvironment.fileName,
+          f.tokenLocation
+        )
       case Right(value) => value
     }
 
@@ -32,46 +38,53 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     itself.foreach(capture.ignoreCapture)
     capture.ignoreCapture(VarSymbol("$"))
-    f.placeHolders.foreach({
+    f.placeHolders.foreach {
       case symbol: LispSymbol =>
         capture.ignoreCapture(symbol)
       case _ =>
-    })
+    }
 
     FunctionAnalyzer.captureUnknownVariables(capture, f.body)
     val isTailRec = FunctionAnalyzer.isTailRecursion(itself, f.body)
 
     val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
 
-    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) => (arg, LengineRuntimeVariable(Some(int + 1), ObjectClass)) }.toMap
+    val argsWithCapturedVars = argsWithCaptureList.zipWithIndex.map { case (arg, int) =>
+      (arg, LengineRuntimeVariable(Some(int + 1), ObjectClass))
+    }.toMap
 
     val fnName = fnSymbol match {
       case Some(value) => value.name
-      case None => randomGenerate()
+      case None        => randomGenerate()
     }
 
     createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
     val resolvedCaptures = capture.getRequestedCaptures
-      .map(
-        capture =>
-          runtimeEnvironment
-            .getVar(capture)
-            .getOrElse(
-              throw CompileException(s"Unable to resolve: $capture", runtimeEnvironment.fileName, capture.tokenLocation)
+      .map(capture =>
+        runtimeEnvironment
+          .getVar(capture)
+          .getOrElse(
+            throw CompileException(
+              s"Unable to resolve: $capture",
+              runtimeEnvironment.fileName,
+              capture.tokenLocation
+            )
           )
       )
 
     createFnReference(fnName, resolvedCaptures)
   }
 
-  private def createLambdaClass(itself: Option[LispSymbol],
-                                fnName: String,
-                                capturedVariables: LengineVarCapture,
-                                argsWithCapturedVars: Map[LispSymbol, LengineRuntimeVariable],
-                                isTailRec: Boolean): Unit = {
+  private def createLambdaClass(
+    itself: Option[LispSymbol],
+    fnName: String,
+    capturedVariables: LengineVarCapture,
+    argsWithCapturedVars: Map[LispSymbol, LengineRuntimeVariable],
+    isTailRec: Boolean
+  ): Unit = {
     val lambdaClassWriter = new ClassWriter(AsmHelper.GlobalConfig)
-    val lambdaClassName   = s"${runtimeEnvironment.className}$$$fnName"
+    val lambdaClassName = s"${runtimeEnvironment.className}$$$fnName"
 
     val thisLambdaClass = LengineLambdaClass(f.placeHolders.length)
 
@@ -85,10 +98,12 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     )
 
     runtimeEnvironment.classWriter
-      .visitInnerClass(s"${runtimeEnvironment.className}$$$fnName",
+      .visitInnerClass(
+        s"${runtimeEnvironment.className}$$$fnName",
         runtimeEnvironment.className,
         fnName,
-        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC)
+        Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
+      )
 
     lambdaClassWriter.visitInnerClass(
       s"${runtimeEnvironment.className}$$$fnName",
@@ -97,16 +112,14 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     )
 
-
-    capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
-      case (_, idx) =>
-        lambdaClassWriter.visitField(
-          Opcodes.ACC_PRIVATE,
-          s"var$idx",
-          Type.getType(ObjectClass).getDescriptor,
-          null,
-          null
-        )
+    capturedVariables.getRequestedCaptures.zipWithIndex.foreach { case (_, idx) =>
+      lambdaClassWriter.visitField(
+        Opcodes.ACC_PRIVATE,
+        s"var$idx",
+        Type.getType(ObjectClass).getDescriptor,
+        null,
+        null
+      )
     }
 
     val lambdaConstructMv = lambdaClassWriter
@@ -130,15 +143,14 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       VoidPrimitive
     )
 
-    capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
-      case (_, idx) =>
-        lambdaConstructMv.visitALoad(0)
-        lambdaConstructMv.visitALoad(idx + 1)
-        lambdaConstructMv.visitPutField(
-          lambdaClassName,
-          s"var$idx",
-          ObjectClass
-        )
+    capturedVariables.getRequestedCaptures.zipWithIndex.foreach { case (_, idx) =>
+      lambdaConstructMv.visitALoad(0)
+      lambdaConstructMv.visitALoad(idx + 1)
+      lambdaConstructMv.visitPutField(
+        lambdaClassName,
+        s"var$idx",
+        ObjectClass
+      )
     }
 
     lambdaConstructMv.visitReturn()
@@ -157,7 +169,8 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         ),
         null,
         null
-      ).wrap()
+      )
+      .wrap()
 
     val mv = if (capturedVariables.getRequestedCaptures.isEmpty) {
       methodSignature
@@ -165,15 +178,13 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       val lambdaMv = methodSignature
       lambdaMv.visitALoad(0)
 
-      f.placeHolders.zipWithIndex.foreach {
-        case (_, idx) =>
-          lambdaMv.visitALoad(idx + 1)
+      f.placeHolders.zipWithIndex.foreach { case (_, idx) =>
+        lambdaMv.visitALoad(idx + 1)
       }
 
-      capturedVariables.getRequestedCaptures.zipWithIndex.foreach {
-        case (_, idx) =>
-          lambdaMv.visitALoad(0)
-          lambdaMv.visitGetField(lambdaClassName, s"var$idx", ObjectClass)
+      capturedVariables.getRequestedCaptures.zipWithIndex.foreach { case (_, idx) =>
+        lambdaMv.visitALoad(0)
+        lambdaMv.visitGetField(lambdaClassName, s"var$idx", ObjectClass)
       }
 
       lambdaMv.visitMethodCall(
@@ -188,24 +199,29 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       lambdaMv.visitEnd()
 
       lambdaClassWriter
-        .visitMethod(Opcodes.ACC_PUBLIC,
+        .visitMethod(
+          Opcodes.ACC_PUBLIC,
           "invokeActual",
           Type.getMethodDescriptor(
             Type.getType(ObjectClass),
             argsType.map(cls => Type.getType(cls)): _*
           ),
           null,
-          null)
+          null
+        )
         .wrap()
     }
-
 
     val startLabel = new Label()
     val endLabel = new Label()
 
     val initialArgMap: mutable.Map[LispSymbol, LengineRuntimeVariable] =
       itself
-        .map(it => mutable.Map[LispSymbol, LengineRuntimeVariable](it -> LengineRuntimeVariable(Some(0), thisLambdaClass)))
+        .map(it =>
+          mutable.Map[LispSymbol, LengineRuntimeVariable](
+            it -> LengineRuntimeVariable(Some(0), thisLambdaClass)
+          )
+        )
         .getOrElse(mutable.Map[LispSymbol, LengineRuntimeVariable]())
 
     val newRuntimeEnvironment: LengineRuntimeEnvironment = new LengineRuntimeEnvironment(
@@ -229,7 +245,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     val newItSelf = if (isTailRec) {
       itself match {
         case Some(_) => itself
-        case None => Some(VarSymbol("$"))
+        case None    => Some(VarSymbol("$"))
       }
     } else {
       itself
@@ -240,7 +256,11 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
         new LispErrorHandlerAsmWriter(handler, ObjectClass)(newRuntimeEnvironment)
           .writeValue()
       case _ =>
-        mv.visitLispValue(f.body, ObjectClass, tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel)))(
+        mv.visitLispValue(
+          f.body,
+          ObjectClass,
+          tailRecReference = newItSelf.filter(_ => isTailRec).map((_, startLabel))
+        )(
           newRuntimeEnvironment
         )
     }
@@ -249,21 +269,28 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     mv.visitLabel(endLabel)
     mv.visitAReturn()
-    newRuntimeEnvironment.writeLaterAllScopeList.foreach {
-      case (symbol, cls, loc) =>
-        mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(cls), null, startLabel, endLabel, loc)
+    newRuntimeEnvironment.writeLaterAllScopeList.foreach { case (symbol, cls, loc) =>
+      mv.visitLocalVariable(
+        symbol.escapeToJvmAsm,
+        Type.getDescriptor(cls),
+        null,
+        startLabel,
+        endLabel,
+        loc
+      )
     }
-    newRuntimeEnvironment.writeLaterList.foreach {
-      case (symbol, cls, start, end, loc) =>
-        mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(cls), null, start, end, loc)
+    newRuntimeEnvironment.writeLaterList.foreach { case (symbol, cls, start, end, loc) =>
+      mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(cls), null, start, end, loc)
     }
     // Need to give some hint to ASM generator when calculating Frame size
-    mv.visitLocalVariable("__PADDING__",
+    mv.visitLocalVariable(
+      "__PADDING__",
       Type.getType(LongClass).getDescriptor,
       null,
       startLabel,
       endLabel,
-      newRuntimeEnvironment.getLastVarIdx)
+      newRuntimeEnvironment.getLastVarIdx
+    )
     mv.visitMaxs()
     mv.visitEnd()
 
@@ -279,10 +306,10 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
 
     pmv.visitNew(s"${runtimeEnvironment.className}$$$methodName")
     pmv.visitDup()
-    capturedArgLocs.foreach(capturedLoc => {
+    capturedArgLocs.foreach { capturedLoc =>
       pmv.visitALoad(capturedLoc._1)
       pmv.visitCheckCast(capturedLoc._2)
-    })
+    }
     pmv.visitSpecialMethodCall(
       lambdaClsName,
       "<init>",

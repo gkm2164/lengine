@@ -5,7 +5,12 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.ast._
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
-import co.gyeongmin.lisp.lexer.values.numbers.{ComplexNumber, FloatNumber, IntegerNumber, RatioNumber}
+import co.gyeongmin.lisp.lexer.values.numbers.{
+  ComplexNumber,
+  FloatNumber,
+  IntegerNumber,
+  RatioNumber
+}
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ObjectReferSymbol, VarSymbol}
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispTokenValue, LispValue}
@@ -13,7 +18,9 @@ import org.objectweb.asm.Label
 
 import scala.annotation.tailrec
 
-class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeEnv: LengineRuntimeEnvironment) {
+class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit
+  runtimeEnv: LengineRuntimeEnvironment
+) {
   val mv: MethodVisitorWrapper = runtimeEnv.methodVisitor
   def visitForValue(tailRecReference: Option[(LispSymbol, Label)] = None): Class[_] = value match {
     case requireStmt: LispRequireStmt =>
@@ -62,7 +69,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitString(str)
       mv.visitLineForValue(value)
       LengineStringClass
-    case v@LispTokenValue(_) =>
+    case v @ LispTokenValue(_) =>
       mv.visitString(v.toString)
       mv.visitLineForValue(v)
       LengineStringClass
@@ -90,17 +97,17 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       val startLabel = new Label()
       val endLabel = new Label()
       mv.visitLabel(startLabel)
-      decls.foreach {
-        case LispLetDecl(symbol, value) =>
-          val idx = runtimeEnv.allocateNextVar
-          val retType = new LispValueAsmWriter(value, ObjectClass).visitForValue()
-          mv.visitAStore(idx)
-          runtimeEnv.registerVariable(symbol, idx, retType)
+      decls.foreach { case LispLetDecl(symbol, value) =>
+        val idx = runtimeEnv.allocateNextVar
+        val retType = new LispValueAsmWriter(value, ObjectClass).visitForValue()
+        mv.visitAStore(idx)
+        runtimeEnv.registerVariable(symbol, idx, retType)
       }
       mv.visitLispValue(body, ObjectClass, tailRecReference)
       for (elem <- decls) {
         runtimeEnv.getVar(elem.name) match {
-          case Some((location, typeToBe)) => runtimeEnv.writeLater(elem.name, typeToBe, startLabel, endLabel, location)
+          case Some((location, typeToBe)) =>
+            runtimeEnv.writeLater(elem.name, typeToBe, startLabel, endLabel, location)
           case None =>
         }
         runtimeEnv.deregisterVariable(elem.name)
@@ -118,7 +125,8 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
         typeToBe
       ).visitForValue()
     case LispLoopStmt(forStmts, body) =>
-      new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference).writeValue()
+      new LispLoopAsmWriter(forStmts, body, typeToBe, tailRecReference = tailRecReference)
+        .writeValue()
       typeToBe
     case doStmt: LispDoStmt =>
       visitDoBody(doStmt, tailRecReference = tailRecReference)
@@ -127,15 +135,23 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       mv.visitLoadVariable(ref, typeToBe)
       typeToBe
     case ref: LispSymbol =>
-      throw CompileException(s"Unable to resolve the symbol: $ref", runtimeEnv.fileName, ref.tokenLocation)
+      throw CompileException(
+        s"Unable to resolve the symbol: $ref",
+        runtimeEnv.fileName,
+        ref.tokenLocation
+      )
     case LispClause(operation :: body) if RuntimeMethodVisitor.supportOperation(operation) =>
-      RuntimeMethodVisitor.handle(operation:: body, typeToBe, tailRecReference)
+      RuntimeMethodVisitor.handle(operation :: body, typeToBe, tailRecReference)
       typeToBe
     case l @ LispClause(_) =>
       mv.visitLispClause(l, typeToBe, tailRecReference)
       typeToBe
     case ref @ LispValueDef(symbol, _) if runtimeEnv.hasVar(symbol) =>
-      throw CompileException(s"Can't define symbol twice: $symbol", runtimeEnv.fileName, ref.tokenLocation)
+      throw CompileException(
+        s"Can't define symbol twice: $symbol",
+        runtimeEnv.fileName,
+        ref.tokenLocation
+      )
     case LispValueDef(symbol, value) =>
       val varIdx = runtimeEnv.allocateNextVar
       val retType = mv.visitLispValue(value, typeToBe, tailRecReference = tailRecReference)
@@ -144,7 +160,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       runtimeEnv.registerVariable(symbol, varIdx, retType)
       runtimeEnv.writeLaterAllScope(symbol, retType, varIdx)
       typeToBe
-    case macroDef@LispMacroDef(symbol: LispSymbol, _) =>
+    case macroDef @ LispMacroDef(symbol: LispSymbol, _) =>
       runtimeEnv.registerMacroDef(symbol, macroDef)
       typeToBe
     case LispFuncDef(symbol, funcDef) =>
@@ -168,7 +184,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
 
   private def declareSequence(body: List[LispValue]): Unit = {
     mv.allocateNewArray(ObjectClass, body.length) // 1 stack
-    mv.visitArrayAssignWithLispValues(body)       // 1 stack
+    mv.visitArrayAssignWithLispValues(body) // 1 stack
     mv.visitStaticMethodCall(
       LengineListClass,
       "create",
@@ -178,16 +194,21 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   @tailrec
-  private def visitDoBody(body: LispDoStmt, tailRecReference: Option[(LispSymbol, Label)]): Unit = body match {
-    case LispDoStmt(Nil) =>
-      throw CompileException("unexpected error: do statement can't be empty", runtimeEnv.fileName, body.tokenLocation)
-    case LispDoStmt(v :: Nil) =>
-      mv.visitLispValue(v, ObjectClass, tailRecReference = tailRecReference)
-    case LispDoStmt(v :: tail) =>
-      mv.visitLispValue(v, typeToBe)
-      mv.visitPop()
-      visitDoBody(LispDoStmt(tail), tailRecReference = tailRecReference)
-  }
+  private def visitDoBody(body: LispDoStmt, tailRecReference: Option[(LispSymbol, Label)]): Unit =
+    body match {
+      case LispDoStmt(Nil) =>
+        throw CompileException(
+          "unexpected error: do statement can't be empty",
+          runtimeEnv.fileName,
+          body.tokenLocation
+        )
+      case LispDoStmt(v :: Nil) =>
+        mv.visitLispValue(v, ObjectClass, tailRecReference = tailRecReference)
+      case LispDoStmt(v :: tail) =>
+        mv.visitLispValue(v, typeToBe)
+        mv.visitPop()
+        visitDoBody(LispDoStmt(tail), tailRecReference = tailRecReference)
+    }
 
   private def declareMap(map: Map[ObjectReferSymbol, LispValue]): Unit = {
     mv.visitStaticMethodCall(
@@ -195,17 +216,16 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
       "builder",
       LengineMapBuilderClass
     )
-    map.foreach {
-      case (symbol, value) =>
-        mv.visitLispValue(symbol, LengineMapKeyClass)
-        mv.visitLispValue(value, ObjectClass)
-        mv.visitMethodCall(
-          LengineMapBuilderClass,
-          "put",
-          LengineMapBuilderClass,
-          LengineMapKeyClass,
-          ObjectClass
-        )
+    map.foreach { case (symbol, value) =>
+      mv.visitLispValue(symbol, LengineMapKeyClass)
+      mv.visitLispValue(value, ObjectClass)
+      mv.visitMethodCall(
+        LengineMapBuilderClass,
+        "put",
+        LengineMapBuilderClass,
+        LengineMapKeyClass,
+        ObjectClass
+      )
     }
 
     mv.visitMethodCall(
@@ -216,11 +236,13 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit runtimeE
   }
 
   @tailrec
-  private def declareCaseStmt(cases: List[LispCaseCondition],
-                              fallback: LispValue,
-                              exitLabel: Label,
-                              tailRecReference: Option[(LispSymbol, Label)],
-                              nextLabel: Label = new Label()): Unit = cases match {
+  private def declareCaseStmt(
+    cases: List[LispCaseCondition],
+    fallback: LispValue,
+    exitLabel: Label,
+    tailRecReference: Option[(LispSymbol, Label)],
+    nextLabel: Label = new Label()
+  ): Unit = cases match {
     case Nil =>
       mv.visitLispValue(fallback, typeToBe, tailRecReference)
     case LispCaseCondition(condition, thenValue) :: tail =>

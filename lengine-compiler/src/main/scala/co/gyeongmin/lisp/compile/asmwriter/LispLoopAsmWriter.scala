@@ -6,21 +6,31 @@ import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.LispSymbol
 import org.objectweb.asm.Label
 
-class LispLoopAsmWriter(forStmts: List[LispForStmt],
-                        body: LispValue,
-                        requestedType: Class[_],
-                        tailRecReference: Option[(LispSymbol, Label)] = None)(implicit env: LengineRuntimeEnvironment) {
+class LispLoopAsmWriter(
+  forStmts: List[LispForStmt],
+  body: LispValue,
+  requestedType: Class[_],
+  tailRecReference: Option[(LispSymbol, Label)] = None
+)(implicit env: LengineRuntimeEnvironment) {
   def writeValue(): Unit =
     visitForStmt(forStmts, body)
 
-  private def visitForStmt(forStmts: List[LispForStmt], body: LispValue, retAddr: Option[Int] = None): Unit =
+  private def visitForStmt(
+    forStmts: List[LispForStmt],
+    body: LispValue,
+    retAddr: Option[Int] = None
+  ): Unit =
     forStmts match {
       case Nil if retAddr.isEmpty =>
-        throw CompileException("unable to determine returning sequence.", env.fileName, body.tokenLocation)
+        throw CompileException(
+          "unable to determine returning sequence.",
+          env.fileName,
+          body.tokenLocation
+        )
       case Nil =>
         val mv = env.methodVisitor
-        mv.visitALoad(retAddr.get)                               // [S']
-        mv.visitCheckCast(CollectionBuilderClass)                // [S']
+        mv.visitALoad(retAddr.get) // [S']
+        mv.visitCheckCast(CollectionBuilderClass) // [S']
         mv.visitLispValue(body, requestedType, tailRecReference) // [S' E']
         mv.visitInterfaceMethodCall(
           CollectionBuilderClass,
@@ -34,7 +44,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
         env.registerVariable(symbol, varIdx, ObjectClass)
 
         val startLoop = new Label()
-        val endLoop   = new Label()
+        val endLoop = new Label()
 
         val mv = env.methodVisitor
         mv.visitLispValue(seq, LengineIterableClass) // [S]
@@ -62,7 +72,7 @@ class LispLoopAsmWriter(forStmts: List[LispForStmt],
           BooleanPrimitive
         ) // [I<S>, Z]
         mv.visitIfEq(endLoop)
-        //[I<S>]
+        // [I<S>]
 
         mv.visitDup()
         // [I<S> I<S>]

@@ -3,10 +3,10 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.compile.asmwriter._
-import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispRequireStmt}
+import co.gyeongmin.lisp.lexer.ast.{ LispExportDef, LispRequireStmt }
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ClassWriter, Label, Type}
+import org.objectweb.asm.{ ClassWriter, Label, Type }
 
 import scala.collection.mutable
 
@@ -19,9 +19,12 @@ package object compile {
     } else {
       clsName
     }
-    cw.visit(V1_8, ACC_PUBLIC, qualifiedName, null,
-      Type.getType(ObjectClass).getInternalName,
-      Array(Type.getType(LengineObjectClass).getInternalName))
+    cw.visit(V1_8,
+             ACC_PUBLIC,
+             qualifiedName,
+             null,
+             Type.getType(ObjectClass).getInternalName,
+             Array(Type.getType(LengineObjectClass).getInternalName))
     cw.visitSource(sourceFileName, null)
     visitRequiredFields(cw)
     writeInitMethod(cw, qualifiedName)
@@ -69,14 +72,11 @@ package object compile {
   }
 
   private def writeExecute(sourceFileName: String,
-                        cw: ClassWriter,
-                        statements: List[LispValue],
-                        className: String): Unit = {
+                           cw: ClassWriter,
+                           statements: List[LispValue],
+                           className: String): Unit = {
     val mv = cw
-      .visitMethod(ACC_PUBLIC, "scriptMain",
-                   Type.getMethodDescriptor(Type.getType(VoidPrimitive)),
-                   null,
-                   null)
+      .visitMethod(ACC_PUBLIC, "scriptMain", Type.getMethodDescriptor(Type.getType(VoidPrimitive)), null, null)
       .wrap()
     mv.visitCode()
     val startLabel: Label = new Label()
@@ -90,9 +90,9 @@ package object compile {
       mv.visitLabel(thisLabel)
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
       stmt match {
-        case _: LispExportDef =>
+        case _: LispExportDef   =>
         case _: LispRequireStmt =>
-        case _                => mv.visitPop()
+        case _                  => mv.visitPop()
       }
     })
     mv.visitLabel(endLabel)
@@ -116,14 +116,15 @@ package object compile {
   }
 
   private def writeMain(cw: ClassWriter, className: String): Unit = {
-    val mv = cw.visitMethod(ACC_PUBLIC | ACC_STATIC,
-        "main",
-        Type.getMethodDescriptor(
-          Type.getType(VoidPrimitive),
-          Type.getType(StringArrayClass)
-        ),
-        null,
-        null)
+    val mv = cw
+      .visitMethod(ACC_PUBLIC | ACC_STATIC,
+                   "main",
+                   Type.getMethodDescriptor(
+                     Type.getType(VoidPrimitive),
+                     Type.getType(StringArrayClass)
+                   ),
+                   null,
+                   null)
       .wrap()
     mv.visitNew(className)
     mv.visitDup()
@@ -170,7 +171,8 @@ package object compile {
   }
 
   private def writeImportMethod(cw: ClassWriter, clsName: String): Unit = {
-    val mv = cw.visitMethod(
+    val mv = cw
+      .visitMethod(
         ACC_PUBLIC,
         "importSymbol",
         Type.getMethodDescriptor(

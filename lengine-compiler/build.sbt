@@ -4,6 +4,10 @@ enablePlugins(JavaAppPackaging)
 
 mainClass := Some("co.gyeongmin.lisp.compile.Main")
 
+scalacOptions := Seq(
+    "-deprecation"
+)
+
 assemblyJarName in assembly := "lenginec.jar"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.17" % "test"

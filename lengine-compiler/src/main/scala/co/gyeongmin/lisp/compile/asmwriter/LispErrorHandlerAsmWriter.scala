@@ -4,8 +4,8 @@ import co.gyeongmin.lisp.compile.asmwriter.LengineType.{ExceptionClass, LengineE
 import co.gyeongmin.lisp.lexer.ast.{LispErrorHandler, LispRecoverBlock}
 import org.objectweb.asm.Label
 
-class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[_])(
-    implicit runtimeEnv: LengineRuntimeEnvironment
+class LispErrorHandlerAsmWriter(errorHandler: LispErrorHandler, typeToBe: Class[_])(implicit
+  runtimeEnv: LengineRuntimeEnvironment
 ) {
   def writeValue(): Unit = {
     val mv = runtimeEnv.methodVisitor

@@ -18,16 +18,20 @@ object RuntimeMethodVisitor {
     "exit",
     "lazy",
     "force",
-    "eval",
+    "eval"
   )
 
   def supportOperation(operation: LispValue): Boolean = operation match {
     case VarSymbol(op) => supportedOps.contains(op)
-    case _               => false
+    case _             => false
   }
 
-  def handle(body: List[LispValue], requestedType: Class[_], tailRecReference: Option[(LispSymbol, Label)])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  def handle(
+    body: List[LispValue],
+    requestedType: Class[_],
+    tailRecReference: Option[(LispSymbol, Label)]
+  )(implicit
+    runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val operation :: operands = body
     operation match {
@@ -47,10 +51,12 @@ object RuntimeMethodVisitor {
     }
   }
 
-  private def visitIfStmt(operands: List[LispValue],
-                          requestedType: Class[_],
-                          tailRecReference: Option[(LispSymbol, Label)])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  private def visitIfStmt(
+    operands: List[LispValue],
+    requestedType: Class[_],
+    tailRecReference: Option[(LispSymbol, Label)]
+  )(implicit
+    runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val condition :: ifValue :: elseValue :: Nil = operands
 
@@ -76,10 +82,12 @@ object RuntimeMethodVisitor {
     mv.stackSizeTrace.decrementAndGet()
   }
 
-  private def visitExport(operands: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitExport(
+    operands: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val symbol :: value = operands
-    val nameOfSymbol    = symbol.asInstanceOf[LispSymbol].name
-    val mv              = runtimeEnvironment.methodVisitor
+    val nameOfSymbol = symbol.asInstanceOf[LispSymbol].name
+    val mv = runtimeEnvironment.methodVisitor
 
     if (value == Nil) {
       mv.visitALoad(0)
@@ -99,11 +107,13 @@ object RuntimeMethodVisitor {
       mv.visitSwap()
       mv.visitString(nameOfSymbol)
       mv.visitSwap()
-      mv.visitMethodCall(runtimeEnvironment.className,
-                               "export",
-                               VoidPrimitive,
-                               LengineStringClass,
-                               ObjectClass)  // [V]
+      mv.visitMethodCall(
+        runtimeEnvironment.className,
+        "export",
+        VoidPrimitive,
+        LengineStringClass,
+        ObjectClass
+      ) // [V]
       val loc = runtimeEnvironment.allocateNextVar
       mv.visitAStore(loc) // []
       runtimeEnvironment.registerVariable(symbol.asInstanceOf[LispSymbol], loc, ObjectClass)
@@ -111,11 +121,13 @@ object RuntimeMethodVisitor {
     }
   }
 
-  private def visitImport(operands: List[LispValue])(implicit runtimeMethodVisitor: LengineRuntimeEnvironment): Unit = {
+  private def visitImport(
+    operands: List[LispValue]
+  )(implicit runtimeMethodVisitor: LengineRuntimeEnvironment): Unit = {
 
     val importNameSymbol :: Nil = operands
-    val mv                      = runtimeMethodVisitor.methodVisitor
-    val symbolNameComb          = importNameSymbol.asInstanceOf[LispSymbol]
+    val mv = runtimeMethodVisitor.methodVisitor
+    val symbolNameComb = importNameSymbol.asInstanceOf[LispSymbol]
 
     mv.visitString(symbolNameComb.name)
     mv.visitStaticMethodCall(
@@ -129,17 +141,19 @@ object RuntimeMethodVisitor {
     mv.visitAStore(varLoc)
 
     val symbolToBeRegistered = importNameSymbol match {
-      case _:VarSymbol => VarSymbol(symbolNameComb.name.split('.').last)
-      case _:LazySymbol => LazySymbol(symbolNameComb.name.split('.').last)
+      case _: VarSymbol  => VarSymbol(symbolNameComb.name.split('.').last)
+      case _: LazySymbol => LazySymbol(symbolNameComb.name.split('.').last)
     }
 
     runtimeMethodVisitor.registerVariable(symbolToBeRegistered, varLoc, ObjectClass)
     runtimeMethodVisitor.writeLaterAllScope(symbolToBeRegistered, ObjectClass, varLoc)
   }
 
-  private def visitLazy(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitLazy(
+    values: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val body :: Nil = values
-    val mv          = runtimeEnvironment.methodVisitor
+    val mv = runtimeEnvironment.methodVisitor
 
     mv.visitLispValue(GeneralLispFunc(Nil, body), typeToBe = LengineLambdaClass.head)
     mv.visitStaticMethodCall(
@@ -150,19 +164,22 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitForce(values: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitForce(
+    values: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val symbol :: Nil = values
-    val mv            = runtimeEnvironment.methodVisitor
+    val mv = runtimeEnvironment.methodVisitor
     mv.visitLispValue(symbol, typeToBe = LengineLazyValueClass)
     mv.visitMethodCall(
       LengineLazyValueClass,
       "force",
-      ObjectClass,
+      ObjectClass
     )
   }
 
-
-  private def visitQuit(body: List[LispValue])(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
+  private def visitQuit(
+    body: List[LispValue]
+  )(implicit runtimeEnvironment: LengineRuntimeEnvironment): Unit = {
     val mv = runtimeEnvironment.methodVisitor
     val operand :: Nil = body
 
@@ -171,7 +188,7 @@ object RuntimeMethodVisitor {
     mv.visitMethodCall(
       LongClass,
       "intValue",
-      Integer.TYPE,
+      Integer.TYPE
     )
     mv.visitStaticMethodCall(
       classOf[System],
@@ -181,14 +198,14 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitNative(operands: List[LispValue])(
-    implicit runtimeEnvironment: LengineRuntimeEnvironment
+  private def visitNative(operands: List[LispValue])(implicit
+    runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val symbol :: objectType :: Nil = operands
     val symbolName = symbol.asInstanceOf[LispSymbol].name
 
     val expectingType = objectType match {
-      case LispFn() => LengineLambdaCommonClass
+      case LispFn()  => LengineLambdaCommonClass
       case LispVar() => ObjectClass
     }
 
@@ -203,8 +220,12 @@ object RuntimeMethodVisitor {
     )
   }
 
-  private def visitEval(operands: List[LispValue], typeToBe: Class[_], tailRecRef: Option[(LispSymbol, Label)])(
-      implicit runtimeEnvironment: LengineRuntimeEnvironment
+  private def visitEval(
+    operands: List[LispValue],
+    typeToBe: Class[_],
+    tailRecRef: Option[(LispSymbol, Label)]
+  )(implicit
+    runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
     val toBeEval :: _ = operands
     val tokenList: List[LispToken] = toBeEval.asInstanceOf[LispList].items.map {
@@ -214,7 +235,12 @@ object RuntimeMethodVisitor {
     val mv = runtimeEnvironment.methodVisitor
 
     parseValue(tokenList.toStream) match {
-      case Left(err) => throw CompileException(err.toString, runtimeEnvironment.fileName, operands.head.tokenLocation)
+      case Left(err) =>
+        throw CompileException(
+          err.toString,
+          runtimeEnvironment.fileName,
+          operands.head.tokenLocation
+        )
       case Right((v, t)) if t.isEmpty => mv.visitLispValue(v, typeToBe, tailRecRef)
     }
   }

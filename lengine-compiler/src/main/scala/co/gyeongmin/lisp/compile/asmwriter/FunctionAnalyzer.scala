@@ -12,24 +12,27 @@ import scala.annotation.tailrec
 
 object FunctionAnalyzer {
   @tailrec
-  private def captureWhenStmt(capture: LengineVarCapture, whenStmt: List[LispWhenStmt]): Unit = whenStmt match {
-    case Nil =>
-    case LispWhenStmt(whenValue, thenValue) :: tail =>
-      captureUnknownVariables(capture, whenValue)
-      captureUnknownVariables(capture, thenValue)
-      captureWhenStmt(capture, tail)
-  }
+  private def captureWhenStmt(capture: LengineVarCapture, whenStmt: List[LispWhenStmt]): Unit =
+    whenStmt match {
+      case Nil =>
+      case LispWhenStmt(whenValue, thenValue) :: tail =>
+        captureUnknownVariables(capture, whenValue)
+        captureUnknownVariables(capture, thenValue)
+        captureWhenStmt(capture, tail)
+    }
 
   /**
-    * This method is to visit AST and identify which variable is not able to find.
-    *
-    * `captureVariables` contains what is identified, and what is unidentified for the methods.
-    * If it is about to define a function, then it should create child capture, as the scope is going to be changed.
-    * This is done in recursive way, as the tree is constructed in recursively.
-    *
-    * @param captureVariables store currently known variable & unknown variable
-    * @param body             could be clause
-    */
+   * This method is to visit AST and identify which variable is not able to find.
+   *
+   * `captureVariables` contains what is identified, and what is unidentified for the methods. If it
+   * is about to define a function, then it should create child capture, as the scope is going to be
+   * changed. This is done in recursive way, as the tree is constructed in recursively.
+   *
+   * @param captureVariables
+   *   store currently known variable & unknown variable
+   * @param body
+   *   could be clause
+   */
   def captureUnknownVariables(captureVariables: LengineVarCapture, body: LispValue): Unit = {
     def traverseLoopTree(capture: LengineVarCapture, loop: LispLoopStmt): Unit = loop match {
       case LispLoopStmt(Nil, body) =>
@@ -43,7 +46,8 @@ object FunctionAnalyzer {
     }
 
     body match {
-      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() | LispFalse() =>
+      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() |
+          LispFalse() =>
       case _: ObjectReferSymbol =>
       case LispObject(kv) => kv.values.foreach(v => captureUnknownVariables(captureVariables, v))
       case LispList(body) =>
@@ -64,8 +68,8 @@ object FunctionAnalyzer {
         captureVariables.mergeChild(child)
       case GeneralLispFunc(placeholders, body) =>
         val childCapture = new LengineVarCapture(captureVariables)
-        placeholders.foreach {
-          case symbol: LispSymbol => childCapture.ignoreCapture(symbol)
+        placeholders.foreach { case symbol: LispSymbol =>
+          childCapture.ignoreCapture(symbol)
         }
         captureUnknownVariables(childCapture, body)
         captureVariables.mergeChild(childCapture)
@@ -78,10 +82,9 @@ object FunctionAnalyzer {
         traverseLoopTree(captureVariables, loop)
       case LispLetDef(decls, body) =>
         val childCapture = new LengineVarCapture(captureVariables)
-        decls.foreach {
-          case LispLetDecl(name, value) =>
-            captureUnknownVariables(childCapture, value)
-            childCapture.ignoreCapture(name)
+        decls.foreach { case LispLetDecl(name, value) =>
+          captureUnknownVariables(childCapture, value)
+          childCapture.ignoreCapture(name)
         }
         captureUnknownVariables(childCapture, body)
         captureVariables.mergeChild(childCapture)
@@ -101,13 +104,16 @@ object FunctionAnalyzer {
   }
 
   /**
-    * Tail recursion analyzer
-
-  Assume that this is the last value of the clause, if the first referring symbol for the clause is itself,
-  then, refer it as tail recursion. Only the first referring symbol will be replaced to loop, but, laters not.
-    * */
+   * Tail recursion analyzer
+   *
+   * Assume that this is the last value of the clause, if the first referring symbol for the clause
+   * is itself, then, refer it as tail recursion. Only the first referring symbol will be replaced
+   * to loop, but, laters not.
+   */
   def isTailRecursion(itself: Option[LispSymbol], body: LispValue): Boolean = body match {
-    case LispClause((symbol: LispSymbol) :: _) if symbol == VarSymbol("$") || itself.contains(symbol) => true
+    case LispClause((symbol: LispSymbol) :: _)
+        if symbol == VarSymbol("$") || itself.contains(symbol) =>
+      true
     case LispClause(VarSymbol("if") :: _ :: thenValue :: elseValue :: Nil) =>
       isTailRecursion(itself, thenValue) || isTailRecursion(itself, elseValue)
     case LispCaseStmt(Nil, fallback) =>
@@ -118,17 +124,21 @@ object FunctionAnalyzer {
       isTailRecursion(itself, last)
     case _ @LispDoStmt(_ :: tail) =>
       isTailRecursion(itself, LispDoStmt(tail))
-    case LispLetDef(decls, body) if decls.forall {
-          case LispLetDecl(symbol, _) => !itself.contains(symbol) && symbol != VarSymbol("$")
+    case LispLetDef(decls, body) if decls.forall { case LispLetDecl(symbol, _) =>
+          !itself.contains(symbol) && symbol != VarSymbol("$")
         } =>
       isTailRecursion(itself, body)
     case LispLoopStmt(Nil, body) =>
       isTailRecursion(itself, body)
-    case LispLoopStmt(head :: tail, body) if !itself.contains(head.symbol) && head.symbol != VarSymbol("$") =>
+    case LispLoopStmt(head :: tail, body)
+        if !itself.contains(head.symbol) && head.symbol != VarSymbol("$") =>
       isTailRecursion(itself, LispLoopStmt(tail, body))
     case LispForWhenStmt(_, Nil, otherwise) => isTailRecursion(itself, otherwise)
     case LispForWhenStmt(value, LispWhenStmt(_, thenValue) :: whens, otherwise) =>
-      isTailRecursion(itself, thenValue) || isTailRecursion(itself, LispForWhenStmt(value, whens, otherwise))
+      isTailRecursion(itself, thenValue) || isTailRecursion(
+        itself,
+        LispForWhenStmt(value, whens, otherwise)
+      )
     case _ => false
   }
 }
