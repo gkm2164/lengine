@@ -2,7 +2,7 @@ name := "lengine-repl"
 
 mainClass := Some("co.gyeongmin.lisp.Main")
 
-assemblyJarName in assembly := "lengine.jar"
+assembly / assemblyJarName := "lengine.jar"
 
 libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.12"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"

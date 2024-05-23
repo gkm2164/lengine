@@ -12,7 +12,7 @@ import co.gyeongmin.lisp.lexer.values.boolean.{LispBoolean, LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.functions.{GeneralLispFunc, LispFunc, OverridableFunc}
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
-import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LazySymbol, LispSymbol, ListSymbol}
+import co.gyeongmin.lisp.lexer.values.symbol.{LazySymbol, LispSymbol, ListSymbol, VarSymbol}
 import lexer.values._
 import lexer.{StdInReader, TokenLocation, Tokenizer}
 import co.gyeongmin.lisp.parser.parseValue
@@ -29,8 +29,8 @@ package object execution {
     private val HistorySymbol: VarSymbol = VarSymbol("$$HISTORY$$")
 
     def addFn(
-        symbol: LispSymbol,
-        f: LispFunc
+      symbol: LispSymbol,
+      f: LispFunc
     ): Either[EvalError, LispEnvironment] = env.get(symbol) match {
       case Some(OverridableFunc(functions)) =>
         Right(env.updated(symbol, OverridableFunc(functions :+ f)))
@@ -39,12 +39,12 @@ package object execution {
     }
 
     def updateHistory(
-        stmt: LispValue,
-        inc: AtomicLong,
-        res: LispValue
+      stmt: LispValue,
+      inc: AtomicLong,
+      res: LispValue
     ): (Option[String], LispEnvironment) = env.get(HistorySymbol) match {
       case Some(LispList(items)) =>
-        val num     = inc.getAndIncrement()
+        val num = inc.getAndIncrement()
         val varName = s"res$num"
         (
           Some(varName),
@@ -58,7 +58,7 @@ package object execution {
 
   implicit class LispExecutionSyntax(v: LispValue) {
     def eval(
-        env: LispEnvironment
+      env: LispEnvironment
     ): Either[EvalError, (LispValue, LispEnvironment)] = v match {
       case LispFuncDef(symbol, fn) => env.addFn(symbol, fn).map((fn, _))
       case n @ LispNamespace(ns) =>
@@ -76,7 +76,8 @@ package object execution {
       case clause: LispClause => clause.execute(env).map((_, env))
       case m: SpecialToken    => Left(UnimplementedOperationError("macro", m))
       case n: LispNumber      => Right((n, env))
-      case LispObject(_) | LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue() | LispFalse() =>
+      case LispObject(_) | LispChar(_) | LispString(_) | LispList(_) | LispUnit | LispTrue() |
+          LispFalse() =>
         Right((v, env))
       case f: GeneralLispFunc => Right((f, env))
       case value =>
@@ -87,7 +88,7 @@ package object execution {
   }
 
   def traverseToLispList(
-      list: List[Either[EvalError, LispList]]
+    list: List[Either[EvalError, LispList]]
   ): Either[EvalError, LispList] =
     list.foldLeft[Either[EvalError, LispList]](Right(LispList(Nil))) {
       case (Right(LispList(acc)), elem) =>
@@ -103,21 +104,19 @@ package object execution {
       val LispLoopStmt(fors, body) = f
 
       def envApplyLoop(
-          stmts: List[LispForStmt],
-          env: LispEnvironment
+        stmts: List[LispForStmt],
+        env: LispEnvironment
       ): Either[EvalError, LispList] = stmts match {
         case Nil =>
           body.eval(env).map { case (value, _) => LispList(List(value)) }
         case LispForStmt(symbol, v) :: tail =>
-          v.eval(env).flatMap {
-            case (value, _) =>
-              value.toSeq.flatMap(_.toList).flatMap {
-                case LispList(items) =>
-                  traverseToLispList(for {
-                    item <- items
-                    nextEnv = env.updated(symbol, item)
-                  } yield envApplyLoop(tail, nextEnv))
-              }
+          v.eval(env).flatMap { case (value, _) =>
+            value.toSeq.flatMap(_.toList).flatMap { case LispList(items) =>
+              traverseToLispList(for {
+                item <- items
+                nextEnv = env.updated(symbol, item)
+              } yield envApplyLoop(tail, nextEnv))
+            }
           }
       }
 
@@ -127,14 +126,14 @@ package object execution {
 
   implicit class LispOverridableFunctionSyntax(f: OverridableFunc) {
     def findApplyFunc(
-        env: LispEnvironment,
-        args: List[LispValue]
+      env: LispEnvironment,
+      args: List[LispValue]
     ): Either[EvalError, (LispFunc, LispEnvironment)] = {
       val OverridableFunc(functions) = f
 
       @scala.annotation.tailrec
       def loop(
-          remainFunctions: List[LispFunc]
+        remainFunctions: List[LispFunc]
       ): Either[EvalError, (LispFunc, LispEnvironment)] =
         remainFunctions match {
           case Nil => Left(UnableToFindFunction)
@@ -153,13 +152,13 @@ package object execution {
 
   implicit class LispFuncExecutionSyntax(f: LispFunc) {
     def applyEnv(
-        env: LispEnvironment,
-        applyingArgs: List[LispValue]
+      env: LispEnvironment,
+      applyingArgs: List[LispValue]
     ): Either[EvalError, LispEnvironment] = {
       def loop(
-          accEnv: LispEnvironment,
-          symbols: List[LispValue],
-          args: List[LispValue]
+        accEnv: LispEnvironment,
+        symbols: List[LispValue],
+        args: List[LispValue]
       ): Either[EvalError, LispEnvironment] =
         (symbols, args) match {
           case (Nil, Nil) => Right(accEnv)
@@ -183,15 +182,16 @@ package object execution {
             for {
               argEvalRes <- arg.eval(env)
               (argEvalResult, _) = argEvalRes
-              vRes     <- v eq argEvalResult
+              vRes <- v eq argEvalResult
               vResBool <- vRes.toBoolean
-              envRes <- if (vResBool) {
-                loop(accEnv, symbolTail, argTail)
-              } else {
-                FunctionApplyError(
-                  "is not applicable for the values are different"
-                ).asLeft[LispEnvironment]
-              }
+              envRes <-
+                if (vResBool) {
+                  loop(accEnv, symbolTail, argTail)
+                } else {
+                  FunctionApplyError(
+                    "is not applicable for the values are different"
+                  ).asLeft[LispEnvironment]
+                }
             } yield envRes
           case _ =>
             FunctionApplyError(
@@ -227,12 +227,11 @@ package object execution {
 
   implicit class LispValueDefExecutionSyntax(stmt: LispValueDef) {
     def registerSymbol(
-        env: LispEnvironment
+      env: LispEnvironment
     ): Either[EvalError, (LispValue, LispEnvironment)] = stmt.symbol match {
       case VarSymbol(_) =>
-        stmt.value.eval(env).map {
-          case (evaluatedValue, _) =>
-            (stmt, env.updated(stmt.symbol, evaluatedValue))
+        stmt.value.eval(env).map { case (evaluatedValue, _) =>
+          (stmt, env.updated(stmt.symbol, evaluatedValue))
         }
       case LazySymbol(_) => Right((stmt, env.updated(stmt.symbol, stmt.value)))
       case errValue      => Left(InvalidSymbolNameError(errValue))
@@ -241,12 +240,12 @@ package object execution {
 
   implicit class LispDoExecutionSymtax(stmt: LispDoStmt) {
     def runBody(
-        env: LispEnvironment
+      env: LispEnvironment
     ): Either[EvalError, (LispValue, LispEnvironment)] = {
       def loop(
-          env: LispEnvironment,
-          remains: List[LispValue],
-          lastExec: LispValue
+        env: LispEnvironment,
+        remains: List[LispValue],
+        lastExec: LispValue
       ): Either[EvalError, (LispValue, LispEnvironment)] = remains match {
         case Nil => Right((lastExec, env))
         case head :: tail =>
@@ -272,38 +271,37 @@ package object execution {
             .map((_, args))
         case value :: args =>
           value.eval(env).map { case (v, _) => (v, args) }
-      }) flatMap {
-        case (firstStmtValue, args) =>
-          firstStmtValue match {
-            case obj: LispObject => obj.refer(args)
-            case of: OverridableFunc =>
-              for {
-                findRes <- of.findApplyFunc(env, args)
-                (fn, symbolEnv) = findRes
-                evalResult <- fn.runFn(symbolEnv)
-              } yield evalResult
-            case fn: LispFunc =>
-              for {
-                symbolEnv  <- fn.applyEnv(env, args)
-                evalResult <- fn.runFn(symbolEnv)
-              } yield evalResult
-            case v => Left(NotAnExecutableError(v))
-          }
+      }) flatMap { case (firstStmtValue, args) =>
+        firstStmtValue match {
+          case obj: LispObject => obj.refer(args)
+          case of: OverridableFunc =>
+            for {
+              findRes <- of.findApplyFunc(env, args)
+              (fn, symbolEnv) = findRes
+              evalResult <- fn.runFn(symbolEnv)
+            } yield evalResult
+          case fn: LispFunc =>
+            for {
+              symbolEnv <- fn.applyEnv(env, args)
+              evalResult <- fn.runFn(symbolEnv)
+            } yield evalResult
+          case v => Left(NotAnExecutableError(v))
+        }
       }
   }
 
   private val inc = new AtomicLong()
 
-  private def evalLoop(tokens: Stream[LispToken], env: LispEnvironment)(
-      implicit debugger: Option[Debugger]
+  private def evalLoop(tokens: LazyList[LispToken], env: LispEnvironment)(implicit
+    debugger: Option[Debugger]
   ): Either[(EvalError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {
       parseResult <- parseValue(tokens).leftMap(x => (EvalParseError(x), env))
       (stmt, remains) = parseResult
       res <- stmt.eval(env).leftMap((_, env))
-      (r, nextEnv)          = res
+      (r, nextEnv) = res
       (varName, historyEnv) = nextEnv.updateHistory(stmt, inc, r)
-      _                     = debugger.foreach(_.print(varName, r))
+      _ = debugger.foreach(_.print(varName, r))
       nextRes <- evalLoop(remains, historyEnv)
     } yield nextRes
 
@@ -315,9 +313,8 @@ package object execution {
       ret <- prompt.printable()
     } yield ret
 
-  private def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(
-      implicit
-      debugger: Option[Debugger]
+  private def runLoop(tokenizer: Tokenizer, env: LispEnvironment)(implicit
+    debugger: Option[Debugger]
   ): Either[(LispError, LispEnvironment), (LispValue, LispEnvironment)] =
     for {
       tokens <- tokenizer.getTokenStream
@@ -327,7 +324,7 @@ package object execution {
 
   @tailrec
   private def executeEngine(iterator: Iterator[Char])(env: LispEnvironment): Unit = {
-    val tokenizer                               = Tokenizer(iterator.map(ch => (ch, TokenLocation(0, 0))))
+    val tokenizer = Tokenizer(iterator.map(ch => (ch, TokenLocation(0, 0))))
     implicit val debugger: Option[ReplDebugger] = Some(new ReplDebugger)
     runLoop(tokenizer, env) match {
       case Right(_)                                       => ()
@@ -343,13 +340,13 @@ package object execution {
 
   private def readFile(path: String): Tokenizer = {
     val refinedPath = if (path.endsWith(".lisp")) path else path + ".lisp"
-    val file        = Source.fromFile(refinedPath)
+    val file = Source.fromFile(refinedPath)
     Tokenizer(file.mkString(""))
   }
 
   def runFile(
-      path: String,
-      env: LispEnvironment
+    path: String,
+    env: LispEnvironment
   ): LispEnvironment = {
     val tokenizer = readFile(path)
     implicit val debugger: Option[Debugger] =

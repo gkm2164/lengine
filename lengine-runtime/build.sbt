@@ -1,10 +1,9 @@
 name := "lengine-runtime"
 
-javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
+assembly / assemblyJarName := "lengine-runtime.jar"
 
-assemblyJarName in assembly := "lengine-runtime.jar"
+Compile / publishArtifact := false
 
-sources in (Compile,doc) := Seq.empty
-publishArtifact in (Compile, packageDoc) := false
+doc / sources := Seq.empty
 
 releaseIgnoreUntrackedFiles := true

@@ -1,7 +1,7 @@
 package co.gyeongmin.lisp.lexer
 
-import co.gyeongmin.lisp.errors.tokenizer.{ EOFError, TokenizeError, WrongEscapeError }
-import co.gyeongmin.lisp.lexer.tokens.{ LispNop, LispToken }
+import co.gyeongmin.lisp.errors.tokenizer.{EOFError, TokenizeError, WrongEscapeError}
+import co.gyeongmin.lisp.lexer.tokens.{LispNop, LispToken}
 import co.gyeongmin.lisp.lexer.values.LispUnit.traverse
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -12,9 +12,9 @@ case class TokenLocation(line: Int, column: Int)
 class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
   @tailrec
   private def parseString(
-      builder: String,
-      wrap: Char,
-      escape: Boolean = false
+    builder: String,
+    wrap: Char,
+    escape: Boolean = false
   ): Either[TokenizeError, String] =
     if (!codeIterator.hasNext) {
       Left(EOFError)
@@ -44,16 +44,17 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
 
   @tailrec
   private def loop(
-      acc: (String, TokenLocation)
+    acc: (String, TokenLocation)
   ): Either[TokenizeError, Seq[(String, TokenLocation)]] =
     if (!codeIterator.hasNext) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case (' ' | '\t' | '\n', _)                                 => Right(Seq(acc))
-        case (ch, _) if "([{}])\";".contains(ch) && acc._1 == "#\\" => Right(Seq((acc._1 + ch, acc._2)))
-        case (ch @ ('(' | '[' | '{'), _) if acc._1.nonEmpty         => Right(Seq((acc._1 + ch, acc._2)))
-        case (ch @ ('(' | '[' | '{'), loc)                          => Right(Seq((ch.toString, loc)))
+        case (' ' | '\t' | '\n', _) => Right(Seq(acc))
+        case (ch, _) if "([{}])\";".contains(ch) && acc._1 == "#\\" =>
+          Right(Seq((acc._1 + ch, acc._2)))
+        case (ch @ ('(' | '[' | '{'), _) if acc._1.nonEmpty => Right(Seq((acc._1 + ch, acc._2)))
+        case (ch @ ('(' | '[' | '{'), loc)                  => Right(Seq((ch.toString, loc)))
         case (ch @ (']' | ')' | '}'), loc) if acc._1.nonEmpty =>
           Right(Seq(acc, (ch.toString, loc)))
         case (ch @ (']' | ')' | '}'), tokenLoc) => Right(Seq((ch.toString, tokenLoc)))
@@ -72,34 +73,32 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
     }
 
   private def next(): Either[TokenizeError, Seq[LispToken]] =
-    loop(("", TokenLocation(1, 1))).flatMap(
-      xs =>
-        traverse(xs.map {
-          case (str, loc) =>
-            LispToken(str, loc)
-        })
+    loop(("", TokenLocation(1, 1))).flatMap(xs =>
+      traverse(xs.map { case (str, loc) =>
+        LispToken(str, loc)
+      })
     )
 
-  private def streamLoop: Stream[LispToken] = next() match {
+  private def streamLoop: LazyList[LispToken] = next() match {
     case Right(xs) =>
       xs.foldRight(LispNop() #:: streamLoop)((x, tokens) => x #:: tokens)
-    case Left(EOFError) => Stream.empty
+    case Left(EOFError) => LazyList()
     case Left(e) =>
       println(s"[ERROR] Lexing error: ${e.message}")
       LispNop() #:: streamLoop
   }
 
-  def getTokenStream: Either[TokenizeError, Stream[LispToken]] = Right(
+  def getTokenStream: Either[TokenizeError, LazyList[LispToken]] = Right(
     streamLoop
   )
 }
 
 object Tokenizer {
   private def tagWithLocation(code: String): Seq[(Char, TokenLocation)] = {
-    val lineCounter   = new AtomicInteger(1)
+    val lineCounter = new AtomicInteger(1)
     val columnCounter = new AtomicInteger(1)
 
-    code.map(ch => {
+    code.map { ch =>
       val (lineNumber, columnNumber) = ch match {
         case '\n' =>
           columnCounter.set(1)
@@ -109,7 +108,7 @@ object Tokenizer {
       }
 
       (ch, TokenLocation(lineNumber, columnNumber))
-    })
+    }
   }
 
   def apply(code: String): Tokenizer = new Tokenizer(tagWithLocation(code).iterator)

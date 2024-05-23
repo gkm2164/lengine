@@ -234,7 +234,7 @@ object RuntimeMethodVisitor {
 
     val mv = runtimeEnvironment.methodVisitor
 
-    parseValue(tokenList.toStream) match {
+    parseValue(LazyList.from(tokenList)) match {
       case Left(err) =>
         throw CompileException(
           err.toString,

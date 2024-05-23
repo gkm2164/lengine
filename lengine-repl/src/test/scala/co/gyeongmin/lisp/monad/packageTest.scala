@@ -22,11 +22,11 @@ class packageTest extends FlatSpec with Matchers {
       case v       => LispTokenState.apply(Left("x" + v))
     }
 
-    lispTokenStateMonad.tailRecM("x")(f)(Stream()) should be(
+    lispTokenStateMonad.tailRecM("x")(f)(LazyList()) should be(
       Right(("xxxxx", Stream()))
     )
 
-    lispTokenStateMonad.tailRecM("x")(g)(Stream()) should be(
+    lispTokenStateMonad.tailRecM("x")(g)(LazyList()) should be(
       Left(TestingError)
     )
   }
