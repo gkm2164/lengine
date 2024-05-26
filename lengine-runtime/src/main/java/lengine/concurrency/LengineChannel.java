@@ -1,19 +1,26 @@
 package lengine.concurrency;
 
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import lengine.collections.Nil;
+
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
+
 
 public class LengineChannel {
   static class ChannelClosed { }
 
-  AtomicBoolean closing = new AtomicBoolean(false);
-  AtomicBoolean isClosed = new AtomicBoolean(false);
-  private final SynchronousQueue<Object> messageQueue;
+  enum ChannelState {
+    RUNNING,
+    CLOSING,
+    CLOSED
+  }
+
+  final AtomicReference<ChannelState> channelState = new AtomicReference<>(ChannelState.RUNNING);
+  private final Queue<Object> messageQueue;
 
   private LengineChannel() {
-    this.messageQueue = new SynchronousQueue<>(true);
+    this.messageQueue = new LinkedBlockingQueue<>();
   }
 
   public static LengineChannel create() {
@@ -21,29 +28,37 @@ public class LengineChannel {
   }
 
   public void sendMessage(Object obj) throws InterruptedException {
-    if (closing.get()) {
-      System.out.println("Can't send data to closed channel anymore");
-      return;
+    synchronized (channelState) {
+      if (channelState.get() != ChannelState.RUNNING) {
+        throw new RuntimeException("Send failure: this channel is already closed");
+      }
     }
-    this.messageQueue.put(obj);
+
+    this.messageQueue.add(obj);
   }
 
   public Object receiveMessage() throws InterruptedException {
-    if (isClosed.get()) {
-      return Nil.get();
+    synchronized (channelState) {
+      if (channelState.get() == ChannelState.CLOSED) {
+        throw new RuntimeException("Receive failure: this channel is already closed");
+      }
     }
 
-    Object ret = this.messageQueue.take();
-    if (ret instanceof ChannelClosed) {
-      isClosed.set(true);
-      return Nil.get();
+    Object object = this.messageQueue.poll();
+    if (object instanceof ChannelClosed) {
+      synchronized (channelState) {
+        channelState.set(ChannelState.CLOSED);
+        return Nil.get();
+      }
     }
 
-    return ret;
+    return object;
   }
 
   public void close() throws InterruptedException {
-    sendMessage(new ChannelClosed());
-    closing.set(true);
+    synchronized (channelState) {
+      channelState.set(ChannelState.CLOSING);
+    }
+    this.messageQueue.add(new ChannelClosed());
   }
 }

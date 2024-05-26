@@ -2,27 +2,34 @@
 
 (require "collections")
 
+(println "Started channel")
+
 (def channel (chan))
 
 (fn producer (n)
-    (if (<= n 0) nil
-        (do (send channel "Hello")
+    (if (<= n 0)
+        (do (close channel)
+            return nil)
+        (do (println "Send message")
+            (send channel "Hello")
             (wait 200)
             return ($ (- n 1)))))
 
 (fn consumer ()
-    (let ((message (receive channel)))
-      (if (nil? message) nil
-          (do (println message)
-              return ($)))))
+    (do (wait 250)
+        return (let ((message (receive channel)))
+        (if (nil? message)
+              (do (println "No message found")
+                  return nil)
+              (do (println message)
+                  return ($))))))
 
+(println "Started producer")
 (def sender (async ^(() (producer 10))))
-
+(println "Started consumer")
 (def receiver (async consumer))
 
 (await sender)
-(println "Closed sender")
-(close channel)
 (await receiver)
 (println "Receiving finished since the channel was closed")
 

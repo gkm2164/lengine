@@ -266,7 +266,7 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
-    public static final LengineLambda1<Boolean, LengineIterable> _IS_NIL = LengineIterable::IS_NIL;
+    public static final LengineLambda1<Boolean, LengineIterable> _IS_NIL = (obj) -> obj == null || obj.IS_NIL();
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj) && !((UnresolvedStream)obj).isResolved();
