@@ -1,14 +1,22 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import lengine.collections.traits.{Buildable, CollectionBuilder, LengineIterable, LengineIterator}
-import lengine.collections.{LengineList, LengineMap, LengineMapKey}
 import lengine.functions._
 import lengine.runtime._
 import lengine.runtime.exceptions.LengineException
+import lengine.types.collections.traits.{
+  Buildable,
+  CollectionBuilder,
+  LengineIterable,
+  LengineIterator
+}
+import lengine.types.collections.{LengineList, LengineMap, LengineMapKey}
 
 import java.util.Objects
 
 object LengineType {
+
+  import lengine.types.{ComplexNumber, LengineLazyValue, LengineObject, LengineString, RatioNumber}
+
   val VoidPrimitive: Class[Void] = java.lang.Void.TYPE
   val BooleanPrimitive: Class[java.lang.Boolean] = java.lang.Boolean.TYPE
   val CharacterPrimitive: Class[java.lang.Character] = java.lang.Character.TYPE
@@ -19,9 +27,9 @@ object LengineType {
   val LongClass: Class[java.lang.Long] = classOf[java.lang.Long]
   val DoubleClass: Class[java.lang.Double] = classOf[java.lang.Double]
   val NumberClass: Class[java.lang.Number] = classOf[java.lang.Number]
-  val RatioNumberClass: Class[lengine.runtime.RatioNumber] = classOf[lengine.runtime.RatioNumber]
-  val ComplexNumberClass: Class[lengine.runtime.ComplexNumber] =
-    classOf[lengine.runtime.ComplexNumber]
+  val RatioNumberClass: Class[RatioNumber] = classOf[RatioNumber]
+  val ComplexNumberClass: Class[ComplexNumber] =
+    classOf[ComplexNumber]
   val StringClass: Class[java.lang.String] = classOf[java.lang.String]
   val StringArrayClass: Class[Array[java.lang.String]] = classOf[Array[java.lang.String]]
   val LengineStringClass: Class[LengineString] = classOf[LengineString]

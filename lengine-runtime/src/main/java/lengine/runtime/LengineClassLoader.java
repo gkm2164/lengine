@@ -1,5 +1,8 @@
 package lengine.runtime;
 
+import lengine.types.LengineObject;
+import lengine.types.LengineString;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;

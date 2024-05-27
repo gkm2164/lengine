@@ -1,12 +1,11 @@
 package co.gyeongmin.lisp.compile
 
-import lengine.runtime.LengineObject
-
 import org.scalatest._
 import flatspec._
+import lengine.types.LengineObject
 import matchers._
 
-import java.nio.file.{ Files, Paths }
+import java.nio.file.{Files, Paths}
 import scala.collection.mutable
 import scala.reflect.io.Path
 
@@ -16,22 +15,22 @@ class LengineTestClassLoader(parent: ClassLoader) extends ClassLoader(parent) {
   private def loadClassByName(className: String): Class[_] = {
     val nameSplit = className.split('.')
 
-    val classBytes = Files.readAllBytes(Paths.get(nameSplit.reduce((acc, elem) => s"$acc/$elem") + ".class"))
+    val classBytes =
+      Files.readAllBytes(Paths.get(nameSplit.reduce((acc, elem) => s"$acc/$elem") + ".class"))
 
     val lastClassName = nameSplit.last
-    val dirString     = nameSplit.init.mkString("/")
-    val toPath        = Path(if (dirString.isEmpty) "." else dirString)
+    val dirString = nameSplit.init.mkString("/")
+    val toPath = Path(if (dirString.isEmpty) "." else dirString)
 
     toPath.toDirectory.list
-      .filter(
-        path =>
-          path.name.replace(lastClassName, "").startsWith("$")
+      .filter(path =>
+        path.name.replace(lastClassName, "").startsWith("$")
           && path.name.endsWith(".class")
       )
-      .foreach(path => {
+      .foreach { path =>
         val bytes = Files.readAllBytes(path.jfile.toPath)
         defineClass(null, bytes, 0, bytes.length)
-      })
+      }
 
     defineClass(null, classBytes, 0, classBytes.length)
   }
@@ -68,11 +67,11 @@ class MainTest extends AnyFlatSpec with should.Matchers {
     })
 
     val startTime = System.currentTimeMillis()
-    testThread.setUncaughtExceptionHandler((t: Thread, e: Throwable) => {
+    testThread.setUncaughtExceptionHandler { (t: Thread, e: Throwable) =>
       println("Uncaught exception")
       e.printStackTrace()
       fail("Should've been succeeded, but, failed")
-    })
+    }
     testThread.start()
     testThread.join()
     println(s"${System.currentTimeMillis() - startTime}ms elapsed to run")
@@ -94,7 +93,7 @@ class MainTest extends AnyFlatSpec with should.Matchers {
     Main.main(Array("./lengine-code/stdlib.lg"))
     Main.main(Array("./lengine-code/math.lg"))
 
-    classLoader.loadClass("lengine.runtime.LengineObject")
+    classLoader.loadClass("lengine.types.LengineObject")
     classLoader.loadFromClassName("prelude")
     classLoader.loadFromClassName("collections")
     classLoader.loadFromClassName("std")

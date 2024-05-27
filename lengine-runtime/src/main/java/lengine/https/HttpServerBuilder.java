@@ -6,11 +6,11 @@ import static lengine.util.Utils.UNSAFE_cast;
 import com.sun.net.httpserver.HttpServer;
 
 import lengine.functions.LengineLambda0;
-import lengine.runtime.LengineString;
-import lengine.runtime.LengineUnit;
-import lengine.collections.LengineMap;
-import lengine.collections.LengineMapEntry;
-import lengine.collections.LengineMapKey;
+import lengine.types.LengineString;
+import lengine.types.LengineUnit;
+import lengine.types.collections.LengineMap;
+import lengine.types.collections.LengineMapEntry;
+import lengine.types.collections.LengineMapKey;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

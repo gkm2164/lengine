@@ -16,8 +16,7 @@
             return ($ (- n 1)))))
 
 (fn consumer ()
-    (do (wait 250)
-        return (let ((message (receive channel)))
+    (do return (let ((message (receive channel)))
         (if (nil? message)
               (do (println "No message found")
                   return nil)

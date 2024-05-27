@@ -1,8 +1,8 @@
 package lengine.runtime.exceptions;
 
-import lengine.collections.traits.LengineObjectType;
-import lengine.runtime.LengineString;
-import lengine.collections.LengineMapKey;
+import lengine.types.collections.traits.LengineObjectType;
+import lengine.types.LengineString;
+import lengine.types.collections.LengineMapKey;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

@@ -1,8 +1,8 @@
 package lengine;
 
 import lengine.functions.LengineLambdaCommon;
-import lengine.collections.Nil;
-import lengine.collections.StreamNil;
+import lengine.types.collections.Nil;
+import lengine.types.collections.StreamNil;
 
 public class Prelude {
   public static final LengineLambdaCommon ADD = PreludeImpl._ADD;
