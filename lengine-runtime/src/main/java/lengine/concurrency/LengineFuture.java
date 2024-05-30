@@ -1,6 +1,6 @@
 package lengine.concurrency;
 
-import lengine.functions.LengineLambda0;
+import lengine.types.functions.LengineLambda0;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;

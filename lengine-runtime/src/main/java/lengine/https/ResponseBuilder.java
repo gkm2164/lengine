@@ -1,6 +1,6 @@
 package lengine.https;
 
-import lengine.functions.LengineLambda1;
+import lengine.types.functions.LengineLambda1;
 import lengine.types.collections.traits.LengineObjectType;
 import lengine.types.collections.traits.LengineObjectWithHelp;
 import lengine.types.LengineString;

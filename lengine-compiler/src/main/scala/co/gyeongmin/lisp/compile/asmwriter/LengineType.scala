@@ -1,7 +1,22 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import lengine.functions._
-import lengine.runtime._
+import lengine.runtime.LengineClassLoader
+import lengine.types.functions.{
+  LengineLambda0,
+  LengineLambda1,
+  LengineLambda10,
+  LengineLambda11,
+  LengineLambda2,
+  LengineLambda3,
+  LengineLambda4,
+  LengineLambda5,
+  LengineLambda6,
+  LengineLambda7,
+  LengineLambda8,
+  LengineLambda9,
+  LengineLambdaCommon
+}
+import lengine.types.{ComplexNumber, LengineLazyValue, LengineObject, LengineString, RatioNumber}
 import lengine.runtime.exceptions.LengineException
 import lengine.types.collections.traits.{
   Buildable,
@@ -14,9 +29,6 @@ import lengine.types.collections.{LengineList, LengineMap, LengineMapKey}
 import java.util.Objects
 
 object LengineType {
-
-  import lengine.types.{ComplexNumber, LengineLazyValue, LengineObject, LengineString, RatioNumber}
-
   val VoidPrimitive: Class[Void] = java.lang.Void.TYPE
   val BooleanPrimitive: Class[java.lang.Boolean] = java.lang.Boolean.TYPE
   val CharacterPrimitive: Class[java.lang.Character] = java.lang.Character.TYPE

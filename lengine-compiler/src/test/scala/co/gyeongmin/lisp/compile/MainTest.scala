@@ -2,7 +2,6 @@ package co.gyeongmin.lisp.compile
 
 import org.scalatest._
 import flatspec._
-import lengine.types.LengineObject
 import matchers._
 
 import java.nio.file.{Files, Paths}
@@ -51,6 +50,7 @@ class MainTest extends AnyFlatSpec with should.Matchers {
 
     val testingClass = classLoader.loadFromClassName(className)
     val testThread = new Thread(() => {
+      import lengine.types.LengineObject
       Thread.currentThread().setContextClassLoader(classLoader)
       val lengineObject = testingClass
         .getConstructor()
@@ -119,5 +119,20 @@ class MainTest extends AnyFlatSpec with should.Matchers {
     execute("json-async-module.lg", "gben.tests.json-async-module")
     execute("channel-module.lg", "gben.concurrency.channel-module")
     execute("ratio-number.lg", "gben.tests.ratio-number")
+  }
+
+  "eval test" should "pass" in {
+    Main.main(Array("./lengine-code/prelude.lg"))
+    Main.main(Array("./lengine-code/collections.lg"))
+    Main.main(Array("./lengine-code/stdlib.lg"))
+    Main.main(Array("./lengine-code/math.lg"))
+
+    classLoader.loadClass("lengine.types.LengineObject")
+    classLoader.loadFromClassName("prelude")
+    classLoader.loadFromClassName("collections")
+    classLoader.loadFromClassName("std")
+    classLoader.loadFromClassName("math")
+
+    execute("eval-test.lg", "gben.tests.eval-test")
   }
 }

@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import lengine.functions.LengineLambda2;
+import lengine.types.functions.LengineLambda2;
 import lengine.types.collections.traits.LengineIterable;
 import lengine.types.collections.traits.LengineIterator;
 import lengine.types.LengineString;

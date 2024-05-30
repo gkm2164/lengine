@@ -1,6 +1,6 @@
 package lengine;
 
-import lengine.functions.LengineLambdaCommon;
+import lengine.types.functions.LengineLambdaCommon;
 import lengine.types.collections.Nil;
 import lengine.types.collections.StreamNil;
 

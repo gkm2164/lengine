@@ -5,7 +5,7 @@ import static lengine.util.Utils.UNSAFE_cast;
 
 import com.sun.net.httpserver.HttpServer;
 
-import lengine.functions.LengineLambda0;
+import lengine.types.functions.LengineLambda0;
 import lengine.types.LengineString;
 import lengine.types.LengineUnit;
 import lengine.types.collections.LengineMap;

@@ -1,6 +1,6 @@
 package lengine.types.collections;
 
-import lengine.functions.LengineLambda1;
+import lengine.types.functions.LengineLambda1;
 import lengine.types.collections.traits.LengineObjectType;
 import lengine.types.LengineString;
 

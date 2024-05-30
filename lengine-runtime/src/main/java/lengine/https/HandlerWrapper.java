@@ -4,8 +4,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import lengine.functions.LengineLambda1;
-import lengine.functions.LengineLambda2;
+import lengine.types.functions.LengineLambda1;
+import lengine.types.functions.LengineLambda2;
 import lengine.types.collections.traits.LengineObjectType;
 import lengine.types.LengineString;
 import lengine.types.LengineUnit;

@@ -1,6 +1,6 @@
 package lengine.types;
 
-import lengine.functions.LengineLambda0;
+import lengine.types.functions.LengineLambda0;
 
 public class LengineLazyValue implements LengineLambda0<Object> {
     private Object value = null;

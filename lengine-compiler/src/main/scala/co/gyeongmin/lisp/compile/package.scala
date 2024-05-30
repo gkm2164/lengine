@@ -3,28 +3,35 @@ package co.gyeongmin.lisp
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper.MethodVisitorWrapperExt
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.compile.asmwriter._
-import co.gyeongmin.lisp.lexer.ast.{ LispExportDef, LispRequireStmt }
+import co.gyeongmin.lisp.lexer.ast.{LispExportDef, LispRequireStmt}
 import co.gyeongmin.lisp.lexer.values.LispValue
 import org.objectweb.asm.Opcodes._
-import org.objectweb.asm.{ ClassWriter, Label, Type }
+import org.objectweb.asm.{ClassWriter, Label, Type}
 
 import scala.collection.mutable
 
 package object compile {
 
-  def writeClass(sourceFileName: String, pkgName: String, clsName: String, statements: List[LispValue]): Array[Byte] = {
+  def writeClass(
+    sourceFileName: String,
+    pkgName: String,
+    clsName: String,
+    statements: List[LispValue]
+  ): Array[Byte] = {
     val cw = new ClassWriter(AsmHelper.GlobalConfig)
     val qualifiedName = if (pkgName.nonEmpty) {
-      s"${pkgName.replaceAllLiterally(".", "/")}/$clsName"
+      s"${pkgName.replace(".", "/")}/$clsName"
     } else {
       clsName
     }
-    cw.visit(V1_8,
-             ACC_PUBLIC,
-             qualifiedName,
-             null,
-             Type.getType(ObjectClass).getInternalName,
-             Array(Type.getType(LengineObjectClass).getInternalName))
+    cw.visit(
+      V1_8,
+      ACC_PUBLIC,
+      qualifiedName,
+      null,
+      Type.getType(ObjectClass).getInternalName,
+      Array(Type.getType(LengineObjectClass).getInternalName)
+    )
     cw.visitSource(sourceFileName, null)
     visitRequiredFields(cw)
     writeInitMethod(cw, qualifiedName)
@@ -71,21 +78,29 @@ package object compile {
     mv.visitEnd()
   }
 
-  private def writeExecute(sourceFileName: String,
-                           cw: ClassWriter,
-                           statements: List[LispValue],
-                           className: String): Unit = {
+  private def writeExecute(
+    sourceFileName: String,
+    cw: ClassWriter,
+    statements: List[LispValue],
+    className: String
+  ): Unit = {
     val mv = cw
-      .visitMethod(ACC_PUBLIC, "scriptMain", Type.getMethodDescriptor(Type.getType(VoidPrimitive)), null, null)
+      .visitMethod(
+        ACC_PUBLIC,
+        "scriptMain",
+        Type.getMethodDescriptor(Type.getType(VoidPrimitive)),
+        null,
+        null
+      )
       .wrap()
     mv.visitCode()
     val startLabel: Label = new Label()
-    val endLabel: Label   = new Label()
+    val endLabel: Label = new Label()
     mv.visitLabel(startLabel)
     implicit val mainRuntimeEnv: LengineRuntimeEnvironment =
       new LengineRuntimeEnvironment(cw, mv, mutable.Map(), className, sourceFileName, 1)
 
-    statements.foreach(stmt => {
+    statements.foreach { stmt =>
       val thisLabel = new Label
       mv.visitLabel(thisLabel)
       new LispValueAsmWriter(stmt, ObjectClass).visitForValue()
@@ -94,37 +109,55 @@ package object compile {
         case _: LispRequireStmt =>
         case _                  => mv.visitPop()
       }
-    })
+    }
     mv.visitLabel(endLabel)
     mv.visitReturn()
     for (elem <- mainRuntimeEnv.writeLaterAllScopeList) {
-      mv.visitLocalVariable(elem._1.escapeToJvmAsm, Type.getDescriptor(elem._2), null, startLabel, endLabel, elem._3)
+      mv.visitLocalVariable(
+        elem._1.escapeToJvmAsm,
+        Type.getDescriptor(elem._2),
+        null,
+        startLabel,
+        endLabel,
+        elem._3
+      )
     }
     for (elem <- mainRuntimeEnv.writeLaterList) {
       val (symbol, typeToBe, start, end, loc) = elem
-      mv.visitLocalVariable(symbol.escapeToJvmAsm, Type.getDescriptor(typeToBe), null, start, end, loc)
+      mv.visitLocalVariable(
+        symbol.escapeToJvmAsm,
+        Type.getDescriptor(typeToBe),
+        null,
+        start,
+        end,
+        loc
+      )
     }
     // Need to give hint to assembly generator for helping decide frame size
-    mv.visitLocalVariable("__PADDING__",
-                          Type.getType(ObjectClass).getDescriptor,
-                          null,
-                          startLabel,
-                          endLabel,
-                          mainRuntimeEnv.getLastVarIdx)
+    mv.visitLocalVariable(
+      "__PADDING__",
+      Type.getType(ObjectClass).getDescriptor,
+      null,
+      startLabel,
+      endLabel,
+      mainRuntimeEnv.getLastVarIdx
+    )
     mv.visitMaxs()
     mv.visitEnd()
   }
 
   private def writeMain(cw: ClassWriter, className: String): Unit = {
     val mv = cw
-      .visitMethod(ACC_PUBLIC | ACC_STATIC,
-                   "main",
-                   Type.getMethodDescriptor(
-                     Type.getType(VoidPrimitive),
-                     Type.getType(StringArrayClass)
-                   ),
-                   null,
-                   null)
+      .visitMethod(
+        ACC_PUBLIC | ACC_STATIC,
+        "main",
+        Type.getMethodDescriptor(
+          Type.getType(VoidPrimitive),
+          Type.getType(StringArrayClass)
+        ),
+        null,
+        null
+      )
       .wrap()
     mv.visitNew(className)
     mv.visitDup()

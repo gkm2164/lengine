@@ -227,21 +227,17 @@ object RuntimeMethodVisitor {
   )(implicit
     runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
+    import co.gyeongmin.lisp.compile.utils.parserLoop
+    import co.gyeongmin.lisp.lexer.values.LispClause
     val toBeEval :: _ = operands
     val tokenList: List[LispToken] = toBeEval.asInstanceOf[LispList].items.map {
       case LispTokenValue(lispToken) => lispToken
     }
 
-    val mv = runtimeEnvironment.methodVisitor
+    println(tokenList.map(_.toString).mkString(" "))
 
-    parseValue(LazyList.from(tokenList)) match {
-      case Left(err) =>
-        throw CompileException(
-          err.toString,
-          runtimeEnvironment.fileName,
-          operands.head.tokenLocation
-        )
-      case Right((v, t)) if t.isEmpty => mv.visitLispValue(v, typeToBe, tailRecRef)
-    }
+    val tokens = parserLoop(Vector(), LazyList.from(tokenList))
+
+    println(LispClause(tokens).toString)
   }
 }
