@@ -611,14 +611,17 @@ public class PreludeImpl {
         Object _a = cast(a, largerType);
         Object _b = cast(b, largerType);
 
-        if (!(_a instanceof Comparable aComp)) {
+        if (!(_a instanceof Comparable)) {
             throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
         }
 
-        if (!(_b instanceof Comparable bComp)) {
+        if (!(_b instanceof Comparable)) {
             throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
         }
 
-        return predicate.test(aComp, bComp);
+        Comparable<Object> _aComp = (Comparable<Object>) _a;
+        Comparable<Object> _bComp = (Comparable<Object>) _b;
+
+        return predicate.test(_aComp, _bComp);
     }
 }
