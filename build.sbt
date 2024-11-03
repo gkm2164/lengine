@@ -2,6 +2,8 @@ ThisBuild / organization := "io.lengine"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "2.13.14"
 
+releaseIgnoreUntrackedFiles := true
+
 lazy val runtime = project in file("lengine-runtime")
 
 lazy val core =
