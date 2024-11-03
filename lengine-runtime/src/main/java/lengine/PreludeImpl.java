@@ -604,23 +604,21 @@ public class PreludeImpl {
     }
 
 
+    @SuppressWarnings("unchecked")
     private static Boolean compareFunction(Object a, Object b, BiPredicate<Comparable<Object>, Comparable<Object>> predicate) {
         Class<?> largerType = getLargerType(a.getClass(), b.getClass());
 
         Object _a = cast(a, largerType);
         Object _b = cast(b, largerType);
 
-        if (!(_a instanceof Comparable)) {
+        if (!(_a instanceof Comparable aComp)) {
             throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
         }
 
-        if (!(_b instanceof Comparable)) {
+        if (!(_b instanceof Comparable bComp)) {
             throw new RuntimeException("Unable to compare the given object: " + a + ", " + b);
         }
 
-        Comparable<Object> _aComp = (Comparable<Object>) _a;
-        Comparable<Object> _bComp = (Comparable<Object>) _b;
-
-        return predicate.test(_aComp, _bComp);
+        return predicate.test(aComp, bComp);
     }
 }
