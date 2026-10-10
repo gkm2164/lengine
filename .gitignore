@@ -6,3 +6,8 @@ lenginec.jar
 .DS_Store
 build/
 node_modules/!/Hello.class
+
+# Output of ./lenginec when run from the repo root
+/*.class
+/gben/
+hs_err_pid*.log
