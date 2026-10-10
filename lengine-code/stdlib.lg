@@ -29,7 +29,7 @@
                            ^((acc elem)
                              (f elem acc)))))
 
-(export reverse ^((xs) (fold xs (nil> xs) >+)))
+(export reverse ^((xs) (fold xs (nil> xs) ^((acc x) (>+ x acc)))))
 
 (export split ^((s delim)
                 (^((acc buf xs delim)
