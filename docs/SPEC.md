@@ -24,8 +24,23 @@ compile-backed REPL that follows this spec.
 These are choices the spec makes where the implementation was inconsistent or silent. Each is
 open for review; changing one means changing its examples.
 
-| # | Decision | Status today |
-|---|---|---|
+| # | Decision |
+|---|---|
+| D1 | `nil` is the empty list and is available without any `require`. |
+| D2 | Emptiness is a protocol, not a type: every collection has its own empty value, and `nil?` is true for all of them. `nil?` is false for non-collections instead of failing. |
+| D3 | Collections of different kinds are never `=`, even when both are empty. |
+| D4 | `head` of any empty collection fails with an error mentioning `empty`; `tail` of any empty collection is that same empty collection. |
+| D5 | Numbers form one tower, Long < Ratio < Double < Complex. Operators promote to the higher type; `=` compares after promotion. Characters are not numbers for `=`, but arithmetic on them yields Longs. |
+| D6 | Exact division: `/` on two Longs gives a Ratio unless the result is whole. |
+| D7 | Inner bindings shadow outer ones and the outer binding is visible again after the inner scope ends. |
+| D8 | Macros are visible in every scope after their definition, including function bodies. |
+| D9 | Source may use `\r\n` line endings; a comment is plain text up to the end of the line. |
+| D10 | An integer literal that does not fit in 64 bits is a compile error. |
+| D11 | A type error (for example a non-Boolean condition) is a runtime error at that expression, never a class verification failure of the whole module. |
+
+All of them hold as of 2026-10-10; every example in this document passes.
+
+---|---|---|
 | D1 | `nil` is the empty list and is available without any `require`. | Needs `(require "collections")`. |
 | D2 | Emptiness is a protocol, not a type: every collection has its own empty value, and `nil?` is true for all of them. `nil?` is false for non-collections instead of failing. | `nil?` fails on non-collections. |
 | D3 | Collections of different kinds are never `=`, even when both are empty. | Matches. |
@@ -231,6 +246,15 @@ true
 :name
 ```
 
+A reserved word cannot be used as a name.
+
+```lengine id=lex-reserved-name
+(def let 3)
+```
+```compile-error
+reserved
+```
+
 ---
 
 ## 2. Program structure
@@ -306,6 +330,15 @@ Export is only allowed at top level.
 ```
 ```output
 43
+```
+
+`require`, `import` and `export` are only allowed at the top level of a module.
+
+```lengine id=mod-require-nested
+(println (do (require "collections") return 1))
+```
+```compile-error
+top level
 ```
 
 ### 2.4 Native bindings
@@ -384,6 +417,28 @@ Two functions with the same name in different scopes are different functions.
 ```output
 11
 20
+```
+
+A function with more than 11 parameters is a compile error.
+
+```lengine id=fn-too-many-params
+(fn f (a b c d e g h i j k l m) a)
+```
+```compile-error
+at most 11
+```
+
+Functions defined inside different lambdas may share a name.
+
+```lengine id=fn-same-name-lambdas
+(def f1 ^(() (do (fn h (x) (+ x 1)) return (h 1))))
+(def f2 ^(() (do (fn h (x) (* x 10)) return (h 1))))
+(println (f1))
+(println (f2))
+```
+```output
+2
+10
 ```
 
 Calling a function with the wrong number of arguments is a runtime error that names the
@@ -561,10 +616,21 @@ positive
 (fn name (d) (for d when (1 "one") (2 "two") otherwise "many"))
 (println (name 2))
 (println (name 7))
+(println (name 2.0))
 ```
 ```output
 two
 many
+two
+```
+
+A `for` with no `when` clauses yields its `otherwise` value.
+
+```lengine id=for-when-empty
+(println (for 1 otherwise "only"))
+```
+```output
+only
 ```
 
 ### 3.8 `loop`
@@ -661,6 +727,29 @@ ran
 different
 ```
 
+Calling a macro with too few arguments is a compile error naming the macro.
+
+```lengine id=macro-too-few-args
+(defmacro both (a b) (+ a b))
+(both 1)
+```
+```compile-error
+both
+```
+
+A template may contain any literal, including booleans and maps.
+
+```lengine id=macro-literal-template
+(defmacro yes () true)
+(defmacro point (x) {:x x})
+(println (yes))
+(println (:x (point 5)))
+```
+```output
+true
+5
+```
+
 Macros are visible in every scope after their definition (D8).
 
 ```lengine id=macro-in-fn
@@ -709,6 +798,18 @@ true
 true
 false
 2
+```
+
+`()` is the unit value; `println` and other side-effecting functions return it.
+
+```lengine id=unit-literal
+(println ())
+(println (= () (println "x")))
+```
+```output
+()
+x
+true
 ```
 
 ### 4.2 Numbers

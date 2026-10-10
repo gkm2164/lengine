@@ -1,5 +1,7 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
+import co.gyeongmin.lisp.lexer.values.LispUnit
+
 import co.gyeongmin.lisp.compile.asmwriter.AsmHelper.MethodVisitorWrapper
 import co.gyeongmin.lisp.compile.asmwriter.LengineType._
 import co.gyeongmin.lisp.lexer.ast._
@@ -29,6 +31,9 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit
     case exportDef: LispExportDef =>
       new LispCompileDirectiveAsmWriter(exportDef, typeToBe).visitForValue()
       VoidPrimitive
+    case LispUnit => // 1 stack: the unit value
+      mv.visitStaticMethodCall(classOf[lengine.types.LengineUnit], "create", classOf[lengine.types.LengineUnit])
+      classOf[lengine.types.LengineUnit]
     case LispTrue() => // 1 stack
       mv.visitIConst1()
       mv.visitBoxing(BooleanClass, BooleanPrimitive)

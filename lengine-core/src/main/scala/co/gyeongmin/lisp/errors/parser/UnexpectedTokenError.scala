@@ -9,5 +9,6 @@ case class UnexpectedTokenError(tk: LispToken, msg: String = "")
     line <- tk.line
     column <- tk.column
   } yield s"(line: $line, column: $column)"
-  override def message: String = s"unexpected token: '${tk.toString}'${trails.getOrElse("")}"
+  override def message: String =
+    s"unexpected token: '${tk.toString}'${if (msg.nonEmpty) s" ($msg)" else ""}${trails.getOrElse("")}"
 }

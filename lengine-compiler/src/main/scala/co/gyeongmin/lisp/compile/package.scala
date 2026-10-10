@@ -18,6 +18,8 @@ package object compile {
     clsName: String,
     statements: List[LispValue]
   ): Array[Byte] = {
+    ClassNames.reset()
+    TopLevelOnly.check(statements, sourceFileName)
     val cw = new ClassWriter(AsmHelper.GlobalConfig)
     val qualifiedName = if (pkgName.nonEmpty) {
       s"${pkgName.replace(".", "/")}/$clsName"

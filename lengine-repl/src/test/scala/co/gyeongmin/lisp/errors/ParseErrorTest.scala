@@ -23,7 +23,7 @@ class ParseErrorTest extends AnyFlatSpec with Matchers {
       s"given $LispUnit is not a number type"
     )
     UnexpectedTokenError(LispIn(), "hello").message should be(
-      s"unexpected token: 'in'"
+      s"unexpected token: 'in' (hello)"
     )
   }
 

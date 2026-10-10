@@ -5,7 +5,7 @@ import co.gyeongmin.lisp.lexer.Tokenizer
 import co.gyeongmin.lisp.lexer.ast.{LispModuleStmt, LispRequireStmt}
 import co.gyeongmin.lisp.lexer.values.LispValue
 
-import java.io.{File, FileOutputStream}
+import java.io.File
 import java.nio.file.{Files, Paths}
 import scala.annotation.tailrec
 import scala.io.Source
@@ -93,8 +93,7 @@ object Main {
     }
 
     val ret = writeClass(compileOps.sourceFile, pkgName, clsName, passingStmts)
-    val fos = new FileOutputStream(s"./${pkgName.replace(".", "/")}/$clsName.class")
-    fos.write(ret)
-    fos.close()
+    val internalName = if (pkgName.isEmpty) clsName else s"${pkgName.replace(".", "/")}/$clsName"
+    asmwriter.ClassOutput.write(internalName, ret)
   }
 }

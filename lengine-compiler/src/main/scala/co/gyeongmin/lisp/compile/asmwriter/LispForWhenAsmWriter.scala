@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.compile.asmwriter
 
-import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ObjectClass, ObjectsClass}
+import co.gyeongmin.lisp.compile.asmwriter.LengineType.{BooleanPrimitive, ObjectClass}
 import co.gyeongmin.lisp.lexer.ast.{LispForWhenStmt, LispWhenStmt}
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, VarSymbol}
 import org.objectweb.asm.Label
@@ -32,7 +32,7 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit
     val mv = runtimeEnvironment.methodVisitor
     val allLabels = whens.map(_ => new Label)
     val otherwiseLabel = new Label
-    val toLabels = allLabels.tail :+ otherwiseLabel
+    val toLabels = allLabels.drop(1) :+ otherwiseLabel // no when clauses: straight to otherwise
     val exitLabel = new Label
 
     val startLabel = new Label()
@@ -44,6 +44,7 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit
       exitLabel,
       targetValueLoc
     )
+    mv.visitLabel(startLabel)
     mv.visitLispValue(value, ObjectClass) // For target [S]
     mv.visitAStore(targetValueLoc)
 
@@ -52,9 +53,10 @@ class LispForWhenAsmWriter(v: LispForWhenStmt)(implicit
         mv.visitLabel(currentLabel)
         mv.visitALoad(targetValueLoc)
         mv.visitLispValue(value, ObjectClass) // [S, V]
+        // Same comparison as =, so (for 2 when (2.0 ...)) matches.
         mv.visitStaticMethodCall(
-          ObjectsClass,
-          "equals",
+          classOf[lengine.PreludeImpl],
+          "valueEquals",
           BooleanPrimitive,
           ObjectClass,
           ObjectClass

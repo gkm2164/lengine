@@ -10,6 +10,8 @@ import java.util.Map;
 
 public class LengineClassLoader {
     private static final Map<String, LengineObject> alreadyLoadedClass = new HashMap<>();
+    /** Modules whose top level is running right now, to report import cycles instead of recursing forever. */
+    private static final java.util.Set<String> loading = new java.util.LinkedHashSet<>();
 
     private static String[] split(String qualifiedName) {
         String[] splitted = qualifiedName.split("\\.");
@@ -28,16 +30,24 @@ public class LengineClassLoader {
 
         try {
             if (!alreadyLoadedClass.containsKey(className)) {
+                if (loading.contains(className)) {
+                    throw new RuntimeException("import cycle: " + String.join(" -> ", loading) + " -> " + className);
+                }
                 ClassLoader cl = Thread.currentThread().getContextClassLoader();
                 Class<?> cls = cl.loadClass(className);
 
-                if (cls.isAssignableFrom(LengineObject.class)) {
-                    throw new RuntimeException("The name " + className + " is not LengineObject");
+                if (!LengineObject.class.isAssignableFrom(cls)) {
+                    throw new RuntimeException("The name " + className + " is not a Lengine module");
                 }
 
                 Constructor<?> constructor = cls.getConstructor();
                 LengineObject lengineObject = (LengineObject) constructor.newInstance();
-                lengineObject.scriptMain();
+                loading.add(className);
+                try {
+                    lengineObject.scriptMain();
+                } finally {
+                    loading.remove(className);
+                }
                 alreadyLoadedClass.put(className, lengineObject);
             }
             LengineObject lengineObject = alreadyLoadedClass.get(className);

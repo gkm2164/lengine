@@ -13,12 +13,14 @@ import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, VarSymbol}
 import org.objectweb.asm.{ClassWriter, Label, Opcodes, Type}
 
-import java.io.FileOutputStream
 import scala.collection.mutable
 
 class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRuntimeEnvironment) {
 
   private def randomGenerate() = s"lambda$$${f.hashCode().toHexString}"
+
+  /** The class this function compiles to; unique within the module even for repeated names. */
+  private var lambdaClassName: String = _
 
   def writeValue(itself: Option[LispSymbol] = None, fnSymbol: Option[LispSymbol] = None): Unit = {
     val traversedPlaceHolders = traverse(
@@ -32,6 +34,14 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
           f.tokenLocation
         )
       case Right(value) => value
+    }
+
+    if (f.placeHolders.length > 11) {
+      throw CompileException(
+        s"a function takes at most 11 parameters; ${fnSymbol.map(_.name).getOrElse("this lambda")} has ${f.placeHolders.length}",
+        runtimeEnvironment.fileName,
+        f.tokenLocation
+      )
     }
 
     val capture = new LengineVarCapture()
@@ -58,6 +68,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       case None        => randomGenerate()
     }
 
+    lambdaClassName = ClassNames.unique(runtimeEnvironment.className, fnName)
     createLambdaClass(itself, fnName, capture, argsWithCapturedVars, isTailRec)
 
     val resolvedCaptures = capture.getRequestedCaptures
@@ -84,7 +95,6 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     isTailRec: Boolean
   ): Unit = {
     val lambdaClassWriter = new ClassWriter(AsmHelper.GlobalConfig)
-    val lambdaClassName = s"${runtimeEnvironment.className}$$$fnName"
 
     val thisLambdaClass = LengineLambdaClass(f.placeHolders.length)
 
@@ -97,18 +107,19 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       Array(Type.getType(thisLambdaClass).getInternalName)
     )
 
+    val innerName = lambdaClassName.stripPrefix(s"${runtimeEnvironment.className}$$")
     runtimeEnvironment.classWriter
       .visitInnerClass(
-        s"${runtimeEnvironment.className}$$$fnName",
+        lambdaClassName,
         runtimeEnvironment.className,
-        fnName,
+        innerName,
         Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
       )
 
     lambdaClassWriter.visitInnerClass(
-      s"${runtimeEnvironment.className}$$$fnName",
+      lambdaClassName,
       runtimeEnvironment.className,
-      fnName,
+      innerName,
       Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC
     )
 
@@ -298,16 +309,15 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
     mv.visitEnd()
 
     lambdaClassWriter.visitEnd()
-    val lambdaFileWriter = new FileOutputStream(s"$lambdaClassName.class")
-    lambdaFileWriter.write(lambdaClassWriter.toByteArray)
+    ClassOutput.write(lambdaClassName, lambdaClassWriter.toByteArray)
   }
 
   private def createFnReference(methodName: String, capturedArgLocs: Seq[(Int, Class[_])]): Unit = {
     val pmv = runtimeEnvironment.methodVisitor
 
-    val lambdaClsName = s"${runtimeEnvironment.className}$$$methodName"
+    val lambdaClsName = lambdaClassName
 
-    pmv.visitNew(s"${runtimeEnvironment.className}$$$methodName")
+    pmv.visitNew(lambdaClsName)
     pmv.visitDup()
     capturedArgLocs.foreach { capturedLoc =>
       pmv.visitALoad(capturedLoc._1)

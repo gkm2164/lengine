@@ -116,12 +116,45 @@ package object parser {
       _ <- takeToken[RightPar]
     } yield ComplexNumber(real, imagine)
 
+  /** The reserved word a keyword token was read from, for error messages. */
+  private def reservedWord(token: LispToken): Option[String] = token match {
+    case LispModule() => Some("module")
+    case LispImport() => Some("import")
+    case LispExport() => Some("export")
+    case LispRequire() => Some("require")
+    case LispDef() => Some("def")
+    case LispFn() => Some("fn")
+    case LispDefMacro() => Some("defmacro")
+    case LispVar() => Some("var")
+    case LispLet() => Some("let")
+    case LispNs() => Some("ns")
+    case LispLambda() => Some("lambda")
+    case LispNative() => Some("native")
+    case LispLoop() => Some("loop")
+    case LispFor() => Some("for")
+    case LispIn() => Some("in")
+    case LispDo() => Some("do")
+    case LispReturn() => Some("return")
+    case LispCase() => Some("case")
+    case LispDefault() => Some("default")
+    case LispTry() => Some("try")
+    case LispCatch() => Some("catch")
+    case LispRecover() => Some("recover")
+    case LispWhen() => Some("when")
+    case LispOtherwise() => Some("otherwise")
+    case _ => None
+  }
+
+  private def reservedNameError(token: LispToken): Option[ParseError] =
+    reservedWord(token).map(w => UnexpectedTokenError(token, s"'$w' is a reserved word and cannot be used as a name"))
+
   private def parseDef: LispTokenState[LispValueDef] = {
     case LazyList()         => Left(EmptyTokenListError)
     case LispNop() #:: tail => parseDef(tail)
     case VarSymbol(name) #:: _ if ForbiddenOverrides.contains(name) =>
       Left(DeniedKeywordError(name, "parseDef"))
     case (x: LispSymbol) #:: tail => parseValue.map(v => LispValueDef(x, v))(tail)
+    case token #:: _ if reservedNameError(token).isDefined => Left(reservedNameError(token).get)
     case token #:: _              => Left(UnexpectedTokenError(token))
   }
 
@@ -143,8 +176,10 @@ package object parser {
   )(context: String)(implicit ct: ClassTag[A]): LispTokenState[A] = {
     case LazyList()                                   => Left(EmptyTokenListError)
     case VarSymbol(str) #:: _ if values.contains(str) => Left(DeniedKeywordError(str, context))
-    case LispNop() #:: tail                           => takeToken[A](ct)(tail)
+    // Skip separators and keep checking; this used to fall through to takeToken, skipping the check.
+    case LispNop() #:: tail                           => denySymbolIfContains[A](values)(context)(ct)(tail)
     case (tk: A) #:: tail                             => LispTokenState(tk)(tail)
+    case token #:: _ if reservedNameError(token).isDefined => Left(reservedNameError(token).get)
     case token #:: _                                  => Left(UnexpectedTokenError(token))
   }
 
@@ -266,7 +301,7 @@ package object parser {
   private def parseForWhen: LispTokenState[LispForWhenStmt] =
     for {
       value <- parseValue
-      _ <- takeToken[LispWhen]
+      _ <- option(takeToken[LispWhen]) // optional when there are no when clauses
       whens <- many(for {
         _ <- takeToken[LeftPar]
         whenValue <- parseValue

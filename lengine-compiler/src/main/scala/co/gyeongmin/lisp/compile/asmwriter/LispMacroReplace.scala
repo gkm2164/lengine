@@ -5,7 +5,8 @@ import co.gyeongmin.lisp.lexer.values.functions.GeneralLispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.LispNumber
 import co.gyeongmin.lisp.lexer.values.seq.{LispList, LispString}
 import co.gyeongmin.lisp.lexer.values.symbol.{LispSymbol, ListSymbol, SyntacticSymbol, VarSymbol}
-import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispUnit, LispValue}
+import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
+import co.gyeongmin.lisp.lexer.values.{LispChar, LispClause, LispObject, LispTokenValue, LispUnit, LispValue}
 
 import scala.annotation.tailrec
 
@@ -16,6 +17,7 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
     val placeholders = value.generalLispFunc.placeHolders
 
     implicit val map: Map[LispSymbol, LispValue] = getMacroEnv(placeholders, clause.body.tail)
+
 
     new Replacer().replaceLispValue(value.generalLispFunc.body)
   }
@@ -53,7 +55,18 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
         case h :: t => loop(acc + (h -> body.head), t, body.tail)
       }
 
-    loop(Map(), placeholders.map(_.asInstanceOf[LispSymbol]), body)
+    val symbols = placeholders.map(_.asInstanceOf[LispSymbol])
+    val required = symbols.count(!_.isInstanceOf[ListSymbol])
+    val hasRest = symbols.exists(_.isInstanceOf[ListSymbol])
+    if (body.size < required || (!hasRest && body.size > required)) {
+      val macroName = clause.body.headOption.collect { case s: LispSymbol => s.name }.getOrElse("macro")
+      throw CompileException(
+        s"macro $macroName expects ${if (hasRest) "at least " else ""}$required argument(s) but got ${body.size}",
+        runtimeEnvironment.fileName,
+        clause.tokenLocation
+      )
+    }
+    loop(Map(), symbols, body)
   }
 
   private class Replacer(implicit macroEnv: Map[LispSymbol, LispValue]) {
@@ -70,7 +83,11 @@ class LispMacroReplace(clause: LispClause)(implicit runtimeEnvironment: LengineR
       case lambda: GeneralLispFunc        => replaceLambda(lambda)
       case let: LispLetDef                => replaceLetDef(let)
       case number: LispNumber             => number
-      case v @ (LispString(_) | LispChar(_) | LispString(_) | LispUnit) => v
+      case v @ (LispString(_) | LispChar(_) | LispUnit | LispTrue() | LispFalse()) => v
+      case v: LispTokenValue              => v
+      case LispObject(kv) => LispObject(kv.map { case (k, v) => k -> replaceLispValue(v) })
+      case LispValueDef(symbol, value) =>
+        LispValueDef(replaceSymbol(symbol).asInstanceOf[LispSymbol], replaceLispValue(value))
       case v =>
         throw CompileException(
           s"Unsupported replacement of macro: $v",
