@@ -3,26 +3,33 @@ package lengine.types.collections;
 import lengine.types.collections.traits.LengineIterable;
 import lengine.types.collections.traits.LengineIterator;
 
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * The map implementation: an immutable, insertion-ordered map. Each put copies the dictionary,
+ * which is fine for the small maps scripts build and keeps every older map intact.
+ */
 public class LeafMap extends LengineMap {
   private final Map<LengineMapKey, Object> dictionary;
 
   LeafMap() {
+    this(new LinkedHashMap<>());
+  }
+
+  private LeafMap(Map<LengineMapKey, Object> dictionary) {
     super(false);
-    this.dictionary = new HashMap<>();
+    this.dictionary = dictionary;
   }
 
   LeafMap(LengineIterable it) {
     this();
     it.iterator().forEachRemaining(entry -> {
-      LengineMapEntry e = (LengineMapEntry) entry;
+      LengineMapEntry e = LengineMapEntry.cast(entry);
       dictionary.put(e.getKey(), e.getValue());
     });
   }
@@ -39,16 +46,17 @@ public class LeafMap extends LengineMap {
     list.forEach(entry -> dictionary.put(entry.getKey(), entry.getValue()));
   }
 
+  /** A new map with the entry added, or its key's value replaced. */
   public LengineMap putEntry(LengineMapEntry entry) {
-    if (lately) {
-      return new NonLeafMap(true, this, new LeafMap(entry));
-    } else {
-      return new NonLeafMap(false, new LeafMap(entry), this);
-    }
+    Map<LengineMapKey, Object> copy = new LinkedHashMap<>(dictionary);
+    copy.put(entry.getKey(), entry.getValue());
+    return new LeafMap(copy);
   }
 
+  /** The value for key, or nil when the key is absent. */
   public Object get(LengineMapKey key) {
-    return dictionary.get(key);
+    Object value = dictionary.get(key);
+    return value == null && !dictionary.containsKey(key) ? Nil.get() : value;
   }
 
   public LengineSet keys() {
@@ -56,13 +64,10 @@ public class LeafMap extends LengineMap {
   }
 
   public LengineSequence entries() {
-    LinkedList<Object> sequence = new LinkedList<>();
-    dictionary.entrySet()
+    return new LeafSequence(dictionary.entrySet()
         .stream()
-        .map(entry -> LengineMapEntry.create(entry.getKey(), entry.getValue()))
-        .forEach(sequence::add);
-
-    return new LeafSequence(sequence);
+        .map(entry -> (Object) LengineMapEntry.create(entry.getKey(), entry.getValue()))
+        .collect(Collectors.toList()));
   }
 
   public static LeafMap create() {
@@ -70,21 +75,13 @@ public class LeafMap extends LengineMap {
   }
 
   public static LeafMap create(LengineIterable seq) {
-    LengineIterator it = seq.iterator();
-    LeafMap map = new LeafMap();
-    it.forEachRemaining(elem -> map.putEntry(LengineMapEntry.cast(elem)));
-    return map;
+    return new LeafMap(seq);
   }
-
 
   public Stream<String> createStringEntry() {
     return dictionary.entrySet()
         .stream()
-        .map(entry -> {
-          Object key = entry.getKey();
-          Object value = entry.getValue();
-          return String.format("%s => %s", key, value);
-        });
+        .map(entry -> String.format("%s => %s", entry.getKey(), entry.getValue()));
   }
 
   @Override
@@ -92,6 +89,7 @@ public class LeafMap extends LengineMap {
     return this.createStringEntry().collect(Collectors.joining(", ", "{", "}"));
   }
 
+  /** Sum of entry hashes (the java.util.Map contract), so equal maps hash alike. */
   @Override
   public int hashCode() {
     return dictionary.hashCode();
@@ -109,23 +107,19 @@ public class LeafMap extends LengineMap {
 
   @Override
   public LengineMapEntry head() {
-    return dictionary.entrySet()
-        .stream()
-        .findFirst()
-        .map(x -> LengineMapEntry.create(x.getKey(), x.getValue()))
-        .get();
+    Map.Entry<LengineMapKey, Object> first = dictionary.entrySet().iterator().next();
+    return LengineMapEntry.create(first.getKey(), first.getValue());
   }
 
   @Override
   public LengineIterable tail() {
-    LengineMap.Builder builder = builder();
-
-    dictionary.entrySet()
-        .stream()
-        .filter(entry -> !Objects.equals(entry, head()))
-        .forEach(entry -> builder.put(entry.getKey(), entry.getValue()));
-
-    return builder.build();
+    Map<LengineMapKey, Object> rest = new LinkedHashMap<>(dictionary);
+    Iterator<LengineMapKey> it = rest.keySet().iterator();
+    if (it.hasNext()) {
+      it.next();
+      it.remove();
+    }
+    return new LeafMap(rest);
   }
 
   @Override
@@ -134,7 +128,7 @@ public class LeafMap extends LengineMap {
   }
 
   @Override
-  public boolean contains(LengineMapKey set) {
-    return dictionary.containsKey(set);
+  public boolean contains(LengineMapKey key) {
+    return dictionary.containsKey(key);
   }
 }

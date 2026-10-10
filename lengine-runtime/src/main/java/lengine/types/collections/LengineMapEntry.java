@@ -1,5 +1,7 @@
 package lengine.types.collections;
 
+import java.util.Objects;
+
 import java.util.Map;
 
 import lengine.runtime.exceptions.LengineTypeMismatchException;
@@ -46,5 +48,19 @@ public class LengineMapEntry implements Map.Entry<LengineMapKey, Object> {
   @Override
   public String toString() {
     return "(entry " + key + " -> " + value + ")";
+  }
+
+  // Map.Entry contract, so entries compare equal to any other Map.Entry with the same key and value.
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Map.Entry)) return false;
+    Map.Entry<?, ?> that = (Map.Entry<?, ?>) o;
+    return Objects.equals(key, that.getKey()) && Objects.equals(value, that.getValue());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(key) ^ Objects.hashCode(value);
   }
 }

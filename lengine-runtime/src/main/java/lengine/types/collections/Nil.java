@@ -27,9 +27,8 @@ public class Nil extends LengineList {
             return (LengineList) ys;
         }
 
-        AtomicReference<LengineList> ref = new AtomicReference<>(Nil.get());
-        ys.iterator().forEachRemaining(elem -> ref.set(ref.get().add(ys)));
-
-        return ref.get();
+        LengineListBuilder builder = new LengineListBuilder();
+        ys.iterator().forEachRemaining(builder::ADD);
+        return builder.BUILD();
     }
 }

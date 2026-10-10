@@ -62,8 +62,24 @@ public class ComplexNumber implements LengineObjectWithHelp {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof ComplexNumber)) return false;
+    ComplexNumber that = (ComplexNumber) o;
+    return real.equals(that.real) && imagine.equals(that.imagine);
+  }
+
+  @Override
   public int hashCode() {
     return this.real.hashCode() * 31 + this.imagine.hashCode();
+  }
+
+  public Number getReal() {
+    return real;
+  }
+
+  public Number getImagine() {
+    return imagine;
   }
 
   public ComplexNumber add(ComplexNumber other) {
@@ -102,10 +118,8 @@ public class ComplexNumber implements LengineObjectWithHelp {
   }
 
   public ComplexNumber inverse() {
-    // 1 / (a + bi) == (a - bi) / (a^2 - b^2)
-
-    ComplexNumber commonMult = new ComplexNumber(this.real, (Number)_SUB.invoke(0L, this.imagine));
-    Number commonDiv = (Number)_SUB.invoke(
+    // 1 / (a + bi) == (a - bi) / (a^2 + b^2)
+    Number commonDiv = (Number) _ADD.invoke(
             _MULT.invoke(this.real, this.real),
             _MULT.invoke(this.imagine, this.imagine)
     );
@@ -115,9 +129,25 @@ public class ComplexNumber implements LengineObjectWithHelp {
     }
 
     return new ComplexNumber(
-        (Number)_DIV.invoke(commonMult.real.doubleValue(), commonDiv),
-        (Number)_DIV.invoke(commonMult.imagine.doubleValue(), commonDiv)
+        exactDiv(this.real, commonDiv),
+        exactDiv((Number) _SUB.invoke(0L, this.imagine), commonDiv)
     );
+  }
+
+  /** Division that stays exact (a ratio or a Long) for exact operands, and falls back to double. */
+  private static Number exactDiv(Number a, Number b) {
+    if (isExact(a) && isExact(b)) {
+      return toRatio(a).div(toRatio(b)).simplify();
+    }
+    return a.doubleValue() / b.doubleValue();
+  }
+
+  private static boolean isExact(Number n) {
+    return n instanceof Long || n instanceof RatioNumber;
+  }
+
+  private static RatioNumber toRatio(Number n) {
+    return n instanceof RatioNumber ? (RatioNumber) n : RatioNumber.create(n.longValue(), 1L);
   }
 
   public static ComplexNumber create(Number over, Number under) {

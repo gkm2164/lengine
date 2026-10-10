@@ -37,23 +37,23 @@ Check items off as they are fixed, with the commit that fixes them.
 
 ## Runtime
 
-- [ ] **Complex numbers:** int-to-complex sets imaginary part 1 (`PreludeImpl.java:514-518`); no
+- [x] **Complex numbers:** int-to-complex sets imaginary part 1 (`PreludeImpl.java:514-518`); no
   double-to-complex; `ComplexNumber.inverse` (`:108`) divides by a²−b² instead of a²+b². Confirmed.
-- [ ] **Equality and ratios:** `=` is `Objects.equals`, and `RatioNumber`/`ComplexNumber`/
+- [x] **Equality and ratios:** `=` is `Objects.equals`, and `RatioNumber`/`ComplexNumber`/
   `LengineMapEntry` lack `equals`, so `(= 1/2 1/2)` and `(= 1 1.0)` are false; ratios are never reduced;
   `normalize` skips negatives; `(< 1/3 1/2)` throws. Confirmed.
-- [ ] **`Integer` leaks where `Long` is expected:** char arithmetic, `(head (range 1 5))`
+- [x] **`Integer` leaks where `Long` is expected:** char arithmetic, `(head (range 1 5))`
   (`RangeSequence.java:46`); later arithmetic throws "Unable to decide rank". `&`/`|` on booleans always
   throw (rank lookup before the Boolean check, `PreludeImpl.java:396-402`). Confirmed.
-- [ ] **Lists:** `LengineList.add` mutates in place (`LengineList.java:106-113`); `Nil.append` adds the
+- [x] **Lists:** `LengineList.add` mutates in place (`LengineList.java:106-113`); `Nil.append` adds the
   whole collection once per element (`Nil.java:31`). Confirmed.
-- [ ] **Map update keeps the old value** (`LeafMap.putEntry` with `NonLeafMap.get` preferring the left
+- [x] **Map update keeps the old value** (`LeafMap.putEntry` with `NonLeafMap.get` preferring the left
   side). Confirmed.
-- [ ] **equals/hashCode disagree:** `LeafSequence` vs `NonLeafSequence`; `LengineSet` has no `hashCode`;
+- [x] **equals/hashCode disagree:** `LeafSequence` vs `NonLeafSequence`; `LengineSet` has no `hashCode`;
   equal maps hash differently; `LeafSet.tail` filter is inverted (`LeafSet.java:65`). Confirmed.
-- [ ] **`take n` forces one extra element** (`LengineIterator.forEachN` checks `hasNext()` first). Confirmed.
-- [ ] **Backward ranges:** `(range 5 1)` has `len` 4 and is not `nil?`, but iterates nothing. Confirmed.
-- [ ] **Looping over a map throws `ClassCastException`** (maps are not `Buildable`). Confirmed.
+- [x] **`take n` forces one extra element** (`LengineIterator.forEachN` checks `hasNext()` first). Confirmed.
+- [x] **Backward ranges:** `(range 5 1)` has `len` 4 and is not `nil?`, but iterates nothing. Confirmed.
+- [x] **Looping over a map throws `ClassCastException`** (maps are not `Buildable`). Confirmed.
 
 ## Risky, not proven
 
@@ -67,6 +67,10 @@ Check items off as they are fixed, with the commit that fixes them.
   `LengineLazyValue` re-runs when the result is null; `(if c x)` crashes with a raw `MatchError`.
 - For a REPL: function class files are written to the current directory through a stream that is
   never closed, and redefining a name is a compile error.
+
+All runtime items above are fixed and covered by `lengine-runtime/src/test/scala/lengine/RuntimeTest.scala`.
+Also fixed there: `LeafMap.create(seq)` dropped every entry; a missing map key returned `null` from
+map literals (now `nil`, as the spec says).
 
 Fixed on `upgrade/2026-10`: compiled `(exit n)` called `System.exit` directly (now `ExitHandler`);
 compiling the prelude without a leading `./` made it require itself.

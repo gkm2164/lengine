@@ -54,8 +54,4 @@ public class NonLeafSequence extends LengineSequence {
     return new NonLeafSequence(this.left, this.right.append(seq));
   }
 
-  @Override
-  public int hashCode() {
-    return this.left.hashCode() * (int) Math.pow(31, this.left.len()) + this.right.hashCode();
-  }
 }

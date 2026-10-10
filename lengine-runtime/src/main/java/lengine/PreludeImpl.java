@@ -61,11 +61,11 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (Character) x + (Character) y;
+            return (long) ((Character) x + (Character) y);
         } else if (x instanceof Long) {
             return (Long) x + (Long) y;
         } else if (x instanceof RatioNumber) {
-            return ((RatioNumber) x).add((RatioNumber) y);
+            return ((RatioNumber) x).add((RatioNumber) y).simplify();
         } else if (x instanceof Double) {
             return (Double) x + (Double) y;
         } else if (x instanceof ComplexNumber) {
@@ -82,11 +82,11 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (Character) x - (Character) y;
+            return (long) ((Character) x - (Character) y);
         } else if (x instanceof Long) {
             return (Long) x - (Long) y;
         } else if (x instanceof RatioNumber) {
-            return ((RatioNumber) x).sub((RatioNumber) y);
+            return ((RatioNumber) x).sub((RatioNumber) y).simplify();
         } else if (x instanceof Double) {
             return (Double) x - (Double) y;
         } else if (x instanceof ComplexNumber) {
@@ -101,11 +101,11 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (Character) x * (Character) y;
+            return (long) ((Character) x * (Character) y);
         } else if (x instanceof Long) {
             return (Long) x * (Long) y;
         } else if (x instanceof RatioNumber) {
-            return ((RatioNumber) x).mult((RatioNumber) y);
+            return ((RatioNumber) x).mult((RatioNumber) y).simplify();
         } else if (x instanceof Double) {
             return (Double) x * (Double) y;
         } else if (x instanceof ComplexNumber) {
@@ -120,11 +120,11 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (Character) x / (Character) y;
+            return (long) ((Character) x / (Character) y);
         } else if (x instanceof Long) {
             return (Long) x / (Long) y;
         } else if (x instanceof RatioNumber) {
-            return ((RatioNumber) x).div((RatioNumber) y);
+            return ((RatioNumber) x).div((RatioNumber) y).simplify();
         } else if (x instanceof Double) {
             return (Double) x / (Double) y;
         } else if (x instanceof ComplexNumber) {
@@ -139,7 +139,7 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (Character) x % (Character) y;
+            return (long) ((Character) x % (Character) y);
         } else if (x instanceof Long) {
             return (Long) x % (Long) y;
         } else if (x instanceof Double) {
@@ -209,8 +209,8 @@ public class PreludeImpl {
     public static final LengineLambda2<Boolean, Object, Object> _LESS_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) <= 0);
     public static final LengineLambda2<Boolean, Object, Object> _GREATER_THAN = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) > 0);
     public static final LengineLambda2<Boolean, Object, Object> _GREATER_EQUALS = (a, b) -> compareFunction(a, b, (x, y) -> x.compareTo(y) >= 0);
-    public static final LengineLambda2<Boolean, Object, Object> _EQUALS = Objects::equals;
-    public static final LengineLambda2<Boolean, Object, Object> _NOT_EQUALS = (a, b) -> !Objects.equals(a, b);
+    public static final LengineLambda2<Boolean, Object, Object> _EQUALS = PreludeImpl::valueEquals;
+    public static final LengineLambda2<Boolean, Object, Object> _NOT_EQUALS = (a, b) -> !valueEquals(a, b);
     public static final LengineLambda2<Boolean, Boolean, Boolean> _AND = (a, b) -> a && b;
     public static final LengineLambda2<Boolean, Boolean, Boolean> _OR = (a, b) -> a || b;
     public static final LengineLambda1<Boolean, Boolean> _NOT = (a) -> !a;
@@ -394,14 +394,15 @@ public class PreludeImpl {
     static final LengineLambda3<LengineMap, LengineString, LengineString, LengineString> _DB_CONN = DBConn::connect;
 
     static final LengineLambda2<Object, Object, Object> _BYTE_AND = (_a, _b) -> {
+        if (_a instanceof Boolean && _b instanceof Boolean) {
+            return (Boolean) _a && (Boolean) _b;
+        }
         Class<?> largerType = getLargerType(_a.getClass(), _b.getClass());
         Object a = cast(_a, largerType);
         Object b = cast(_b, largerType);
 
-        if (a instanceof Boolean) {
-            return _AND.invoke((Boolean) _a, (Boolean) _b);
-        } else if (a instanceof Character) {
-            return (Character)a & (Character) b;
+        if (a instanceof Character) {
+            return (long) ((Character) a & (Character) b);
         } else if (a instanceof Long) {
             return (Long)a & (Long) b;
         }
@@ -409,14 +410,15 @@ public class PreludeImpl {
         throw new RuntimeException("operation & cannot be applied");
     };
     static final LengineLambda2<Object, Object, Object> _BYTE_OR = (_a, _b) -> {
+        if (_a instanceof Boolean && _b instanceof Boolean) {
+            return (Boolean) _a || (Boolean) _b;
+        }
         Class<?> largerType = getLargerType(_a.getClass(), _b.getClass());
         Object a = cast(_a, largerType);
         Object b = cast(_b, largerType);
 
-        if (a instanceof Boolean) {
-            return _OR.invoke((Boolean) _a, (Boolean) _b);
-        } else if (a instanceof Character) {
-            return (Character)a | (Character) b;
+        if (a instanceof Character) {
+            return (long) ((Character) a | (Character) b);
         } else if (a instanceof Long) {
             return (Long)a | (Long) b;
         }
@@ -427,7 +429,7 @@ public class PreludeImpl {
         if (a instanceof Boolean) {
             return _NOT.invoke((Boolean) a);
         } else if (a instanceof Character) {
-            return ~(Character) a;
+            return (long) ~(Character) a;
         } else if (a instanceof Long) {
             return ~(Long) a;
         }
@@ -438,6 +440,7 @@ public class PreludeImpl {
 
 
     public static Object cast(Object from, Class<?> to) {
+        from = widen(from);
         if (to.equals(Character.class)) {
             return castChar(from);
         } else if (to.equals(Long.class)) {
@@ -468,6 +471,10 @@ public class PreludeImpl {
     }
 
     private static Long castLong(Object from) {
+        from = widen(from);
+        if (from instanceof RatioNumber) {
+            return ((RatioNumber) from).longValue();
+        }
         if (from instanceof Character) {
             return (long) (Character) from;
         } else if (from instanceof Long) {
@@ -511,11 +518,13 @@ public class PreludeImpl {
 
     private static ComplexNumber castComplexNumber(Object from) {
         if (from instanceof Character) {
-            return ComplexNumber.create((long) (Character) from, 1L);
+            return ComplexNumber.create((long) (Character) from, 0L);
         } else if (from instanceof Long) {
-            return ComplexNumber.create((Long) from, 1L);
+            return ComplexNumber.create((Long) from, 0L);
         } else if (from instanceof RatioNumber) {
-            return ComplexNumber.create((RatioNumber) from, 1L);
+            return ComplexNumber.create((RatioNumber) from, 0L);
+        } else if (from instanceof Double) {
+            return ComplexNumber.create((Double) from, 0L);
         } else if (from instanceof ComplexNumber) {
             return (ComplexNumber) from;
         }
@@ -572,10 +581,44 @@ public class PreludeImpl {
     }
 
     private static Class<?> getLargerType(Class<?> a, Class<?> b) {
-        return getRank(a) > getRank(b) ? a : b;
+        return getRank(a) > getRank(b) ? widenType(a) : widenType(b);
+    }
+
+    /** Java boxes that can reach the runtime from native code are treated as Lengine's own types. */
+    private static Class<?> widenType(Class<?> c) {
+        if (c == Integer.class || c == Short.class || c == Byte.class) return Long.class;
+        if (c == Float.class) return Double.class;
+        return c;
+    }
+
+    private static Object widen(Object o) {
+        if (o instanceof Integer || o instanceof Short || o instanceof Byte) return ((Number) o).longValue();
+        if (o instanceof Float) return ((Float) o).doubleValue();
+        return o;
+    }
+
+    private static boolean isNumeric(Object o) {
+        return o instanceof Long || o instanceof Integer || o instanceof Short || o instanceof Byte
+                || o instanceof Double || o instanceof Float
+                || o instanceof RatioNumber || o instanceof ComplexNumber;
+    }
+
+    /**
+     * Lengine's =. Numbers are compared after promotion to a common type, so (= 1 1.0) and
+     * (= 1/2 0.5) hold; characters only equal characters; everything else uses equals().
+     */
+    public static boolean valueEquals(Object a, Object b) {
+        if (a == b) return true;
+        if (a == null || b == null) return false;
+        if (isNumeric(a) && isNumeric(b)) {
+            Class<?> t = getLargerType(a.getClass(), b.getClass());
+            return Objects.equals(cast(a, t), cast(b, t));
+        }
+        return a.equals(b);
     }
 
     private static int getRank(Class<?> a) {
+        a = widenType(a);
         if (a.equals(Character.class)) {
             return 0;
         } else if (a.equals(Long.class)) {

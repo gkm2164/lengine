@@ -9,21 +9,21 @@ public class RangeSequence implements
         LengineIterable,
         Nillable<LengineSequence>,
         Buildable<LengineSequence, LengineSequenceBuilder> {
-  private final int from;
-  private final int to;
+  private final long from;
+  private final long to;
 
-  private RangeSequence(int from, int to) {
+  /** [from, to); a range whose end is not after its start is empty. */
+  private RangeSequence(long from, long to) {
     this.from = from;
-    this.to = to;
+    this.to = Math.max(from, to);
   }
 
   public static RangeSequence createRange(Long from, Long to) {
-    return new RangeSequence(from.intValue(), to.intValue());
+    return new RangeSequence(from, to);
   }
 
-
   public static RangeSequence createInclusiveRange(Long from, Long to) {
-    return new RangeSequence(from.intValue(), to.intValue() + 1);
+    return new RangeSequence(from, to + 1);
   }
 
   @Override
@@ -38,17 +38,20 @@ public class RangeSequence implements
 
   @Override
   public Long len() {
-    return (long)Math.abs(to - from);
+    return to - from;
   }
 
   @Override
   public Object head() {
+    if (from == to) {
+      throw new RuntimeException("empty range has no head");
+    }
     return from;
   }
 
   @Override
   public LengineIterable tail() {
-    return new RangeSequence(from + 1, to);
+    return from == to ? this : new RangeSequence(from + 1, to);
   }
 
   @Override

@@ -91,7 +91,7 @@ public abstract class LengineSequence implements LengineIterable,
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public final boolean equals(Object obj) {
     if (this == obj) {
       return true;
     }
@@ -115,7 +115,16 @@ public abstract class LengineSequence implements LengineIterable,
     return !thisIt.hasNext() && !thatIt.hasNext();
   }
 
-  public abstract int hashCode();
+  /** Same formula as java.util.List, computed over the elements, so equal sequences hash alike. */
+  @Override
+  public final int hashCode() {
+    int h = 1;
+    LengineIterator it = this.iterator();
+    while (it.hasNext()) {
+      h = 31 * h + Objects.hashCode(it.next());
+    }
+    return h;
+  }
 
   @Override
   public LengineSequenceBuilder BUILDER() {

@@ -4,22 +4,26 @@ import lengine.types.collections.traits.LengineIterable;
 import lengine.types.collections.traits.LengineIterator;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * The set implementation: immutable and insertion-ordered (so printing is stable). Each add copies
+ * the backing set, leaving older sets intact.
+ */
 class LeafSet extends LengineSet {
   private final Set<Object> set;
 
   protected LeafSet() {
-    super(false);
-    this.set = new HashSet<>();
+    this(new LinkedHashSet<>());
   }
 
   public LeafSet(Set<Object> elems) {
     super(false);
-    this.set = elems;
+    this.set = elems instanceof LinkedHashSet ? elems : new LinkedHashSet<>(elems);
   }
 
   @Override
@@ -32,17 +36,14 @@ class LeafSet extends LengineSet {
     if (set.contains(object)) {
       return this;
     }
-
-    if (set.isEmpty()) {
-      return new LeafSet(Collections.singleton(object));
-    }
-
-    return new NonLeafSet(super.lately, this, new LeafSet(Collections.singleton(object)));
+    Set<Object> copy = new LinkedHashSet<>(set);
+    copy.add(object);
+    return new LeafSet(copy);
   }
 
   @Override
   public LengineSet remove(Object elem) {
-    return new LeafSet(set.stream().filter(x -> !x.equals(elem)).collect(Collectors.toSet()));
+    return new LeafSet(set.stream().filter(x -> !Objects.equals(x, elem)).collect(Collectors.toCollection(LinkedHashSet::new)));
   }
 
   @Override
@@ -57,12 +58,18 @@ class LeafSet extends LengineSet {
 
   @Override
   public Object head() {
-    return this.set.stream().findFirst().get();
+    return this.set.iterator().next();
   }
 
   @Override
   public LengineIterable tail() {
-    return new LeafSet(this.set.stream().filter(x -> Objects.equals(x, head())).collect(Collectors.toSet()));
+    Set<Object> rest = new LinkedHashSet<>(set);
+    Iterator<Object> it = rest.iterator();
+    if (it.hasNext()) {
+      it.next();
+      it.remove();
+    }
+    return new LeafSet(rest);
   }
 
   @Override

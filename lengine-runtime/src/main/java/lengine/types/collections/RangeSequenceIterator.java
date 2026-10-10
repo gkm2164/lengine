@@ -7,7 +7,7 @@ public class RangeSequenceIterator implements LengineIterator {
   private long current;
   private final long to;
 
-  RangeSequenceIterator(int from, int to) {
+  RangeSequenceIterator(long from, long to) {
     this.current = from;
     this.to = to;
   }

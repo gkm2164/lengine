@@ -73,18 +73,4 @@ public class LeafSequence extends LengineSequence {
     return new NonLeafSequence(this, LeafSequence.create(seq));
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof LeafSequence)) return false;
-
-    LeafSequence that = (LeafSequence) o;
-
-    return list.equals(that.list);
-  }
-
-  @Override
-  public int hashCode() {
-    return list.hashCode();
-  }
 }

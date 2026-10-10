@@ -103,13 +103,12 @@ public abstract class LengineList implements
     return (long) length.get();
   }
 
+  /** A new list with elem at the end; this list is left unchanged. */
   public Cons add(Object elem) {
-    if (this instanceof Cons) {
-      Cons _this = (Cons) this;
-      _this.setNext(_this.next.add(elem));
-      return _this;
-    }
-    return cons(elem, nil());
+    LengineListBuilder builder = new LengineListBuilder();
+    iterator().forEachRemaining(builder::ADD);
+    builder.ADD(elem);
+    return (Cons) builder.BUILD();
   }
 
   public abstract LengineList append(LengineIterable ys);

@@ -7,7 +7,11 @@ import lengine.types.collections.traits.LengineObjectWithHelp;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class RatioNumber extends Number implements LengineObjectWithHelp {
+/**
+ * An exact rational number, always kept in lowest terms with a positive denominator.
+ * Arithmetic that lands on a whole number yields a Long (see {@link #simplify()}).
+ */
+public class RatioNumber extends Number implements LengineObjectWithHelp, Comparable<RatioNumber> {
   private final long over;
   private final long under;
 
@@ -15,26 +19,56 @@ public class RatioNumber extends Number implements LengineObjectWithHelp {
     if (under == 0) {
       throw new ArithmeticException("under cannot be 0");
     }
-    this.over = over;
-    this.under = under;
+    long g = gcd(Math.abs(over), Math.abs(under));
+    long sign = under < 0 ? -1 : 1;
+    this.over = Math.multiplyExact(sign, over / g);
+    this.under = Math.multiplyExact(sign, under / g);
   }
 
-  public RatioNumber normalize() {
-    long div = 2;
-    long newOver = over;
-    long newUnder = under;
-
-    // Find GCD
-    while (div <= Math.min(newOver, newUnder)) {
-      if (newOver % div == 0 && newUnder % div == 0) {
-        newOver /= div;
-        newUnder /= div;
-      } else {
-        div++;
-      }
+  private static long gcd(long a, long b) {
+    while (b != 0) {
+      long t = a % b;
+      a = b;
+      b = t;
     }
+    return a == 0 ? 1 : a;
+  }
 
-    return new RatioNumber(newOver, newUnder);
+  /** Kept for compatibility: ratios are always normalized now. */
+  public RatioNumber normalize() {
+    return this;
+  }
+
+  /** This ratio as a Long when it is a whole number, otherwise itself. */
+  public Number simplify() {
+    return under == 1 ? (Number) over : this;
+  }
+
+  public long getOver() {
+    return over;
+  }
+
+  public long getUnder() {
+    return under;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof RatioNumber)) return false;
+    RatioNumber that = (RatioNumber) o;
+    return over == that.over && under == that.under;
+  }
+
+  @Override
+  public int hashCode() {
+    return Long.hashCode(over) * 31 + Long.hashCode(under);
+  }
+
+  @Override
+  public int compareTo(RatioNumber o) {
+    // a/b vs c/d with b, d > 0: compare a*d and c*b
+    return Long.compare(Math.multiplyExact(over, o.under), Math.multiplyExact(o.over, under));
   }
 
   public String toString() {
@@ -63,7 +97,9 @@ public class RatioNumber extends Number implements LengineObjectWithHelp {
 
   public RatioNumber add(RatioNumber other) {
 
-    return new RatioNumber(over * other.under + under * other.over, other.under * under);
+    return new RatioNumber(
+        Math.addExact(Math.multiplyExact(over, other.under), Math.multiplyExact(under, other.over)),
+        Math.multiplyExact(other.under, under));
   }
 
   public RatioNumber neg() {
@@ -75,7 +111,7 @@ public class RatioNumber extends Number implements LengineObjectWithHelp {
   }
 
   public RatioNumber mult(RatioNumber other) {
-    return new RatioNumber(over * other.over, under * other.under);
+    return new RatioNumber(Math.multiplyExact(over, other.over), Math.multiplyExact(under, other.under));
   }
 
   public RatioNumber div(RatioNumber other) {

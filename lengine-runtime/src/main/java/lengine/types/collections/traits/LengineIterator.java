@@ -7,8 +7,8 @@ public interface LengineIterator {
   Object next();
 
   default void forEachN(Consumer<Object> o, long n) {
-    int i = 0;
-    while (hasNext() && i++ < n) {
+    // Check the count first: hasNext() may force a lazy stream tail.
+    for (long i = 0; i < n && hasNext(); i++) {
       o.accept(next());
     }
   }

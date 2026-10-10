@@ -7,3 +7,5 @@ Compile / publishArtifact := false
 doc / sources := Seq.empty
 
 releaseIgnoreUntrackedFiles := true
+
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test"

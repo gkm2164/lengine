@@ -32,7 +32,7 @@ public abstract class LengineSet implements
   }
 
   public static LengineSet create(String toString) {
-    Set<Object> hashSet = new HashSet<>();
+    Set<Object> hashSet = new java.util.LinkedHashSet<>();
     for (char c : toString.toCharArray()) {
       hashSet.add(c);
     }
@@ -40,13 +40,13 @@ public abstract class LengineSet implements
   }
 
   public static LengineSet create(LengineIterable o) {
-    Set<Object> hashSet = new HashSet<>();
+    Set<Object> hashSet = new java.util.LinkedHashSet<>();
     o.iterator().forEachRemaining(hashSet::add);
     return new LeafSet(hashSet);
   }
 
   public static LengineSet create(Set<?> set) {
-    return new LeafSet(set.stream().map((elem) -> (Object) elem).collect(Collectors.toSet()));
+    return new LeafSet(set.stream().map((elem) -> (Object) elem).collect(Collectors.toCollection(java.util.LinkedHashSet::new)));
   }
 
   public abstract Boolean contains(Object elem);
@@ -97,6 +97,17 @@ public abstract class LengineSet implements
     return Objects.equals(thisSet, thatSet);
   }
 
+  /** Sum of element hashes (the java.util.Set contract), so equal sets hash alike. */
+  @Override
+  public int hashCode() {
+    int h = 0;
+    LengineIterator it = this.iterator();
+    while (it.hasNext()) {
+      h += Objects.hashCode(it.next());
+    }
+    return h;
+  }
+
   @Override
   public LengineSet NIL() {
     return new LeafSet();
@@ -132,7 +143,7 @@ public abstract class LengineSet implements
 
   @Override
   public LengineSet WRAP() {
-    Set<Object> set = new HashSet<>();
+    Set<Object> set = new java.util.LinkedHashSet<>();
     iterator().forEachRemaining(set::add);
     return new LeafSet(set);
   }

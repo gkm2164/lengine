@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lengine.types.collections.traits.Addable;
+import lengine.types.collections.traits.Buildable;
 import lengine.types.collections.traits.LengineIterable;
 import lengine.types.collections.traits.LengineIterator;
 import lengine.types.collections.traits.LengineObjectType;
@@ -16,6 +17,7 @@ public abstract class LengineMap implements
         LengineIterable,
         LengineObjectType,
         Addable<LengineMap>,
+        Buildable<LengineSequence, LengineSequenceBuilder>,
         Wrap<LengineMap> {
   protected final boolean lately;
 
@@ -110,6 +112,12 @@ public abstract class LengineMap implements
   @Override
   public Boolean IS_NIL() {
     return this.len() == 0;
+  }
+
+  /** Looping over a map yields its entries; the results are collected into a sequence. */
+  @Override
+  public LengineSequenceBuilder BUILDER() {
+    return new LengineSequenceBuilder();
   }
 
   @Override
