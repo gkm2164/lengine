@@ -44,7 +44,7 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       case _ =>
     }
 
-    FunctionAnalyzer.captureUnknownVariables(capture, f.body)
+    FunctionAnalyzer.captureUnknownVariables(capture, f.body, runtimeEnvironment)
     val isTailRec = FunctionAnalyzer.isTailRecursion(itself, f.body)
 
     val argsWithCaptureList = traversedPlaceHolders ++ capture.getRequestedCaptures
@@ -232,6 +232,9 @@ class LispFnAsmWriter(f: GeneralLispFunc)(implicit runtimeEnvironment: LengineRu
       runtimeEnvironment.fileName,
       argsType.size + 1
     )
+
+    // Macros defined so far stay usable inside the function body (spec D8).
+    newRuntimeEnvironment.inheritMacros(runtimeEnvironment)
 
     newRuntimeEnvironment.args.foreach {
       case (symbol, LengineRuntimeVariable(Some(loc), typeToBe)) =>

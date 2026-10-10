@@ -96,6 +96,7 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit
     case LispLetDef(decls, body) =>
       val startLabel = new Label()
       val endLabel = new Label()
+      val outer = runtimeEnv.saveBindings(decls.map(_.name))
       mv.visitLabel(startLabel)
       decls.foreach { case LispLetDecl(symbol, value) =>
         val idx = runtimeEnv.allocateNextVar
@@ -104,14 +105,15 @@ class LispValueAsmWriter(value: LispValue, typeToBe: Class[_])(implicit
         runtimeEnv.registerVariable(symbol, idx, retType)
       }
       mv.visitLispValue(body, ObjectClass, tailRecReference)
-      for (elem <- decls) {
-        runtimeEnv.getVar(elem.name) match {
+      for (elem <- decls.map(_.name).distinct) {
+        runtimeEnv.getVar(elem) match {
           case Some((location, typeToBe)) =>
-            runtimeEnv.writeLater(elem.name, typeToBe, startLabel, endLabel, location)
+            runtimeEnv.writeLater(elem, typeToBe, startLabel, endLabel, location)
           case None =>
         }
-        runtimeEnv.deregisterVariable(elem.name)
       }
+      // Shadowed outer bindings are visible again after the let (spec D7).
+      runtimeEnv.restoreBindings(outer)
       mv.visitLabel(endLabel)
       ObjectClass
     case LispImportDef(path) =>

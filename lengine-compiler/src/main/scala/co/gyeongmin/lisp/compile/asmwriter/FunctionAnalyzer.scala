@@ -11,8 +11,18 @@ import co.gyeongmin.lisp.lexer.values._
 import scala.annotation.tailrec
 
 object FunctionAnalyzer {
+  /** Macros in scope while analyzing; definitions met inside a body are added as they appear. */
+  final class MacroScope(initial: Map[LispSymbol, LispMacroDef]) {
+    private val defs = scala.collection.mutable.Map[LispSymbol, LispMacroDef]() ++= initial
+    def get(symbol: LispSymbol): Option[LispMacroDef] = defs.get(symbol)
+    def define(symbol: LispSymbol, macroDef: LispMacroDef): Unit = defs += (symbol -> macroDef)
+  }
+
   @tailrec
-  private def captureWhenStmt(capture: LengineVarCapture, whenStmt: List[LispWhenStmt]): Unit =
+  private def captureWhenStmt(capture: LengineVarCapture, whenStmt: List[LispWhenStmt])(implicit
+    env: LengineRuntimeEnvironment,
+    macros: MacroScope
+  ): Unit =
     whenStmt match {
       case Nil =>
       case LispWhenStmt(whenValue, thenValue) :: tail =>
@@ -21,19 +31,20 @@ object FunctionAnalyzer {
         captureWhenStmt(capture, tail)
     }
 
+  /** Entry point: analyze a function body with the macros visible where the function is defined. */
+  def captureUnknownVariables(captureVariables: LengineVarCapture, body: LispValue, env: LengineRuntimeEnvironment): Unit =
+    captureUnknownVariables(captureVariables, body)(env, new MacroScope(env.macroDefs))
+
   /**
-   * This method is to visit AST and identify which variable is not able to find.
-   *
-   * `captureVariables` contains what is identified, and what is unidentified for the methods. If it
-   * is about to define a function, then it should create child capture, as the scope is going to be
-   * changed. This is done in recursive way, as the tree is constructed in recursively.
-   *
-   * @param captureVariables
-   *   store currently known variable & unknown variable
-   * @param body
-   *   could be clause
+   * Visits the AST and records which variables the body uses without defining them, so the
+   * enclosing function can capture them. Scopes that bind names (lambdas, let, loop, recover)
+   * get a child capture. Macro calls are analyzed as their expansion, since the expansion may
+   * use names (such as `+`) that the call itself does not mention.
    */
-  def captureUnknownVariables(captureVariables: LengineVarCapture, body: LispValue): Unit = {
+  def captureUnknownVariables(captureVariables: LengineVarCapture, body: LispValue)(implicit
+    env: LengineRuntimeEnvironment,
+    macros: MacroScope
+  ): Unit = {
     def traverseLoopTree(capture: LengineVarCapture, loop: LispLoopStmt): Unit = loop match {
       case LispLoopStmt(Nil, body) =>
         captureUnknownVariables(capture, body)
@@ -46,20 +57,41 @@ object FunctionAnalyzer {
     }
 
     body match {
-      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() |
-          LispFalse() =>
-      case _: ObjectReferSymbol =>
+      case LispChar(_) | IntegerNumber(_) | FloatNumber(_) | LispString(_) | LispTrue() | LispFalse() =>
+      case _: RatioNumber | _: ComplexNumber | LispUnit | _: LispTokenValue =>
+      case _: ObjectReferSymbol                                                  =>
+      case _: co.gyeongmin.lisp.lexer.tokens.LispTypeHint                        =>
       case LispObject(kv) => kv.values.foreach(v => captureUnknownVariables(captureVariables, v))
       case LispList(body) =>
         body.foreach(v => captureUnknownVariables(captureVariables, v))
       case ref: LispSymbol => captureVariables.requestCapture(ref)
+      case clause @ LispClause((op: LispSymbol) :: _) if macros.get(op).isDefined =>
+        captureUnknownVariables(captureVariables, new LispMacroReplace(clause).replaceValue(macros.get(op).get))
       case LispClause(op :: value) if RuntimeMethodVisitor.supportOperation(op) =>
         value.foreach(v => captureUnknownVariables(captureVariables, v))
       case LispClause(body) =>
         body.foreach(v => captureUnknownVariables(captureVariables, v))
+      case macroDef @ LispMacroDef(symbol, _) =>
+        macros.define(symbol, macroDef)
       case LispValueDef(symbol, body) =>
         captureUnknownVariables(captureVariables, body)
         captureVariables.ignoreCapture(symbol)
+      case LispFuncDef(symbol, fn) =>
+        // The name is bound in the enclosing scope and, for recursion, inside the function.
+        captureVariables.ignoreCapture(symbol)
+        val child = new LengineVarCapture(captureVariables)
+        child.ignoreCapture(symbol)
+        captureUnknownVariables(child, fn)
+        captureVariables.mergeChild(child)
+      case LispExportDef(symbol, value) =>
+        value.foreach(captureUnknownVariables(captureVariables, _))
+        captureVariables.ignoreCapture(symbol)
+      case LispImportDef(path) =>
+        path match {
+          case s: LispSymbol => captureVariables.ignoreCapture(VarSymbol(s.name.split('.').last))
+          case _             =>
+        }
+      case _: LispRequireStmt | _: LispNativeStmt | _: LispModuleStmt | _: LispNamespace =>
       case LispErrorHandler(tryBody, recoveryBlock) =>
         val child = new LengineVarCapture(captureVariables)
         captureUnknownVariables(child, tryBody)
@@ -71,6 +103,7 @@ object FunctionAnalyzer {
         placeholders.foreach { case symbol: LispSymbol =>
           childCapture.ignoreCapture(symbol)
         }
+        childCapture.ignoreCapture(VarSymbol("$"))
         captureUnknownVariables(childCapture, body)
         captureVariables.mergeChild(childCapture)
       case LispForStmt(symbol, seq) =>
@@ -100,6 +133,12 @@ object FunctionAnalyzer {
         captureUnknownVariables(captureVariables, value)
         captureWhenStmt(captureVariables, whenStmt)
         captureUnknownVariables(captureVariables, otherwise)
+      case other =>
+        throw CompileException(
+          s"internal: closure analysis does not handle ${other.getClass.getSimpleName}",
+          env.fileName,
+          other.tokenLocation
+        )
     }
   }
 
@@ -128,11 +167,7 @@ object FunctionAnalyzer {
           !itself.contains(symbol) && symbol != VarSymbol("$")
         } =>
       isTailRecursion(itself, body)
-    case LispLoopStmt(Nil, body) =>
-      isTailRecursion(itself, body)
-    case LispLoopStmt(head :: tail, body)
-        if !itself.contains(head.symbol) && head.symbol != VarSymbol("$") =>
-      isTailRecursion(itself, LispLoopStmt(tail, body))
+    // A loop body runs once per element, so a call there is never in tail position.
     case LispForWhenStmt(_, Nil, otherwise) => isTailRecursion(itself, otherwise)
     case LispForWhenStmt(value, LispWhenStmt(_, thenValue) :: whens, otherwise) =>
       isTailRecursion(itself, thenValue) || isTailRecursion(

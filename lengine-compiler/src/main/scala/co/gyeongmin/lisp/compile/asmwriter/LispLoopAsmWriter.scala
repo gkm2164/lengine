@@ -31,7 +31,7 @@ class LispLoopAsmWriter(
         val mv = env.methodVisitor
         mv.visitALoad(retAddr.get) // [S']
         mv.visitCheckCast(CollectionBuilderClass) // [S']
-        mv.visitLispValue(body, requestedType, tailRecReference) // [S' E']
+        mv.visitLispValue(body, requestedType) // [S' E'], never a tail position
         mv.visitInterfaceMethodCall(
           CollectionBuilderClass,
           "ADD",
@@ -41,13 +41,14 @@ class LispLoopAsmWriter(
       case LispForStmt(symbol, seq) :: tail =>
         val varIdx = env.allocateNextVar
 
-        env.registerVariable(symbol, varIdx, ObjectClass)
-
         val startLoop = new Label()
         val endLoop = new Label()
 
         val mv = env.methodVisitor
+        // The source is evaluated before the loop variable exists, so it sees any outer binding.
         mv.visitLispValue(seq, LengineIterableClass) // [S]
+        val outer = env.saveBindings(Seq(symbol))
+        env.registerVariable(symbol, varIdx, ObjectClass)
 
         mv.visitDup() // [S S]
         mv.visitCheckCast(BuildableClass)
@@ -88,7 +89,7 @@ class LispLoopAsmWriter(
         visitForStmt(tail, body, Some(accLoc))
         // [I<S>]
 
-        env.deregisterVariable(symbol)
+        env.restoreBindings(outer)
         mv.visitGoto(startLoop)
         mv.visitLabel(endLoop)
         mv.visitPop()

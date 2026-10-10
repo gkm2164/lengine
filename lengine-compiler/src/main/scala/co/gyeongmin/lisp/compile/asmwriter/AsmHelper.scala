@@ -305,7 +305,9 @@ object AsmHelper {
             .getVar(lispSymbol)
             .foreach { case (loc, preservedType) =>
               visitALoad(loc)
-              if (preservedType == ObjectClass) {
+              // Cast unless the known type already fits. Skipping the cast on a mismatch (a Long
+              // where a Boolean is needed) made the whole class fail verification (spec D11).
+              if (!typeToBe.isAssignableFrom(preservedType)) {
                 visitCheckCast(typeToBe)
               }
             }

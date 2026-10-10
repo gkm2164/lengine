@@ -58,7 +58,15 @@ object RuntimeMethodVisitor {
   )(implicit
     runtimeEnvironment: LengineRuntimeEnvironment
   ): Unit = {
-    val condition :: ifValue :: elseValue :: Nil = operands
+    val (condition, ifValue, elseValue) = operands match {
+      case c :: t :: e :: Nil => (c, t, e)
+      case _ =>
+        throw CompileException(
+          s"if takes a condition, a then branch and an else branch; got ${operands.size} operand(s)",
+          runtimeEnvironment.fileName,
+          operands.headOption.flatMap(_.tokenLocation)
+        )
+    }
 
     val mv = runtimeEnvironment.methodVisitor
     mv.visitLispValue(condition, BooleanClass)

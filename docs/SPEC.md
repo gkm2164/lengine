@@ -389,7 +389,7 @@ Two functions with the same name in different scopes are different functions.
 Calling a function with the wrong number of arguments is a runtime error that names the
 expected and actual argument counts.
 
-```lengine id=fn-arity bug=arity-error-message
+```lengine id=fn-arity
 (fn f (x) x)
 (f 1 2)
 ```
@@ -439,7 +439,7 @@ done
 A lambda body may contain any expression, including ratio and complex literals and nested
 functions.
 
-```lengine id=lambda-any-literal bug=closure-analyzer-gaps
+```lengine id=lambda-any-literal
 (def half ^((x) (* x 1/2)))
 (println (half 3))
 ```
@@ -447,7 +447,7 @@ functions.
 3/2
 ```
 
-```lengine id=lambda-nested-fn bug=closure-analyzer-gaps
+```lengine id=lambda-nested-fn
 (def outer ^((x) (do (fn inner (y) (+ y 1)) return (inner x))))
 (println (outer 1))
 ```
@@ -468,7 +468,7 @@ arguments are evaluated before any parameter is rebound.
 1000000
 ```
 
-```lengine id=tail-args-simultaneous bug=tail-call-args
+```lengine id=tail-args-simultaneous
 (fn fib (a b n) (if (= n 0) a (fib b (+ a b) (- n 1))))
 (println (fib 0 1 10))
 ```
@@ -489,7 +489,7 @@ arguments are evaluated before any parameter is rebound.
 12
 ```
 
-```lengine id=let-shadow-restores bug=shadowing-loses-outer
+```lengine id=let-shadow-restores
 (println (let ((x 1)) (do (let ((x 2)) x) return x)))
 ```
 ```output
@@ -525,14 +525,14 @@ yes
 else
 ```
 
-```lengine id=if-without-else bug=if-arity-message
+```lengine id=if-without-else
 (if true 1)
 ```
 ```compile-error
 if
 ```
 
-```lengine id=if-non-boolean bug=verify-error-on-type-mismatch
+```lengine id=if-non-boolean
 (println "before")
 (def n 5)
 (if n 1 2)
@@ -599,7 +599,7 @@ nest.
 
 A recursive call inside a loop body is an ordinary call, not a tail call.
 
-```lengine id=loop-body-not-tail bug=loop-body-tail
+```lengine id=loop-body-not-tail
 (require "collections")
 (fn walk (xs) (loop for x in xs (if (list? x) (walk x) x)))
 (println (walk [1 [2 3]]))
@@ -663,7 +663,7 @@ different
 
 Macros are visible in every scope after their definition (D8).
 
-```lengine id=macro-in-fn bug=macros-invisible-in-fn
+```lengine id=macro-in-fn
 (defmacro twice (x) (+ x x))
 (fn f (y) (twice y))
 (println (f 21))

@@ -16,10 +16,10 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit
     val operation :: operands = clause.body
     (tailRecReference, operation) match {
       case (Some((reference, label)), _) if reference == operation || operation == VarSymbol("$") =>
-        operands.zipWithIndex.foreach { case (v, loc) =>
-          mv.visitLispValue(v, ObjectClass)
-          mv.visitAStore(loc + 1)
-        }
+        // Evaluate every argument before rebinding any parameter: later arguments may read
+        // earlier parameters, as in (fib b (+ a b) (- n 1)).
+        operands.foreach(v => mv.visitLispValue(v, ObjectClass))
+        operands.indices.reverse.foreach(loc => mv.visitAStore(loc + 1))
         mv.visitGoto(label)
       case (_, op: LispSymbol) if runtimeEnvironment.hasMacroVar(op) =>
         val replacedValue = new LispMacroReplace(clause)
@@ -27,7 +27,12 @@ class LispClauseWriter(clause: LispClause, requestedType: Class[_])(implicit
         mv.visitLispValue(replacedValue, requestedType, tailRecReference)
       case _ =>
         val argSize = operands.size
-        mv.visitLispValue(operation, LengineLambdaClass(argSize))
+        // Check the arity at run time so a mismatch reads "f expects 1 argument but got 2"
+        // rather than a ClassCastException or IncompatibleClassChangeError.
+        mv.visitLispValue(operation, ObjectClass)
+        mv.visitLdcInsn(Integer.valueOf(argSize))
+        mv.visitStaticMethodCall(classOf[lengine.runtime.Arity], "check", ObjectClass, ObjectClass, Integer.TYPE)
+        mv.visitCheckCast(LengineLambdaClass(argSize))
         operands.foreach { v =>
           mv.visitLispValue(v, ObjectClass)
         }
