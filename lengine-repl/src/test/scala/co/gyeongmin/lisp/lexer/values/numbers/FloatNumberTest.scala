@@ -4,9 +4,10 @@ import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class FloatNumberTest extends FlatSpec with Matchers {
+class FloatNumberTest extends AnyFlatSpec with Matchers {
   val number1: FloatNumber = FloatNumber(10.0)
   val number2: FloatNumber = FloatNumber(5.0)
   val intNumber: IntegerNumber = IntegerNumber(1)

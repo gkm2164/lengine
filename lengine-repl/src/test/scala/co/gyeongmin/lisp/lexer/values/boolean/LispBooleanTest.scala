@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.lexer.values.boolean
 
 import co.gyeongmin.lisp.lexer.values.LispUnit
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class LispBooleanTest extends FlatSpec with Matchers {
+class LispBooleanTest extends AnyFlatSpec with Matchers {
   "boolean operation tests" should "pass" in {
     val boolValue1 = LispTrue()
     val boolValue2 = LispFalse()

@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.lexer.values.symbol
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class VarSymbolTest extends FlatSpec with Matchers {
+class VarSymbolTest extends AnyFlatSpec with Matchers {
   val eagerSymbol = VarSymbol("something")
 
   it should "pass" in {

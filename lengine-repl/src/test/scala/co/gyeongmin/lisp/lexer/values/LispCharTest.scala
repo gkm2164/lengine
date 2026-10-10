@@ -1,8 +1,9 @@
 package co.gyeongmin.lisp.lexer.values
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class LispCharTest extends FlatSpec with Matchers {
+class LispCharTest extends AnyFlatSpec with Matchers {
   val char = LispChar('c')
 
   it should "pass" in {

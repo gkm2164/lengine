@@ -5,9 +5,10 @@ import co.gyeongmin.lisp.errors.eval.UnimplementedOperationError
 import co.gyeongmin.lisp.lexer.values.{LispUnit, LispValue}
 import co.gyeongmin.lisp.lexer.values.boolean.LispTrue
 import co.gyeongmin.lisp.utils.RepeatExt
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class LispListTest extends FlatSpec with Matchers {
+class LispListTest extends AnyFlatSpec with Matchers {
   val lispList = LispList(List(LispUnit, LispUnit))
   val mockValue = new LispValue {}
 

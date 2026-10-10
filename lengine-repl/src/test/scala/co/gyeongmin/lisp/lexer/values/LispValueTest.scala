@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.lexer.values
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.easymock.EasyMockSugar.mock
 
-class LispValueTest extends FlatSpec with Matchers {
+class LispValueTest extends AnyFlatSpec with Matchers {
 
   behavior of "LispValueTest"
 

@@ -5,9 +5,10 @@ import co.gyeongmin.lisp.errors.tokenizer.TokenizeError
 import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispIn
 import co.gyeongmin.lisp.lexer.values.LispUnit
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ParseErrorTest extends FlatSpec with Matchers {
+class ParseErrorTest extends AnyFlatSpec with Matchers {
   val anyLocation: TokenLocation = TokenLocation(0, 0)
   val mockTokenizeError: TokenizeError = new TokenizeError {
     override def message: String = "hello"

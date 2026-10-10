@@ -11,9 +11,10 @@ import co.gyeongmin.lisp.lexer.values.functions.LispFunc
 import co.gyeongmin.lisp.lexer.values.numbers.IntegerNumber
 import co.gyeongmin.lisp.lexer.values.seq.LispList
 import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, ObjectReferSymbol}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class packageTest extends FlatSpec with Matchers {
+class packageTest extends AnyFlatSpec with Matchers {
   it should "pass" in {
     LispObject(
       Map(

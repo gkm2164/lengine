@@ -5,9 +5,10 @@ import co.gyeongmin.lisp.errors.parser.ParseError
 import co.gyeongmin.lisp.errors.tokenizer.TokenizeError
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.symbol.{VarSymbol, LispSymbol}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class EvalErrorTest extends FlatSpec with Matchers {
+class EvalErrorTest extends AnyFlatSpec with Matchers {
   val mockParseError: ParseError = new ParseError {
     override def message: String = "hello"
   }

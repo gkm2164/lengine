@@ -5,11 +5,12 @@ import co.gyeongmin.lisp.lexer.tokens._
 import co.gyeongmin.lisp.lexer.values.numbers.{ FloatNumber, IntegerNumber, RatioNumber }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
 import co.gyeongmin.lisp.lexer.values.symbol.{ VarSymbol, LazySymbol, ListSymbol, ObjectReferSymbol }
-import org.scalatest.{ FlatSpec, Matchers }
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.io.ByteArrayOutputStream
 
-class TokenizerTest extends FlatSpec with Matchers {
+class TokenizerTest extends AnyFlatSpec with Matchers {
   val anyTokenLoc: TokenLocation = TokenLocation(0, 0)
 
   "number regex" should "match given numbers(represented in common lisp" in {

@@ -5,9 +5,10 @@ import co.gyeongmin.lisp.errors.eval.{EvalError, UnimplementedOperationError}
 import co.gyeongmin.lisp.execution.LispEnvironment
 import co.gyeongmin.lisp.lexer.values.LispValue
 import co.gyeongmin.lisp.lexer.values.symbol.VarSymbol
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class BuiltinLispFuncTest extends FlatSpec with Matchers {
+class BuiltinLispFuncTest extends AnyFlatSpec with Matchers {
   val builtinLispFunc =
     new BuiltinLispFunc(VarSymbol("a"), List(VarSymbol("b"))) {
       override def execute(

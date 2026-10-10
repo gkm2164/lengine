@@ -1,5 +1,5 @@
 name := "lengine-core"
 
-libraryDependencies += "org.typelevel" %% "cats-core" % "2.7.0"
-libraryDependencies += "org.typelevel" %% "cats-effect" % "3.3.12"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.8" % "test"
+libraryDependencies += "org.typelevel" %% "cats-core" % "2.13.0"
+libraryDependencies += "org.typelevel" %% "cats-effect" % "3.7.1"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test"

@@ -3,9 +3,10 @@ package co.gyeongmin.lisp.lexer.tokens
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispValue}
 import co.gyeongmin.lisp.lexer.values.numbers.{IntegerNumber, RatioNumber}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SpecialTokenTest extends FlatSpec with Matchers {
+class SpecialTokenTest extends AnyFlatSpec with Matchers {
   "special tokens" should "evaluated as" in {
     def specialTokenVerifier(token: String, shouldBe: LispValue): Unit =
       SpecialToken(token).realize should be(Right(shouldBe))

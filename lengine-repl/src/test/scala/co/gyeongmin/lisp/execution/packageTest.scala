@@ -19,11 +19,12 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   LazySymbol,
   LispSymbol
 }
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.util.concurrent.atomic.AtomicLong
 
-class packageTest extends FlatSpec with Matchers {
+class packageTest extends AnyFlatSpec with Matchers {
   "addFn" should "pass" in {
     val x: LispEnvironment = Map()
     val fn = GeneralLispFunc(List(VarSymbol("b")), LispUnit)

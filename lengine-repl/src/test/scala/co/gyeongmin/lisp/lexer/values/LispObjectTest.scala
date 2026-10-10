@@ -7,9 +7,10 @@ import co.gyeongmin.lisp.errors.eval.{
 }
 import co.gyeongmin.lisp.lexer.values.seq.LispString
 import co.gyeongmin.lisp.lexer.values.symbol.ObjectReferSymbol
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class LispObjectTest extends FlatSpec with Matchers {
+class LispObjectTest extends AnyFlatSpec with Matchers {
   val obj = LispObject(
     Map(
       ObjectReferSymbol("a") -> LispString("a"),

@@ -25,10 +25,11 @@ import co.gyeongmin.lisp.lexer.values.symbol.{
   ObjectReferSymbol
 }
 import org.easymock.EasyMock.{expect, replay}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.easymock.EasyMockSugar.mock
 
-class LispRecoverStmtTest extends FlatSpec with Matchers {
+class LispRecoverStmtTest extends AnyFlatSpec with Matchers {
   def assertStmt(value: LispValue, expected: String): Unit =
     value.recoverStmt should be(expected)
 

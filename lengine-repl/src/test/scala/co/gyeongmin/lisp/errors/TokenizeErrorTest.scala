@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.errors
 
 import co.gyeongmin.lisp.errors.tokenizer._
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class TokenizeErrorTest extends FlatSpec with Matchers {
+class TokenizeErrorTest extends AnyFlatSpec with Matchers {
   it should "pass" in {
     EOFError.message should be("EOF")
     InvalidNumberTokenTypeError("xx").message should be(

@@ -2,9 +2,10 @@ package co.gyeongmin.lisp.lexer.values.seq
 
 import co.gyeongmin.lisp.debug.LispRecoverStmt.LispValueExt
 import co.gyeongmin.lisp.lexer.values.{LispChar, LispUnit}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class LispStringTest extends FlatSpec with Matchers {
+class LispStringTest extends AnyFlatSpec with Matchers {
   val lispString = LispString("abcdefg")
   val emptyLispString = LispString("")
 

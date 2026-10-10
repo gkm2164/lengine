@@ -1,11 +1,12 @@
 package co.gyeongmin.lisp.debug
 
 import co.gyeongmin.lisp.errors.LispError
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.io.ByteArrayOutputStream
 
-class ReplDebuggerTest extends FlatSpec with Matchers {
+class ReplDebuggerTest extends AnyFlatSpec with Matchers {
   val testingReplDebugger = new ReplDebugger()
   "incAndGet" should "return incrementer" in {
     val idIssue = testingReplDebugger.incAndGet

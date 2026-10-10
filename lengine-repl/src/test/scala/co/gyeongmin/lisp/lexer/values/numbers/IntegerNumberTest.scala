@@ -4,9 +4,10 @@ import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.tokens.LispToken
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class IntegerNumberTest extends FlatSpec with Matchers {
+class IntegerNumberTest extends AnyFlatSpec with Matchers {
   val number1: IntegerNumber = IntegerNumber(3)
   val number2: IntegerNumber = IntegerNumber(5)
   val ratioNumber: RatioNumber = RatioNumber(1, 2)

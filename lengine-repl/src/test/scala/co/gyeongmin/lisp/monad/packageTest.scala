@@ -1,9 +1,10 @@
 package co.gyeongmin.lisp.monad
 
 import co.gyeongmin.lisp.errors.parser.ParseError
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class packageTest extends FlatSpec with Matchers {
+class packageTest extends AnyFlatSpec with Matchers {
 
   behavior of "packageTest"
 

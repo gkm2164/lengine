@@ -2,9 +2,10 @@ package co.gyeongmin.lisp.lexer.values.numbers
 
 import co.gyeongmin.lisp.lexer.values.LispUnit
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ComplexNumberTest extends FlatSpec with Matchers {
+class ComplexNumberTest extends AnyFlatSpec with Matchers {
   val one = ComplexNumber(
     IntegerNumber(1),
     IntegerNumber(1)

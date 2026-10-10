@@ -1,6 +1,8 @@
 ThisBuild / organization := "io.lengine"
 ThisBuild / version := "0.1.0-SNAPSHOT"
-ThisBuild / scalaVersion := "2.13.14"
+ThisBuild / scalaVersion := "2.13.18"
+// sbt-scoverage 2.4.4 defaults to a scalac plugin that predates Scala 2.13.18.
+ThisBuild / coverageScalacPluginVersion := "2.5.2"
 
 releaseIgnoreUntrackedFiles := true
 

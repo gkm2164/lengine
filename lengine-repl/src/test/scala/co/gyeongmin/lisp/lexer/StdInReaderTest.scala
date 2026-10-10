@@ -1,10 +1,11 @@
 package co.gyeongmin.lisp.lexer
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.io.ByteArrayInputStream
 
-class StdInReaderTest extends FlatSpec with Matchers {
+class StdInReaderTest extends AnyFlatSpec with Matchers {
   "StdInReader" should "read stdin well" in {
     val validInputStream = new ByteArrayInputStream("(a b c)".getBytes)
     Console.withIn(validInputStream) {

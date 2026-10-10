@@ -2,13 +2,14 @@ package co.gyeongmin.lisp.libs
 
 import co.gyeongmin.lisp.builtin.Builtin
 import co.gyeongmin.lisp.execution.replLoop
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 /** This test case is for testing all libs in libs/ folder
   */
-class LibraryTest extends FlatSpec with Matchers {
+class LibraryTest extends AnyFlatSpec with Matchers {
   def runCommand(path: String, commandLine: String): String = {
     val inputStream = new ByteArrayInputStream((s"""
         |(import "$path")
