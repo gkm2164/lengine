@@ -190,8 +190,9 @@ object RuntimeMethodVisitor {
       "intValue",
       Integer.TYPE
     )
+    // Through ExitHandler rather than System.exit, so a REPL or a test can intercept it.
     mv.visitStaticMethodCall(
-      classOf[System],
+      classOf[lengine.runtime.ExitHandler],
       "exit",
       VoidPrimitive,
       Integer.TYPE

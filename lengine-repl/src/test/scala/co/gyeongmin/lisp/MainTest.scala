@@ -1,12 +1,12 @@
 package co.gyeongmin.lisp
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import java.security.Permission
 import scala.util.{Failure, Try}
 
-class MainTest extends FlatSpec with Matchers {
+class MainTest extends AnyFlatSpec with Matchers {
   def runCommand(commandLine: String): String = {
     val inputStream = new ByteArrayInputStream(commandLine.getBytes)
     val outputWriter = new ByteArrayOutputStream()
@@ -85,23 +85,10 @@ class MainTest extends FlatSpec with Matchers {
     outputWriter.toString() should include("2345")
   }
 
-  sealed case class ExitException(status: Int)
-      extends SecurityException("System.exit() is not allowed")
-
-  sealed class NoExitSecurityManager extends SecurityManager {
-    override def checkPermission(perm: Permission): Unit = {}
-
-    override def checkPermission(perm: Permission, context: Object): Unit = {}
-
-    override def checkExit(status: Int): Unit = {
-      super.checkExit(status)
-      throw ExitException(status)
-    }
-  }
+  final case class ExitException(status: Int) extends RuntimeException(s"exit($status)")
 
   "exit" should "be called" in {
-    val oldSecurityManager = System.getSecurityManager
-    System.setSecurityManager(new NoExitSecurityManager)
+    val previous = lengine.runtime.ExitHandler.set(code => throw ExitException(code))
 
     Try(runCommand("(exit 10)")) match {
       case Failure(e: ExitException) => e.status should be(10)
@@ -113,6 +100,6 @@ class MainTest extends FlatSpec with Matchers {
       case _                         => fail()
     }
 
-    System.setSecurityManager(oldSecurityManager)
+    lengine.runtime.ExitHandler.set(previous)
   }
 }

@@ -146,11 +146,11 @@ object Builtin {
       for {
         exitCode <- env refer E("_1")
         exitCodeInt <- exitCode.toInt
-        _ = System.exit(exitCodeInt.value.toInt)
+        _ = lengine.runtime.ExitHandler.exit(exitCodeInt.value.toInt)
       } yield LispUnit
     },
     E("quit") -> defBuiltinFn(E("quit")) { _ =>
-      System.exit(0)
+      lengine.runtime.ExitHandler.exit(0)
       Right(LispUnit)
     }
   )

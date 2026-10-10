@@ -38,6 +38,12 @@ object Main {
     }
 
   def main(args: Array[String]): Unit = {
+    val status = run(args)
+    if (status != 0) System.exit(status)
+  }
+
+  /** Compiles the given source file; returns the process exit status instead of exiting. */
+  def run(args: Array[String]): Int = {
     val startTime = System.currentTimeMillis()
     val compileOps =
       parseArgs(args.toList, LengineCompileOptions(sourceFileOpt = None, classNameOpt = None))
@@ -51,10 +57,11 @@ object Main {
     } catch {
       case re: RuntimeException =>
         System.err.println(s"[ERROR]: ${re.getMessage}")
-        System.exit(1)
+        return 1
     }
 
     println(s"Compiled in ${System.currentTimeMillis() - startTime}ms.")
+    0
   }
 
   private def executeCompiler(
@@ -76,7 +83,10 @@ object Main {
     if (pkgName.nonEmpty) {
       Files.createDirectories(Paths.get(pkgName.replace(".", "/")))
     }
-    val passingStmts = if (new File(compileOps.sourceFile).equals(new File(DefaultPrelude))) {
+    // Compare real paths: "lengine-code/prelude.lg" and "./lengine-code/prelude.lg" are the same
+    // file, and treating the prelude as a normal module makes it require itself.
+    val isPrelude = new File(compileOps.sourceFile).getCanonicalFile == new File(DefaultPrelude).getCanonicalFile
+    val passingStmts = if (isPrelude) {
       lispValues.filter(x => !x.isInstanceOf[LispModuleStmt])
     } else {
       LispRequireStmt(DefaultPrelude) +: lispValues.filter(x => !x.isInstanceOf[LispModuleStmt])

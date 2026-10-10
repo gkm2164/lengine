@@ -42,6 +42,13 @@ class MainTest extends AnyFlatSpec with should.Matchers {
 
   val classLoader = new LengineTestClassLoader(Thread.currentThread().getContextClassLoader)
 
+  private def setExitHandler(handler: java.util.function.IntConsumer): java.util.function.IntConsumer =
+    classLoader
+      .loadClass("lengine.runtime.ExitHandler")
+      .getMethod("set", classOf[java.util.function.IntConsumer])
+      .invoke(null, handler)
+      .asInstanceOf[java.util.function.IntConsumer]
+
   def execute(fileName: String, className: String): Unit = {
     println(fileName)
     Main.main(
@@ -56,14 +63,17 @@ class MainTest extends AnyFlatSpec with should.Matchers {
         .getConstructor()
         .newInstance()
         .asInstanceOf[LengineObject]
-      System.setSecurityManager(new NoExitSecurityManager())
+      // The script sees the runtime through `classLoader`, which may hold its own copy of
+      // ExitHandler, so install the handler on that copy.
+      val previous = setExitHandler(code => throw ExitException(code))
       try {
         lengineObject.scriptMain()
       } catch {
-        case e: ExitException =>
+        case _: ExitException =>
           println("program finished in expected way.")
+      } finally {
+        setExitHandler(previous)
       }
-      System.setSecurityManager(null)
     })
 
     val startTime = System.currentTimeMillis()
