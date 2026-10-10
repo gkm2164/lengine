@@ -116,8 +116,10 @@ object AsmHelper {
       stackSizeTrace.incrementAndGet()
     }
 
+    /** Pushes a char's code. SIPUSH is signed 16-bit, so chars above U+7FFF need LDC. */
     def visitSiPush(ch: Char): Unit = {
-      mv.visitIntInsn(SIPUSH, ch)
+      if (ch <= Short.MaxValue) mv.visitIntInsn(SIPUSH, ch)
+      else mv.visitLdcInsn(Integer.valueOf(ch.toInt))
       stackSizeTrace.incrementAndGet()
     }
 

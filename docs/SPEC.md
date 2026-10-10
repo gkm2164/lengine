@@ -66,7 +66,7 @@ end of the line; its content is ignored, whatever characters it holds.
 after
 ```
 
-```lengine id=lex-comment-trailing-backslash bug=comment-escapes
+```lengine id=lex-comment-trailing-backslash
 (println 1) ; ends with a backslash \
 (println 2)
 ```
@@ -110,7 +110,7 @@ Decimal integers, optionally signed, are 64-bit (`java.lang.Long`). Radix forms 
 35
 ```
 
-```lengine id=lex-int-overflow bug=int-overflow
+```lengine id=lex-int-overflow
 (println 9223372036854775808)
 ```
 ```compile-error
@@ -174,14 +174,14 @@ true
 10
 ```
 
-```lengine id=lex-char-rubout bug=rubout-is-backspace
+```lengine id=lex-char-rubout
 (println (int #\Rubout))
 ```
 ```output
 127
 ```
 
-```lengine id=lex-char-unicode bug=char-above-7fff
+```lengine id=lex-char-unicode
 (println #\가)
 ```
 ```output
@@ -264,7 +264,7 @@ everywhere (D1).
 1-2
 ```
 
-```lengine id=mod-nil-everywhere bug=nil-not-in-prelude
+```lengine id=mod-nil-everywhere
 (println (nil? nil))
 ```
 ```output
@@ -735,7 +735,7 @@ lower operand. Exact results stay exact; a ratio that becomes whole is a Long.
 {2.5 + 2i}
 ```
 
-```lengine id=num-division-exact bug=integer-division-truncates
+```lengine id=num-division-exact
 (println (/ 6 3))
 (println (/ 1 2))
 ```
@@ -852,7 +852,7 @@ false
 false
 ```
 
-```lengine id=nil-non-collection bug=nil-on-non-collection
+```lengine id=nil-non-collection
 (require "collections")
 (println (nil? 0))
 (println (nil? false))
@@ -865,7 +865,7 @@ false
 `head` of an empty collection is an error mentioning `empty`; `tail` of an empty collection is
 the same empty value (D4).
 
-```lengine id=nil-head-empty bug=empty-head-message
+```lengine id=nil-head-empty
 (require "collections")
 (head (seq []))
 ```
@@ -873,7 +873,7 @@ the same empty value (D4).
 empty
 ```
 
-```lengine id=nil-tail-empty bug=empty-tail
+```lengine id=nil-tail-empty
 (require "collections")
 (println (nil? (tail nil)))
 (println (nil? (tail (seq []))))

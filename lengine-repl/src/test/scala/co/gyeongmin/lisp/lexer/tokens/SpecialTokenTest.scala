@@ -30,7 +30,7 @@ class SpecialTokenTest extends AnyFlatSpec with Matchers {
     specialTokenVerifier("\\Linefeed", LispChar('\n'))
     specialTokenVerifier("\\Page", LispChar('\f'))
     specialTokenVerifier("\\Return", LispChar('\r'))
-    specialTokenVerifier("\\Rubout", LispChar(0x08))
+    specialTokenVerifier("\\Rubout", LispChar(0x7f))
     specialTokenVerifier("\\Space", LispChar(' '))
     specialTokenVerifier("\\c", LispChar('c'))
   }

@@ -120,9 +120,14 @@ public class PreludeImpl {
         Object y = cast(b, largerType);
 
         if (x instanceof Character) {
-            return (long) ((Character) x / (Character) y);
-        } else if (x instanceof Long) {
-            return (Long) x / (Long) y;
+            x = (long) (Character) x;
+            y = (long) (Character) y;
+        }
+        if (x instanceof Long) {
+            // Exact: a Ratio unless the quotient is whole (spec D6).
+            long n = (Long) x, d = (Long) y;
+            if (d == 0) throw new ArithmeticException("/ by zero");
+            return n % d == 0 ? (Object) (n / d) : RatioNumber.create(n, d);
         } else if (x instanceof RatioNumber) {
             return ((RatioNumber) x).div((RatioNumber) y).simplify();
         } else if (x instanceof Double) {
@@ -196,8 +201,15 @@ public class PreludeImpl {
         return cls.isInstance(value);
     }
 
-    public static final LengineLambda1<Object, LengineIterable> _HEAD = LengineIterable::head;
-    public static final LengineLambda1<LengineIterable, LengineIterable> _TAIL = LengineIterable::tail;
+    /** head of an empty collection is an error (spec D4). */
+    public static final LengineLambda1<Object, LengineIterable> _HEAD = (seq) -> {
+        if (seq.IS_NIL()) {
+            throw new LengineRuntimeException("head of an empty collection: " + seq);
+        }
+        return seq.head();
+    };
+    /** tail of an empty collection is that empty collection (spec D4). */
+    public static final LengineLambda1<LengineIterable, LengineIterable> _TAIL = (seq) -> seq.IS_NIL() ? seq : seq.tail();
     public static final LengineLambda3<Object, LengineIterable, Object, LengineLambda2<Object, Object, Object>> _FOLD = (seq, acc, fn) -> {
         LengineIterator it = seq.iterator();
         while (it.hasNext()) {
@@ -266,7 +278,9 @@ public class PreludeImpl {
     public static final LengineLambda1<Boolean, Object> _IS_SEQ = (obj) -> isInstanceOf(LengineSequence.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_OBJECT = (obj) -> isInstanceOf(LengineMap.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_CONS = (obj) -> isInstanceOf(Cons.class, obj);
-    public static final LengineLambda1<Boolean, LengineIterable> _IS_NIL = (obj) -> obj == null || obj.IS_NIL();
+    /** True for null and for an empty collection of any kind; false for everything else (spec D2). */
+    public static final LengineLambda1<Boolean, Object> _IS_NIL = (obj) ->
+            obj == null || (obj instanceof LengineIterable && ((LengineIterable) obj).IS_NIL());
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_NIL = (obj) -> isInstanceOf(StreamNil.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_CONS = (obj) -> isInstanceOf(StreamCons.class, obj);
     public static final LengineLambda1<Boolean, Object> _IS_STREAM_UNRESOLVED = (obj) -> isInstanceOf(UnresolvedStream.class, obj) && !((UnresolvedStream)obj).isResolved();

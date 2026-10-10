@@ -50,7 +50,7 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       Left(EOFError)
     } else {
       codeIterator.next() match {
-        case (' ' | '\t' | '\n', _) => Right(Seq(acc))
+        case (' ' | '\t' | '\n' | '\r', _) => Right(Seq(acc))
         case (ch, _) if "([{}])\";".contains(ch) && acc._1 == "#\\" =>
           Right(Seq((acc._1 + ch, acc._2)))
         case (ch @ ('(' | '[' | '{'), _) if acc._1.nonEmpty => Right(Seq((acc._1 + ch, acc._2)))
@@ -63,9 +63,9 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
             str <- parseString(acc._1 + '"', '"')
           } yield Seq((str, loc))
         case (';', _) =>
-          for {
-            _ <- parseString("", '\n')
-          } yield Seq(acc)
+          // A comment is plain text up to the end of the line; no escapes (spec D9).
+          while (codeIterator.hasNext && codeIterator.next()._1 != '\n') {}
+          Right(Seq(acc))
         case ch if ch._1 == -1.toChar    => Right(Seq(acc))
         case (ch, loc) if acc._1.isEmpty => loop((ch.toString, loc))
         case (ch, _)                     => loop((acc._1 + ch, acc._2))
@@ -84,8 +84,8 @@ class Tokenizer(val codeIterator: Iterator[(Char, TokenLocation)]) {
       xs.foldRight(LispNop() #:: streamLoop)((x, tokens) => x #:: tokens)
     case Left(EOFError) => LazyList()
     case Left(e) =>
-      println(s"[ERROR] Lexing error: ${e.message}")
-      LispNop() #:: streamLoop
+      // A lexing error stops compilation instead of silently dropping the token.
+      throw new IllegalArgumentException(s"Lexing error: ${e.message}")
   }
 
   def getTokenStream: Either[TokenizeError, LazyList[LispToken]] = Right(

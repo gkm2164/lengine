@@ -53,6 +53,8 @@ case class SpecialToken(body: String) extends LispValue {
         case "" => Right(IntegerNumber(acc * sign))
         case '/' s_+: tail =>
           parseNumber(base, 1, tail) match {
+            case Right(IntegerNumber(0)) =>
+              InvalidNumberTokenTypeError(s"ratio #$body has a zero denominator").asLeft[LispNumber]
             case Right(IntegerNumber(num)) =>
               RatioNumber(acc * sign, num).asRight[TokenizeError]
             case Right(_) =>
@@ -68,7 +70,11 @@ case class SpecialToken(body: String) extends LispValue {
               s"given character(${remains.head}) exceeds given base($base)"
             ).asLeft[LispNumber]
           } else {
-            loop(acc * base + h, remains.tail)
+            scala.util.Try(Math.addExact(Math.multiplyExact(acc, base.toLong), h.toLong)).toOption match {
+              case Some(next) => loop(next, remains.tail)
+              case None =>
+                InvalidNumberTokenTypeError(s"integer literal #$body does not fit in 64 bits").asLeft[LispNumber]
+            }
           }
       }
 
@@ -100,7 +106,7 @@ case class SpecialToken(body: String) extends LispValue {
         case "Page"        => Right(LispChar('\f'))
         case "Return"      => Right(LispChar('\r'))
         case "Space"       => Right(LispChar(' '))
-        case "Rubout"      => Right(LispChar(0x08))
+        case "Rubout"      => Right(LispChar(0x7f))
         case ch            => Right(LispChar(ch.head))
       }
     case v => Left(UnknownMacroError(v))

@@ -46,6 +46,8 @@
 (export string? (native lengine.Prelude.IS_STR fn))
 
 (export now     (native lengine.Prelude.NOW fn))
+(export nil     (native lengine.Prelude.NIL var))
+(export nil?    (native lengine.Prelude.IS_NIL fn))
 (export exit    (native lengine.Prelude.EXIT fn))
 (export wait    (native lengine.Prelude.WAIT fn))
 

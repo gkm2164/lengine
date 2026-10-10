@@ -165,11 +165,10 @@ class TokenizerTest extends AnyFlatSpec with Matchers {
   }
 
   "tokenizer" should "error" in {
-    val outputStream = new ByteArrayOutputStream()
-    Console.withOut(outputStream) {
+    // A lexing error stops tokenizing instead of printing and dropping the token.
+    val e = intercept[IllegalArgumentException] {
       Tokenizer("123qwer (+ 3 5)").getTokenStream.map(_.toList)
     }
-
-    outputStream.toString() should include("Lexing error")
+    e.getMessage should include("Lexing error")
   }
 }

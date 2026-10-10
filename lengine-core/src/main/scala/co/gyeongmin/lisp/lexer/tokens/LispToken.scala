@@ -1,6 +1,6 @@
 package co.gyeongmin.lisp.lexer.tokens
 
-import co.gyeongmin.lisp.errors.tokenizer.{RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError}
+import co.gyeongmin.lisp.errors.tokenizer.{InvalidNumberTokenTypeError, RatioUnderZeroNotAllowedError, TokenizeError, UnknownTokenError}
 import co.gyeongmin.lisp.lexer.TokenLocation
 import co.gyeongmin.lisp.lexer.values.boolean.{LispFalse, LispTrue}
 import co.gyeongmin.lisp.lexer.values.numbers.{FloatNumber, IntegerNumber, RatioNumber}
@@ -69,13 +69,14 @@ object LispToken {
     case "when"                                => Right(LispWhen())
     case "otherwise"                           => Right(LispOtherwise())
     case SpecialValueRegex(body)               => Right(SpecialToken(body))
-    case NumberRegex(sign, num)                => Right(IntegerNumber(parseInteger(sign, num)))
+    case NumberRegex(sign, num)                => parseInteger(sign, num, location).map(IntegerNumber)
     case v @ FloatingPointRegex(_, _, _, _, _) => Right(FloatNumber(v.replaceAll("[esfdlESFDL]", "E").toDouble))
     case RatioRegex(overSign, over, under) =>
-      val o = parseInteger(overSign, over)
-      val u = parseInteger("", under)
-      if (u == 0) Left(RatioUnderZeroNotAllowedError)
-      else Right(RatioNumber(o, u))
+      for {
+        o <- parseInteger(overSign, over, location)
+        u <- parseInteger("", under, location)
+        r <- if (u == 0) Left(RatioUnderZeroNotAllowedError) else Right(RatioNumber(o, u))
+      } yield r
     case ObjectReferSymbolRegex(name)                                   => Right(ObjectReferSymbol(name))
     case SyntacticalSymbolRegex(name)                                   => Right(SyntacticSymbol(name))
     case ListSymbolRegex(name)                                          => Right(ListSymbol(name))
@@ -90,13 +91,15 @@ object LispToken {
       token
     })
 
-  private def parseInteger(sign: String, str: String): Long = {
-    val numberPart = str.foldLeft(0L)((acc, elem) => {
-      acc * 10 + digitMap(elem)
-    })
-
-    numberPart * (if (sign == "-") -1 else 1)
-  }
+  /** A 64-bit integer literal; anything outside the Long range is an error (spec D10). */
+  private def parseInteger(sign: String, str: String, location: TokenLocation): Either[TokenizeError, Long] =
+    (Option(sign).getOrElse("") + str).stripPrefix("+").toLongOption match {
+      case Some(n) => Right(n)
+      case None =>
+        Left(InvalidNumberTokenTypeError(
+          s"integer literal ${Option(sign).getOrElse("")}$str does not fit in 64 bits (line: ${location.line}, column: ${location.column})"
+        ))
+    }
 
   private def mapFor(
       str: Iterable[Char],
